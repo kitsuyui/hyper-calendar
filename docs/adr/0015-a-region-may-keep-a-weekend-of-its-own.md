@@ -77,15 +77,26 @@ holiday rule, with the same codes.
   substitute may not land on although a holiday on it is not moved.
   `SubstitutionPolicy::avoid` is empty for every policy that existed.
 - **A weekend whose law was not read is a gap.** A `WeekendPolicy` with
-  no `days` says that the region's weekend law in those years was not
-  read, and that is not a weekend of no days. The engine reports the gap,
-  `UNREAD_WEEKEND`, in each year asked for in which such a day lies;
-  `weekend_in` answers `None` for the day; `is_weekend` says no and
-  `weekend_is_read` says that the question has no answer; and
-  `add_business_days` and `business_days_between` answer `None` for a
-  walk that reaches the day, as they do for a walk that leaves the years
-  evaluated. The table's own policy for the whole country has none, so a
-  request for no region is never a gap for it.
+  no `days` says that the weekend law in those years was not read for the
+  policy's `regions`, and that is not a weekend of no days. The engine
+  reports the gap, `UNREAD_WEEKEND`, in each year asked for in which such a
+  day lies; `weekend_in` answers `None` for the day; `is_weekend` says no
+  and `weekend_is_read` says that the question has no answer; and
+  `add_business_days` and `business_days_between` answer `None` for a walk
+  that reaches the day, as they do for a walk that leaves the years
+  evaluated.
+- **A table that states a weekend states the year it begins.** The policy
+  of the whole table, with no regions, may be unread too: every national
+  table and every exchange begins with `WeekendPolicy::unread()` up to the
+  day before the first its sources state a weekend, and a day no policy of
+  such a table covers is unread, never Saturday and Sunday assumed. Only a
+  table that has no policy of the whole table states no weekend law at all,
+  as a caller's own table may and the table of a tradition or of a list of
+  days does (`NO_WEEKEND`), and keeps Saturday and Sunday as a default, not
+  a claim. `RuleSet::weekend_on` therefore answers an `Option`.
+  `HolidayCalendar::is_complete` is about the holidays and does not count the
+  gap of an unread weekend; `HolidayCalendar::holiday_gaps` is `gaps`
+  without it.
 - **Reading, as for the holidays.** A region whose weekend is carried is
   not thereby a region whose holidays were read:
   `RuleSet::reads_region` is unchanged, and Kedah's own days are still the
@@ -126,6 +137,10 @@ holiday rule, with the same codes.
 - The line shape changes: `hc_holiday_tables` has a weekend column, its last (column 14).
 - Years before the earliest a source reaches are reported, not guessed;
   Kedah, Kelantan, Terengganu and Perlis before 25 November 2013, and
-  Johor to 1994, are gaps.
+  Johor to 1994, are gaps, and so is the rest of Malaysia, whose Saturday
+  and Sunday is read from the same report. Every national table carries the
+  first date its sources state a weekend (`docs/systems/national-weekends.md`),
+  most of them 2026, the year they were read in, so that a business-day walk
+  in an earlier year is refused where it used to answer with a guess.
 - A region whose weekend shifts within a year is no problem: the
   policy carries the day it takes effect, as the country's do.

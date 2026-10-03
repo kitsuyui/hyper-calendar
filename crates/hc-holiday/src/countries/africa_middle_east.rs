@@ -15,6 +15,7 @@ use hc_seasons::Meridian;
 use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 
 use super::read_all;
+use super::weekends;
 use crate::computus::offsets::{
     ASCENSION, CORPUS_CHRISTI, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY,
     MAUNDY_THURSDAY, PALM_SUNDAY, PENTECOST, SHROVE_TUESDAY, WHIT_MONDAY,
@@ -22,108 +23,8 @@ use crate::computus::offsets::{
 use crate::hindu::{DIWALI, GANESH_CHATURTHI, MAHA_SHIVARATRI, UGADI};
 use crate::rule::{
     BridgePolicy, CalendarSystem, Days, HolidayRule, Kind, ListedEntry, Listing, Rule, RuleSet,
-    SATURDAY_SUNDAY, SourceDate, Subdivisions, SubstituteDirection, SubstitutionPolicy,
-    WeekendPolicy,
+    SourceDate, Subdivisions, SubstituteDirection, SubstitutionPolicy,
 };
-
-/// The Friday–Saturday weekend, as most of the Arab world keeps it, for a
-/// table whose sources give no date it began.
-static FRIDAY_SATURDAY: &[WeekendPolicy] = &[WeekendPolicy {
-    days: &[Weekday::Friday, Weekday::Saturday],
-    regions: &[],
-    valid_from: None,
-    valid_from_day: None,
-    valid_until: None,
-    valid_until_day: None,
-}];
-
-/// Bahrain: Thursday–Friday until the Government moved the public sector
-/// to Friday–Saturday from Saturday 2 September 2006, as Gulf News reported
-/// the next day.
-static BH_WEEKEND: &[WeekendPolicy] = &[
-    WeekendPolicy {
-        days: &[Weekday::Thursday, Weekday::Friday],
-        regions: &[],
-        valid_from: None,
-        valid_from_day: None,
-        valid_until: Some(2006),
-        valid_until_day: Some((8, 31)),
-    },
-    WeekendPolicy {
-        days: &[Weekday::Friday, Weekday::Saturday],
-        regions: &[],
-        valid_from: Some(2006),
-        valid_from_day: Some((9, 1)),
-        valid_until: None,
-        valid_until_day: None,
-    },
-];
-
-/// Jordan: Thursday–Friday until the Government made it Friday–Saturday in
-/// January 2000, as Al Wakeel News reports; the day is not in the report,
-/// so the policy begins with 2000.
-static JO_WEEKEND: &[WeekendPolicy] = &[
-    WeekendPolicy {
-        days: &[Weekday::Thursday, Weekday::Friday],
-        regions: &[],
-        valid_from: None,
-        valid_from_day: None,
-        valid_until: Some(1999),
-        valid_until_day: None,
-    },
-    WeekendPolicy {
-        days: &[Weekday::Friday, Weekday::Saturday],
-        regions: &[],
-        valid_from: Some(2000),
-        valid_from_day: None,
-        valid_until: None,
-        valid_until_day: None,
-    },
-];
-
-/// Kuwait: Thursday–Friday until the Cabinet's decision of 27 May 2007
-/// moved the Government's offices to Friday–Saturday from Saturday
-/// 1 September 2007, as Arab News reported it from KUNA.
-static KW_WEEKEND: &[WeekendPolicy] = &[
-    WeekendPolicy {
-        days: &[Weekday::Thursday, Weekday::Friday],
-        regions: &[],
-        valid_from: None,
-        valid_from_day: None,
-        valid_until: Some(2007),
-        valid_until_day: Some((8, 31)),
-    },
-    WeekendPolicy {
-        days: &[Weekday::Friday, Weekday::Saturday],
-        regions: &[],
-        valid_from: Some(2007),
-        valid_from_day: Some((9, 1)),
-        valid_until: None,
-        valid_until_day: None,
-    },
-];
-
-/// Qatar: Thursday–Friday until the Cabinet's decision announced on
-/// 20 July 2003 moved the public sector to Friday–Saturday from 1 August
-/// 2003, as Arab News reported it.
-static QA_WEEKEND: &[WeekendPolicy] = &[
-    WeekendPolicy {
-        days: &[Weekday::Thursday, Weekday::Friday],
-        regions: &[],
-        valid_from: None,
-        valid_from_day: None,
-        valid_until: Some(2003),
-        valid_until_day: Some((7, 31)),
-    },
-    WeekendPolicy {
-        days: &[Weekday::Friday, Weekday::Saturday],
-        regions: &[],
-        valid_from: Some(2003),
-        valid_from_day: Some((8, 1)),
-        valid_until: None,
-        valid_until_day: None,
-    },
-];
 
 const EID_AL_FITR: Rule = Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1);
 const EID_AL_ADHA: Rule = Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10);
@@ -252,24 +153,6 @@ static IL_RULES: &[HolidayRule] = &read_all(
     ],
 );
 
-/// Israel's weekly day of rest: the Sabbath, and in law nothing else.
-///
-/// The Hours of Work and Rest Law, 5711-1951, section 7(b)(1), puts the
-/// Sabbath in every Jewish employee's weekly rest, and the Law and
-/// Administration Ordinance, section 18A, makes the Sabbath and the festivals
-/// the State's prescribed days of rest. Friday is a working day: section
-/// 2(b) shortens the day before the weekly rest to seven hours, and the
-/// Sunday-to-Thursday week many employers keep is agreement and custom, not
-/// statute.
-static IL_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
-    days: &[Weekday::Saturday],
-    regions: &[],
-    valid_from: None,
-    valid_from_day: None,
-    valid_until: None,
-    valid_until_day: None,
-}];
-
 /// Israel.
 pub static ISRAEL: RuleSet = RuleSet {
     code: "IL",
@@ -278,7 +161,7 @@ pub static ISRAEL: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: IL_WEEKEND,
+    weekend: weekends::IL,
     sources_checked: SourceDate::new(2026, 9, 28),
     sources: "חוק יום העצמאות, התש\"ט-1949 and its 2004 amendment; \
               חוק חג הסיגד, התשס\"ח-2008, passed on 30 June 2008, read in \
@@ -301,17 +184,6 @@ pub static ISRAEL: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Saudi Arabia
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Iran's weekly holiday is Friday, under article 17 of the Constitution;
-/// Thursday is a half-day in most offices and is not a weekend day.
-static IR_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
-    days: &[Weekday::Friday],
-    regions: &[],
-    valid_from: None,
-    valid_from_day: None,
-    valid_until: None,
-    valid_until_day: None,
-}];
 
 /// A civil holiday dated in the Solar Hijri calendar as Iran keeps it —
 /// exact, because the calendar is the astronomical one.
@@ -434,7 +306,7 @@ pub static IRAN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: IR_WEEKEND,
+    weekend: weekends::IR,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Wikipedia, \"Public holidays in Iran\" and \"تعطیلات رسمی \
               ایران\", retrieved 2026-09-22, for the list; the Constitution \
@@ -444,31 +316,6 @@ pub static IRAN: RuleSet = RuleSet {
               sighting, and the tabular civil calendar here is a prediction",
     subdivisions: Subdivisions::Read(&[]),
 };
-
-/// Saudi Arabia moved the Government's weekend from Thursday–Friday to
-/// Friday–Saturday by a royal order of 23 June 2013, "starting from
-/// Saturday, 20/08/1434 corresponding to 29/6/2013", as the Saudi Press
-/// Agency published it; Friday 28 June was a weekend day under both. The
-/// Ministry of Labour said at the time that the private sector's statutory
-/// weekly rest is Friday alone, which is not carried.
-static SA_WEEKEND: &[WeekendPolicy] = &[
-    WeekendPolicy {
-        days: &[Weekday::Thursday, Weekday::Friday],
-        regions: &[],
-        valid_from: None,
-        valid_from_day: None,
-        valid_until: Some(2013),
-        valid_until_day: Some((6, 28)),
-    },
-    WeekendPolicy {
-        days: &[Weekday::Friday, Weekday::Saturday],
-        regions: &[],
-        valid_from: Some(2013),
-        valid_from_day: Some((6, 29)),
-        valid_until: None,
-        valid_until_day: None,
-    },
-];
 
 /// 29 Ramadan on the Umm al-Qurā calendar.
 static SA_RAMADAN_29: Rule = Rule::in_calendar(CalendarSystem::ISLAMIC_UMM_AL_QURA, 9, 29);
@@ -552,7 +399,7 @@ pub static SAUDI_ARABIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SA_WEEKEND,
+    weekend: weekends::SA,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "The Labour Law's executive regulation, article 24, as the Ministry of Human \
               Resources and Social Development publishes it (hrsd.gov.sa, \"اللائحة التنفيذية \
@@ -571,56 +418,6 @@ pub static SAUDI_ARABIA: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // United Arab Emirates
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Thursday–Friday until 31 August 2006; Friday–Saturday for the federal
-/// Government and the schools from Friday 1 September 2006, by the Cabinet
-/// decision WAM reported on 16 May 2006; Saturday–Sunday, with a half-day
-/// Friday, from 1 January 2022, as the Government portal states.
-///
-/// The Government of Sharjah's own offices keep Friday, Saturday and
-/// Sunday from 1 January 2022: the Sharjah Executive Council's decision of
-/// December 2021 gave them a four-day week, Monday to Thursday, as Khaleej
-/// Times of 9 December 2021 and the circular Gulf News reported on 28
-/// December 2021 say, and the Government portal's page on the public
-/// sector's working hours, as updated on 12 August 2026, still says that
-/// the employees of the Government of Sharjah work four days a week. It is
-/// the weekend of the emirate's government, not of its private sector,
-/// which the federal Labour Law governs. Before 2022 Sharjah kept the
-/// federal weekend, which the table's policies above give (ADR 0015).
-static AE_WEEKEND: &[WeekendPolicy] = &[
-    WeekendPolicy {
-        days: &[Weekday::Thursday, Weekday::Friday],
-        regions: &[],
-        valid_from: None,
-        valid_from_day: None,
-        valid_until: Some(2006),
-        valid_until_day: Some((8, 31)),
-    },
-    WeekendPolicy {
-        days: &[Weekday::Friday, Weekday::Saturday],
-        regions: &[],
-        valid_from: Some(2006),
-        valid_from_day: Some((9, 1)),
-        valid_until: Some(2021),
-        valid_until_day: None,
-    },
-    WeekendPolicy {
-        days: &[Weekday::Saturday, Weekday::Sunday],
-        regions: &[],
-        valid_from: Some(2022),
-        valid_from_day: None,
-        valid_until: None,
-        valid_until_day: None,
-    },
-    WeekendPolicy {
-        days: &[Weekday::Friday, Weekday::Saturday, Weekday::Sunday],
-        regions: &["AE-SH"],
-        valid_from: Some(2022),
-        valid_from_day: None,
-        valid_until: None,
-        valid_until_day: None,
-    },
-];
 
 /// The first year the sources read answer for: Cabinet Resolution No. 27 of
 /// 2024, in force from 1 January 2025; the Resolution of 2019 it repealed was
@@ -720,7 +517,7 @@ pub static UNITED_ARAB_EMIRATES: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: AE_WEEKEND,
+    weekend: weekends::AE,
     sources_checked: SourceDate::new(2026, 10, 3),
     sources: "Federal Decree-Law No. 33 of 2021, article 28, on the public holidays the \
               Cabinet sets, as Gulf News reports it (secondary); Cabinet Resolution No. 27 of \
@@ -837,7 +634,7 @@ pub static TURKEY: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::TR,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "2429 sayılı Ulusal Bayram ve Genel Tatiller Hakkında Kanun (17/3/1981, Resmî \
               Gazete 19/3/1981, sayı 17284), maddeler 1 and 2, as amended by the Kanunlar \
@@ -944,7 +741,7 @@ pub static EGYPT: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: FRIDAY_SATURDAY,
+    weekend: weekends::EG,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Labour Law No. 14 of 2025 (الجريدة الرسمية العدد 18 تابع، 3 May 2025; in force 1 \
               September 2025, repealing Law 12 of 2003), in Wikisource's text of the \
@@ -1025,7 +822,7 @@ pub static NIGERIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::NG,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Public Holidays Act, Cap. P40, Laws of the Federation of Nigeria 2004 \
               (originally Act No. 31 of 1979), section 1 and the Schedule, section 3 and \
@@ -1069,7 +866,7 @@ pub static SOUTH_AFRICA: RuleSet = RuleSet {
     substitution: SUNDAY_FORWARD,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::ZA,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Public Holidays Act 36 of 1994 (Government Gazette 16136 of 7 December 1994; in \
               force 1 January 1995), section 2(1) and Schedule 1, as gazetted, on gov.za \
@@ -1149,7 +946,7 @@ pub static KENYA: RuleSet = RuleSet {
     substitution: KE_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::KE,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "The Public Holidays Act (Cap. 110), Revised Edition 2022, National \
               Council for Law Reporting (new.kenyalaw.org, retrieved 2026-09-22), \
@@ -1249,7 +1046,7 @@ pub static MOROCCO: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::MA,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Décret n° 2-04-426 and décret n° 2-00-166 of 10 May 2000 amending \
               décret n° 2-77-169 of 28 February 1977, as cited by Wikipedia (fr), \
@@ -1353,7 +1150,7 @@ pub static ETHIOPIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::ET,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Public Holidays and Celebration of Public Holidays Proclamation No. 1334/2024, \
               Federal Negarit Gazette, 30th Year No. 55, 14 August 2024, pp. 15780 ff., \
@@ -1444,7 +1241,7 @@ pub static GHANA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::GH,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Wikipedia, \"Public holidays in Ghana\", retrieved 2026-09-22, for the \
               list, Constitution Day's first observance on 7 January 2019 and \
@@ -1517,7 +1314,7 @@ pub static BAHRAIN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: BH_WEEKEND,
+    weekend: weekends::BH,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Law 36 of 2012, Labour Law for the Private Sector, art. 64, per the Labour \
               Market Regulatory Authority; HONO, a private aggregator (secondary), for its \
@@ -1637,7 +1434,7 @@ pub static JORDAN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: JO_WEEKEND,
+    weekend: weekends::JO,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "The Prime Minister's Official Bulletin No. 6 of 2007 on the official religious \
               and national holidays, and Official Bulletin No. 18 of 2023, 16 December 2023 \
@@ -1698,7 +1495,7 @@ pub static KUWAIT: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: KW_WEEKEND,
+    weekend: weekends::KW,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Law 6 of 2010, the Private Sector Labour Law, art. 68, as published in \
               English by the Public Authority of Manpower and summarised by Kuwait \
@@ -1839,7 +1636,7 @@ pub static LEBANON: RuleSet = RuleSet {
     substitution: LB_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::LB,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Presidency of the Council of Ministers, \"الأعياد والعطل الرسمية\", \
               pcm.gov.lb, retrieved 2026-09-22, reproducing Decree 15215 of \
@@ -1943,7 +1740,7 @@ pub static TANZANIA: RuleSet = RuleSet {
     substitution: TZ_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::TZ,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Public Holidays Act, Cap. 35, sections 2 to 4 and the Schedule, as \
               reproduced by tanzanialaws.com, retrieved 2026-09-22; Wikipedia, \
@@ -1999,7 +1796,7 @@ pub static UGANDA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::UG,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Consulate of the Republic of Uganda in Arusha, \"Public Holidays\", \
               retrieved 2026-09-22, for the 2026 list and the Eids' single days; \
@@ -2075,7 +1872,7 @@ pub static ZAMBIA: RuleSet = RuleSet {
     substitution: ZM_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::ZM,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Public Holidays Act, Cap. 272, and its subsidiary legislation as \
               summarised by zambialaws.com and ZambiaLII, retrieved 2026-09-22; \
@@ -2158,7 +1955,7 @@ pub static ZIMBABWE: RuleSet = RuleSet {
     substitution: ZW_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::ZW,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "General Notice 1361 of 2025 under the Public Holidays and Prohibition of \
               Business Act, Chapter 10:21, as reproduced by SmartHR Solutions \
@@ -2171,38 +1968,6 @@ pub static ZIMBABWE: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Algeria
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Saturday–Sunday until the ordinances of 1976 made it Thursday–Friday
-/// — ordonnance no. 76-77 of 11 August 1976 on the weekly rest, known here
-/// by its title only, so the change is carried from 1 January 1976 — and
-/// Friday–Saturday from Friday 14 August 2009, by the Council of Ministers'
-/// decision of 21 July 2009.
-static DZ_WEEKEND: &[WeekendPolicy] = &[
-    WeekendPolicy {
-        days: &[Weekday::Saturday, Weekday::Sunday],
-        regions: &[],
-        valid_from: None,
-        valid_from_day: None,
-        valid_until: Some(1975),
-        valid_until_day: None,
-    },
-    WeekendPolicy {
-        days: &[Weekday::Thursday, Weekday::Friday],
-        regions: &[],
-        valid_from: Some(1976),
-        valid_from_day: None,
-        valid_until: Some(2009),
-        valid_until_day: Some((8, 13)),
-    },
-    WeekendPolicy {
-        days: &[Weekday::Friday, Weekday::Saturday],
-        regions: &[],
-        valid_from: Some(2009),
-        valid_from_day: Some((8, 14)),
-        valid_until: None,
-        valid_until_day: None,
-    },
-];
 
 /// A day article 3 or 4 of the law grants to the Christian or the Jewish
 /// community: a religious day, not a day off for everyone.
@@ -2295,7 +2060,7 @@ pub static ALGERIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: DZ_WEEKEND,
+    weekend: weekends::DZ,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Law 23-10 of 26 June 2023 amending law 63-278 of 26 July 1963 fixing the list \
               of legal holidays, Journal officiel no. 43 of 27 June 2023; legal-doctrine.com, \
@@ -2313,8 +2078,10 @@ pub static ALGERIA: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 
 // Read from 1961, the year of décret 61-144 and the decrees after it, as the
-// French Wikipedia chronicles them. Every rule below is established in 1961 or
-// later (`years`), so none is a gap before it.
+// French Wikipedia chronicles them. The first text read is that decree: the
+// days it lists are read from 1961 and no source read dates their
+// establishment, so the years before 1961 are a gap. A day a later decree
+// added is absent before it (`years`).
 static TN_RULES: &[HolidayRule] = &read_all(
     1961,
     [
@@ -2323,7 +2090,7 @@ static TN_RULES: &[HolidayRule] = &read_all(
             "رأس السنة الميلادية",
             Rule::gregorian(1, 1),
         )
-        .years(Some(1961), None),
+        .years(None, None),
         HolidayRule::fixed_public(
             "Revolution and Youth Day",
             "عيد الثورة والشباب",
@@ -2331,25 +2098,25 @@ static TN_RULES: &[HolidayRule] = &read_all(
         )
         .years(Some(2012), Some(2021)),
         HolidayRule::fixed_public("Revolution Day", "عيد الثورة", Rule::gregorian(1, 18))
-            .years(Some(1961), Some(1987)),
+            .years(None, Some(1987)),
         HolidayRule::fixed_public("Independence Day", "عيد الإستقلال", Rule::gregorian(3, 20))
-            .years(Some(1961), None),
+            .years(None, None),
         HolidayRule::fixed_public("Youth Day", "عيد الشباب", Rule::gregorian(3, 21))
             .years(Some(1988), Some(2010)),
         HolidayRule::fixed_public("Martyrs' Day", "عيد الشهداء", Rule::gregorian(4, 9))
-            .years(Some(1961), None),
+            .years(None, None),
         HolidayRule::fixed_public("Labour Day", "عيد الشغل", Rule::gregorian(5, 1))
-            .years(Some(1961), None),
+            .years(None, None),
         HolidayRule::fixed_public("Victory Day", "عيد النصر", Rule::gregorian(6, 1))
-            .years(Some(1961), Some(1987)),
+            .years(None, Some(1987)),
         HolidayRule::fixed_public("Republic Day", "عيد الجمهورية", Rule::gregorian(7, 25))
-            .years(Some(1961), None),
+            .years(None, None),
         HolidayRule::fixed_public(
             "President Bourguiba's Birthday",
             "عيد الزعيم",
             Rule::gregorian(8, 3),
         )
-        .years(Some(1961), Some(1987)),
+        .years(None, Some(1987)),
         HolidayRule::fixed_public("Women's Day", "عيد المرأة", Rule::gregorian(8, 13))
             .years(Some(1966), None),
         HolidayRule::fixed_public(
@@ -2368,14 +2135,14 @@ static TN_RULES: &[HolidayRule] = &read_all(
         .years(Some(1990), Some(2010)),
         HolidayRule::fixed_public("Revolution Day", "عيد الثورة", Rule::gregorian(12, 17))
             .years(Some(2021), None),
-        hijri("Islamic New Year", "رأس العام الهجري", 1, 1).years(Some(1961), None),
-        hijri("Ashura", "عاشوراء", 1, 10).years(Some(1961), Some(1965)),
-        hijri("Mouled", "المولد", 3, 12).years(Some(1961), None),
-        hijri("Eid al-Fitr", "العيد الصغير", 10, 1).years(Some(1961), None),
-        hijri("Eid al-Fitr", "العيد الصغير", 10, 2).years(Some(1961), None),
-        hijri("Eid al-Fitr", "العيد الصغير", 10, 3).years(Some(1961), None),
-        hijri("Eid al-Adha", "العيد الكبير", 12, 10).years(Some(1961), None),
-        hijri("Eid al-Adha", "العيد الكبير", 12, 11).years(Some(1961), None),
+        hijri("Islamic New Year", "رأس العام الهجري", 1, 1).years(None, None),
+        hijri("Ashura", "عاشوراء", 1, 10).years(None, Some(1965)),
+        hijri("Mouled", "المولد", 3, 12).years(None, None),
+        hijri("Eid al-Fitr", "العيد الصغير", 10, 1).years(None, None),
+        hijri("Eid al-Fitr", "العيد الصغير", 10, 2).years(None, None),
+        hijri("Eid al-Fitr", "العيد الصغير", 10, 3).years(None, None),
+        hijri("Eid al-Adha", "العيد الكبير", 12, 10).years(None, None),
+        hijri("Eid al-Adha", "العيد الكبير", 12, 11).years(None, None),
     ],
 );
 
@@ -2403,7 +2170,7 @@ pub static TUNISIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::TN,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Décret présidentiel n° 2021-223 du 7 décembre 2021 (JORT 2021-113), article 1, \
               as legislation-securite.tn and jurisitetunisie.com publish it, retrieved \
@@ -2491,7 +2258,7 @@ pub static SENEGAL: RuleSet = RuleSet {
     substitution: SN_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::SN,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Loi n° 74-52 du 4 novembre 1974 relative à la fête nationale et aux fêtes \
               légales, as amended by laws 83-54 and 89-41, from \"Le manuel du \
@@ -2592,7 +2359,7 @@ pub static COTE_D_IVOIRE: RuleSet = RuleSet {
     substitution: CI_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::CI,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Décret n° 2011-371 du 4 novembre 2011 modifiant et complétant l'article 2 du \
               décret n° 96-205 du 7 mars 1996 déterminant la liste et le régime des jours \
@@ -2699,7 +2466,7 @@ pub static BENIN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::BJ,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Loi n° 90-019 du 27 juillet 1990 fixant les fêtes légales en République du \
               Bénin (first page, articles 1 to 3), loi n° 97-031 du 20 août 1997 portant \
@@ -2872,7 +2639,7 @@ pub static BURKINA_FASO: RuleSet = RuleSet {
     substitution: BF_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::BF,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Loi n° 079-2015/CNT portant institution de fêtes légales et évènements à \
               caractère historique au Burkina Faso, from academiedepolice.bf, retrieved \
@@ -2963,7 +2730,7 @@ pub static CABO_VERDE: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::CV,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Lei n.º 16/IV/91, de 30 de Dezembro, Suplemento ao Boletim Oficial de Cabo \
               Verde n.º 52 de 30 de Dezembro de 1991, pp. 10–11, from governo.cv, \
@@ -3061,7 +2828,7 @@ pub static GUINEA: RuleSet = RuleSet {
     substitution: GN_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::GN,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Décret D/2022/0526/PRG/CNRD/SGG du 2 novembre 2022 relatif aux jours fériés, \
               as Guinée Nondi (\"Guinée : les jours de fête et férié sont officiellement \
@@ -3137,7 +2904,7 @@ pub static MALI: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::ML,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Loi n° 05-040 du 22 juillet 2005 relative aux fêtes légales en République \
               du Mali, Journal officiel de la République du Mali no. 25 of 10 September \
@@ -3151,29 +2918,6 @@ pub static MALI: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Oman
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Thursday–Friday until 30 April 2013, Friday–Saturday from 1 May 2013,
-/// for the public and private sectors alike, as Gulf News and Al Riyadh
-/// reported the Council of Ministers' statement of April 2013; the decree's
-/// number and text were not read.
-static OM_WEEKEND: &[WeekendPolicy] = &[
-    WeekendPolicy {
-        days: &[Weekday::Thursday, Weekday::Friday],
-        regions: &[],
-        valid_from: None,
-        valid_from_day: None,
-        valid_until: Some(2013),
-        valid_until_day: Some((4, 30)),
-    },
-    WeekendPolicy {
-        days: &[Weekday::Friday, Weekday::Saturday],
-        regions: &[],
-        valid_from: Some(2013),
-        valid_from_day: Some((5, 1)),
-        valid_until: None,
-        valid_until_day: None,
-    },
-];
 
 /// Royal Decree 88/2022, article I, first: a weekend day inside one of the
 /// single-day holidays "is compensated by one day", carried as the next
@@ -3324,7 +3068,7 @@ pub static OMAN: RuleSet = RuleSet {
     substitution: OM_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: OM_WEEKEND,
+    weekend: weekends::OM,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Royal Decree 88/2022 Determining the Official Holidays and Royal Decree \
               15/2025 amending it, in Decree's translations (decree.om), retrieved \
@@ -3416,7 +3160,7 @@ pub static QATAR: RuleSet = RuleSet {
     substitution: &[],
     bridges: QA_BRIDGES,
     includes: &[],
-    weekend: QA_WEEKEND,
+    weekend: weekends::QA,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Emiri Decision No. 57 of 2025 determining the working days, occasions and \
               official holidays in the State, and Cabinet Decision No. 18 of 2025 amending \
@@ -3564,7 +3308,7 @@ pub static IRAQ: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: FRIDAY_SATURDAY,
+    weekend: weekends::IQ,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Official Holidays Law No. 12 of 2024, Al-Waqa'i' al-Iraqiya no. 4777 of \
               27 May 2024, from the Ministry of Justice's copy (moj.gov.iq), retrieved \
@@ -3666,7 +3410,7 @@ pub static BOTSWANA: RuleSet = RuleSet {
     substitution: BW_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::BW,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Public Holidays Act, Cap. 03:07 (Act 17 of 2006), sections 2 and 3 and the \
               Schedule, from the NATLEX copy (BWA76156), retrieved 2026-09-22; Wikipedia, \
@@ -3748,7 +3492,7 @@ pub static NAMIBIA: RuleSet = RuleSet {
     substitution: NA_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::NA,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Public Holidays Act 26 of 1990, as amended by Act 16 of 2004, in the Legal \
               Assistance Centre's annotated statutes (lac.org.na), retrieved 2026-09-22; \
@@ -3869,7 +3613,7 @@ pub static MAURITIUS: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::MU,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Public Holidays Act (Act 22 of 1968) as amended to Act 22 of 2019, from \
               lawsofmauritius.govmu.org, retrieved 2026-09-22, for section 3 and the two \
@@ -3949,7 +3693,7 @@ pub static MALAWI: RuleSet = RuleSet {
     substitution: MW_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::MW,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Public Holidays Act, Cap. 18:05, sections 2 to 4 and the Schedule, from the \
               NATLEX copy (MWI90377), retrieved 2026-09-22; Nyasa Times on the Christmas, \
@@ -3960,29 +3704,6 @@ pub static MALAWI: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Syria
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Friday alone, and Friday and Saturday from February 2004, when the
-/// Council of Ministers added Saturday for the State's offices. The day in
-/// February is not in the report read, so the policy begins with 2004 and
-/// is a month early for January of that year.
-static SY_WEEKEND: &[WeekendPolicy] = &[
-    WeekendPolicy {
-        days: &[Weekday::Friday],
-        regions: &[],
-        valid_from: None,
-        valid_from_day: None,
-        valid_until: Some(2003),
-        valid_until_day: None,
-    },
-    WeekendPolicy {
-        days: &[Weekday::Friday, Weekday::Saturday],
-        regions: &[],
-        valid_from: Some(2004),
-        valid_from_day: None,
-        valid_until: None,
-        valid_until_day: None,
-    },
-];
 
 /// The first year the sources read answer for: Decree No. 188 of 2025.
 const SY_READ_FROM: i32 = 2025;
@@ -4068,7 +3789,7 @@ pub static SYRIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SY_WEEKEND,
+    weekend: weekends::SY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Decree No. 188 of 2025 determining the official holidays, as SANA published it \
               (sana.sy/presidency/2299819), retrieved 2026-09-23; Decree No. 13 of 2026, \
@@ -4346,7 +4067,7 @@ pub static PALESTINE: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: FRIDAY_SATURDAY,
+    weekend: weekends::PS,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Palestinian National Information Centre (WAFA), \"العطل الرسمية في فلسطين\" \
               (info.wafa.ps/pages/details/29601), retrieved 2026-09-23, for the Council of \
@@ -4366,29 +4087,6 @@ pub static PALESTINE: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Libya
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Friday alone, and Friday and Saturday for the Government's offices from
-/// January 2006; schools and hospitals kept Friday alone. The Government's
-/// statement of 2 January 2006 gives no day of effect, so the policy
-/// begins with 2006.
-static LY_WEEKEND: &[WeekendPolicy] = &[
-    WeekendPolicy {
-        days: &[Weekday::Friday],
-        regions: &[],
-        valid_from: None,
-        valid_from_day: None,
-        valid_until: Some(2005),
-        valid_until_day: None,
-    },
-    WeekendPolicy {
-        days: &[Weekday::Friday, Weekday::Saturday],
-        regions: &[],
-        valid_from: Some(2006),
-        valid_from_day: None,
-        valid_until: None,
-        valid_until_day: None,
-    },
-];
 
 /// The first year the sources read answer for: Law No. 5 of 2012.
 const LY_READ_FROM: i32 = 2012;
@@ -4443,7 +4141,7 @@ pub static LIBYA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: LY_WEEKEND,
+    weekend: weekends::LY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Law No. 5 of 2012 on the official holidays and its table, Official Gazette \
               2012 no. 1, as the Libyan Legal Society's archive (lawsociety.ly) reproduces \
@@ -4457,30 +4155,6 @@ pub static LIBYA: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Yemen
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Thursday and Friday until Council of Ministers resolution 179 of 2013
-/// made Saturday the second day in Thursday's place: from 15 August 2013,
-/// as Yemen Post reported it the next day. Al Khaleej reported the change
-/// as applied from Saturday 17 August; the two readings differ only on
-/// Thursday 15 August, which is carried as a working day.
-static YE_WEEKEND: &[WeekendPolicy] = &[
-    WeekendPolicy {
-        days: &[Weekday::Thursday, Weekday::Friday],
-        regions: &[],
-        valid_from: None,
-        valid_from_day: None,
-        valid_until: Some(2013),
-        valid_until_day: Some((8, 14)),
-    },
-    WeekendPolicy {
-        days: &[Weekday::Friday, Weekday::Saturday],
-        regions: &[],
-        valid_from: Some(2013),
-        valid_from_day: Some((8, 15)),
-        valid_until: None,
-        valid_until_day: None,
-    },
-];
 
 /// The first year the sources read answer for: Law No. 2 of 2000.
 const YE_READ_FROM: i32 = 2000;
@@ -4572,7 +4246,7 @@ pub static YEMEN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: YE_WEEKEND,
+    weekend: weekends::YE,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Law No. 2 of 2000 determining the official leave and holidays, articles 3 to \
               7, from the Public Prosecution's legislation library (agoyemen.net), \
@@ -4653,7 +4327,7 @@ pub static CAMEROON: RuleSet = RuleSet {
     substitution: CM_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::CM,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Loi n° 73/5 du 7 décembre 1973 fixant le régime des fêtes légales en \
               République Unie du Cameroun, from the Ministry of Public Service's \
@@ -4718,7 +4392,7 @@ pub static CONGO: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::CG,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Loi n° 2-94 du 1er mars 1994 fixant les jours fériés, chômés et payés, the \
               signed text and Unicongo's note of 2 April 1994, from the Secrétariat \
@@ -4863,7 +4537,7 @@ pub static DR_CONGO: RuleSet = RuleSet {
     substitution: CD_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::CD,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Ordonnance n° 23-042 du 30 mars 2023 fixant la liste des jours fériés légaux \
               (J.O. RDC, 15 May 2023) and ordonnance n° 14/010 du 14 mai 2014 (J.O. RDC \
@@ -5073,7 +4747,7 @@ pub static ANGOLA: RuleSet = RuleSet {
     substitution: AO_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::AO,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Lei n.º 10/11 de 16 de Fevereiro, Lei dos Feriados Nacionais e Locais e Datas \
               de Celebração Nacional, and Lei n.º 11/18 de 28 de Setembro amending its \
@@ -5180,7 +4854,7 @@ pub static RWANDA: RuleSet = RuleSet {
     substitution: RW_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::RW,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Presidential Order n° 54/01 of 24/02/2017 determining official public holidays, \
               Official Gazette no. 11 of 13 March 2017, articles 3 and 4, from the Laws.Africa \
@@ -5277,7 +4951,7 @@ pub static BURUNDI: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::BI,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Décret n° 100/150 du 07 juin 2021 portant modification du décret n° 100/182 du \
               17 juillet 2006 fixant la liste et le régime des jours fériés, the Presidency's \
@@ -5398,7 +5072,7 @@ pub static MADAGASCAR: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::MG,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Décrets n° 2023-007 du 04 janvier 2023, n° 2024-108 du 31 janvier 2024, \
               n° 2025-005 du 07 janvier 2025 and n° 2026-006 du 08 janvier 2026 fixant la liste \
@@ -5480,7 +5154,7 @@ pub static SEYCHELLES: RuleSet = RuleSet {
     substitution: SC_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::SC,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Public Holidays Act (Cap. 190, 1991 edition) with the Public Holidays (Amendment) \
               Act, 2014 (Act 11 of 2014), the Public Service Bureau's scan (psb.gov.sc), \
@@ -5567,7 +5241,7 @@ pub static MOZAMBIQUE: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::MZ,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Lei n.º 13/2023, de 25 de Agosto, Lei do Trabalho, Boletim da República I série \
               n.º 165, articles 105, 106 and 274, from the Tribunal Supremo's copy (ts.gov.mz), \
@@ -5649,7 +5323,7 @@ pub static LESOTHO: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::LS,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Public Holidays Act 1995 (Act No. 7 of 1995), sections 1 to 6 and the Schedule, \
               CommonLII's copy (pha1995163.pdf) as the Internet Archive holds it, CommonLII and \
@@ -5773,7 +5447,7 @@ pub static CHAD: RuleSet = RuleSet {
     substitution: TD_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::TD,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Décret n° 97-413/PR/MFPT du 30 septembre 1997 portant révision de la liste et du \
               régime des jours fériés et chômés, Légitchad's text (legitchad.cefod-tchad.org/texte/895) \
@@ -5788,27 +5462,6 @@ pub static CHAD: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Mauritania
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Friday–Saturday until the decree the Council of Ministers adopted on
-/// 11 September 2014, and Saturday–Sunday from Wednesday 1 October 2014.
-static MR_WEEKEND: &[WeekendPolicy] = &[
-    WeekendPolicy {
-        days: &[Weekday::Friday, Weekday::Saturday],
-        regions: &[],
-        valid_from: None,
-        valid_from_day: None,
-        valid_until: Some(2014),
-        valid_until_day: Some((9, 30)),
-    },
-    WeekendPolicy {
-        days: &[Weekday::Saturday, Weekday::Sunday],
-        regions: &[],
-        valid_from: Some(2014),
-        valid_from_day: Some((10, 1)),
-        valid_until: None,
-        valid_until_day: None,
-    },
-];
 
 /// The first year the sources read answer for: loi n° 92-018 of 7 December
 /// 1992.
@@ -5859,7 +5512,7 @@ pub static MAURITANIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: MR_WEEKEND,
+    weekend: weekends::MR,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Loi n° 92-018 du 7 décembre 1992 fixant les fêtes légales en Mauritanie, from the \
               Ministère de la Fonction Publique et du Travail (fonctionpublique.gov.mr) and its \
@@ -5873,18 +5526,6 @@ pub static MAURITANIA: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Djibouti
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Article 97 of the Labour Code: the weekly rest "takes place in
-/// principle on Friday"; article 2 of arrêté 2019-193 gives it to all
-/// employees at once on the Friday.
-static DJ_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
-    days: &[Weekday::Friday],
-    regions: &[],
-    valid_from: None,
-    valid_from_day: None,
-    valid_until: None,
-    valid_until_day: None,
-}];
 
 /// Nothing: whether arrêté 80-0931, published in 1981, already governed
 /// 28 June 1980 was not found out.
@@ -5975,7 +5616,7 @@ pub static DJIBOUTI: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: DJ_WEEKEND,
+    weekend: weekends::DJ,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Arrêté n° 80-0931/PR portant rectificatif de l'arrêté n° 77-347/PR/MI du \
               4.10.1977 règlementant les jours fériés, chômés et payés, arrêté n° 77-609/PR/CAB \
@@ -6105,7 +5746,7 @@ pub static COMOROS: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::KM,
     sources_checked: SourceDate::new(2026, 9, 25),
     sources: "Décret n° 25-147/PR du 19 décembre 2025 fixant la liste des jours fériés, chômés \
               et payés en Union des Comores, articles 1 to 6, from Munganyo, the Union's legal \
@@ -6211,7 +5852,7 @@ pub static EQUATORIAL_GUINEA: RuleSet = RuleSet {
     substitution: GQ_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::GQ,
     sources_checked: SourceDate::new(2026, 9, 25),
     sources: "Decreto núm. 9/2007, de fecha 5 de febrero, por el que se fijan los días feriados \
               en la República de Guinea Ecuatorial, articles 1 to 5, from the Boletín Oficial \
@@ -6224,18 +5865,6 @@ pub static EQUATORIAL_GUINEA: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Liberia
 // ─────────────────────────────────────────────────────────────────────────
-
-/// The weekly rest of section 17.10 of the Decent Work Act, 2015: "at least
-/// 36 consecutive hours which, unless otherwise agreed in writing, shall
-/// include Sunday". Sunday is the one day the Act names.
-static LR_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
-    days: &[Weekday::Sunday],
-    regions: &[],
-    valid_from: None,
-    valid_from_day: None,
-    valid_until: None,
-    valid_until_day: None,
-}];
 
 /// A Sunday holiday is kept on the Monday. No statute read says so; the
 /// President's proclamations do, holiday by holiday, in every Sunday case
@@ -6349,7 +5978,7 @@ pub static LIBERIA: RuleSet = RuleSet {
     substitution: LR_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: LR_WEEKEND,
+    weekend: weekends::LR,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Ministry of Foreign Affairs, the President's holiday proclamations as its press \
               releases give them, 2012 to 2026 (mofa.gov.lr/media/press-releases), retrieved \
@@ -6388,17 +6017,6 @@ const fn announced(
 // ─────────────────────────────────────────────────────────────────────────
 // Somalia
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Friday: article 64(1) of the Labour Code, one day's rest a week, which
-/// "should normally fall on Friday" ("maalinta Jimcaha").
-static SO_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
-    days: &[Weekday::Friday],
-    regions: &[],
-    valid_from: None,
-    valid_from_day: None,
-    valid_until: None,
-    valid_until_day: None,
-}];
 
 const fn so_fixed(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
     HolidayRule::fixed_public(name, local, Rule::gregorian(month, day))
@@ -6532,7 +6150,7 @@ pub static SOMALIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SO_WEEKEND,
+    weekend: weekends::SO,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Sharci Lr. 36, Sharciga Shaqada Soomaaliyeed (Labour Code, Law No. 36), signed \
               24 December 2024, Faafinta Rasmiga (Official Bulletin) Year 11 No. 5, 31 \
@@ -6697,7 +6315,7 @@ pub static SOUTH_SUDAN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::SS,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Labour Act, 2017 (Act No. 64, 24 October 2017), sections 2 (\"calendar days\"), \
               59 and 61 and Appendix B, clause 5.1 (Monday to Friday), the \
@@ -6718,29 +6336,6 @@ pub static SOUTH_SUDAN: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Sudan
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Friday until the Council of Ministers added Saturday from 26 January
-/// 2008, as the Sudan Tribune reported on 6 January 2008, for "six months
-/// for studying and assessment"; the Government's notices of 2026 still
-/// put work back on the Sunday after a Saturday.
-static SD_WEEKEND: &[WeekendPolicy] = &[
-    WeekendPolicy {
-        days: &[Weekday::Friday],
-        regions: &[],
-        valid_from: None,
-        valid_from_day: None,
-        valid_until: Some(2008),
-        valid_until_day: Some((1, 25)),
-    },
-    WeekendPolicy {
-        days: &[Weekday::Friday, Weekday::Saturday],
-        regions: &[],
-        valid_from: Some(2008),
-        valid_from_day: Some((1, 26)),
-        valid_until: None,
-        valid_until_day: None,
-    },
-];
 
 /// The General Secretariat of the Council of Ministers' announcements read,
 /// December 2025 to August 2026.
@@ -6837,7 +6432,7 @@ pub static SUDAN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SD_WEEKEND,
+    weekend: weekends::SD,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "General Secretariat of the Council of Ministers, announcements on sudan.gov.sd of \
               23 and 30 December 2025, 13 March, 19 May, 16 June and 23 August 2026, read \
@@ -6853,20 +6448,6 @@ pub static SUDAN: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Guinea-Bissau
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Sunday: article 123(1) of the Lei Geral do Trabalho, as the Portuguese
-/// Public Prosecutor's cooperation department summarises it, "um dia de
-/// descanso por semana que, em princípio, é ao domingo"; article 124 lets
-/// a half or whole day of complementary rest be added, which is not the
-/// weekly rest and is not carried.
-static GW_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
-    days: &[Weekday::Sunday],
-    regions: &[],
-    valid_from: None,
-    valid_from_day: None,
-    valid_until: None,
-    valid_until_day: None,
-}];
 
 /// The Eid days the Ministry of Public Administration declared, as read.
 static GW_ANNOUNCED: Listing = Listing::Named(&[
@@ -6949,7 +6530,7 @@ pub static GUINEA_BISSAU: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: GW_WEEKEND,
+    weekend: weekends::GW,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Decreto n.º 1/2023 de 18 de Janeiro, not read, its list as O Democrata GB \
               quotes it (odemocratagb.com/?p=42600, 19 January 2023, secondary) and VOA \
@@ -7084,7 +6665,7 @@ pub static SIERRA_LEONE: RuleSet = RuleSet {
     substitution: SL_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::SL,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Public Holidays Act, Cap. 58, Laws of Sierra Leone 1960, sections 2 to 7 and \
               Schedule (sierra-leone.org/Laws/Cap%2058.pdf, a copy of the revised edition); \
@@ -7272,7 +6853,7 @@ pub static GAMBIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::GM,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Office of the President (op.gov.gm), \"Media Advisory on Public Holidays\", 19 \
               July 2021, and the public-holiday declarations published there for 2021 to \
@@ -7285,18 +6866,6 @@ pub static GAMBIA: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Eswatini
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Sunday. Section 2 of the Act moves a Sunday holiday, and the Ministry of
-/// Home Affairs said in September 2025 that Somhlolo Day on a Saturday
-/// "would not be shifted ... since Saturday is a normal working day".
-static SZ_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
-    days: &[Weekday::Sunday],
-    regions: &[],
-    valid_from: None,
-    valid_from_day: None,
-    valid_until: None,
-    valid_until_day: None,
-}];
 
 /// Section 2's proviso: a Sunday holiday is kept on the Monday, and Boxing
 /// Day on a Monday on the Tuesday — the day after the Monday a Sunday
@@ -7441,7 +7010,7 @@ pub static ESWATINI: RuleSet = RuleSet {
     substitution: SZ_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SZ_WEEKEND,
+    weekend: weekends::SZ,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Public Holidays Act, 1938 (Act No. 71 of 1938), sections 2 and 3 and Schedule, \
               EswatiniLII's consolidation as at 1 December 1998 as the Internet Archive holds \
@@ -7459,17 +7028,6 @@ pub static ESWATINI: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Togo
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Sunday: article 198 of the Code du travail of 2021, the weekly rest
-/// "a lieu en principe le dimanche".
-static TG_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
-    days: &[Weekday::Sunday],
-    regions: &[],
-    valid_from: None,
-    valid_from_day: None,
-    valid_until: None,
-    valid_until_day: None,
-}];
 
 /// The days the Ministry of the Civil Service's communiqués and the
 /// Government's portal declare, as read.
@@ -7592,7 +7150,7 @@ pub static TOGO: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: TG_WEEKEND,
+    weekend: weekends::TG,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Loi n° 87-08 du 9 juin 1987 réglementant le régime des fêtes légales, Journal \
               officiel de la République togolaise, 30 June 1987, p. 5, from a copy of \
@@ -7729,7 +7287,7 @@ pub static NIGER: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::NE,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Loi n° 97-20 du 20 juin 1997 instituant les fêtes légales, not read (NATLEX \
               record 78831 refused this session); Le Sahel, 26 May 2023, on the Council of \
@@ -7857,19 +7415,6 @@ static GA_RULES: &[HolidayRule] = &read_all(
     ],
 );
 
-/// Sunday: article 220 of the Code du travail, loi n° 022/2021 of 19
-/// November 2021, "Le repos hebdomadaire est obligatoire ... Il a lieu en
-/// principe le dimanche"; article 223 counts as working days "tous les
-/// jours autres que le dimanche" and the holidays.
-static GA_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
-    days: &[Weekday::Sunday],
-    regions: &[],
-    valid_from: None,
-    valid_from_day: None,
-    valid_until: None,
-    valid_until_day: None,
-}];
-
 /// Gabon: the Ministry of Labour's communiqués, as the press reproduces
 /// them.
 ///
@@ -7899,7 +7444,7 @@ pub static GABON: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: GA_WEEKEND,
+    weekend: weekends::GA,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Décret n° 00727/PR/MTEFP du 29 juin 1998 modifié par le décret n° \
               000484/PR/MTE du 26 mai 2004, not read, as the communiqués cite it; the \

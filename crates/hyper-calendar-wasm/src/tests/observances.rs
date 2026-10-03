@@ -104,7 +104,7 @@ fn every_table_is_described_in_the_order_of_the_codes() {
             "",
             "",
             "",
-            "6+7///"
+            "unread//2006-07-02/;6+7/2006-07-03//"
         ]
     );
     let japanese = read_lines(|buffer, capacity| unsafe {
@@ -115,7 +115,7 @@ fn every_table_is_described_in_the_order_of_the_codes() {
         .find(|line| line.starts_with("HK\t"))
         .expect("HK");
     assert!(
-        hong_kong.ends_with("\t\t香港\t\t\t\t\t\t6+7///"),
+        hong_kong.ends_with("\t\t香港\t\t\t\t\t\tunread//2006-07-02/;6+7/2006-07-03//"),
         "{hong_kong}"
     );
     assert_eq!(

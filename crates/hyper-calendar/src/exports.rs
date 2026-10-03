@@ -4779,7 +4779,10 @@ macro_rules! exports {
             /// Sunday. Writes 1 or 0 to `out_is_weekend`. A day on which the
             /// region's weekend law was not read (the `unread-weekend` gap of
             /// `hc_holidays_in_year`) is `HC_ERROR_OUT_OF_RANGE`, not a weekend of
-            /// no days, and so is a day with no Gregorian year. A null `code` or
+            /// no days: every country's and exchange's table begins with such
+            /// days, Japan's weekend being read from 1 May 1992
+            /// (`hc_holiday_coverage` says from when). A day with no Gregorian
+            /// year is `HC_ERROR_OUT_OF_RANGE` too. A null `code` or
             /// `out_is_weekend` is `HC_ERROR_NULL_POINTER`, a string that is not
             /// UTF-8 `HC_ERROR_NOT_UTF8`, and a code that names no table or a
             /// `region` that is no subdivision of its country `HC_ERROR_UNKNOWN`.
@@ -4795,8 +4798,10 @@ macro_rules! exports {
             /// Saturday and Sunday, and a table that states none keeps Saturday and
             /// Sunday. A day on which the region's weekend law was not read (the
             /// `unread-weekend` gap of `hc_holidays_in_year`) is
-            /// `HC_ERR_OUT_OF_RANGE`, not a weekend of no days, and so is a day
-            /// with no Gregorian year. A null pointer with a non-zero length is
+            /// `HC_ERR_OUT_OF_RANGE`, not a weekend of no days: every country's
+            /// and exchange's table begins with such days, Japan's weekend being
+            /// read from 1 May 1992 (`hc_holiday_coverage` says from when). A day
+            /// with no Gregorian year is `HC_ERR_OUT_OF_RANGE` too. A null pointer with a non-zero length is
             /// `HC_ERR_NULL_POINTER`, text that is not UTF-8 `HC_ERR_NOT_UTF8`, and
             /// a code that names no table or a `region` that is no subdivision of
             /// its country `HC_ERR_UNKNOWN`.
@@ -4898,7 +4903,10 @@ macro_rules! exports {
             /// `new-years-day`, which `hc_holidays_on` and `hc_common_worship_on`
             /// write for the same entry, the instrument its rule cites, or
             /// nothing, and `1` for an entry a bridge policy made, Japan's 国民の休日
-            /// between two holidays, and `0` otherwise. `region` and `group` match
+            /// between two holidays, and `0` otherwise; then, on a gap, the first
+            /// and the last day its holiday could fall on, the only days it
+            /// refuses, ISO 8601, or nothing for a gap with nothing to narrow it
+            /// and on an entry. `region` and `group` match
             /// in either case, and either may be null. `kind` keeps the entries of the kinds it lists,
             /// `;`-separated, `public;bank`, and the gaps of the rules of those
             /// kinds; a null or empty `kind` is every kind, and a word that names
@@ -4924,7 +4932,10 @@ macro_rules! exports {
             /// `new-years-day`, which `hc_holidays_on` and `hc_common_worship_on`
             /// write for the same entry, the instrument its rule cites, or
             /// nothing, and `1` for an entry a bridge policy made, Japan's 国民の休日
-            /// between two holidays, and `0` otherwise. `region` and `group` match
+            /// between two holidays, and `0` otherwise; then, on a gap, the first
+            /// and the last day its holiday could fall on, the only days it
+            /// refuses, ISO 8601, or nothing for a gap with nothing to narrow it
+            /// and on an entry. `region` and `group` match
             /// in either case, and either may be empty. `kind` keeps the entries of the kinds it lists,
             /// `;`-separated, `public;bank`, and the gaps of the rules of those
             /// kinds; an empty `kind` is every kind, and a word that names no
@@ -4932,7 +4943,8 @@ macro_rules! exports {
             /// the year, as `hc_holidays_on` writes them: an empty date, the name,
             /// the local name, the kind `gap`, an empty confidence, `0`, nothing,
             /// the subdivision and the group whose own gap it is, the identifier
-            /// of the holiday and the instrument its rule cites; a subdivision
+            /// of the holiday and the instrument its rule cites, `0`, and the
+            /// first and the last day the holiday could fall on; a subdivision
             /// not read is a gap of the identifier `unread-subdivision`, and a
             /// year whose weekend law in the region was not read one of
             /// `unread-weekend`, whatever the `kind`. A null `buffer` returns the length the text needs, so
@@ -4990,9 +5002,10 @@ macro_rules! exports {
             /// `hc_common_worship_on` write for the same entry, and last `1` for
             /// an entry a bridge policy made and `0` otherwise. A
             /// `gap` line is a holiday the table could
-            /// not place in the day's year — its calendar's range ended, or no
-            /// announcement was read — with the confidence and source empty, so a
-            /// caller can say the year is unanswered rather than show nothing. A
+            /// not place that could fall on the day — its calendar's range ended,
+            /// or no announcement was read — with the confidence and source
+            /// empty, so a
+            /// caller can say the day is unanswered rather than show nothing. A
             /// day with no Gregorian year is `HC_ERROR_OUT_OF_RANGE`. Writes the
             /// required length, including the terminator, into `written`.
         }
@@ -5021,9 +5034,10 @@ macro_rules! exports {
             /// `hc_common_worship_on` write for the same entry, and last `1` for
             /// an entry a bridge policy made and `0` otherwise. A
             /// `gap` line is a holiday the table could
-            /// not place in the day's year — its calendar's range ended, or no
-            /// announcement was read — with the confidence and source empty, so a
-            /// page can say the year is unanswered rather than show nothing. A day
+            /// not place that could fall on the day — its calendar's range ended,
+            /// or no announcement was read — with the confidence and source
+            /// empty, so a
+            /// page can say the day is unanswered rather than show nothing. A day
             /// with no Gregorian year is `HC_ERR_OUT_OF_RANGE`. A null `buffer`
             /// returns the length the text needs.
         }
@@ -5130,6 +5144,44 @@ macro_rules! exports {
         }
         fn hc_holiday_groups(locale: text(locale_len)) -> line =
             |locale| Ok($crate::holiday_lines::holiday_groups_lines(locale));
+
+        c {
+            /// The years a holiday table answers for, nationwide and in each
+            /// subdivision it answers for, as NUL-terminated UTF-8 lines in a
+            /// caller-owned buffer.
+            ///
+            /// The lines are the WebAssembly module's. `code` is as for
+            /// `hc_holiday_is_day_off`; a null `code` is `HC_ERROR_NULL_POINTER`,
+            /// a string that is not UTF-8 `HC_ERROR_NOT_UTF8`, and a code that
+            /// names no table `HC_ERROR_UNKNOWN`. Writes the required length,
+            /// including the terminator, into `written`.
+        }
+        wasm {
+            /// The years a holiday table answers for, nationwide and in each
+            /// subdivision it answers for, as UTF-8 lines, returning the byte
+            /// length written.
+            ///
+            /// One line per scope, the whole country first and then each
+            /// subdivision the table answers for or reads from a year, in code
+            /// order, tab-separated: the subdivision's ISO 3166-2 code, empty for
+            /// the whole country; the first year any rule of the scope is read
+            /// for, empty where some rule has no first year; the first year from
+            /// which no rule of the scope is a gap for want of reading, empty where
+            /// no rule declares one; the last year no announced list in the scope
+            /// has run out in, empty where none runs out; `1` where every rule of
+            /// the scope is read in some year and `0` where one is read in none;
+            /// the first year the scope's weekend law is read, empty where the
+            /// table's weekend has no first year; and the rule, or the
+            /// subdivision, that sets the `answered from` year, empty where
+            /// nothing does. A year before the first is a gap, which
+            /// `hc_holidays_in_year` writes (the `unread-weekend` gap for the
+            /// weekend law). The ranges of the calendars the rules count in are
+            /// not repeated here. The string argument fails as for
+            /// `hc_holiday_is_day_off`. A null `buffer` returns the length the
+            /// text needs.
+        }
+        fn hc_holiday_coverage(code: name(code_len)) -> line =
+            $crate::holiday_lines::holiday_coverage_lines;
 
         c {
             /// `hc_holidays_on`'s lines, each with the day's name in a locale and

@@ -67,13 +67,28 @@
 use hc_calendar::Weekday;
 use hc_seasons::{Meridian, SolarTerm};
 
+use super::weekends;
 use crate::rule::{
-    BridgePolicy, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions,
-    SubstituteDirection, SubstitutionPolicy,
+    BridgePolicy, HolidayRule, Kind, Rule, RuleSet, SourceDate, Subdivisions, SubstituteDirection,
+    SubstitutionPolicy,
 };
 
 /// Every Japanese public holiday rule, 1948 to today.
 static RULES: &[HolidayRule] = &[
+    // The holidays the Act replaced: the 休日ニ関スル件 of 1927 and the
+    // regime before it kept days the table does not carry, so every year to
+    // 1948 is a gap, not a year without a holiday. 1948 is in it: the Act
+    // came into force on 20 July of that year.
+    HolidayRule::public(
+        "Holidays before the Public Holidays Act",
+        "休日ニ関スル件",
+        Rule::UNREAD,
+    )
+    .years(None, Some(1948))
+    .cited(
+        "the 休日ニ関スル件 of 1927, which the 国民の祝日に関する法律 repealed on \
+         20 July 1948, whose days are not read",
+    ),
     // ── The original nine, 昭和23年法律第178号 ──────────────────────────
     HolidayRule::public(
         "New Year's Day",
@@ -899,7 +914,7 @@ pub static JAPAN: RuleSet = RuleSet {
     substitution: SUBSTITUTION,
     bridges: BRIDGES,
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::JP,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "国民の祝日に関する法律 (昭和23年法律第178号), as last amended by \
               平成30年法律第57号 (in force 1 January 2020), with the amending acts its \

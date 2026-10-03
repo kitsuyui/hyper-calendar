@@ -233,6 +233,51 @@ impl Listing {
         )
     }
 
+    /// The earliest and the latest month and day, as `(month, day)`, the
+    /// rows `key` selects fall on in any year the table lists, or `None`
+    /// where the key selects no row. It is the span of dates the day took
+    /// in the years read.
+    #[must_use]
+    pub fn month_day_span(&self, key: ListingKey) -> Option<((u8, u8), (u8, u8))> {
+        let mut span: Option<((u8, u8), (u8, u8))> = None;
+        let mut note = |first: (u8, u8), last: (u8, u8)| {
+            span = Some(match span {
+                None => (first, last),
+                Some((low, high)) => (low.min(first), high.max(last)),
+            });
+        };
+        match (self, key) {
+            (Self::Dates(rows), ListingKey::Every) => {
+                for &(_, month, day) in *rows {
+                    note((month, day), (month, day));
+                }
+            }
+            (Self::Named(rows), ListingKey::Name(name)) => {
+                for &(_, month, day, entry) in *rows {
+                    if entry == name {
+                        note((month, day), (month, day));
+                    }
+                }
+            }
+            (Self::Numbered(rows), ListingKey::Number(number)) => {
+                for &(_, month, day, entry) in *rows {
+                    if entry == number {
+                        note((month, day), (month, day));
+                    }
+                }
+            }
+            (Self::Spans(rows), ListingKey::Name(name)) => {
+                for &(_, first_month, first_day, last_month, last_day, entry) in *rows {
+                    if entry == name {
+                        note((first_month, first_day), (last_month, last_day));
+                    }
+                }
+            }
+            _ => {}
+        }
+        span
+    }
+
     /// The days the rows `key` selects give in `year`, in the table's
     /// order.
     #[must_use]
@@ -2760,6 +2805,75 @@ pub struct WeekendPolicy {
 }
 
 impl WeekendPolicy {
+    /// A policy of the whole table with no years: the weekend `days`, in
+    /// force at all times unless bounded by [`WeekendPolicy::from`],
+    /// [`WeekendPolicy::from_day`], [`WeekendPolicy::until`] or
+    /// [`WeekendPolicy::until_day`].
+    #[must_use]
+    pub const fn of(days: &'static [Weekday]) -> Self {
+        Self {
+            days,
+            regions: &[],
+            valid_from: None,
+            valid_from_day: None,
+            valid_until: None,
+            valid_until_day: None,
+        }
+    }
+
+    /// A policy of the whole table whose law was not read: the years it
+    /// covers are a gap ([`UNREAD_WEEKEND`]), not a weekend of no days.
+    #[must_use]
+    pub const fn unread() -> Self {
+        Self::of(&[])
+    }
+
+    /// The same policy, in force from 1 January of `year`.
+    #[must_use]
+    pub const fn from(self, year: i32) -> Self {
+        Self {
+            valid_from: Some(year),
+            valid_from_day: None,
+            ..self
+        }
+    }
+
+    /// The same policy, in force from the given day.
+    #[must_use]
+    pub const fn from_day(self, year: i32, month: u8, day: u8) -> Self {
+        Self {
+            valid_from: Some(year),
+            valid_from_day: Some((month, day)),
+            ..self
+        }
+    }
+
+    /// The same policy, in force to 31 December of `year`.
+    #[must_use]
+    pub const fn until(self, year: i32) -> Self {
+        Self {
+            valid_until: Some(year),
+            valid_until_day: None,
+            ..self
+        }
+    }
+
+    /// The same policy, in force to the given day, which is its last.
+    #[must_use]
+    pub const fn until_day(self, year: i32, month: u8, day: u8) -> Self {
+        Self {
+            valid_until: Some(year),
+            valid_until_day: Some((month, day)),
+            ..self
+        }
+    }
+
+    /// The same policy, the weekend of the given subdivisions alone.
+    #[must_use]
+    pub const fn in_regions(self, regions: &'static [&'static str]) -> Self {
+        Self { regions, ..self }
+    }
+
     /// Whether the weekend law of this policy's years was not read.
     #[must_use]
     pub const fn is_unread(&self) -> bool {
@@ -2797,7 +2911,15 @@ impl WeekendPolicy {
     }
 }
 
-/// The Saturday–Sunday weekend, with no start or end date.
+/// No weekend law: what the table of a tradition or of a list of days says,
+/// whose days belong to no working week. [`RuleSet::weekend_in`] then
+/// answers Saturday and Sunday, a default and not a claim, and no year is a
+/// gap.
+pub const NO_WEEKEND: &[WeekendPolicy] = &[];
+
+/// The Saturday–Sunday weekend, with no start or end date: for a caller's
+/// own table, whose weekend is the caller's to state. A table of the
+/// library names the first year its sources state a weekend.
 pub const SATURDAY_SUNDAY: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Saturday, Weekday::Sunday],
     regions: &[],
@@ -3118,6 +3240,41 @@ impl HolidayRule {
         }
     }
 
+    /// The first and the last day of `year` (widened by `margin` days a
+    /// side, for a day a substitution may move) the holiday could fall
+    /// on, for a year the engine reports as a gap, or `None` where nothing
+    /// narrows it and the whole year is open.
+    ///
+    /// A rule whose shape the year can compute gives the days it would
+    /// place; a table of announced dates that has run out gives the span
+    /// of dates the day took in the years it lists.
+    #[cfg(feature = "alloc")]
+    pub(crate) fn gap_window<L: Lookups>(
+        &self,
+        year: i64,
+        margin: i64,
+        lookups: &mut L,
+    ) -> Option<(Rd, Rd)> {
+        if self.rule.is_resolvable_with(year, lookups) {
+            let days = self.rule.days_in_year_with(year, Window::ALL, lookups);
+            let first = days.as_slice().iter().min()?;
+            let last = days.as_slice().iter().max()?;
+            return Some((Rd(first.0 - margin), Rd(last.0 + margin)));
+        }
+        let Self {
+            rule: Rule::Listed { entry, .. },
+            ..
+        } = self
+        else {
+            return None;
+        };
+        let ((first_month, first_day), (last_month, last_day)) =
+            entry.listing.month_day_span(entry.key)?;
+        let first = gregorian::to_fixed(year, first_month, first_day).ok()?;
+        let last = gregorian::to_fixed(year, last_month, last_day).ok()?;
+        Some((Rd(first.0 - margin), Rd(last.0 + margin)))
+    }
+
     /// Whether the holiday applies in `region`.
     ///
     /// `None` asks for the nationwide set: only rules with no subdivision
@@ -3361,13 +3518,36 @@ pub struct Include {
     pub set: &'static RuleSet,
     /// The region of it to evaluate, or `None` for its nationwide days.
     pub region: Option<&'static str>,
+    /// The first year the inclusion is read for: that the exchange closes on
+    /// its country's days is the exchange's own claim, and the lists it comes
+    /// from begin in a year. Before it the included days are left out and the
+    /// engine reports a gap, [`UNREAD_INCLUDED`], in each year.
+    pub read_from: Option<i32>,
 }
+
+/// The name of the gap the engine reports for a year before an
+/// [`Include::read_from`]: the days of the country an exchange keeps were not
+/// read for it.
+pub const UNREAD_INCLUDED: &str = "The included country's public holidays";
 
 impl Include {
     /// A set's nationwide days off.
     #[must_use]
     pub const fn nationwide(set: &'static RuleSet) -> Self {
-        Self { set, region: None }
+        Self {
+            set,
+            region: None,
+            read_from: None,
+        }
+    }
+
+    /// The same inclusion, read from `first`: every earlier year is a gap.
+    #[must_use]
+    pub const fn read_from(self, first: i32) -> Self {
+        Self {
+            read_from: Some(first),
+            ..self
+        }
     }
 
     /// A set's days off in one of its regions, the nationwide ones among
@@ -3377,6 +3557,7 @@ impl Include {
         Self {
             set,
             region: Some(region),
+            read_from: None,
         }
     }
 }
@@ -3420,6 +3601,37 @@ pub const UNREAD_SUBDIVISION: &str = "The subdivision's own days";
 /// `days` are empty. Business-day arithmetic over such a day refuses
 /// (ADR 0015).
 pub const UNREAD_WEEKEND: &str = "The weekend";
+
+/// The years a table answers for in one scope, from what its rules and
+/// weekend policies declare ([`RuleSet::coverage`]).
+///
+/// The years are Gregorian. A calendar a rule counts in has a range of its
+/// own, which this does not repeat: a year outside it is a gap the engine
+/// reports ([`crate::engine::Gap`]) whatever is declared here.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Coverage {
+    /// The first year any rule of the scope is answered in, or `None` where
+    /// some rule has no first year and answers from the start.
+    pub first_read: Option<i64>,
+    /// The first year from which no rule of the scope is a gap for want of
+    /// reading: the latest first year of the rules in scope. `None` where
+    /// no rule declares one.
+    pub answered_from: Option<i64>,
+    /// The last year no table of announced dates in scope has run out in:
+    /// the earliest last year of the rules that list or tabulate their
+    /// days. `None` where no rule does.
+    pub answered_until: Option<i64>,
+    /// Whether some rule of the scope is read in no year at all
+    /// ([`Rule::UNREAD`]) and was never abolished: the scope is a gap in
+    /// every year after `answered_from`.
+    pub never_complete: bool,
+    /// The first year the weekend law of the scope is read, or `None` where
+    /// the table's weekend has no first year.
+    pub weekend_from: Option<i64>,
+    /// The rule that sets `answered_from`, or the subdivision whose first
+    /// year does; empty where nothing does.
+    pub reason: &'static str,
+}
 
 /// A named table of holiday rules, with the policies that modify them.
 ///
@@ -3495,16 +3707,12 @@ impl RuleSet {
         best.map(|(_, policy)| policy)
     }
 
-    /// The weekend days in force on `day` for the whole table.
-    ///
-    /// Asked of a day rather than a year, because a weekend law can change
-    /// in the middle of one. Falls back to Saturday–Sunday when the table
-    /// states nothing, because a table that states nothing has not made a
-    /// claim. See [`RuleSet::weekend_in`] for a region.
+    /// The weekend days in force on `day` for the whole table, or `None`
+    /// where the table's weekend law on that day was not read. See
+    /// [`RuleSet::weekend_in`] for a region.
     #[must_use]
-    pub fn weekend_on(&self, day: Rd) -> &'static [Weekday] {
+    pub fn weekend_on(&self, day: Rd) -> Option<&'static [Weekday]> {
         self.weekend_in(None, day)
-            .unwrap_or(&[Weekday::Saturday, Weekday::Sunday])
     }
 
     /// The weekend days in force on `day` in `region`, or `None` where the
@@ -3513,10 +3721,15 @@ impl RuleSet {
     /// A [`WeekendPolicy`] scoped to a region that `region` is or lies
     /// within is the region's own law and is used in place of the table's,
     /// the nearest region first, as Malaysia's Kedah keeps Friday and
-    /// Saturday where the rest of the country keeps Saturday and Sunday. A
-    /// region with no policy of its own on `day` has the table's. A day no
-    /// policy covers has Saturday–Sunday, because a table that states
-    /// nothing has not made a claim (ADR 0015).
+    /// Saturday where the rest of Malaysia keeps Saturday and Sunday. A
+    /// region with no policy of its own on `day` has the table's.
+    ///
+    /// A day that no policy of a table that states a weekend covers has an
+    /// unread weekend law: the years before the first the table's sources
+    /// state one are a gap, never a Saturday and a Sunday assumed
+    /// (ADR 0015). Only a table that states no weekend law at all, as a
+    /// caller's own table may and a tradition's does, keeps Saturday and
+    /// Sunday.
     #[must_use]
     pub fn weekend_in(&self, region: Option<&str>, day: Rd) -> Option<&'static [Weekday]> {
         let mut best: Option<(usize, &'static WeekendPolicy)> = None;
@@ -3533,30 +3746,55 @@ impl RuleSet {
         match best {
             Some((_, policy)) if policy.is_unread() => None,
             Some((_, policy)) => Some(policy.days),
+            None if self.states_a_weekend() => None,
             None => Some(&[Weekday::Saturday, Weekday::Sunday]),
         }
     }
 
+    /// Whether the table says what its weekend is: whether any of its
+    /// policies is the whole table's. A table with none states no weekend
+    /// law, and keeps Saturday and Sunday ([`RuleSet::weekend_in`]).
+    #[must_use]
+    pub fn states_a_weekend(&self) -> bool {
+        self.weekend.iter().any(|policy| policy.regions.is_empty())
+    }
+
     /// Whether the weekend law of some day of `year` in `region` was not
-    /// read: a [`WeekendPolicy`] with no days that is the region's and
-    /// reaches the year.
+    /// read: a day of the year on which [`RuleSet::weekend_in`] has no
+    /// answer.
     #[must_use]
     pub fn weekend_unread_in(&self, region: Option<&str>, year: i64) -> bool {
-        let candidate = self.weekend.iter().any(|policy| {
-            policy.is_unread()
-                && policy.reaches_year(year)
-                && region_nearness(policy.regions, region).is_some_and(|nearness| nearness > 0)
-        });
-        if !candidate {
+        if self.weekend.is_empty() {
             return false;
         }
-        let (Ok(first), Ok(next)) = (
-            gregorian::to_fixed(year, 1, 1),
-            gregorian::to_fixed(year + 1, 1, 1),
-        ) else {
+        let Ok(first) = gregorian::to_fixed(year, 1, 1) else {
             return false;
         };
-        (first.0..next.0).any(|day| self.weekend_in(region, Rd(day)).is_none())
+        // The answer changes only on the day a policy begins or the day
+        // after it ends, so these are the days to ask.
+        if self.weekend_in(region, first).is_none() {
+            return true;
+        }
+        self.weekend.iter().any(|policy| {
+            let begins = match (policy.valid_from, policy.valid_from_day) {
+                (Some(from), Some((month, day))) if i64::from(from) == year => {
+                    gregorian::to_fixed(year, month, day).ok()
+                }
+                _ => None,
+            };
+            let ends = match (policy.valid_until, policy.valid_until_day) {
+                (Some(until), Some((month, day))) if i64::from(until) == year => {
+                    gregorian::to_fixed(year, month, day)
+                        .ok()
+                        .map(|last| Rd(last.0 + 1))
+                }
+                _ => None,
+            };
+            [begins, ends]
+                .into_iter()
+                .flatten()
+                .any(|day| self.weekend_in(region, day).is_none())
+        })
     }
 
     /// Every subdivision code a weekend policy of the table is scoped to,
@@ -3662,6 +3900,126 @@ impl RuleSet {
                 .map_or_else(scoped, |(_, first)| year >= i64::from(*first)),
         };
         read && region_parent(region).is_none_or(|parent| self.reads_region_in(parent, year))
+    }
+
+    /// The years the table answers for in `region`, or for the whole
+    /// country when `region` is `None`, from what its rules and its weekend
+    /// declare ([`Coverage`]).
+    #[must_use]
+    pub fn coverage(&self, region: Option<&str>) -> Coverage {
+        let mut first_read: Option<i64> = None;
+        let mut any_unbounded = false;
+        let mut answered_from: Option<i64> = None;
+        let mut answered_until: Option<i64> = None;
+        let mut never_complete = false;
+        let mut reason = "";
+        let mut raise = |year: i64, name: &'static str| {
+            if answered_from.is_none_or(|held| year > held) {
+                answered_from = Some(year);
+                reason = name;
+            }
+        };
+        for rule in self.rules {
+            if !rule.applies_in_region(region) {
+                continue;
+            }
+            // The first and the last year the rule's own table answers
+            // for, where it has one.
+            let (listed_first, listed_last) = match rule.rule {
+                Rule::Listed {
+                    first_year,
+                    last_year,
+                    ..
+                } => (Some(i64::from(first_year)), Some(i64::from(last_year))),
+                Rule::Tabulated {
+                    first_year,
+                    last_year,
+                    ..
+                } => (Some(first_year), Some(last_year)),
+                _ => (None, None),
+            };
+            let unread = matches!((listed_first, listed_last), (Some(a), Some(b)) if a > b);
+            let abolished = rule.valid_until.map(i64::from);
+            if unread {
+                // A rule read in no year: it is a gap in every year it
+                // applies to, so the scope is complete only after it.
+                match abolished {
+                    Some(last) => raise(last + 1, rule.name),
+                    None => never_complete = true,
+                }
+                continue;
+            }
+            let mut own_first = rule.read_from.map(i64::from).or(listed_first);
+            if let (Some(first), Some(last)) = (own_first, abolished)
+                && last < first
+            {
+                own_first = Some(last + 1);
+            }
+            match own_first {
+                Some(first) => {
+                    first_read = Some(first_read.map_or(first, |held| held.min(first)));
+                    raise(first, rule.name);
+                }
+                None => match rule.valid_from.map(i64::from) {
+                    Some(first) => {
+                        first_read = Some(first_read.map_or(first, |held| held.min(first)));
+                    }
+                    None => any_unbounded = true,
+                },
+            }
+            if let Some(last) = listed_last {
+                answered_until = Some(answered_until.map_or(last, |held| held.min(last)));
+            }
+        }
+        if any_unbounded {
+            first_read = None;
+        }
+        // An exchange's inclusion of its country's days is read from a year
+        // of its own.
+        for include in self.includes {
+            if let Some(first) = include.read_from {
+                raise(i64::from(first), include.set.english_name);
+            }
+        }
+        if let Some(code) = region
+            && let Subdivisions::ReadFrom(listed) = self.subdivisions
+            && let Some((listed_code, first)) =
+                listed.iter().find(|(listed, _)| matches_code(code, listed))
+        {
+            raise(i64::from(*first), listed_code);
+        }
+        Coverage {
+            first_read,
+            answered_from,
+            answered_until,
+            never_complete,
+            weekend_from: self.weekend_first_year(region),
+            reason,
+        }
+    }
+
+    /// The first year in which some day's weekend law in `region` is read,
+    /// or `None` for a table that states no weekend or whose first policy
+    /// has no first year.
+    #[must_use]
+    pub fn weekend_first_year(&self, region: Option<&str>) -> Option<i64> {
+        let mut first: Option<i64> = None;
+        for policy in self.weekend {
+            if policy.is_unread() || region_nearness(policy.regions, region).is_none() {
+                continue;
+            }
+            let from = policy.valid_from?;
+            let day = policy.valid_from_day.unwrap_or((1, 1));
+            let Ok(start) = gregorian::to_fixed(i64::from(from), day.0, day.1) else {
+                continue;
+            };
+            // A policy a nearer region's own unread policy covers on its
+            // first day is not the region's first read day.
+            if self.weekend_in(region, start).is_some() {
+                first = Some(first.map_or(i64::from(from), |held| held.min(i64::from(from))));
+            }
+        }
+        first
     }
 
     /// Every subdivision code the table's rules are scoped to or excepted

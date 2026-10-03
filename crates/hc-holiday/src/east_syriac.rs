@@ -33,8 +33,7 @@ use hc_calendars_solar::gregorian;
 
 use crate::computus::offsets::{ASCENSION, EASTER_SUNDAY, PALM_SUNDAY, PENTECOST};
 use crate::rule::{
-    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions, dated,
-    joined,
+    Days, HolidayRule, Kind, NO_WEEKEND, Rule, RuleSet, SourceDate, Subdivisions, dated, joined,
 };
 use crate::traditions::CHURCH_OF_THE_EAST_RULES;
 
@@ -442,7 +441,7 @@ pub static CHALDEAN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Chaldean Diocese of St Thomas the Apostle, \"Liturgical Year of the Chaldean \
               Church\" (chaldeanchurch.org/liturgical-year-of-the-chaldean-church/, \
@@ -543,7 +542,7 @@ pub static SYRO_MALABAR: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Wikipedia, \"Liturgical calendar of the Syro-Malabar Catholic Church\" \
               (wikipedia-syro-malabar-calendar), secondary, citing the Church's calendar of \

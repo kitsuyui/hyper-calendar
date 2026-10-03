@@ -101,9 +101,7 @@ use crate::computus::{
         SACRED_HEART, SEPTUAGESIMA, TRINITY_SUNDAY,
     },
 };
-use crate::rule::{
-    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions,
-};
+use crate::rule::{Days, HolidayRule, Kind, NO_WEEKEND, Rule, RuleSet, SourceDate, Subdivisions};
 
 /// The first year the rubrics of 1960 were in force: the Code of Rubrics
 /// promulgated by *Rubricarum instructum* was "effective January 1, 1961"
@@ -898,7 +896,7 @@ pub static GENERAL_ROMAN_CALENDAR_1960: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Code of Rubrics approved by John XXIII's motu proprio Rubricarum instructum of \
               25 July 1960, General Rubrics nos. 10-36 (the Sundays after Epiphany resumed \

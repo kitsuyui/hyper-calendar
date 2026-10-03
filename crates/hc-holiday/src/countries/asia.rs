@@ -16,6 +16,7 @@ use hc_seasons::SolarTerm;
 use hc_seasons::zodiac::Ayanamsa;
 
 use super::read_all;
+use super::weekends;
 use crate::computus::offsets::{
     ASCENSION, CORPUS_CHRISTI, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY,
     MAUNDY_THURSDAY,
@@ -26,8 +27,7 @@ use crate::hindu::{
 };
 use crate::rule::{
     CalendarSystem, Confidence, Days, HolidayRule, Kind, ListedEntry, Listing, Rule, RuleSet,
-    SATURDAY_SUNDAY, SourceDate, Subdivisions, SubstituteDirection, SubstitutionPolicy,
-    TibetanMonth, WeekendPolicy, WhenTwice,
+    SourceDate, Subdivisions, SubstituteDirection, SubstitutionPolicy, TibetanMonth, WhenTwice,
 };
 use crate::traditions::{
     THAI_ASALHA_BUCHA, THAI_KHAO_PHANSA, THAI_MAKHA_BUCHA, THAI_VISAKHA_BUCHA,
@@ -614,7 +614,7 @@ pub static CHINA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::CN,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "《全国年节及纪念日放假办法》, promulgated 1949 and revised by \
               国务院令第270号 (1999), 第513号 (2007), 第644号 (2013) and \
@@ -864,7 +864,7 @@ pub static TAIWAN: RuleSet = RuleSet {
     substitution: TW_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::TW,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "紀念日及節日實施條例 (華總一義字第11400053171號, 28 May 2025), articles 4, 6 and 8, and the \
               紀念日及節日實施辦法 it replaced, articles 5 and 5-1 in their versions of 25 September \
@@ -1232,7 +1232,7 @@ pub static SOUTH_KOREA: RuleSet = RuleSet {
     substitution: KR_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::KR,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "관공서의 공휴일에 관한 규정 (대통령령), as in force from \
               11 May 2026 (대통령령 제36290호) and its earlier texts: the \
@@ -1451,7 +1451,7 @@ pub static INDIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::IN,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Department of Personnel and Training, O.M.s F.No.12/2/2023-JCA of 9 July 2024, \
               3 July 2025 and 16 July 2026, \"Holidays to be observed in Central Government \
@@ -1557,7 +1557,7 @@ pub static THAILAND: RuleSet = RuleSet {
     substitution: TH_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::TH,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Bank of Thailand's annual list of financial-institution \
               holidays and the Royal Gazette announcements behind it. The \
@@ -1782,7 +1782,7 @@ pub static VIETNAM: RuleSet = RuleSet {
     substitution: VN_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::VN,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Bộ luật Lao động 45/2019/QH14, điều 111 and 112, in force \
               from 2021; Nghị quyết 28/2026/QH16, điều 2, for 24 November \
@@ -2034,7 +2034,7 @@ pub static INDONESIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::ID,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "The SKBs on libur nasional dan cuti bersama: for 2020, 391/02/02 of \
               9 April 2020 (setda.kalteng.go.id); for 2021, 712/1/3 of 18 June 2021 \
@@ -2164,7 +2164,7 @@ pub static SINGAPORE: RuleSet = RuleSet {
     substitution: SG_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::SG,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Holidays Act 1998, schedule; the Ministry of Manpower's \"Public \
               Holidays for\" 2020 to 2027 press releases (mom.gov.sg/newsroom/\
@@ -2316,83 +2316,6 @@ static MY_RULES: &[HolidayRule] = &read_all(
     ],
 );
 
-/// The weekend of the states whose own law differs, over the years the
-/// sources reach (ADR 0015).
-///
-/// Most of Malaysia keeps Saturday and Sunday, the table's own policy. Four
-/// states have kept Friday: the Holidays Act 1951 defines the weekly
-/// holiday as Sunday or, in the States where Friday is observed, Friday,
-/// and the Unfederated Malay States, Johor, Kedah, Kelantan, Perlis and
-/// Terengganu, kept Friday before independence (Tun Dr Mahathir's memoir,
-/// as a blog quotes it, secondary).
-///
-/// * **Kedah, Kelantan and Terengganu** keep Friday and Saturday. The
-///   sources read reach back to Jakarta Post's report of 25 November 2013
-///   that they are the states that "now have Friday and Saturday as rest
-///   days", and the National Security Council's (MKN) notice of 31 December
-///   2024 says they still are the only ones, the policy running from the
-///   report's day. Before it the weekend law of each state was not read:
-///   those years are a gap, which is also why Perlis, which the report does
-///   not name and which keeps Saturday and Sunday in the sources read,
-///   has no policy of its own from that day.
-/// * **Johor** kept Saturday and Sunday from 1994 until 31 December 2013,
-///   as the Jakarta Post says ("prior to 1994" Johor kept the rest days
-///   that Sultan Ibrahim's decree of 2013 restored); the decree gave it
-///   Friday and Saturday from 1 January 2014 (the Jakarta Post, RTM and
-///   MKN agree); and from 1 January 2025 it keeps Saturday and Sunday again
-///   (the Regent's announcement of 7 October 2024, RTM and MKN). The years
-///   to 1994, in which the report says no more than "prior to 1994", are a
-///   gap, and the years of Saturday and Sunday are the table's own.
-/// * **Perlis** is a gap before the report's day too: the sources read give
-///   no date for its move off Friday, and a blog's account of a Perlis
-///   fatwa of 30 July 2009 asking to keep Friday disagrees with the 1994
-///   the memoir gives.
-static MY_WEEKEND: &[WeekendPolicy] = &[
-    WeekendPolicy {
-        days: &[Weekday::Saturday, Weekday::Sunday],
-        regions: &[],
-        valid_from: None,
-        valid_from_day: None,
-        valid_until: None,
-        valid_until_day: None,
-    },
-    // Johor: the years to 1994 are unread.
-    WeekendPolicy {
-        days: &[],
-        regions: &["MY-01"],
-        valid_from: None,
-        valid_from_day: None,
-        valid_until: Some(1994),
-        valid_until_day: None,
-    },
-    WeekendPolicy {
-        days: &[Weekday::Friday, Weekday::Saturday],
-        regions: &["MY-01"],
-        valid_from: Some(2014),
-        valid_from_day: None,
-        valid_until: Some(2024),
-        valid_until_day: None,
-    },
-    // Kedah, Kelantan, Terengganu and Perlis: unread before the report's
-    // day, the day after which the three keep Friday and Saturday.
-    WeekendPolicy {
-        days: &[],
-        regions: &["MY-02", "MY-03", "MY-09", "MY-11"],
-        valid_from: None,
-        valid_from_day: None,
-        valid_until: Some(2013),
-        valid_until_day: Some((11, 24)),
-    },
-    WeekendPolicy {
-        days: &[Weekday::Friday, Weekday::Saturday],
-        regions: &["MY-02", "MY-03", "MY-11"],
-        valid_from: Some(2013),
-        valid_from_day: Some((11, 25)),
-        valid_until: None,
-        valid_until_day: None,
-    },
-];
-
 /// Holidays Act 1951, section 3: a public holiday that falls on a weekly
 /// holiday is moved to the day after, or the next day that is not itself a
 /// public holiday. Sunday is the weekly holiday, so a Sunday holiday goes
@@ -2465,7 +2388,7 @@ pub static MALAYSIA: RuleSet = RuleSet {
     substitution: MY_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: MY_WEEKEND,
+    weekend: weekends::MY,
     sources_checked: SourceDate::new(2026, 10, 3),
     sources: "Holidays Act 1951, schedule; the Prime Minister's Department's \
               \"Jadual Hari Kelepasan Am Persekutuan\" for 2020 to 2027 (kabinet.gov.my, \
@@ -2846,7 +2769,7 @@ pub static PHILIPPINES: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::PH,
     sources_checked: SourceDate::new(2026, 9, 28),
     sources: "Administrative Code of 1987 as amended by Republic Act 9492 \
               and Republic Act 9849; Republic Act 9256 for Ninoy Aquino Day, as the \
@@ -2887,42 +2810,6 @@ pub static PHILIPPINES: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Nepal
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Nepal kept a one-day weekend — Saturday alone — until the government
-/// extended it to Saturday and Sunday in April 2026. It is the reason the
-/// engine takes weekend days as data rather than assuming Saturday and
-/// Sunday, and the reason a weekend rule carries years like everything else.
-///
-/// The cabinet decided on 5 April 2026 (चैत्र 22, 2082 BS) to close
-/// government offices and every educational institution on Sundays as well
-/// as Saturdays, "effective from Chaitra 23, 2082", which is Monday 6 April
-/// 2026, as a saving on fuel during the disruption of petroleum supply. The
-/// decision is quoted by New Spotlight, 5 April 2026
-/// (<https://www.spotlightnepal.com/2026/04/05/nepal-government-decides-grant-two-day-holiday-saturday-and-sunday/>),
-/// and OnlineKhabar English reported it the same day from the government
-/// spokesperson as starting the next day. The first Sunday off was 12 April
-/// 2026.
-///
-/// So the Saturday-only weekend runs to Sunday 5 April 2026, a working day,
-/// and Saturday and Sunday from Monday 6 April.
-static NP_WEEKEND: &[WeekendPolicy] = &[
-    WeekendPolicy {
-        days: &[Weekday::Saturday],
-        regions: &[],
-        valid_from: None,
-        valid_from_day: None,
-        valid_until: Some(2026),
-        valid_until_day: Some((4, 5)),
-    },
-    WeekendPolicy {
-        days: &[Weekday::Saturday, Weekday::Sunday],
-        regions: &[],
-        valid_from: Some(2026),
-        valid_from_day: Some((4, 6)),
-        valid_until: None,
-        valid_until_day: None,
-    },
-];
 
 /// A day the notices date in the Bikram Sambat.
 const fn np_bs(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
@@ -3109,7 +2996,7 @@ pub static NEPAL: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: NP_WEEKEND,
+    weekend: weekends::NP,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Government of Nepal, Ministry of Home Affairs, the annual \
               notices of public holidays in the Nepal Rajpatra, Part 5: for \
@@ -3451,7 +3338,7 @@ pub static SRI_LANKA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::LK,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "The Holidays Act, No. 29 of 1971, orders in the Gazette Extraordinary: under \
               section 4, Nos. 2287/4 (2023), 2341/46 (2024), 2395/33 (2025), 2438/22 (2026) \
@@ -3530,7 +3417,7 @@ pub static PAKISTAN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::PK,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Cabinet Division, Government of Pakistan, \"Public and Optional Holidays for the \
               Year 2026\", its number and date not read, the PDF on cabinet.gov.pk being a \
@@ -3546,19 +3433,6 @@ pub static PAKISTAN: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Bangladesh
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Friday and Saturday. The notifications do not name the weekly holidays,
-/// but they count them: "৫টি সাপ্তাহিক ছুটির দিনসহ", five of the 2025
-/// general holidays on a weekly holiday, and seven of 2026's — exactly the
-/// ones on a Friday or a Saturday.
-static BD_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
-    days: &[Weekday::Friday, Weekday::Saturday],
-    regions: &[],
-    valid_from: None,
-    valid_from_day: None,
-    valid_until: None,
-    valid_until_day: None,
-}];
 
 /// The first year of the notifications carried for the festivals.
 const BD_FIRST: i64 = 2025;
@@ -3874,7 +3748,7 @@ pub static BANGLADESH: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: BD_WEEKEND,
+    weekend: weekends::BD,
     sources_checked: SourceDate::new(2026, 10, 3),
     sources: "Government of the People's Republic of Bangladesh, Ministry of Public \
               Administration, the notifications (প্রজ্ঞাপন) of the holiday lists for 2025 \
@@ -4089,7 +3963,7 @@ pub static MYANMAR: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::MM,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Wikipedia, \"Public holidays in Myanmar\" (secondary), retrieved 2026-09-22, for \
               the list and the Burmese dates it gives; for Deepavali, the Government's notices \
@@ -4339,7 +4213,7 @@ pub static HONG_KONG: RuleSet = RuleSet {
     substitution: HK_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::HK,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "General Holidays Ordinance (Cap. 149), section 3, section 6(2) and the Schedule, \
               in the current version and those in force from 18 September 1998 and 24 February \
@@ -4514,7 +4388,7 @@ pub static MACAU: RuleSet = RuleSet {
     substitution: MO_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::MO,
     sources_checked: SourceDate::new(2026, 10, 3),
     sources: "Government of the Macao SAR, \"Public holidays\", \"2026\" and \"2027\", \
               gov.mo, retrieved 2026-09-22, for Executive Order 60/2000, the \
@@ -4708,7 +4582,7 @@ pub static ARMENIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::AM,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "The Armenian Wikipedia, \"Հայաստանի տոների և հիշատակի օրերի ցանկ\", and \
               Wikipedia, \"Public holidays in Armenia\", both retrieved 2026-09-22, \
@@ -4879,7 +4753,7 @@ pub static AZERBAIJAN: RuleSet = RuleSet {
     substitution: AZ_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::AZ,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Cabinet of Ministers of the Republic of Azerbaijan, \"Holidays\", \
               nk.gov.az, retrieved 2026-09-22, for art. 105 and the rest-day rule; \
@@ -4980,7 +4854,7 @@ pub static GEORGIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::GE,
     sources_checked: SourceDate::new(2026, 10, 3),
     sources: "Organic Law of Georgia, Labour Code of Georgia, art. 30, as published in \
               English by the Legislative Herald of Georgia, matsne.gov.ge, retrieved \
@@ -5118,7 +4992,7 @@ pub static KAZAKHSTAN: RuleSet = RuleSet {
     substitution: KZ_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::KZ,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Закон Республики Казахстан от 13 декабря 2001 года № 267 «О праздниках в \
               Республике Казахстан», as consolidated by Параграф (prg.kz) to the law \
@@ -5217,7 +5091,7 @@ pub static UZBEKISTAN: RuleSet = RuleSet {
     substitution: UZ_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::UZ,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Labour Code of the Republic of Uzbekistan (Law ЗРУ-798 of 28 October 2022), \
               article 208, as lex.uz publishes it, retrieved 2026-09-22; gazeta.uz on the \
@@ -5400,7 +5274,7 @@ pub static KYRGYZSTAN: RuleSet = RuleSet {
     substitution: KG_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::KG,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Labour Code of the Kyrgyz Republic (No. 23 of 23 January 2025), article 66, \
               from the copy on isito.kg, retrieved 2026-09-22; Labour Code of the Kyrgyz \
@@ -5498,7 +5372,7 @@ pub static TAJIKISTAN: RuleSet = RuleSet {
     substitution: TJ_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::TJ,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Law of the Republic of Tajikistan on Holidays (No. 753 of 2 August 2011) as \
               amended, articles 2 and 3, as the National Centre of Legislation publishes it \
@@ -5624,7 +5498,7 @@ pub static TURKMENISTAN: RuleSet = RuleSet {
     substitution: TM_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::TM,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Labour Code of Turkmenistan (18 April 2009, as amended), article 81, from the \
               Ombudsman's copy (ombudsman.gov.tm), retrieved 2026-09-22; the Embassy of \
@@ -5824,7 +5698,7 @@ pub static MONGOLIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::MN,
     sources_checked: SourceDate::new(2026, 10, 3),
     sources: "Law of Mongolia on Public Holidays and Days of Observance (Нийтээр тэмдэглэх \
               баярын болон тэмдэглэлт өдрүүдийн тухай хууль, 18 December 2003, as amended), \
@@ -5920,17 +5794,6 @@ const KH_WATER_FESTIVAL: [[HolidayRule; 5]; 3] = [
     kh_lunar(KH_WATER_FESTIVAL_NAME, KH_WATER_FESTIVAL_LOCAL, 12, 15),
     kh_lunar(KH_WATER_FESTIVAL_NAME, KH_WATER_FESTIVAL_LOCAL, 12, 16),
 ];
-
-/// Article 147 of the Labour Law: weekly time off "shall, in principle, be
-/// given on Sunday".
-static KH_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
-    days: &[Weekday::Sunday],
-    regions: &[],
-    valid_from: None,
-    valid_from_day: None,
-    valid_until: None,
-    valid_until_day: None,
-}];
 
 /// Khmer New Year's name.
 const KH_NEW_YEAR_NAME: &str = "Khmer New Year";
@@ -6093,7 +5956,7 @@ pub static CAMBODIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: KH_WEEKEND,
+    weekend: weekends::KH,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Royal Government of Cambodia, the sub-decrees (អនុក្រឹត្យ) on the holiday \
               calendar of civil servants, employees and workers: for 2021 and 2022, as \
@@ -6211,7 +6074,7 @@ pub static LAOS: RuleSet = RuleSet {
     substitution: LA_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::LA,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Decree on Holidays (ດຳລັດວ່າດ້ວຍວັນພັກ), No. 386/ລບ of 15 December 2017, \
               articles 3 to 6, from the Lao Official Gazette (laoofficialgazette.gov.la), \
@@ -6227,19 +6090,6 @@ pub static LAOS: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Brunei
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Friday and Sunday. The public service works "Isnin hingga Sabtu (kecuali
-/// Jumaat, Ahad serta hari-hari kelepasan awam)", and every circular read
-/// gives a substitute for a holiday on a Friday or a Sunday and none for one
-/// on a Saturday.
-static BN_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
-    days: &[Weekday::Friday, Weekday::Sunday],
-    regions: &[],
-    valid_from: None,
-    valid_from_day: None,
-    valid_until: None,
-    valid_until_day: None,
-}];
 
 /// The circulars' "sebagai ganti": a holiday on a Friday or a Sunday is
 /// replaced by the next day that is neither a weekend nor a holiday — the
@@ -6338,7 +6188,7 @@ pub static BRUNEI: RuleSet = RuleSet {
     substitution: BN_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: BN_WEEKEND,
+    weekend: weekends::BN,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Prime Minister's Office (Jabatan Perdana Menteri), the circulars (Surat \
               Keliling) Hari-Hari Kelepasan Awam: No. 4/2022 for 2023, No. 4/2023 for \
@@ -6352,17 +6202,6 @@ pub static BRUNEI: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Timor-Leste
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Article 30 of the Labour Code, Law No. 4/2012: the weekly rest day "só
-/// pode deixar de ser ao domingo" for work that cannot stop.
-static TL_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
-    days: &[Weekday::Sunday],
-    regions: &[],
-    valid_from: None,
-    valid_from_day: None,
-    valid_until: None,
-    valid_until_day: None,
-}];
 
 static TL_RULES: &[HolidayRule] = &read_all(
     2006,
@@ -6481,7 +6320,7 @@ pub static TIMOR_LESTE: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: TL_WEEKEND,
+    weekend: weekends::TL,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Lei n.º 10/2005, de 10 de agosto, Feriados Nacionais e Datas Oficiais \
               Comemorativas, articles 2, 5 and 7; Lei n.º 3/2016, de 25 de maio (Jornal da \
@@ -6738,7 +6577,7 @@ pub static BHUTAN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::BT,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Ministry of Home Affairs, \"Government Holidays list\" for the Wood Female \
               Snake year 2025 and for the Wood Female Snake and Fire Male Horse years \
@@ -6760,19 +6599,6 @@ pub static BHUTAN: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Maldives
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Friday and Saturday. Section 97 of the Employment Act makes every Friday
-/// a public holiday, and the government works "Sunday to Thursday", as the
-/// Ministry of Economic Development and Trade's gazette notice of 27 March
-/// 2024 puts its hours.
-static MV_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
-    days: &[Weekday::Friday, Weekday::Saturday],
-    regions: &[],
-    valid_from: None,
-    valid_from_day: None,
-    valid_until: None,
-    valid_until_day: None,
-}];
 
 /// A day of the Hijri calendar, on the tabular calendar and approximate:
 /// the Maldives keeps it on the sighting.
@@ -6844,7 +6670,7 @@ pub static MALDIVES: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: MV_WEEKEND,
+    weekend: weekends::MV,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Employment Act, Law No. 2/2008, section 97, in the Labour Relations Authority's \
               consolidated unofficial English translation (lra.gov.mv); Maldives Monetary \
@@ -6858,19 +6684,6 @@ pub static MALDIVES: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Afghanistan
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Friday. The Ministry of Labour and Social Affairs' notice for Arafah and
-/// Eid al-Adha 1447 counts "four working days" from Tuesday 9 Dhu al-Hijjah
-/// to a return on Sunday the 14th, passing over the Friday and counting the
-/// Thursday and the Saturday.
-static AF_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
-    days: &[Weekday::Friday],
-    regions: &[],
-    valid_from: None,
-    valid_from_day: None,
-    valid_until: None,
-    valid_until_day: None,
-}];
 
 /// The first year of the Emirate's calendars read: 1444 AH began on
 /// 30 July 2022, and 2023 is the first Gregorian year wholly under the
@@ -6969,7 +6782,7 @@ pub static AFGHANISTAN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: AF_WEEKEND,
+    weekend: weekends::AF,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Rukhshana Media, 2 August 2022, on the Ministry of Information and Culture's \
               calendar of 1444 AH, the calendar itself not read; the Islamic Emirate's site \
@@ -6984,17 +6797,6 @@ pub static AFGHANISTAN: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // North Korea
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Sunday: article 64 of the Socialist Labour Law, "Sundays shall be days
-/// of rest".
-static KP_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
-    days: &[Weekday::Sunday],
-    regions: &[],
-    valid_from: None,
-    valid_from_day: None,
-    valid_until: None,
-    valid_until_day: None,
-}];
 
 /// The year of the wall calendar whose days off are this table's, and the
 /// first year it answers for: every earlier year is a gap, the days having
@@ -7091,7 +6893,7 @@ pub static NORTH_KOREA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: KP_WEEKEND,
+    weekend: weekends::KP,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "안주영 et al., Seoul National University Institute for Peace and \
               Unification Studies, 2020 unification report, pp. 11–13 (ipus.snu.ac.kr, \

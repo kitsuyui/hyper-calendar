@@ -64,8 +64,7 @@ fn vanuatu_keeps_each_provincial_day_in_its_province_from_2020() {
         // No list before 2020's was read: 2019 is a gap, 2020 is not.
         let names = |year| {
             HolidayCalendar::for_year(&VANUATU, Some(region), year)
-                .gaps()
-                .iter()
+                .holiday_gaps()
                 .map(|gap| gap.name)
                 .collect::<Vec<_>>()
         };
@@ -110,10 +109,10 @@ fn solomon_islands_keeps_the_provincial_days_of_2026() {
         // 2026's were not read.
         let before = HolidayCalendar::for_year(&SOLOMON_ISLANDS, Some(region), 2025);
         assert!(own_days(&SOLOMON_ISLANDS, region, 2025).is_empty());
-        assert_eq!(before.gaps().len(), 1, "{region}");
+        assert_eq!(before.holiday_gaps().count(), 1, "{region}");
         // After it, a gap: the days are appointed each year.
         let after = HolidayCalendar::for_year(&SOLOMON_ISLANDS, Some(region), 2027);
-        assert_eq!(after.gaps().len(), 1, "{region}");
+        assert_eq!(after.holiday_gaps().count(), 1, "{region}");
     }
     // Guadalcanal's day is kept on Friday 31 July, not Saturday 1 August,
     // and Honiara and the nationwide calendar have neither.
@@ -158,7 +157,7 @@ fn bhutan_keeps_thimphu_s_festivals_in_thimphu() {
 fn bhutan_reports_thimphu_s_moved_festivals_of_2021_as_a_gap() {
     for year in [2020, 2021, 2022] {
         let calendar = HolidayCalendar::for_year(&BHUTAN, Some("BT-15"), year);
-        let mut gaps: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
+        let mut gaps: Vec<&str> = calendar.holiday_gaps().map(|gap| gap.name).collect();
         gaps.sort_unstable();
         gaps.dedup();
         assert!(gaps.contains(&"Thimphu Drubchoe"), "{year} {gaps:?}");
@@ -175,8 +174,7 @@ fn bhutan_reports_thimphu_s_moved_festivals_of_2021_as_a_gap() {
     let nationwide = HolidayCalendar::for_year(&BHUTAN, None, 2021);
     assert!(
         !nationwide
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .any(|gap| gap.name.starts_with("Thimphu"))
     );
 }
@@ -190,8 +188,7 @@ fn bhutan_predicts_thimphu_s_festivals_on_the_bhutanese_calendar() {
         let days = own_days(&BHUTAN, "BT-15", year);
         let calendar = HolidayCalendar::for_year(&BHUTAN, Some("BT-15"), year);
         if calendar
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .any(|gap| gap.name.starts_with("Thimphu"))
         {
             continue;

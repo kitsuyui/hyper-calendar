@@ -35,10 +35,11 @@ use hc_calendars_solar::gregorian;
 
 mod commemorative;
 
+use super::weekends;
 use crate::computus::offsets::{GOOD_FRIDAY, SHROVE_TUESDAY};
 use crate::rule::{
-    CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
-    Subdivisions, SubstituteDirection, SubstitutionPolicy, joined,
+    CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SourceDate, Subdivisions,
+    SubstituteDirection, SubstitutionPolicy, joined,
 };
 
 /// The District of Columbia and the counties around it, the only place
@@ -323,10 +324,28 @@ const US_RULES: &[HolidayRule] = &[
         .years(Some(1971), None),
     // Veterans Day spent the Uniform Monday years on the fourth Monday of
     // October; Public Law 94-97 put it back on 11 November from 1978.
+    // Armistice Day, a legal holiday from 1938, until Public Law 83-380 of
+    // 1 June 1954 renamed it Veterans Day.
+    HolidayRule::public("Armistice Day", "", Rule::gregorian(11, 11))
+        .years(Some(1938), Some(1953))
+        .cited("Congressional Research Service, \"Federal Holidays: Evolution and Current Practices\" (R41990), everycrsreport.com, retrieved 2026-10-04"),
     HolidayRule::public("Veterans Day", "", Rule::gregorian(11, 11)).years(Some(1954), Some(1970)),
     HolidayRule::public("Veterans Day", "", Rule::nth(10, 4, Weekday::Monday))
         .years(Some(1971), Some(1977)),
     HolidayRule::public("Veterans Day", "", Rule::gregorian(11, 11)).years(Some(1978), None),
+    // The Act of 28 June 1870 made "any day appointed or recommended by the
+    // President" for thanksgiving a holiday in the District of Columbia; the
+    // Joint Resolution of 26 December 1941 fixed the fourth Thursday of
+    // November from 1942. Between them the day was the one each year's
+    // proclamation named, and the proclamations are not carried.
+    HolidayRule::public("Thanksgiving Day", "", Rule::UNREAD)
+        .years(Some(1870), Some(1941))
+        .cited(
+            "Act of 28 June 1870, 16 Stat. 168 (\"any day appointed or recommended by the \
+             President of the United States as a day of public fasting or thanksgiving\"), \
+             in the Congressional Research Service's \"Federal Holidays: Evolution and \
+             Current Practices\" (R41990), whose proclamations of each year are not read",
+        ),
     HolidayRule::public("Thanksgiving Day", "", Rule::nth(11, 4, Weekday::Thursday))
         .years(Some(1942), None),
     HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)).years(Some(1871), None),
@@ -1344,7 +1363,7 @@ pub static UNITED_STATES: RuleSet = RuleSet {
     substitution: US_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::US,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "5 U.S.C. § 6103(a) to (c), on the Legal Information Institute \
               (law.cornell.edu/uscode/text/5/6103), retrieved 2026-09-26, whose subsection (b) \

@@ -94,8 +94,12 @@ Maaziah, Joiarib, Jedaiah); the next day, 2/II, is the Sabbath 4Q325 calls
   their Gregorian dates are this library's epoch's. Talmon's pages were
   read in a scanned PDF on 2026-09-26 and are carried as the test
   `the_first_years_festivals_fall_in_the_courses_of_4q320` transcribes
-  them; they were not re-read for the table. The Temple Scroll's New Wine,
-  New Oil and Wood Offering are not carried: no source read dates them.
+  them; they were not re-read for the table. The table is read from year
+  −133 (134 BCE), the earliest year Wikipedia's "Qumran" dates the
+  Hasmonean settlement to [wikipedia-qumran]; every earlier year is a gap,
+  and no source read says in which years the covenanters kept the calendar.
+  The Temple Scroll's New Wine, New Oil and Wood Offering are not carried:
+  no source read dates them.
 - **Not carried:** the lunar data of 4Q317 and 4Q320–321, the 294-year
   *Otot* cycle of 4Q319, the Enoch form with the four added days outside
   the count, and any intercalation scheme.

@@ -165,12 +165,12 @@ fn holiday_tables_answer_by_identifier() {
         .expect("UTF-8");
     assert!(
         text.starts_with(
-            "2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\t\tnew-years-day\t\t0\n"
+            "2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\t\tnew-years-day\t\t0\t\t\n"
         ),
         "{text}"
     );
     assert!(
-        text.contains("\t1\t2026-05-03\t\t\tconstitution-memorial-day\t\t0\n"),
+        text.contains("\t1\t2026-05-03\t\t\tconstitution-memorial-day\t\t0\t\t\n"),
         "{text}"
     );
     unsafe { hc_free(pointer, capacity) };
@@ -419,7 +419,7 @@ fn a_subdivision_is_a_region_of_its_country_s_table() {
         ]
     );
     assert!(year.contains(
-        "2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\t\tnew-years-day\t\t0\n"
+        "2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\t\tnew-years-day\t\t0\t\t\n"
     ));
     let nationwide = read_lines(|buffer, capacity| unsafe {
         hc_holidays_in_year(
@@ -578,9 +578,9 @@ fn a_group_is_a_scope_of_its_country_s_table() {
     assert_eq!(china[10], "少年儿童;现役军人;妇女;青年");
 }
 
-/// A day the table cannot answer is refused, not answered "no": Victoria
-/// Day 2025 is a gap in Newfoundland and Labrador, and Kedah's weekend law
-/// of 2012 was not read.
+/// A day the table cannot answer is refused, not answered "no": a year past
+/// China's lunisolar range is a gap, Canada's weekend of 2025 is read from
+/// 2026, and Kedah's weekend law of 2012 was not read.
 #[test]
 fn a_day_a_gap_leaves_open_is_refused_and_a_known_one_is_answered() {
     let day_off = |code: &str, region: &str, fixed: i64| unsafe {
@@ -595,7 +595,13 @@ fn a_day_a_gap_leaves_open_is_refused_and_a_known_one_is_answered() {
         )
     };
     let victoria = hc_gregorian_to_fixed(2025, 5, 19);
-    assert_eq!(day_off("CA", "CA-NL", victoria), HC_ERR_NO_DATA);
+    assert_eq!(day_off("CA", "CA-NL", victoria), HC_ERR_OUT_OF_RANGE);
+    // China's festivals are dated in the lunisolar calendar to 2150: a day
+    // of 2151 that is no fixed holiday might be one of them.
+    assert_eq!(
+        day_off("CN", "", hc_gregorian_to_fixed(2151, 3, 4)),
+        HC_ERR_NO_DATA
+    );
     assert_eq!(
         day_off("CA", "CA-NL", hc_gregorian_to_fixed(2025, 12, 25)),
         1

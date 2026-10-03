@@ -81,12 +81,19 @@ fn a_day_without_an_entry_is_a_day_off_that_is_not_only_where_the_table_is_whole
     assert_eq!(whole.day_off(ymd(2026, 3, 12)), Ok(false));
     // A weekend day is not a holiday, and the answer is not open.
     assert_eq!(whole.day_off(ymd(2026, 3, 14)), Ok(false));
-    // 1995 is before "Announced Day" was read: its day is open, so every
-    // day that is not an entry is refused, and the entry itself is not.
+    // 1995 is before "Announced Day" was read: the day it would fall on, 9
+    // September, is open and refused, the entry itself is not, and a day
+    // the rule could not place the holiday on is answered.
     let early = calendar(None, 1995, 1995);
     assert_eq!(early.day_off(ymd(1995, 3, 11)), Ok(true));
-    assert_eq!(early.day_off(ymd(1995, 3, 12)), Err(Unanswered::Gap));
+    assert_eq!(early.day_off(ymd(1995, 3, 12)), Ok(false));
+    assert_eq!(early.day_off(ymd(1995, 9, 8)), Ok(false));
     assert_eq!(early.day_off(ymd(1995, 9, 9)), Err(Unanswered::Gap));
+    assert_eq!(early.day_off(ymd(1995, 9, 10)), Ok(false));
+    assert_eq!(
+        early.gaps()[0].window,
+        Some((ymd(1995, 9, 9), ymd(1995, 9, 9)))
+    );
     // The ordinary answer for a day outside the span is its own refusal.
     assert_eq!(
         early.day_off(ymd(1996, 3, 12)),
@@ -111,17 +118,18 @@ fn only_a_gap_of_a_kind_that_stops_work_opens_a_day_off() {
     assert_eq!(calendar_2005.day_off(ymd(2005, 6, 14)), Ok(false));
     assert_eq!(calendar_2005.business_day(ymd(2005, 6, 14)), Ok(true));
     // A weekend day is a working day only where a work-day entry says so,
-    // and the gap of one leaves a weekend day open: 2012 is before
-    // "Make-up Day" was read (2015).
-    let calendar_2012 = calendar(None, 2012, 2012);
-    assert_eq!(calendar_2012.gaps().len(), 1);
-    assert_eq!(calendar_2012.gaps()[0].kind, Kind::Workday);
-    let saturday = ymd(2012, 3, 17);
+    // and the gap of one leaves open the weekend day it would be on:
+    // 14 March 2009 is a Saturday, before "Make-up Day" was read (2015).
+    let calendar_2009 = calendar(None, 2009, 2009);
+    assert_eq!(calendar_2009.gaps().len(), 2);
+    let saturday = ymd(2009, 3, 14);
     assert_eq!(Weekday::from_rd(saturday), Weekday::Saturday);
-    assert_eq!(calendar_2012.business_day(saturday), Err(Unanswered::Gap));
-    // A weekday is not made open by a work-day gap, nor is a day off.
-    assert_eq!(calendar_2012.business_day(ymd(2012, 3, 12)), Ok(true));
-    assert_eq!(calendar_2012.day_off(ymd(2012, 3, 17)), Ok(false));
+    assert_eq!(calendar_2009.business_day(saturday), Err(Unanswered::Gap));
+    // Another Saturday is not open, a weekday is not made open by a
+    // work-day gap, nor is a day off.
+    assert_eq!(calendar_2009.business_day(ymd(2009, 3, 21)), Ok(false));
+    assert_eq!(calendar_2009.business_day(ymd(2009, 3, 12)), Ok(true));
+    assert_eq!(calendar_2009.day_off(saturday), Ok(false));
     // Once it is read the designated day counts, a Saturday's.
     let calendar_2026 = calendar(None, 2026, 2026);
     assert_eq!(Weekday::from_rd(ymd(2026, 3, 14)), Weekday::Saturday);
@@ -185,27 +193,35 @@ fn a_walk_that_reaches_a_day_a_gap_leaves_open_is_refused_and_one_that_does_not_
     // 1999 and 2000 straddle the year Announced Day was first read in.
     let span = calendar(None, 1999, 2001);
     assert!(!span.gaps().is_empty());
-    // 1999 is open; a walk that stays in 2000 is not.
+    // A walk that reaches 9 September 1999, where the unread day would
+    // fall, is refused; one that stays clear of it, in 1999 or in 2000, is
+    // not.
+    assert_eq!(
+        span.try_add_business_days(ymd(1999, 9, 7), 3),
+        Err(Unanswered::Gap)
+    );
     assert_eq!(
         span.try_add_business_days(ymd(1999, 12, 28), 1),
-        Err(Unanswered::Gap)
+        Ok(ymd(1999, 12, 29))
     );
     assert_eq!(
         span.try_add_business_days(ymd(2000, 4, 3), 1),
         Ok(ymd(2000, 4, 4))
     );
-    // The first business day of 2000 is reached from the last of 1999 only
-    // by crossing the gap: the count is refused, whichever way it runs.
+    assert_eq!(
+        span.try_business_days_between(ymd(1999, 9, 1), ymd(1999, 9, 15)),
+        Err(Unanswered::Gap)
+    );
     assert_eq!(
         span.try_business_days_between(ymd(1999, 12, 30), ymd(2000, 1, 5)),
-        Err(Unanswered::Gap)
+        Ok(4)
     );
     assert_eq!(
         span.try_business_days_between(ymd(2000, 1, 3), ymd(2000, 1, 7)),
         Ok(4)
     );
     // The Option methods are the same answers without the reason.
-    assert_eq!(span.add_business_days(ymd(1999, 12, 28), 1), None);
+    assert_eq!(span.add_business_days(ymd(1999, 9, 7), 3), None);
     assert_eq!(
         span.business_days_between(ymd(2000, 1, 3), ymd(2000, 1, 7)),
         Some(4)
@@ -224,9 +240,13 @@ fn the_next_and_previous_holiday_are_refused_where_a_gap_could_hide_a_nearer_one
     // gap lies in 2000.
     let next = span.try_next_of(ymd(2000, 1, 1), &[]).expect("closed");
     assert_eq!(next.map(|holiday| holiday.date), Some(ymd(2000, 3, 11)));
-    // From 1 January 1999 the next entry is Founding Day too, but the
-    // Announced Day of 1999 is open and could be nearer: refused.
-    assert_eq!(span.try_next_of(ymd(1999, 1, 1), &[]), Err(Unanswered::Gap));
+    // From 1 January 1999 the next entry is Founding Day, 11 March, and
+    // the unread Announced Day of 1999 falls on 9 September, after it: no
+    // gap could hide a nearer day. From 1 April 1999 the next entry is
+    // Founding Day of 2000, with the open 9 September between: refused.
+    let next = span.try_next_of(ymd(1999, 1, 1), &[]).expect("closed");
+    assert_eq!(next.map(|holiday| holiday.date), Some(ymd(1999, 3, 11)));
+    assert_eq!(span.try_next_of(ymd(1999, 4, 1), &[]), Err(Unanswered::Gap));
     // Back from 1 January 2001: the last day off is Announced Day, 9 Sep
     // 2000, with no gap between.
     let previous = span.try_previous_of(ymd(2001, 1, 1), &[]).expect("closed");

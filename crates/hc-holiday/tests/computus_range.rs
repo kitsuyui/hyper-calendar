@@ -100,14 +100,21 @@ fn the_western_christian_year_names_the_days_it_cannot_place() {
                 "{year}: {name} should be a gap, gaps are {gaps:?}"
             );
         }
-        // The fixed feasts are still answered.
-        assert!(
-            calendar
-                .all()
-                .iter()
-                .any(|holiday| holiday.name.contains("Christmas")),
-            "{year}: Christmas is a fixed date and needs no Easter"
-        );
+        // The fixed feasts are still answered past the computus, and before
+        // the table's first year, 1583, they are a gap too.
+        let christmas = calendar
+            .all()
+            .iter()
+            .any(|holiday| holiday.name.contains("Christmas"));
+        if year < 1583 {
+            assert!(!christmas, "{year}");
+            assert!(gaps.iter().any(|gap| gap.contains("Christmas")), "{year}");
+        } else {
+            assert!(
+                christmas,
+                "{year}: Christmas is a fixed date and needs no Easter"
+            );
+        }
     }
     // And a year inside the range has none of them missing.
     let calendar = HolidayCalendar::for_year(&traditions::CHRISTIAN_WESTERN, None, 2026);

@@ -238,8 +238,7 @@ fn okinawa_s_memorial_day_is_a_gap_from_the_reversion_to_its_holiday_ordinance()
         let calendar = HolidayCalendar::for_year(&JAPAN, Some("JP-47"), year);
         assert!(own_entries(Some("JP-47"), year, 6, 23).is_empty(), "{year}");
         let gaps: Vec<_> = calendar
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .map(|gap| (gap.year, gap.local_name))
             .collect();
         assert_eq!(gaps, [(year, "慰霊の日")], "{year}");
@@ -268,11 +267,18 @@ fn a_prefecture_read_for_no_day_is_a_gap_before_its_holiday_ordinance() {
         ("JP-40", "福岡県の休日を定める条例, 1989-07-11"),
         ("JP-42", "長崎県の休日を定める条例, 1989-07-18"),
     ] {
-        for year in [1948, 1975, 1988] {
+        for year in [1949, 1975, 1988] {
             let calendar = HolidayCalendar::for_year(&JAPAN, Some(region), year);
-            let gaps: Vec<_> = calendar.gaps().iter().map(|gap| gap.year).collect();
+            let gaps: Vec<_> = calendar.holiday_gaps().map(|gap| gap.year).collect();
             assert_eq!(gaps, [year], "{region} {year}: {ordinance}");
         }
+        // 1948 is also a year of the national holidays before the Act.
+        let calendar = HolidayCalendar::for_year(&JAPAN, Some(region), 1948);
+        assert_eq!(
+            calendar.holiday_gaps().count(),
+            2,
+            "{region} 1948: {ordinance}"
+        );
         for year in [1989, 2000, 2026] {
             let calendar = HolidayCalendar::for_year(&JAPAN, Some(region), year);
             assert!(calendar.is_complete(), "{region} {year}: {ordinance}");
@@ -280,7 +286,7 @@ fn a_prefecture_read_for_no_day_is_a_gap_before_its_holiday_ordinance() {
     }
     // A prefecture with a day of its own is not made a gap by the rule:
     // Tokyo's 都民の日 is absent before 1952 and an answer after it.
-    assert!(HolidayCalendar::for_year(&JAPAN, Some("JP-13"), 1948).is_complete());
+    assert!(HolidayCalendar::for_year(&JAPAN, Some("JP-13"), 1950).is_complete());
 }
 
 #[test]
@@ -423,8 +429,7 @@ fn tokyo_s_and_yamagata_s_education_days_are_saturdays() {
     // year was not read, so 2025 is a gap.
     assert_eq!(named("JP-06", 2026, 11, 14, "やまがた教育の日").len(), 1);
     let gaps: Vec<_> = HolidayCalendar::for_year(&JAPAN, Some("JP-06"), 2025)
-        .gaps()
-        .iter()
+        .holiday_gaps()
         .map(|gap| gap.local_name)
         .collect();
     assert_eq!(gaps, ["やまがた教育の日"]);
@@ -434,8 +439,7 @@ fn tokyo_s_and_yamagata_s_education_days_are_saturdays() {
 fn aichi_s_school_holiday_is_a_gap_in_every_year_from_2023() {
     let gaps = |year| {
         HolidayCalendar::for_year(&JAPAN, Some("JP-23"), year)
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .map(|gap| gap.local_name)
             .collect::<Vec<_>>()
     };
@@ -448,8 +452,7 @@ fn aichi_s_school_holiday_is_a_gap_in_every_year_from_2023() {
 fn every_prefecture_is_read_and_two_days_are_gaps() {
     let gaps = |region| {
         HolidayCalendar::for_year(&JAPAN, Some(region), 2026)
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .map(|gap| gap.local_name)
             .collect::<Vec<_>>()
     };

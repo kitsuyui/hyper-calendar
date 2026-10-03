@@ -52,14 +52,41 @@ use crate::computus::offsets::{
     MAUNDY_THURSDAY, SHROVE_MONDAY, SHROVE_TUESDAY, WHIT_MONDAY,
 };
 use crate::countries::europe::GB_ENGLAND_AND_WALES;
+use crate::countries::weekends;
 use crate::countries::{
     CHINA, HONG_KONG, JAPAN, MEXICO, NEW_ZEALAND, POLAND, SOUTH_AFRICA, SOUTH_KOREA, TAIWAN,
-    UNITED_KINGDOM,
+    UNITED_KINGDOM, read_all,
 };
 use crate::rule::{
-    CalendarSystem, Days, HolidayRule, Include, Listing, Rule, RuleSet, SATURDAY_SUNDAY,
-    SourceDate, Subdivisions, SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
+    CalendarSystem, Days, HolidayRule, Include, Listing, Rule, RuleSet, SourceDate, Subdivisions,
+    SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
 };
+
+/// [`read_all`] for an exchange's table: every rule is read from `first`,
+/// the first year of the lists the table's `sources` give, except a closure
+/// limited to the one year it happened in, which was read in that year, and
+/// a table of announced dates, which is read from the first year it lists.
+const fn read_from_year<const N: usize>(
+    first: i32,
+    mut rules: [HolidayRule; N],
+) -> [HolidayRule; N] {
+    let mut index = 0;
+    while index < N {
+        if rules[index].read_from.is_none() {
+            if let (Some(from), Some(until)) = (rules[index].valid_from, rules[index].valid_until)
+                && from == until
+            {
+                rules[index].read_from = Some(from);
+            } else if let Rule::Listed { first_year, .. } = rules[index].rule
+                && (first_year as i32) < first
+            {
+                rules[index].read_from = Some(first_year as i32);
+            }
+        }
+        index += 1;
+    }
+    read_all(first, rules)
+}
 
 // ─────────────────────────────────────────────────────────────────────────
 // New York Stock Exchange
@@ -124,62 +151,66 @@ const fn xnys_closed(name: &'static str, month: u8, day: u8, year: i32) -> Holid
     HolidayRule::fixed_public(name, "", Rule::gregorian(month, day)).years(Some(year), Some(year))
 }
 
-static XNYS_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1))
-        .substitute_on(&[Weekday::Sunday]),
-    HolidayRule::public(
-        "Martin Luther King, Jr. Day",
-        "",
-        Rule::nth(1, 3, Weekday::Monday),
-    )
-    .years(Some(1998), None),
-    HolidayRule::public(
-        "Washington's Birthday",
-        "",
-        Rule::nth(2, 3, Weekday::Monday),
-    )
-    .years(Some(1971), None),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Memorial Day", "", Rule::last(5, Weekday::Monday)).years(Some(1971), None),
-    HolidayRule::public(
-        "Juneteenth National Independence Day",
-        "",
-        Rule::gregorian(6, 19),
-    )
-    .years(Some(2022), None),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(7, 4)),
-    HolidayRule::public("Labor Day", "", Rule::nth(9, 1, Weekday::Monday)),
-    HolidayRule::public("Thanksgiving Day", "", Rule::nth(11, 4, Weekday::Thursday)),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    // Early closes at 1:00 p.m.: trading days, noted and not counted.
-    HolidayRule::observance("Early close, 3 July", "", Rule::Computed(xnys_july_third)),
-    HolidayRule::observance(
-        "Early close, the day after Thanksgiving",
-        "",
-        Rule::Offset {
-            base: &XNYS_THANKSGIVING,
-            days: 1,
-        },
-    ),
-    HolidayRule::observance(
-        "Early close, Christmas Eve",
-        "",
-        Rule::Computed(xnys_christmas_eve),
-    ),
-    // Unscheduled closures a source records.
-    xnys_closed("Closed after the September 11 attacks", 9, 11, 2001),
-    xnys_closed("Closed after the September 11 attacks", 9, 12, 2001),
-    xnys_closed("Closed after the September 11 attacks", 9, 13, 2001),
-    xnys_closed("Closed after the September 11 attacks", 9, 14, 2001),
-    xnys_closed("Closed for Hurricane Sandy", 10, 29, 2012),
-    xnys_closed("Closed for Hurricane Sandy", 10, 30, 2012),
-    xnys_closed(
-        "National Day of Mourning for President George H. W. Bush",
-        12,
-        5,
-        2018,
-    ),
-];
+static XNYS_RULES: &[HolidayRule] = &read_from_year(
+    2026,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1))
+            .substitute_on(&[Weekday::Sunday]),
+        HolidayRule::public(
+            "Martin Luther King, Jr. Day",
+            "",
+            Rule::nth(1, 3, Weekday::Monday),
+        )
+        .years(Some(1998), None),
+        HolidayRule::public(
+            "Washington's Birthday",
+            "",
+            Rule::nth(2, 3, Weekday::Monday),
+        )
+        .years(Some(1971), None),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::public("Memorial Day", "", Rule::last(5, Weekday::Monday))
+            .years(Some(1971), None),
+        HolidayRule::public(
+            "Juneteenth National Independence Day",
+            "",
+            Rule::gregorian(6, 19),
+        )
+        .years(Some(2022), None),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(7, 4)),
+        HolidayRule::public("Labor Day", "", Rule::nth(9, 1, Weekday::Monday)),
+        HolidayRule::public("Thanksgiving Day", "", Rule::nth(11, 4, Weekday::Thursday)),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        // Early closes at 1:00 p.m.: trading days, noted and not counted.
+        HolidayRule::observance("Early close, 3 July", "", Rule::Computed(xnys_july_third)),
+        HolidayRule::observance(
+            "Early close, the day after Thanksgiving",
+            "",
+            Rule::Offset {
+                base: &XNYS_THANKSGIVING,
+                days: 1,
+            },
+        ),
+        HolidayRule::observance(
+            "Early close, Christmas Eve",
+            "",
+            Rule::Computed(xnys_christmas_eve),
+        ),
+        // Unscheduled closures a source records.
+        xnys_closed("Closed after the September 11 attacks", 9, 11, 2001),
+        xnys_closed("Closed after the September 11 attacks", 9, 12, 2001),
+        xnys_closed("Closed after the September 11 attacks", 9, 13, 2001),
+        xnys_closed("Closed after the September 11 attacks", 9, 14, 2001),
+        xnys_closed("Closed for Hurricane Sandy", 10, 29, 2012),
+        xnys_closed("Closed for Hurricane Sandy", 10, 30, 2012),
+        xnys_closed(
+            "National Day of Mourning for President George H. W. Bush",
+            12,
+            5,
+            2018,
+        ),
+    ],
+);
 
 /// The New York Stock Exchange.
 ///
@@ -210,7 +241,7 @@ pub static NEW_YORK_STOCK_EXCHANGE: RuleSet = RuleSet {
     substitution: XNYS_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XNYS,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "NYSE, \"Holidays & Trading Hours\" (nyse.com/markets/hours-calendars), retrieved \
               2026-09-22, for the closed days and early closings of 2026 to 2028 and the note \
@@ -240,7 +271,7 @@ pub static NASDAQ: RuleSet = RuleSet {
     substitution: XNYS_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XNAS,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Nasdaq Trader, \"Trading Calendar\" (nasdaqtrader.com/trader.aspx?id=calendar), \
               retrieved 2026-09-23, for 2026; Wikipedia, \"Economic effects of the September 11 \
@@ -287,31 +318,34 @@ fn last_weekday_of_the_year(year: i64) -> Days {
     last_weekday_on_or_before(year, 12, 31)
 }
 
-static XASX_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("Australia Day", "", Rule::gregorian(1, 26)),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    // Not substituted: in 2027 the market trades on Monday 26 April, the
-    // states' substitute for the Sunday.
-    HolidayRule::fixed_public("Anzac Day", "", Rule::gregorian(4, 25)),
-    HolidayRule::fixed_public("Queen's Birthday", "", Rule::nth(6, 2, Weekday::Monday))
-        .years(None, Some(2022)),
-    HolidayRule::fixed_public("King's Birthday", "", Rule::nth(6, 2, Weekday::Monday))
-        .years(Some(2023), None),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-    HolidayRule::observance(
-        "Early close, the last business day before Christmas Day",
-        "",
-        Rule::Computed(last_weekday_before_christmas),
-    ),
-    HolidayRule::observance(
-        "Early close, the last business day of the year",
-        "",
-        Rule::Computed(last_weekday_of_the_year),
-    ),
-];
+static XASX_RULES: &[HolidayRule] = &read_from_year(
+    2026,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("Australia Day", "", Rule::gregorian(1, 26)),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        // Not substituted: in 2027 the market trades on Monday 26 April, the
+        // states' substitute for the Sunday.
+        HolidayRule::fixed_public("Anzac Day", "", Rule::gregorian(4, 25)),
+        HolidayRule::fixed_public("Queen's Birthday", "", Rule::nth(6, 2, Weekday::Monday))
+            .years(None, Some(2022)),
+        HolidayRule::fixed_public("King's Birthday", "", Rule::nth(6, 2, Weekday::Monday))
+            .years(Some(2023), None),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+        HolidayRule::observance(
+            "Early close, the last business day before Christmas Day",
+            "",
+            Rule::Computed(last_weekday_before_christmas),
+        ),
+        HolidayRule::observance(
+            "Early close, the last business day of the year",
+            "",
+            Rule::Computed(last_weekday_of_the_year),
+        ),
+    ],
+);
 
 /// The Australian Securities Exchange.
 ///
@@ -335,7 +369,7 @@ pub static AUSTRALIAN_SECURITIES_EXCHANGE: RuleSet = RuleSet {
     substitution: XASX_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XASX,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "ASX, \"Trading calendar\" (asx.com.au/markets/market-resources/trading-hours-calendar/cash-market-trading-hours/trading-calendar), \
               retrieved 2026-09-23, for the closed days, the early closes and the weekend rule \
@@ -347,18 +381,21 @@ pub static AUSTRALIAN_SECURITIES_EXCHANGE: RuleSet = RuleSet {
 // London Stock Exchange
 // ─────────────────────────────────────────────────────────────────────────
 
-static XLON_RULES: &[HolidayRule] = &[
-    HolidayRule::observance(
-        "Early close, Christmas Holiday half day",
-        "",
-        Rule::Computed(last_weekday_before_christmas),
-    ),
-    HolidayRule::observance(
-        "Early close, New Year's Holiday half day",
-        "",
-        Rule::Computed(last_weekday_of_the_year),
-    ),
-];
+static XLON_RULES: &[HolidayRule] = &read_from_year(
+    2026,
+    [
+        HolidayRule::observance(
+            "Early close, Christmas Holiday half day",
+            "",
+            Rule::Computed(last_weekday_before_christmas),
+        ),
+        HolidayRule::observance(
+            "Early close, New Year's Holiday half day",
+            "",
+            Rule::Computed(last_weekday_of_the_year),
+        ),
+    ],
+);
 
 /// The London Stock Exchange.
 ///
@@ -378,8 +415,8 @@ pub static LONDON_STOCK_EXCHANGE: RuleSet = RuleSet {
     rules: XLON_RULES,
     substitution: &[],
     bridges: &[],
-    includes: &[Include::in_region(&UNITED_KINGDOM, GB_ENGLAND_AND_WALES)],
-    weekend: SATURDAY_SUNDAY,
+    includes: &[Include::in_region(&UNITED_KINGDOM, GB_ENGLAND_AND_WALES).read_from(2026)],
+    weekend: weekends::XLON,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "London Stock Exchange, \"Business days\" \
               (londonstockexchange.com/equities-trading/business-days), retrieved 2026-09-23: \
@@ -392,18 +429,21 @@ pub static LONDON_STOCK_EXCHANGE: RuleSet = RuleSet {
 // SIX Swiss Exchange
 // ─────────────────────────────────────────────────────────────────────────
 
-static XSWX_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Neujahr", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Berchtholdstag", "Berchtoldstag", Rule::gregorian(1, 2)),
-    HolidayRule::fixed_public("Good Friday", "Karfreitag", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "Ostermontag", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::fixed_public("Labour Day", "Tag der Arbeit", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Ascension Day", "Auffahrt", Rule::easter(ASCENSION)),
-    HolidayRule::fixed_public("Whitmonday", "Pfingstmontag", Rule::easter(WHIT_MONDAY)),
-    HolidayRule::fixed_public("Christmas Eve", "Heiligabend", Rule::gregorian(12, 24)),
-    HolidayRule::fixed_public("Christmas", "Weihnachten", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public("New Year's Eve", "Silvester", Rule::gregorian(12, 31)),
-];
+static XSWX_RULES: &[HolidayRule] = &read_from_year(
+    2026,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Neujahr", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("Berchtholdstag", "Berchtoldstag", Rule::gregorian(1, 2)),
+        HolidayRule::fixed_public("Good Friday", "Karfreitag", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "Ostermontag", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::fixed_public("Labour Day", "Tag der Arbeit", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Ascension Day", "Auffahrt", Rule::easter(ASCENSION)),
+        HolidayRule::fixed_public("Whitmonday", "Pfingstmontag", Rule::easter(WHIT_MONDAY)),
+        HolidayRule::fixed_public("Christmas Eve", "Heiligabend", Rule::gregorian(12, 24)),
+        HolidayRule::fixed_public("Christmas", "Weihnachten", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public("New Year's Eve", "Silvester", Rule::gregorian(12, 31)),
+    ],
+);
 
 /// The SIX Swiss Exchange.
 ///
@@ -426,7 +466,7 @@ pub static SIX_SWISS_EXCHANGE: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XSWX,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "SIX, \"Trading & Currency Holiday Calendar\" \
               (six-group.com/en/market-data/news-tools/trading-currency-holiday-calendar.html), \
@@ -439,16 +479,19 @@ pub static SIX_SWISS_EXCHANGE: RuleSet = RuleSet {
 // Frankfurt Stock Exchange (Xetra)
 // ─────────────────────────────────────────────────────────────────────────
 
-static XETR_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Neujahr", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Good Friday", "Karfreitag", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "Ostermontag", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::fixed_public("Labour Day", "Tag der Arbeit", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Christmas Eve", "Heiligabend", Rule::gregorian(12, 24)),
-    HolidayRule::fixed_public("Christmas Day", "1. Weihnachtstag", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public("Boxing Day", "2. Weihnachtstag", Rule::gregorian(12, 26)),
-    HolidayRule::fixed_public("New Year's Eve", "Silvester", Rule::gregorian(12, 31)),
-];
+static XETR_RULES: &[HolidayRule] = &read_from_year(
+    2026,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Neujahr", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("Good Friday", "Karfreitag", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "Ostermontag", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::fixed_public("Labour Day", "Tag der Arbeit", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Christmas Eve", "Heiligabend", Rule::gregorian(12, 24)),
+        HolidayRule::fixed_public("Christmas Day", "1. Weihnachtstag", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public("Boxing Day", "2. Weihnachtstag", Rule::gregorian(12, 26)),
+        HolidayRule::fixed_public("New Year's Eve", "Silvester", Rule::gregorian(12, 31)),
+    ],
+);
 
 /// The Frankfurt Stock Exchange, on Xetra.
 ///
@@ -465,7 +508,7 @@ pub static FRANKFURT_STOCK_EXCHANGE: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XETR,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Deutsche Börse, \"Trading calendar and trading hours\" \
               (cashmarket.deutsche-boerse.com/cash-en/trading/trading-calendar-and-trading-hours), \
@@ -496,32 +539,35 @@ fn xtse_christmas_eve(year: i64) -> Days {
     if_weekday(year, 12, 24)
 }
 
-static XTSE_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Family Day", "", Rule::nth(2, 3, Weekday::Monday))
-        .years(Some(2008), None),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public(
-        "Victoria Day",
-        "",
-        Rule::WeekdayOnOrBefore {
-            month: 5,
-            day: 24,
-            weekday: Weekday::Monday,
-        },
-    ),
-    HolidayRule::public("Canada Day", "", Rule::gregorian(7, 1)),
-    HolidayRule::fixed_public("Civic Holiday", "", Rule::nth(8, 1, Weekday::Monday)),
-    HolidayRule::fixed_public("Labour Day", "", Rule::nth(9, 1, Weekday::Monday)),
-    HolidayRule::fixed_public("Thanksgiving Day", "", Rule::nth(10, 2, Weekday::Monday)),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-    HolidayRule::observance(
-        "Early close, Christmas Eve",
-        "",
-        Rule::Computed(xtse_christmas_eve),
-    ),
-];
+static XTSE_RULES: &[HolidayRule] = &read_from_year(
+    2025,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("Family Day", "", Rule::nth(2, 3, Weekday::Monday))
+            .years(Some(2008), None),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public(
+            "Victoria Day",
+            "",
+            Rule::WeekdayOnOrBefore {
+                month: 5,
+                day: 24,
+                weekday: Weekday::Monday,
+            },
+        ),
+        HolidayRule::public("Canada Day", "", Rule::gregorian(7, 1)),
+        HolidayRule::fixed_public("Civic Holiday", "", Rule::nth(8, 1, Weekday::Monday)),
+        HolidayRule::fixed_public("Labour Day", "", Rule::nth(9, 1, Weekday::Monday)),
+        HolidayRule::fixed_public("Thanksgiving Day", "", Rule::nth(10, 2, Weekday::Monday)),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+        HolidayRule::observance(
+            "Early close, Christmas Eve",
+            "",
+            Rule::Computed(xtse_christmas_eve),
+        ),
+    ],
+);
 
 /// The Toronto Stock Exchange.
 ///
@@ -541,7 +587,7 @@ pub static TORONTO_STOCK_EXCHANGE: RuleSet = RuleSet {
     substitution: XTSE_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XTSE,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "TMX Group, \"Calendar\" (tsx.com/en/trading/calendars-and-trading-hours/calendar), \
               retrieved 2026-09-23, for the closed days and the Christmas Eve close of 2025 \
@@ -617,23 +663,30 @@ const EURONEXT_NEW_YEARS_EVE_HALF: HolidayRule = HolidayRule::observance(
 /// The calendar Amsterdam, Brussels, Lisbon and Paris share: six closed
 /// days, none moved off a weekend, and the two half days when they are
 /// weekdays.
-static EURONEXT_CORE_RULES: &[HolidayRule] = &[
-    EURONEXT_NEW_YEARS_DAY,
-    EURONEXT_GOOD_FRIDAY,
-    EURONEXT_EASTER_MONDAY,
-    EURONEXT_LABOUR_DAY,
-    EURONEXT_CHRISTMAS,
-    EURONEXT_BOXING_DAY,
-    EURONEXT_CHRISTMAS_EVE_HALF,
-    EURONEXT_NEW_YEARS_EVE_HALF,
-];
+static EURONEXT_CORE_RULES: &[HolidayRule] = &read_from_year(
+    2021,
+    [
+        EURONEXT_NEW_YEARS_DAY,
+        EURONEXT_GOOD_FRIDAY,
+        EURONEXT_EASTER_MONDAY,
+        EURONEXT_LABOUR_DAY,
+        EURONEXT_CHRISTMAS,
+        EURONEXT_BOXING_DAY,
+        EURONEXT_CHRISTMAS_EVE_HALF,
+        EURONEXT_NEW_YEARS_EVE_HALF,
+    ],
+);
 
 const EURONEXT_SOURCES: &str = "Euronext, \"Trading hours & holidays\" \
     (euronext.com/en/trade/trading-hours-holidays, `euronext-trading-hours-holidays`), \
     retrieved 2026-09-23, the tables for 2021 to 2026";
 
 /// A market on the calendar the four share.
-const fn euronext_core(code: &'static str, english_name: &'static str) -> RuleSet {
+const fn euronext_core(
+    code: &'static str,
+    english_name: &'static str,
+    weekend: &'static [WeekendPolicy],
+) -> RuleSet {
     RuleSet {
         code,
         english_name,
@@ -641,7 +694,7 @@ const fn euronext_core(code: &'static str, english_name: &'static str) -> RuleSe
         substitution: &[],
         bridges: &[],
         includes: &[],
-        weekend: SATURDAY_SUNDAY,
+        weekend,
         sources_checked: SourceDate::new(2026, 9, 23),
         sources: EURONEXT_SOURCES,
         subdivisions: Subdivisions::Undivided,
@@ -654,28 +707,29 @@ const fn euronext_core(code: &'static str, english_name: &'static str) -> RuleSe
 /// — Monday 3 January 2022 and Monday 28 December 2026 are full trading
 /// days — and half trading days on Christmas Eve and New Year's Eve when
 /// those are weekdays, which in 2022 and 2023 they were not.
-pub static EURONEXT_AMSTERDAM: RuleSet = euronext_core("XAMS", "Euronext Amsterdam");
+pub static EURONEXT_AMSTERDAM: RuleSet =
+    euronext_core("XAMS", "Euronext Amsterdam", weekends::XAMS);
 /// Euronext Brussels, on the calendar Amsterdam, Brussels, Lisbon and Paris share:
 /// New Year's Day, Good Friday, Easter Monday, 1 May, Christmas and Boxing
 /// Day, closed when they fall on a weekday and not moved when they do not
 /// — Monday 3 January 2022 and Monday 28 December 2026 are full trading
 /// days — and half trading days on Christmas Eve and New Year's Eve when
 /// those are weekdays, which in 2022 and 2023 they were not.
-pub static EURONEXT_BRUSSELS: RuleSet = euronext_core("XBRU", "Euronext Brussels");
+pub static EURONEXT_BRUSSELS: RuleSet = euronext_core("XBRU", "Euronext Brussels", weekends::XBRU);
 /// Euronext Lisbon, on the calendar Amsterdam, Brussels, Lisbon and Paris share:
 /// New Year's Day, Good Friday, Easter Monday, 1 May, Christmas and Boxing
 /// Day, closed when they fall on a weekday and not moved when they do not
 /// — Monday 3 January 2022 and Monday 28 December 2026 are full trading
 /// days — and half trading days on Christmas Eve and New Year's Eve when
 /// those are weekdays, which in 2022 and 2023 they were not.
-pub static EURONEXT_LISBON: RuleSet = euronext_core("XLIS", "Euronext Lisbon");
+pub static EURONEXT_LISBON: RuleSet = euronext_core("XLIS", "Euronext Lisbon", weekends::XLIS);
 /// Euronext Paris, on the calendar Amsterdam, Brussels, Lisbon and Paris share:
 /// New Year's Day, Good Friday, Easter Monday, 1 May, Christmas and Boxing
 /// Day, closed when they fall on a weekday and not moved when they do not
 /// — Monday 3 January 2022 and Monday 28 December 2026 are full trading
 /// days — and half trading days on Christmas Eve and New Year's Eve when
 /// those are weekdays, which in 2022 and 2023 they were not.
-pub static EURONEXT_PARIS: RuleSet = euronext_core("XPAR", "Euronext Paris");
+pub static EURONEXT_PARIS: RuleSet = euronext_core("XPAR", "Euronext Paris", weekends::XPAR);
 
 /// Dublin alone among the Euronext markets moves a weekend holiday to
 /// the next business day: Monday 3 January 2022, Tuesday 27 December 2022
@@ -691,29 +745,32 @@ static XDUB_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static XDUB_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    EURONEXT_GOOD_FRIDAY,
-    EURONEXT_EASTER_MONDAY,
-    EURONEXT_LABOUR_DAY,
-    HolidayRule::fixed_public(
-        "Irish May Bank Holiday",
-        "",
-        Rule::nth(5, 1, Weekday::Monday),
-    ),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("St Stephen's Day", "", Rule::gregorian(12, 26)),
-    HolidayRule::observance(
-        "Half trading day, before Christmas",
-        "",
-        Rule::Computed(xdub_before_christmas),
-    ),
-    HolidayRule::observance(
-        "Half trading day, before the New Year",
-        "",
-        Rule::Computed(xdub_before_new_year),
-    ),
-];
+static XDUB_RULES: &[HolidayRule] = &read_from_year(
+    2021,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        EURONEXT_GOOD_FRIDAY,
+        EURONEXT_EASTER_MONDAY,
+        EURONEXT_LABOUR_DAY,
+        HolidayRule::fixed_public(
+            "Irish May Bank Holiday",
+            "",
+            Rule::nth(5, 1, Weekday::Monday),
+        ),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("St Stephen's Day", "", Rule::gregorian(12, 26)),
+        HolidayRule::observance(
+            "Half trading day, before Christmas",
+            "",
+            Rule::Computed(xdub_before_christmas),
+        ),
+        HolidayRule::observance(
+            "Half trading day, before the New Year",
+            "",
+            Rule::Computed(xdub_before_new_year),
+        ),
+    ],
+);
 
 /// Euronext Dublin: the shared six days and the Irish May Bank Holiday,
 /// a weekend holiday moved to the next business day, and the half days
@@ -726,23 +783,26 @@ pub static EURONEXT_DUBLIN: RuleSet = RuleSet {
     substitution: XDUB_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XDUB,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: EURONEXT_SOURCES,
     subdivisions: Subdivisions::Undivided,
 };
 
-static XMIL_RULES: &[HolidayRule] = &[
-    EURONEXT_NEW_YEARS_DAY,
-    EURONEXT_GOOD_FRIDAY,
-    EURONEXT_EASTER_MONDAY,
-    EURONEXT_LABOUR_DAY,
-    HolidayRule::fixed_public("Ferragosto", "", Rule::gregorian(8, 15)),
-    HolidayRule::fixed_public("Christmas Eve", "", Rule::gregorian(12, 24)),
-    EURONEXT_CHRISTMAS,
-    HolidayRule::fixed_public("St Stephen's Day", "", Rule::gregorian(12, 26)),
-    HolidayRule::fixed_public("New Year's Eve", "", Rule::gregorian(12, 31)),
-];
+static XMIL_RULES: &[HolidayRule] = &read_from_year(
+    2021,
+    [
+        EURONEXT_NEW_YEARS_DAY,
+        EURONEXT_GOOD_FRIDAY,
+        EURONEXT_EASTER_MONDAY,
+        EURONEXT_LABOUR_DAY,
+        HolidayRule::fixed_public("Ferragosto", "", Rule::gregorian(8, 15)),
+        HolidayRule::fixed_public("Christmas Eve", "", Rule::gregorian(12, 24)),
+        EURONEXT_CHRISTMAS,
+        HolidayRule::fixed_public("St Stephen's Day", "", Rule::gregorian(12, 26)),
+        HolidayRule::fixed_public("New Year's Eve", "", Rule::gregorian(12, 31)),
+    ],
+);
 
 /// Euronext Milan, Borsa Italiana, in the tables from 2023: the shared
 /// six days and Ferragosto, and Christmas Eve and New Year's Eve closed
@@ -754,31 +814,34 @@ pub static EURONEXT_MILAN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XMIL,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: EURONEXT_SOURCES,
     subdivisions: Subdivisions::Undivided,
 };
 
-static XOSL_RULES: &[HolidayRule] = &[
-    EURONEXT_NEW_YEARS_DAY,
-    HolidayRule::observance(
-        "Half trading day, the Wednesday before Easter",
-        "",
-        Rule::easter(HOLY_WEDNESDAY),
-    ),
-    HolidayRule::fixed_public("Maundy Thursday", "", Rule::easter(MAUNDY_THURSDAY)),
-    EURONEXT_GOOD_FRIDAY,
-    EURONEXT_EASTER_MONDAY,
-    EURONEXT_LABOUR_DAY,
-    HolidayRule::fixed_public("Constitution Day", "", Rule::gregorian(5, 17)),
-    HolidayRule::fixed_public("Ascension Day", "", Rule::easter(ASCENSION)),
-    HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
-    HolidayRule::fixed_public("Christmas Eve", "", Rule::gregorian(12, 24)),
-    EURONEXT_CHRISTMAS,
-    EURONEXT_BOXING_DAY,
-    HolidayRule::fixed_public("New Year's Eve", "", Rule::gregorian(12, 31)),
-];
+static XOSL_RULES: &[HolidayRule] = &read_from_year(
+    2021,
+    [
+        EURONEXT_NEW_YEARS_DAY,
+        HolidayRule::observance(
+            "Half trading day, the Wednesday before Easter",
+            "",
+            Rule::easter(HOLY_WEDNESDAY),
+        ),
+        HolidayRule::fixed_public("Maundy Thursday", "", Rule::easter(MAUNDY_THURSDAY)),
+        EURONEXT_GOOD_FRIDAY,
+        EURONEXT_EASTER_MONDAY,
+        EURONEXT_LABOUR_DAY,
+        HolidayRule::fixed_public("Constitution Day", "", Rule::gregorian(5, 17)),
+        HolidayRule::fixed_public("Ascension Day", "", Rule::easter(ASCENSION)),
+        HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
+        HolidayRule::fixed_public("Christmas Eve", "", Rule::gregorian(12, 24)),
+        EURONEXT_CHRISTMAS,
+        EURONEXT_BOXING_DAY,
+        HolidayRule::fixed_public("New Year's Eve", "", Rule::gregorian(12, 31)),
+    ],
+);
 
 /// Euronext Oslo, Oslo Børs: the Norwegian days — Maundy Thursday,
 /// Constitution Day on 17 May, Ascension Day and Whit Monday besides the
@@ -792,7 +855,7 @@ pub static EURONEXT_OSLO: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XOSL,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: EURONEXT_SOURCES,
     subdivisions: Subdivisions::Undivided,
@@ -809,61 +872,64 @@ fn bvmf_last_business_day(year: i64) -> Days {
     last_weekday_on_or_before(year, 12, 31)
 }
 
-static BVMF_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "New Year's Day",
-        "Confraternização Universal",
-        Rule::gregorian(1, 1),
-    ),
-    HolidayRule::fixed_public("Carnival Monday", "Carnaval", Rule::easter(SHROVE_MONDAY)),
-    HolidayRule::fixed_public("Carnival Tuesday", "Carnaval", Rule::easter(SHROVE_TUESDAY)),
-    HolidayRule::observance(
-        "Late open, Ash Wednesday (trading from 1:00 p.m.)",
-        "Quarta-feira de Cinzas",
-        Rule::easter(ASH_WEDNESDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Good Friday",
-        "Sexta-feira Santa",
-        Rule::easter(GOOD_FRIDAY),
-    ),
-    HolidayRule::fixed_public("Tiradentes Day", "Tiradentes", Rule::gregorian(4, 21)),
-    HolidayRule::fixed_public("Labour Day", "Dia do Trabalho", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public(
-        "Corpus Christi",
-        "Corpus Christi",
-        Rule::easter(CORPUS_CHRISTI),
-    ),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Independência do Brasil",
-        Rule::gregorian(9, 7),
-    ),
-    HolidayRule::fixed_public(
-        "Our Lady of Aparecida",
-        "Nossa Senhora Aparecida",
-        Rule::gregorian(10, 12),
-    ),
-    HolidayRule::fixed_public("All Souls' Day", "Finados", Rule::gregorian(11, 2)),
-    HolidayRule::fixed_public(
-        "Proclamation of the Republic",
-        "Proclamação da República",
-        Rule::gregorian(11, 15),
-    ),
-    HolidayRule::fixed_public(
-        "Black Consciousness Day",
-        "Dia Nacional de Zumbi e da Consciência Negra",
-        Rule::gregorian(11, 20),
-    )
-    .years(Some(2024), None),
-    HolidayRule::fixed_public("Christmas Eve", "Véspera de Natal", Rule::gregorian(12, 24)),
-    HolidayRule::fixed_public("Christmas Day", "Natal", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public(
-        "Last business day of the year",
-        "Último dia útil do ano",
-        Rule::Computed(bvmf_last_business_day),
-    ),
-];
+static BVMF_RULES: &[HolidayRule] = &read_from_year(
+    2021,
+    [
+        HolidayRule::fixed_public(
+            "New Year's Day",
+            "Confraternização Universal",
+            Rule::gregorian(1, 1),
+        ),
+        HolidayRule::fixed_public("Carnival Monday", "Carnaval", Rule::easter(SHROVE_MONDAY)),
+        HolidayRule::fixed_public("Carnival Tuesday", "Carnaval", Rule::easter(SHROVE_TUESDAY)),
+        HolidayRule::observance(
+            "Late open, Ash Wednesday (trading from 1:00 p.m.)",
+            "Quarta-feira de Cinzas",
+            Rule::easter(ASH_WEDNESDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Good Friday",
+            "Sexta-feira Santa",
+            Rule::easter(GOOD_FRIDAY),
+        ),
+        HolidayRule::fixed_public("Tiradentes Day", "Tiradentes", Rule::gregorian(4, 21)),
+        HolidayRule::fixed_public("Labour Day", "Dia do Trabalho", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public(
+            "Corpus Christi",
+            "Corpus Christi",
+            Rule::easter(CORPUS_CHRISTI),
+        ),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Independência do Brasil",
+            Rule::gregorian(9, 7),
+        ),
+        HolidayRule::fixed_public(
+            "Our Lady of Aparecida",
+            "Nossa Senhora Aparecida",
+            Rule::gregorian(10, 12),
+        ),
+        HolidayRule::fixed_public("All Souls' Day", "Finados", Rule::gregorian(11, 2)),
+        HolidayRule::fixed_public(
+            "Proclamation of the Republic",
+            "Proclamação da República",
+            Rule::gregorian(11, 15),
+        ),
+        HolidayRule::fixed_public(
+            "Black Consciousness Day",
+            "Dia Nacional de Zumbi e da Consciência Negra",
+            Rule::gregorian(11, 20),
+        )
+        .years(Some(2024), None),
+        HolidayRule::fixed_public("Christmas Eve", "Véspera de Natal", Rule::gregorian(12, 24)),
+        HolidayRule::fixed_public("Christmas Day", "Natal", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public(
+            "Last business day of the year",
+            "Último dia útil do ano",
+            Rule::Computed(bvmf_last_business_day),
+        ),
+    ],
+);
 
 /// B3, the São Paulo exchange.
 ///
@@ -885,7 +951,7 @@ pub static B3: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::BVMF,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "B3, \"Trading calendar\" (b3.com.br/en_us/solutions/platforms/puma-trading-system/for-members-and-traders/trading-calendar/holidays/), \
               retrieved 2026-09-23, the market calendars for 2021 to 2026",
@@ -921,23 +987,26 @@ fn xhkg_new_years_eve(year: i64) -> Days {
     if_weekday(year, 12, 31)
 }
 
-static XHKG_RULES: &[HolidayRule] = &[
-    HolidayRule::observance(
-        "Half trading day, Lunar New Year's Eve",
-        "",
-        Rule::Computed(xhkg_lunar_new_years_eve),
-    ),
-    HolidayRule::observance(
-        "Half trading day, Christmas Eve",
-        "",
-        Rule::Computed(xhkg_christmas_eve),
-    ),
-    HolidayRule::observance(
-        "Half trading day, New Year's Eve",
-        "",
-        Rule::Computed(xhkg_new_years_eve),
-    ),
-];
+static XHKG_RULES: &[HolidayRule] = &read_from_year(
+    2026,
+    [
+        HolidayRule::observance(
+            "Half trading day, Lunar New Year's Eve",
+            "",
+            Rule::Computed(xhkg_lunar_new_years_eve),
+        ),
+        HolidayRule::observance(
+            "Half trading day, Christmas Eve",
+            "",
+            Rule::Computed(xhkg_christmas_eve),
+        ),
+        HolidayRule::observance(
+            "Half trading day, New Year's Eve",
+            "",
+            Rule::Computed(xhkg_new_years_eve),
+        ),
+    ],
+);
 
 /// The Stock Exchange of Hong Kong, of HKEX.
 ///
@@ -953,8 +1022,8 @@ pub static HONG_KONG_EXCHANGES: RuleSet = RuleSet {
     rules: XHKG_RULES,
     substitution: &[],
     bridges: &[],
-    includes: &[Include::nationwide(&HONG_KONG)],
-    weekend: SATURDAY_SUNDAY,
+    includes: &[Include::nationwide(&HONG_KONG).read_from(2026)],
+    weekend: weekends::XHKG,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "HKEX, \"HKEX Calendar\" (hkex.com.hk/News/HKEX-Calendar), retrieved 2026-09-23: \
               the calendar feed's \"Hong Kong Market is closed\" and \"Half-Day Trading Day\" \
@@ -966,11 +1035,14 @@ pub static HONG_KONG_EXCHANGES: RuleSet = RuleSet {
 // Japan Exchange Group
 // ─────────────────────────────────────────────────────────────────────────
 
-static XJPX_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("Market holiday", "休業日", Rule::gregorian(1, 2)),
-    HolidayRule::fixed_public("Market holiday", "休業日", Rule::gregorian(1, 3)),
-    HolidayRule::fixed_public("Market holiday", "休業日", Rule::gregorian(12, 31)),
-];
+static XJPX_RULES: &[HolidayRule] = &read_from_year(
+    2026,
+    [
+        HolidayRule::fixed_public("Market holiday", "休業日", Rule::gregorian(1, 2)),
+        HolidayRule::fixed_public("Market holiday", "休業日", Rule::gregorian(1, 3)),
+        HolidayRule::fixed_public("Market holiday", "休業日", Rule::gregorian(12, 31)),
+    ],
+);
 
 /// The Tokyo Stock Exchange, of the Japan Exchange Group.
 ///
@@ -985,8 +1057,8 @@ pub static TOKYO_STOCK_EXCHANGE: RuleSet = RuleSet {
     rules: XJPX_RULES,
     substitution: &[],
     bridges: &[],
-    includes: &[Include::nationwide(&JAPAN)],
-    weekend: SATURDAY_SUNDAY,
+    includes: &[Include::nationwide(&JAPAN).read_from(2026)],
+    weekend: weekends::XJPX,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "JPX, \"Trading calendar\" (jpx.co.jp/english/corporate/about-jpx/calendar/index.html), \
               retrieved 2026-09-23, the non-business days of 2026 and 2027",
@@ -1023,8 +1095,8 @@ pub static SHANGHAI_STOCK_EXCHANGE: RuleSet = RuleSet {
     rules: XSHG_RULES,
     substitution: &[],
     bridges: &[],
-    includes: &[Include::nationwide(&CHINA)],
-    weekend: SATURDAY_SUNDAY,
+    includes: &[Include::nationwide(&CHINA).read_from(2014)],
+    weekend: weekends::XSHG,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "上海证券交易所, 关于上海证券交易所2014年 to 2026年全年（部分节假日）休市安排的通知 \
               (sse.com.cn/disclosure/dealinstruc/closed/list/), retrieved 2026-09-23, with \
@@ -1055,17 +1127,20 @@ static XTAI_SETTLEMENT_ONLY: Listing = Listing::Dates(&[
     (2026, 2, 13),
 ]);
 
-static XTAI_RULES: &[HolidayRule] = &[
-    // A day off for workers before it was a government holiday in 2026, and
-    // one the exchange closed on.
-    HolidayRule::fixed_public("Labour Day", "勞動節", Rule::gregorian(5, 1))
-        .years(None, Some(2025)),
-    HolidayRule::fixed_public(
-        "No trading, settlement only",
-        "市場無交易，僅辦理結算交割作業",
-        Rule::listed(XTAI_SETTLEMENT_ONLY.every(), XTAI_FIRST, XTAI_LAST),
-    ),
-];
+static XTAI_RULES: &[HolidayRule] = &read_from_year(
+    2023,
+    [
+        // A day off for workers before it was a government holiday in 2026, and
+        // one the exchange closed on.
+        HolidayRule::fixed_public("Labour Day", "勞動節", Rule::gregorian(5, 1))
+            .years(None, Some(2025)),
+        HolidayRule::fixed_public(
+            "No trading, settlement only",
+            "市場無交易，僅辦理結算交割作業",
+            Rule::listed(XTAI_SETTLEMENT_ONLY.every(), XTAI_FIRST, XTAI_LAST),
+        ),
+    ],
+);
 
 /// The Taiwan Stock Exchange.
 ///
@@ -1082,8 +1157,8 @@ pub static TAIWAN_STOCK_EXCHANGE: RuleSet = RuleSet {
     rules: XTAI_RULES,
     substitution: &[],
     bridges: &[],
-    includes: &[Include::nationwide(&TAIWAN)],
-    weekend: SATURDAY_SUNDAY,
+    includes: &[Include::nationwide(&TAIWAN).read_from(2023)],
+    weekend: weekends::XTAI,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "臺灣證券交易所, 市場開休市日期 (twse.com.tw/zh/trading/holiday.html), retrieved \
               2026-09-23, the schedules for 2023 to 2026",
@@ -1094,18 +1169,21 @@ pub static TAIWAN_STOCK_EXCHANGE: RuleSet = RuleSet {
 // Korea Exchange
 // ─────────────────────────────────────────────────────────────────────────
 
-static XKRX_RULES: &[HolidayRule] = &[
-    // 근로자의 날, a paid day off for employees though not a public
-    // holiday, until it became the public holiday 노동절 in 2026 and came
-    // in through the country's table. Never moved off a weekend.
-    HolidayRule::fixed_public("Labour Day", "근로자의 날", Rule::gregorian(5, 1))
-        .years(None, Some(2025)),
-    HolidayRule::fixed_public(
-        "End of Year Holiday",
-        "연말 휴장일",
-        Rule::Computed(last_weekday_of_the_year),
-    ),
-];
+static XKRX_RULES: &[HolidayRule] = &read_from_year(
+    2009,
+    [
+        // 근로자의 날, a paid day off for employees though not a public
+        // holiday, until it became the public holiday 노동절 in 2026 and came
+        // in through the country's table. Never moved off a weekend.
+        HolidayRule::fixed_public("Labour Day", "근로자의 날", Rule::gregorian(5, 1))
+            .years(None, Some(2025)),
+        HolidayRule::fixed_public(
+            "End of Year Holiday",
+            "연말 휴장일",
+            Rule::Computed(last_weekday_of_the_year),
+        ),
+    ],
+);
 
 /// The Korea Exchange, for its securities market.
 ///
@@ -1125,8 +1203,8 @@ pub static KOREA_EXCHANGE: RuleSet = RuleSet {
     rules: XKRX_RULES,
     substitution: &[],
     bridges: &[],
-    includes: &[Include::nationwide(&SOUTH_KOREA)],
-    weekend: SATURDAY_SUNDAY,
+    includes: &[Include::nationwide(&SOUTH_KOREA).read_from(2009)],
+    weekend: weekends::XKRX,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "KRX, \"Market Closing(Holiday)\" \
               (global.krx.co.kr/contents/GLB/05/0501/0501110000/GLB0501110000.jsp), retrieved \
@@ -1165,20 +1243,23 @@ const NORDIC_MIDSUMMER_EVE: HolidayRule = HolidayRule::fixed_public(
     },
 );
 
-static XCSE_RULES: &[HolidayRule] = &[
-    EURONEXT_NEW_YEARS_DAY,
-    NORDIC_MAUNDY_THURSDAY,
-    EURONEXT_GOOD_FRIDAY,
-    EURONEXT_EASTER_MONDAY,
-    NORDIC_ASCENSION,
-    HolidayRule::fixed_public("Day after Ascension Day", "", Rule::easter(ASCENSION + 1)),
-    HolidayRule::fixed_public("Constitution Day", "Grundlovsdag", Rule::gregorian(6, 5)),
-    NORDIC_WHIT_MONDAY,
-    NORDIC_CHRISTMAS_EVE,
-    EURONEXT_CHRISTMAS,
-    EURONEXT_BOXING_DAY,
-    NORDIC_NEW_YEARS_EVE,
-];
+static XCSE_RULES: &[HolidayRule] = &read_from_year(
+    2025,
+    [
+        EURONEXT_NEW_YEARS_DAY,
+        NORDIC_MAUNDY_THURSDAY,
+        EURONEXT_GOOD_FRIDAY,
+        EURONEXT_EASTER_MONDAY,
+        NORDIC_ASCENSION,
+        HolidayRule::fixed_public("Day after Ascension Day", "", Rule::easter(ASCENSION + 1)),
+        HolidayRule::fixed_public("Constitution Day", "Grundlovsdag", Rule::gregorian(6, 5)),
+        NORDIC_WHIT_MONDAY,
+        NORDIC_CHRISTMAS_EVE,
+        EURONEXT_CHRISTMAS,
+        EURONEXT_BOXING_DAY,
+        NORDIC_NEW_YEARS_EVE,
+    ],
+);
 
 /// Nasdaq Copenhagen.
 ///
@@ -1194,7 +1275,7 @@ pub static NASDAQ_COPENHAGEN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XCSE,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: NORDIC_SOURCES,
     subdivisions: Subdivisions::Undivided,
@@ -1210,53 +1291,56 @@ fn xsto_walpurgis(year: i64) -> Days {
     if_weekday(year, 4, 30)
 }
 
-static XSTO_RULES: &[HolidayRule] = &[
-    EURONEXT_NEW_YEARS_DAY,
-    HolidayRule::observance(
-        "Half trading day, Epiphany Eve",
-        "",
-        Rule::Computed(xsto_epiphany_eve),
-    ),
-    NORDIC_EPIPHANY,
-    HolidayRule::observance(
-        "Half trading day, Maundy Thursday",
-        "",
-        Rule::easter(MAUNDY_THURSDAY),
-    ),
-    EURONEXT_GOOD_FRIDAY,
-    EURONEXT_EASTER_MONDAY,
-    HolidayRule::observance(
-        "Half trading day, Walpurgis Night",
-        "",
-        Rule::Computed(xsto_walpurgis),
-    ),
-    EURONEXT_LABOUR_DAY,
-    HolidayRule::observance(
-        "Half trading day, the day before Ascension Day",
-        "",
-        Rule::easter(ASCENSION - 1),
-    ),
-    NORDIC_ASCENSION,
-    HolidayRule::fixed_public(
-        "National Day",
-        "Sveriges nationaldag",
-        Rule::gregorian(6, 6),
-    ),
-    NORDIC_MIDSUMMER_EVE,
-    HolidayRule::observance(
-        "Half trading day, All Saints' Eve",
-        "",
-        Rule::WeekdayOnOrAfter {
-            month: 10,
-            day: 30,
-            weekday: Weekday::Friday,
-        },
-    ),
-    NORDIC_CHRISTMAS_EVE,
-    EURONEXT_CHRISTMAS,
-    EURONEXT_BOXING_DAY,
-    NORDIC_NEW_YEARS_EVE,
-];
+static XSTO_RULES: &[HolidayRule] = &read_from_year(
+    2025,
+    [
+        EURONEXT_NEW_YEARS_DAY,
+        HolidayRule::observance(
+            "Half trading day, Epiphany Eve",
+            "",
+            Rule::Computed(xsto_epiphany_eve),
+        ),
+        NORDIC_EPIPHANY,
+        HolidayRule::observance(
+            "Half trading day, Maundy Thursday",
+            "",
+            Rule::easter(MAUNDY_THURSDAY),
+        ),
+        EURONEXT_GOOD_FRIDAY,
+        EURONEXT_EASTER_MONDAY,
+        HolidayRule::observance(
+            "Half trading day, Walpurgis Night",
+            "",
+            Rule::Computed(xsto_walpurgis),
+        ),
+        EURONEXT_LABOUR_DAY,
+        HolidayRule::observance(
+            "Half trading day, the day before Ascension Day",
+            "",
+            Rule::easter(ASCENSION - 1),
+        ),
+        NORDIC_ASCENSION,
+        HolidayRule::fixed_public(
+            "National Day",
+            "Sveriges nationaldag",
+            Rule::gregorian(6, 6),
+        ),
+        NORDIC_MIDSUMMER_EVE,
+        HolidayRule::observance(
+            "Half trading day, All Saints' Eve",
+            "",
+            Rule::WeekdayOnOrAfter {
+                month: 10,
+                day: 30,
+                weekday: Weekday::Friday,
+            },
+        ),
+        NORDIC_CHRISTMAS_EVE,
+        EURONEXT_CHRISTMAS,
+        EURONEXT_BOXING_DAY,
+        NORDIC_NEW_YEARS_EVE,
+    ],
+);
 
 /// Nasdaq Stockholm.
 ///
@@ -1275,30 +1359,33 @@ pub static NASDAQ_STOCKHOLM: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XSTO,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: NORDIC_SOURCES,
     subdivisions: Subdivisions::Undivided,
 };
 
-static XHEL_RULES: &[HolidayRule] = &[
-    EURONEXT_NEW_YEARS_DAY,
-    NORDIC_EPIPHANY,
-    EURONEXT_GOOD_FRIDAY,
-    EURONEXT_EASTER_MONDAY,
-    EURONEXT_LABOUR_DAY,
-    NORDIC_ASCENSION,
-    NORDIC_MIDSUMMER_EVE,
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Itsenäisyyspäivä",
-        Rule::gregorian(12, 6),
-    ),
-    NORDIC_CHRISTMAS_EVE,
-    EURONEXT_CHRISTMAS,
-    EURONEXT_BOXING_DAY,
-    NORDIC_NEW_YEARS_EVE,
-];
+static XHEL_RULES: &[HolidayRule] = &read_from_year(
+    2025,
+    [
+        EURONEXT_NEW_YEARS_DAY,
+        NORDIC_EPIPHANY,
+        EURONEXT_GOOD_FRIDAY,
+        EURONEXT_EASTER_MONDAY,
+        EURONEXT_LABOUR_DAY,
+        NORDIC_ASCENSION,
+        NORDIC_MIDSUMMER_EVE,
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Itsenäisyyspäivä",
+            Rule::gregorian(12, 6),
+        ),
+        NORDIC_CHRISTMAS_EVE,
+        EURONEXT_CHRISTMAS,
+        EURONEXT_BOXING_DAY,
+        NORDIC_NEW_YEARS_EVE,
+    ],
+);
 
 /// Nasdaq Helsinki.
 ///
@@ -1314,44 +1401,47 @@ pub static NASDAQ_HELSINKI: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XHEL,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: NORDIC_SOURCES,
     subdivisions: Subdivisions::Undivided,
 };
 
-static XICE_RULES: &[HolidayRule] = &[
-    EURONEXT_NEW_YEARS_DAY,
-    NORDIC_MAUNDY_THURSDAY,
-    EURONEXT_GOOD_FRIDAY,
-    EURONEXT_EASTER_MONDAY,
-    HolidayRule::fixed_public(
-        "First Day of Summer",
-        "Sumardagurinn fyrsti",
-        Rule::WeekdayOnOrAfter {
-            month: 4,
-            day: 19,
-            weekday: Weekday::Thursday,
-        },
-    ),
-    EURONEXT_LABOUR_DAY,
-    NORDIC_ASCENSION,
-    NORDIC_WHIT_MONDAY,
-    HolidayRule::fixed_public(
-        "National Day",
-        "Þjóðhátíðardagurinn",
-        Rule::gregorian(6, 17),
-    ),
-    HolidayRule::fixed_public(
-        "Commerce Day",
-        "Frídagur verslunarmanna",
-        Rule::nth(8, 1, Weekday::Monday),
-    ),
-    NORDIC_CHRISTMAS_EVE,
-    EURONEXT_CHRISTMAS,
-    EURONEXT_BOXING_DAY,
-    NORDIC_NEW_YEARS_EVE,
-];
+static XICE_RULES: &[HolidayRule] = &read_from_year(
+    2025,
+    [
+        EURONEXT_NEW_YEARS_DAY,
+        NORDIC_MAUNDY_THURSDAY,
+        EURONEXT_GOOD_FRIDAY,
+        EURONEXT_EASTER_MONDAY,
+        HolidayRule::fixed_public(
+            "First Day of Summer",
+            "Sumardagurinn fyrsti",
+            Rule::WeekdayOnOrAfter {
+                month: 4,
+                day: 19,
+                weekday: Weekday::Thursday,
+            },
+        ),
+        EURONEXT_LABOUR_DAY,
+        NORDIC_ASCENSION,
+        NORDIC_WHIT_MONDAY,
+        HolidayRule::fixed_public(
+            "National Day",
+            "Þjóðhátíðardagurinn",
+            Rule::gregorian(6, 17),
+        ),
+        HolidayRule::fixed_public(
+            "Commerce Day",
+            "Frídagur verslunarmanna",
+            Rule::nth(8, 1, Weekday::Monday),
+        ),
+        NORDIC_CHRISTMAS_EVE,
+        EURONEXT_CHRISTMAS,
+        EURONEXT_BOXING_DAY,
+        NORDIC_NEW_YEARS_EVE,
+    ],
+);
 
 /// Nasdaq Iceland.
 ///
@@ -1368,7 +1458,7 @@ pub static NASDAQ_ICELAND: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XICE,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: NORDIC_SOURCES,
     subdivisions: Subdivisions::Undivided,
@@ -1402,85 +1492,88 @@ const fn misx_closed(
         .years(Some(from), Some(until))
 }
 
-static MISX_RULES: &[HolidayRule] = &[
-    misx_closed("New Year Holidays", "Новогодние каникулы", 1, 1, 2023, 2026),
-    misx_closed("New Year Holidays", "Новогодние каникулы", 1, 2, 2023, 2026),
-    misx_closed("Orthodox Christmas", "Рождество Христово", 1, 7, 2023, 2026),
-    misx_closed(
-        "Defender of the Fatherland Day",
-        "День защитника Отечества",
-        2,
-        23,
-        2023,
-        2025,
-    ),
-    misx_closed(
-        "International Women's Day",
-        "Международный женский день",
-        3,
-        8,
-        2023,
-        2026,
-    ),
-    misx_closed(
-        "Spring and Labour Day",
-        "Праздник Весны и Труда",
-        5,
-        1,
-        2023,
-        2025,
-    ),
-    misx_closed("Victory Day", "День Победы", 5, 9, 2023, 2026),
-    misx_closed("Russia Day", "День России", 6, 12, 2023, 2025),
-    misx_closed("Unity Day", "День народного единства", 11, 4, 2023, 2025),
-    misx_closed(
-        "Day off transferred by the Government",
-        "Перенесённый выходной день",
-        12,
-        31,
-        2024,
-        2026,
-    ),
-    // 2026: a holiday with only the weekend-day session, whose trades
-    // belong to the next trading day. No main session.
-    misx_closed(
-        "Defender of the Fatherland Day, weekend session only",
-        "День защитника Отечества, дополнительная сессия выходного дня",
-        2,
-        23,
-        2026,
-        2026,
-    ),
-    misx_closed(
-        "Spring and Labour Day, weekend session only",
-        "Праздник Весны и Труда, дополнительная сессия выходного дня",
-        5,
-        1,
-        2026,
-        2026,
-    ),
-    misx_closed(
-        "Russia Day, weekend session only",
-        "День России, дополнительная сессия выходного дня",
-        6,
-        12,
-        2026,
-        2026,
-    ),
-    misx_closed(
-        "Unity Day, weekend session only",
-        "День народного единства, дополнительная сессия выходного дня",
-        11,
-        4,
-        2026,
-        2026,
-    ),
-    HolidayRule::workday(
-        "Working day, a working Saturday",
-        "Рабочая суббота",
-        Rule::listed(MISX_WORKING_SATURDAYS.every(), MISX_FIRST, MISX_LAST),
-    ),
-];
+static MISX_RULES: &[HolidayRule] = &read_from_year(
+    2023,
+    [
+        misx_closed("New Year Holidays", "Новогодние каникулы", 1, 1, 2023, 2026),
+        misx_closed("New Year Holidays", "Новогодние каникулы", 1, 2, 2023, 2026),
+        misx_closed("Orthodox Christmas", "Рождество Христово", 1, 7, 2023, 2026),
+        misx_closed(
+            "Defender of the Fatherland Day",
+            "День защитника Отечества",
+            2,
+            23,
+            2023,
+            2025,
+        ),
+        misx_closed(
+            "International Women's Day",
+            "Международный женский день",
+            3,
+            8,
+            2023,
+            2026,
+        ),
+        misx_closed(
+            "Spring and Labour Day",
+            "Праздник Весны и Труда",
+            5,
+            1,
+            2023,
+            2025,
+        ),
+        misx_closed("Victory Day", "День Победы", 5, 9, 2023, 2026),
+        misx_closed("Russia Day", "День России", 6, 12, 2023, 2025),
+        misx_closed("Unity Day", "День народного единства", 11, 4, 2023, 2025),
+        misx_closed(
+            "Day off transferred by the Government",
+            "Перенесённый выходной день",
+            12,
+            31,
+            2024,
+            2026,
+        ),
+        // 2026: a holiday with only the weekend-day session, whose trades
+        // belong to the next trading day. No main session.
+        misx_closed(
+            "Defender of the Fatherland Day, weekend session only",
+            "День защитника Отечества, дополнительная сессия выходного дня",
+            2,
+            23,
+            2026,
+            2026,
+        ),
+        misx_closed(
+            "Spring and Labour Day, weekend session only",
+            "Праздник Весны и Труда, дополнительная сессия выходного дня",
+            5,
+            1,
+            2026,
+            2026,
+        ),
+        misx_closed(
+            "Russia Day, weekend session only",
+            "День России, дополнительная сессия выходного дня",
+            6,
+            12,
+            2026,
+            2026,
+        ),
+        misx_closed(
+            "Unity Day, weekend session only",
+            "День народного единства, дополнительная сессия выходного дня",
+            11,
+            4,
+            2026,
+            2026,
+        ),
+        HolidayRule::workday(
+            "Working day, a working Saturday",
+            "Рабочая суббота",
+            Rule::listed(MISX_WORKING_SATURDAYS.every(), MISX_FIRST, MISX_LAST),
+        ),
+    ],
+);
 
 /// The Moscow Exchange, for its equity market.
 ///
@@ -1516,7 +1609,7 @@ pub static MOSCOW_EXCHANGE: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::MISX,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Московская биржа, «Расписание торгов на Московской бирже в праздничные дни» \
               for 2023 (moex.com/n51887, 3 October 2022), 2024 (moex.com/n64121, \
@@ -1545,25 +1638,28 @@ static XJSE_EARLY_CLOSES: Listing = Listing::Dates(&[
     (2025, 12, 31),
 ]);
 
-static XJSE_RULES: &[HolidayRule] = &[
-    // Declared under section 2A of the Public Holidays Act, each for its
-    // year, and closed on as the exchange's notices say.
-    HolidayRule::fixed_public(
-        "Public holiday declared by the President",
-        "",
-        Rule::gregorian(12, 15),
-    )
-    .years(Some(2023), Some(2023)),
-    HolidayRule::fixed_public("General election day", "", Rule::gregorian(5, 29))
-        .years(Some(2024), Some(2024)),
-    HolidayRule::fixed_public("Local government election day", "", Rule::gregorian(11, 4))
-        .years(Some(2026), Some(2026)),
-    HolidayRule::observance(
-        "Early close, 12:00",
-        "",
-        Rule::listed(XJSE_EARLY_CLOSES.every(), 2023, 2025),
-    ),
-];
+static XJSE_RULES: &[HolidayRule] = &read_from_year(
+    2024,
+    [
+        // Declared under section 2A of the Public Holidays Act, each for its
+        // year, and closed on as the exchange's notices say.
+        HolidayRule::fixed_public(
+            "Public holiday declared by the President",
+            "",
+            Rule::gregorian(12, 15),
+        )
+        .years(Some(2023), Some(2023)),
+        HolidayRule::fixed_public("General election day", "", Rule::gregorian(5, 29))
+            .years(Some(2024), Some(2024)),
+        HolidayRule::fixed_public("Local government election day", "", Rule::gregorian(11, 4))
+            .years(Some(2026), Some(2026)),
+        HolidayRule::observance(
+            "Early close, 12:00",
+            "",
+            Rule::listed(XJSE_EARLY_CLOSES.every(), 2023, 2025),
+        ),
+    ],
+);
 
 /// The Johannesburg Stock Exchange.
 ///
@@ -1588,8 +1684,8 @@ pub static JOHANNESBURG_STOCK_EXCHANGE: RuleSet = RuleSet {
     rules: XJSE_RULES,
     substitution: &[],
     bridges: &[],
-    includes: &[Include::nationwide(&SOUTH_AFRICA)],
-    weekend: SATURDAY_SUNDAY,
+    includes: &[Include::nationwide(&SOUTH_AFRICA).read_from(2024)],
+    weekend: weekends::XJSE,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "JSE, markets calendars for 2024 (Market Notice 061/2024, updated), 2025 \
               (Market Notice 305/2024) and 2026 (Market Notice 380/2025) \
@@ -1605,20 +1701,23 @@ pub static JOHANNESBURG_STOCK_EXCHANGE: RuleSet = RuleSet {
 // Bolsa Mexicana de Valores
 // ─────────────────────────────────────────────────────────────────────────
 
-static XMEX_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "Holy Thursday",
-        "Jueves Santo",
-        Rule::easter(MAUNDY_THURSDAY),
-    ),
-    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Day of the Dead", "Día de Muertos", Rule::gregorian(11, 2)),
-    HolidayRule::fixed_public(
-        "Bank Employees' Day",
-        "Día del Empleado Bancario",
-        Rule::gregorian(12, 12),
-    ),
-];
+static XMEX_RULES: &[HolidayRule] = &read_from_year(
+    2019,
+    [
+        HolidayRule::fixed_public(
+            "Holy Thursday",
+            "Jueves Santo",
+            Rule::easter(MAUNDY_THURSDAY),
+        ),
+        HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Day of the Dead", "Día de Muertos", Rule::gregorian(11, 2)),
+        HolidayRule::fixed_public(
+            "Bank Employees' Day",
+            "Día del Empleado Bancario",
+            Rule::gregorian(12, 12),
+        ),
+    ],
+);
 
 /// The Bolsa Mexicana de Valores.
 ///
@@ -1639,8 +1738,8 @@ pub static BOLSA_MEXICANA_DE_VALORES: RuleSet = RuleSet {
     rules: XMEX_RULES,
     substitution: &[],
     bridges: &[],
-    includes: &[Include::nationwide(&MEXICO)],
-    weekend: SATURDAY_SUNDAY,
+    includes: &[Include::nationwide(&MEXICO).read_from(2019)],
+    weekend: weekends::XMEX,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "BMV, \"Calendario de días festivos\" \
               (bmv.com.mx/es/grupo-bmv/calendario-de-dias-festivos), the lists for 2019 to 2026, \
@@ -1657,29 +1756,6 @@ pub static BOLSA_MEXICANA_DE_VALORES: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Tel Aviv Stock Exchange
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Sunday to Thursday to Thursday 1 January 2026, Monday to Friday from
-/// Monday 5 January 2026: Friday 2 January was a weekend day of the old
-/// week and Sunday 4 January one of the new, with no session, as Solactive's
-/// notice of 8 January 2026 records.
-static XTAE_WEEKEND: &[WeekendPolicy] = &[
-    WeekendPolicy {
-        days: &[Weekday::Friday, Weekday::Saturday],
-        regions: &[],
-        valid_from: None,
-        valid_from_day: None,
-        valid_until: Some(2026),
-        valid_until_day: Some((1, 3)),
-    },
-    WeekendPolicy {
-        days: &[Weekday::Saturday, Weekday::Sunday],
-        regions: &[],
-        valid_from: Some(2026),
-        valid_from_day: Some((1, 4)),
-        valid_until: None,
-        valid_until_day: None,
-    },
-];
 
 /// The first year of the exchange's vacation schedules carried here.
 const XTAE_FIRST: i64 = 2024;
@@ -1723,43 +1799,46 @@ const fn xtae_closed(rule: u8, name: &'static str, local_name: &'static str) -> 
     )
 }
 
-static XTAE_RULES: &[HolidayRule] = &[
-    xtae_closed(0, "Purim", "פורים"),
-    xtae_closed(1, "Passover Eve", "ערב פסח"),
-    xtae_closed(2, "Passover", "פסח"),
-    xtae_closed(3, "Passover II Eve", "ערב שביעי של פסח"),
-    xtae_closed(4, "Passover II", "שביעי של פסח"),
-    xtae_closed(5, "Memorial Day", "יום הזיכרון"),
-    xtae_closed(6, "Independence Day", "יום העצמאות"),
-    xtae_closed(7, "Shavuot Eve", "ערב שבועות"),
-    xtae_closed(8, "Shavuot", "שבועות"),
-    xtae_closed(9, "Tisha B'Av", "תשעה באב"),
-    xtae_closed(10, "Jewish New Year Eve", "ערב ראש השנה"),
-    xtae_closed(11, "Jewish New Year I", "ראש השנה"),
-    xtae_closed(12, "Jewish New Year II", "ראש השנה"),
-    xtae_closed(13, "Yom Kippur Eve", "ערב יום כיפור"),
-    xtae_closed(14, "Yom Kippur", "יום כיפור"),
-    xtae_closed(15, "Sukkot Eve", "ערב סוכות"),
-    xtae_closed(16, "Sukkot", "סוכות"),
-    xtae_closed(17, "Simchat Torah Eve", "ערב שמחת תורה"),
-    xtae_closed(18, "Simchat Torah", "שמחת תורה"),
-    xtae_closed(19, "Knesset Election Day", "יום הבחירות לכנסת"),
-    xtae_closed(
-        20,
-        "Friday before a holiday or holiday eve on the Sunday",
-        "",
-    ),
-    HolidayRule::observance(
-        "Early close, an interim day of Passover",
-        "חול המועד פסח",
-        Rule::listed(XTAE_DAYS.numbered(21), XTAE_FIRST, XTAE_LAST),
-    ),
-    HolidayRule::observance(
-        "Early close, an interim day of Sukkot",
-        "חול המועד סוכות",
-        Rule::listed(XTAE_DAYS.numbered(22), XTAE_FIRST, XTAE_LAST),
-    ),
-];
+static XTAE_RULES: &[HolidayRule] = &read_from_year(
+    2024,
+    [
+        xtae_closed(0, "Purim", "פורים"),
+        xtae_closed(1, "Passover Eve", "ערב פסח"),
+        xtae_closed(2, "Passover", "פסח"),
+        xtae_closed(3, "Passover II Eve", "ערב שביעי של פסח"),
+        xtae_closed(4, "Passover II", "שביעי של פסח"),
+        xtae_closed(5, "Memorial Day", "יום הזיכרון"),
+        xtae_closed(6, "Independence Day", "יום העצמאות"),
+        xtae_closed(7, "Shavuot Eve", "ערב שבועות"),
+        xtae_closed(8, "Shavuot", "שבועות"),
+        xtae_closed(9, "Tisha B'Av", "תשעה באב"),
+        xtae_closed(10, "Jewish New Year Eve", "ערב ראש השנה"),
+        xtae_closed(11, "Jewish New Year I", "ראש השנה"),
+        xtae_closed(12, "Jewish New Year II", "ראש השנה"),
+        xtae_closed(13, "Yom Kippur Eve", "ערב יום כיפור"),
+        xtae_closed(14, "Yom Kippur", "יום כיפור"),
+        xtae_closed(15, "Sukkot Eve", "ערב סוכות"),
+        xtae_closed(16, "Sukkot", "סוכות"),
+        xtae_closed(17, "Simchat Torah Eve", "ערב שמחת תורה"),
+        xtae_closed(18, "Simchat Torah", "שמחת תורה"),
+        xtae_closed(19, "Knesset Election Day", "יום הבחירות לכנסת"),
+        xtae_closed(
+            20,
+            "Friday before a holiday or holiday eve on the Sunday",
+            "",
+        ),
+        HolidayRule::observance(
+            "Early close, an interim day of Passover",
+            "חול המועד פסח",
+            Rule::listed(XTAE_DAYS.numbered(21), XTAE_FIRST, XTAE_LAST),
+        ),
+        HolidayRule::observance(
+            "Early close, an interim day of Sukkot",
+            "חול המועד סוכות",
+            Rule::listed(XTAE_DAYS.numbered(22), XTAE_FIRST, XTAE_LAST),
+        ),
+    ],
+);
 
 /// The Tel Aviv Stock Exchange.
 ///
@@ -1788,7 +1867,7 @@ pub static TEL_AVIV_STOCK_EXCHANGE: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: XTAE_WEEKEND,
+    weekend: weekends::XTAE,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "TASE, \"Trading Vacation Schedule\" \
               (tase.co.il/en/content/knowledge_center/trading_vacation_schedule and the Hebrew \
@@ -1805,30 +1884,6 @@ pub static TEL_AVIV_STOCK_EXCHANGE: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Saudi Exchange
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Sunday to Thursday, as the exchange's "Trading Days: Sunday to
-/// Thursday" has it, since the royal order of 23 June 2013 moved the
-/// kingdom's working week and named the exchange among those it bound,
-/// from Saturday 29 June 2013; Saturday to Wednesday before. Every year
-/// before 2023 is a gap here in any case.
-static XSAU_WEEKEND: &[WeekendPolicy] = &[
-    WeekendPolicy {
-        days: &[Weekday::Thursday, Weekday::Friday],
-        regions: &[],
-        valid_from: None,
-        valid_from_day: None,
-        valid_until: Some(2013),
-        valid_until_day: Some((6, 28)),
-    },
-    WeekendPolicy {
-        days: &[Weekday::Friday, Weekday::Saturday],
-        regions: &[],
-        valid_from: Some(2013),
-        valid_from_day: Some((6, 29)),
-        valid_until: None,
-        valid_until_day: None,
-    },
-];
 
 /// The trading days the exchange's announcements close, between the last
 /// trading day and the day trading resumes, as (year, month, day, which of
@@ -1857,12 +1912,15 @@ const fn xsau_closed(rule: u8, name: &'static str, local_name: &'static str) -> 
     )
 }
 
-static XSAU_RULES: &[HolidayRule] = &[
-    xsau_closed(0, "Founding Day", "يوم التأسيس"),
-    xsau_closed(1, "Eid al-Fitr holiday", "إجازة عيد الفطر"),
-    xsau_closed(2, "Eid al-Adha holiday", "إجازة عيد الأضحى"),
-    xsau_closed(3, "National Day", "اليوم الوطني"),
-];
+static XSAU_RULES: &[HolidayRule] = &read_from_year(
+    2023,
+    [
+        xsau_closed(0, "Founding Day", "يوم التأسيس"),
+        xsau_closed(1, "Eid al-Fitr holiday", "إجازة عيد الفطر"),
+        xsau_closed(2, "Eid al-Adha holiday", "إجازة عيد الأضحى"),
+        xsau_closed(3, "National Day", "اليوم الوطني"),
+    ],
+);
 
 /// The Saudi Exchange, Tadawul.
 ///
@@ -1886,7 +1944,7 @@ pub static SAUDI_EXCHANGE: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: XSAU_WEEKEND,
+    weekend: weekends::XSAU,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Saudi Exchange, \"Trading Cycle and Times\" and \"Saudi Exchange Holiday \
               Calendar\" (saudiexchange.sa), and its holiday announcements for Founding Day, \
@@ -1934,53 +1992,56 @@ fn xist_republic_day_eve(year: i64) -> Days {
     if_weekday(year, 10, 28)
 }
 
-static XIST_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Yılbaşı", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "National Sovereignty and Children's Day",
-        "Ulusal Egemenlik ve Çocuk Bayramı",
-        Rule::gregorian(4, 23),
-    ),
-    HolidayRule::fixed_public(
-        "Labour and Solidarity Day",
-        "Emek ve Dayanışma Günü",
-        Rule::gregorian(5, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Commemoration of Atatürk, Youth and Sports Day",
-        "Atatürk'ü Anma, Gençlik ve Spor Bayramı",
-        Rule::gregorian(5, 19),
-    ),
-    HolidayRule::fixed_public(
-        "Democracy and National Unity Day",
-        "Demokrasi ve Millî Birlik Günü",
-        Rule::gregorian(7, 15),
-    )
-    .years(Some(2017), None),
-    HolidayRule::fixed_public("Victory Day", "Zafer Bayramı", Rule::gregorian(8, 30)),
-    HolidayRule::observance(
-        "Half trading day, the eve of Republic Day (to 13:00)",
-        "Cumhuriyet Bayramı arifesi",
-        Rule::Computed(xist_republic_day_eve),
-    ),
-    HolidayRule::fixed_public(
-        "Republic Day",
-        "Cumhuriyet Bayramı",
-        Rule::gregorian(10, 29),
-    ),
-    HolidayRule::fixed_public("Ramadan Feast", "Ramazan Bayramı", xist_bayram(0)),
-    HolidayRule::fixed_public("Feast of the Sacrifice", "Kurban Bayramı", xist_bayram(1)),
-    HolidayRule::observance(
-        "Half trading day, the eve of the Ramadan Feast (to 13:00)",
-        "Ramazan Bayramı arifesi",
-        xist_bayram(2),
-    ),
-    HolidayRule::observance(
-        "Half trading day, the eve of the Feast of the Sacrifice (to 13:00)",
-        "Kurban Bayramı arifesi",
-        xist_bayram(3),
-    ),
-];
+static XIST_RULES: &[HolidayRule] = &read_from_year(
+    2019,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Yılbaşı", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "National Sovereignty and Children's Day",
+            "Ulusal Egemenlik ve Çocuk Bayramı",
+            Rule::gregorian(4, 23),
+        ),
+        HolidayRule::fixed_public(
+            "Labour and Solidarity Day",
+            "Emek ve Dayanışma Günü",
+            Rule::gregorian(5, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Commemoration of Atatürk, Youth and Sports Day",
+            "Atatürk'ü Anma, Gençlik ve Spor Bayramı",
+            Rule::gregorian(5, 19),
+        ),
+        HolidayRule::fixed_public(
+            "Democracy and National Unity Day",
+            "Demokrasi ve Millî Birlik Günü",
+            Rule::gregorian(7, 15),
+        )
+        .years(Some(2017), None),
+        HolidayRule::fixed_public("Victory Day", "Zafer Bayramı", Rule::gregorian(8, 30)),
+        HolidayRule::observance(
+            "Half trading day, the eve of Republic Day (to 13:00)",
+            "Cumhuriyet Bayramı arifesi",
+            Rule::Computed(xist_republic_day_eve),
+        ),
+        HolidayRule::fixed_public(
+            "Republic Day",
+            "Cumhuriyet Bayramı",
+            Rule::gregorian(10, 29),
+        ),
+        HolidayRule::fixed_public("Ramadan Feast", "Ramazan Bayramı", xist_bayram(0)),
+        HolidayRule::fixed_public("Feast of the Sacrifice", "Kurban Bayramı", xist_bayram(1)),
+        HolidayRule::observance(
+            "Half trading day, the eve of the Ramadan Feast (to 13:00)",
+            "Ramazan Bayramı arifesi",
+            xist_bayram(2),
+        ),
+        HolidayRule::observance(
+            "Half trading day, the eve of the Feast of the Sacrifice (to 13:00)",
+            "Kurban Bayramı arifesi",
+            xist_bayram(3),
+        ),
+    ],
+);
 
 /// Borsa İstanbul, for its equity market.
 ///
@@ -2003,7 +2064,7 @@ pub static BORSA_ISTANBUL: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XIST,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Borsa İstanbul, \"Official Holidays\" (borsaistanbul.com/en/official-holidays, \
               and the Turkish page borsaistanbul.com/resmi-tatil-gunleri), the tables for 2019 to \
@@ -2016,17 +2077,20 @@ pub static BORSA_ISTANBUL: RuleSet = RuleSet {
 // Warsaw Stock Exchange
 // ─────────────────────────────────────────────────────────────────────────
 
-static XWAR_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("Good Friday", "Wielki Piątek", Rule::easter(GOOD_FRIDAY)),
-    // A public holiday from 2025, and in the country's table from then.
-    HolidayRule::fixed_public(
-        "Christmas Eve",
-        "Wigilia Bożego Narodzenia",
-        Rule::gregorian(12, 24),
-    )
-    .years(None, Some(2024)),
-    HolidayRule::fixed_public("New Year's Eve", "Sylwester", Rule::gregorian(12, 31)),
-];
+static XWAR_RULES: &[HolidayRule] = &read_from_year(
+    2019,
+    [
+        HolidayRule::fixed_public("Good Friday", "Wielki Piątek", Rule::easter(GOOD_FRIDAY)),
+        // A public holiday from 2025, and in the country's table from then.
+        HolidayRule::fixed_public(
+            "Christmas Eve",
+            "Wigilia Bożego Narodzenia",
+            Rule::gregorian(12, 24),
+        )
+        .years(None, Some(2024)),
+        HolidayRule::fixed_public("New Year's Eve", "Sylwester", Rule::gregorian(12, 31)),
+    ],
+);
 
 /// The Warsaw Stock Exchange, GPW.
 ///
@@ -2042,8 +2106,8 @@ pub static WARSAW_STOCK_EXCHANGE: RuleSet = RuleSet {
     rules: XWAR_RULES,
     substitution: &[],
     bridges: &[],
-    includes: &[Include::nationwide(&POLAND)],
-    weekend: SATURDAY_SUNDAY,
+    includes: &[Include::nationwide(&POLAND).read_from(2019)],
+    weekend: weekends::XWAR,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "GPW, \"Szczegóły sesji\" — \"Dni bez sesji\" (gpw.pl/szczegoly-sesji, and the \
               English gpw.pl/session-details), for 2025 to 2027, read in a browser; the same \
@@ -2056,20 +2120,23 @@ pub static WARSAW_STOCK_EXCHANGE: RuleSet = RuleSet {
 // Wiener Börse
 // ─────────────────────────────────────────────────────────────────────────
 
-static XWBO_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Neujahr", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Good Friday", "Karfreitag", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "Ostermontag", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::fixed_public("Labour Day", "Staatsfeiertag", Rule::gregorian(5, 1)),
-    // Closed to 2022, traded from 2023.
-    HolidayRule::fixed_public("Whit Monday", "Pfingstmontag", Rule::easter(WHIT_MONDAY))
-        .years(None, Some(2022)),
-    HolidayRule::fixed_public("National Day", "Nationalfeiertag", Rule::gregorian(10, 26)),
-    HolidayRule::fixed_public("Christmas Eve", "Heiliger Abend", Rule::gregorian(12, 24)),
-    HolidayRule::fixed_public("Christmas Day", "Christtag", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public("St Stephen's Day", "Stefanitag", Rule::gregorian(12, 26)),
-    HolidayRule::fixed_public("New Year's Eve", "Silvester", Rule::gregorian(12, 31)),
-];
+static XWBO_RULES: &[HolidayRule] = &read_from_year(
+    2019,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Neujahr", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("Good Friday", "Karfreitag", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "Ostermontag", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::fixed_public("Labour Day", "Staatsfeiertag", Rule::gregorian(5, 1)),
+        // Closed to 2022, traded from 2023.
+        HolidayRule::fixed_public("Whit Monday", "Pfingstmontag", Rule::easter(WHIT_MONDAY))
+            .years(None, Some(2022)),
+        HolidayRule::fixed_public("National Day", "Nationalfeiertag", Rule::gregorian(10, 26)),
+        HolidayRule::fixed_public("Christmas Eve", "Heiliger Abend", Rule::gregorian(12, 24)),
+        HolidayRule::fixed_public("Christmas Day", "Christtag", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public("St Stephen's Day", "Stefanitag", Rule::gregorian(12, 26)),
+        HolidayRule::fixed_public("New Year's Eve", "Silvester", Rule::gregorian(12, 31)),
+    ],
+);
 
 /// The Wiener Börse.
 ///
@@ -2089,7 +2156,7 @@ pub static WIENER_BOERSE: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XWBO,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Wiener Börse, \"Handelskalender\" \
               (wienerborse.at/handel/handelsinformationen/handelskalender/) and its \
@@ -2113,28 +2180,31 @@ fn xmad_new_years_eve(year: i64) -> Days {
     if_weekday(year, 12, 31)
 }
 
-static XMAD_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Lunes de Pascua",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public("Labour Day", "Fiesta del Trabajo", Rule::gregorian(5, 1)),
-    HolidayRule::observance(
-        "Early close, Christmas Eve (14:00)",
-        "Nochebuena",
-        Rule::Computed(xmad_christmas_eve),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public("St Stephen's Day", "San Esteban", Rule::gregorian(12, 26)),
-    HolidayRule::observance(
-        "Early close, New Year's Eve (14:00)",
-        "Nochevieja",
-        Rule::Computed(xmad_new_years_eve),
-    ),
-];
+static XMAD_RULES: &[HolidayRule] = &read_from_year(
+    2023,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Lunes de Pascua",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::fixed_public("Labour Day", "Fiesta del Trabajo", Rule::gregorian(5, 1)),
+        HolidayRule::observance(
+            "Early close, Christmas Eve (14:00)",
+            "Nochebuena",
+            Rule::Computed(xmad_christmas_eve),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public("St Stephen's Day", "San Esteban", Rule::gregorian(12, 26)),
+        HolidayRule::observance(
+            "Early close, New Year's Eve (14:00)",
+            "Nochevieja",
+            Rule::Computed(xmad_new_years_eve),
+        ),
+    ],
+);
 
 /// The Bolsa de Madrid, on the calendar BME sets for the Spanish equity,
 /// fixed-income and derivatives markets.
@@ -2155,7 +2225,7 @@ pub static BOLSA_DE_MADRID: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XMAD,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "BME, \"Calendario del mercado\" \
               (bolsasymercados.es/es/bme-exchange/negociar/calendario-del-mercado.html), for \
@@ -2170,24 +2240,27 @@ pub static BOLSA_DE_MADRID: RuleSet = RuleSet {
 // NZX
 // ─────────────────────────────────────────────────────────────────────────
 
-static XNZE_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "Queen Elizabeth II Memorial Day",
-        "",
-        Rule::gregorian(9, 26),
-    )
-    .years(Some(2022), Some(2022)),
-    HolidayRule::observance(
-        "Early close, the business day before Christmas Day",
-        "",
-        Rule::Computed(last_weekday_before_christmas),
-    ),
-    HolidayRule::observance(
-        "Early close, the business day before New Year's Day",
-        "",
-        Rule::Computed(last_weekday_of_the_year),
-    ),
-];
+static XNZE_RULES: &[HolidayRule] = &read_from_year(
+    2021,
+    [
+        HolidayRule::fixed_public(
+            "Queen Elizabeth II Memorial Day",
+            "",
+            Rule::gregorian(9, 26),
+        )
+        .years(Some(2022), Some(2022)),
+        HolidayRule::observance(
+            "Early close, the business day before Christmas Day",
+            "",
+            Rule::Computed(last_weekday_before_christmas),
+        ),
+        HolidayRule::observance(
+            "Early close, the business day before New Year's Day",
+            "",
+            Rule::Computed(last_weekday_of_the_year),
+        ),
+    ],
+);
 
 /// NZX, New Zealand's exchange.
 ///
@@ -2208,8 +2281,8 @@ pub static NZX: RuleSet = RuleSet {
     rules: XNZE_RULES,
     substitution: &[],
     bridges: &[],
-    includes: &[Include::nationwide(&NEW_ZEALAND)],
-    weekend: SATURDAY_SUNDAY,
+    includes: &[Include::nationwide(&NEW_ZEALAND).read_from(2021)],
+    weekend: weekends::XNZE,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "NZX, \"NZX Market Holidays\" memos for 2021/2023 to 2025/2027 \
               (nzx.com/announcements/383874, 403367, 422808, 443000 and 463713), and the \
@@ -2244,8 +2317,8 @@ pub static SHENZHEN_STOCK_EXCHANGE: RuleSet = RuleSet {
     rules: XSHG_RULES,
     substitution: &[],
     bridges: &[],
-    includes: &[Include::nationwide(&CHINA)],
-    weekend: SATURDAY_SUNDAY,
+    includes: &[Include::nationwide(&CHINA).read_from(2015)],
+    weekend: weekends::XSHE,
     sources_checked: SourceDate::new(2026, 9, 25),
     sources: "深圳证券交易所, 关于2015年 to 2026年部分节假日休市安排的通知 \
               (szse.cn/disclosure/notice/general/, t20141224_501340 to t20251222_618087), with \
@@ -2306,89 +2379,92 @@ const fn xbkk_closed(rule: u8, name: &'static str, local_name: &'static str) -> 
     )
 }
 
-static XBKK_RULES: &[HolidayRule] = &[
-    xbkk_closed(0, "New Year's Day", "วันขึ้นปีใหม่"),
-    xbkk_closed(1, "Makha Bucha Day", "วันมาฆบูชา"),
-    xbkk_closed(2, "Chakri Memorial Day", "วันจักรี"),
-    xbkk_closed(3, "Songkran Festival", "วันสงกรานต์"),
-    xbkk_closed(4, "National Labour Day", "วันแรงงานแห่งชาติ"),
-    xbkk_closed(5, "Coronation Day", "วันฉัตรมงคล"),
-    xbkk_closed(6, "Visakha Bucha Day", "วันวิสาขบูชา"),
-    xbkk_closed(
-        7,
-        "H.M. Queen Suthida's Birthday",
-        "วันเฉลิมพระชนมพรรษา สมเด็จพระนางเจ้าสุทิดา พัชรสุธาพิมลลักษณ พระบรมราชินี",
-    ),
-    xbkk_closed(8, "Asarnha Bucha Day", "วันอาสาฬหบูชา"),
-    xbkk_closed(
-        9,
-        "H.M. King Maha Vajiralongkorn's Birthday",
-        "วันเฉลิมพระชนมพรรษา พระบาทสมเด็จพระเจ้าอยู่หัว",
-    ),
-    xbkk_closed(
-        10,
-        "H.M. Queen Sirikit The Queen Mother's Birthday and Mother's Day",
-        "วันแม่แห่งชาติ",
-    ),
-    xbkk_closed(
-        11,
-        "H.M. King Bhumibol Adulyadej The Great Memorial Day",
-        "วันนวมินทรมหาราช",
-    ),
-    xbkk_closed(12, "Chulalongkorn Day", "วันปิยมหาราช"),
-    xbkk_closed(
-        13,
-        "H.M. King Bhumibol Adulyadej The Great's Birthday, National Day and Father's Day",
-        "วันพ่อแห่งชาติ",
-    ),
-    xbkk_closed(14, "Constitution Day", "วันรัฐธรรมนูญ"),
-    xbkk_closed(15, "New Year's Eve", "วันสิ้นปี"),
-    xbkk_closed(
-        16,
-        "Additional special holiday",
-        "วันหยุดทำการเพิ่มเติมเป็นกรณีพิเศษ",
-    ),
-    xbkk_closed(17, "Substitution for New Year's Day", "ชดเชยวันขึ้นปีใหม่"),
-    xbkk_closed(18, "Substitution for Makha Bucha Day", "ชดเชยวันมาฆบูชา"),
-    xbkk_closed(19, "Substitution for Chakri Memorial Day", "ชดเชยวันจักรี"),
-    xbkk_closed(20, "Substitution for Songkran Festival", "ชดเชยวันสงกรานต์"),
-    xbkk_closed(
-        21,
-        "Substitution for National Labour Day",
-        "ชดเชยวันแรงงานแห่งชาติ",
-    ),
-    xbkk_closed(22, "Substitution for Coronation Day", "ชดเชยวันฉัตรมงคล"),
-    xbkk_closed(23, "Substitution for Visakha Bucha Day", "ชดเชยวันวิสาขบูชา"),
-    xbkk_closed(
-        24,
-        "Substitution for H.M. Queen Suthida's Birthday",
-        "ชดเชยวันเฉลิมพระชนมพรรษา สมเด็จพระนางเจ้าสุทิดา พัชรสุธาพิมลลักษณ พระบรมราชินี",
-    ),
-    xbkk_closed(25, "Substitution for Asarnha Bucha Day", "ชดเชยวันอาสาฬหบูชา"),
-    xbkk_closed(
-        26,
-        "Substitution for H.M. King Maha Vajiralongkorn's Birthday",
-        "ชดเชยวันเฉลิมพระชนมพรรษา พระบาทสมเด็จพระเจ้าอยู่หัว",
-    ),
-    xbkk_closed(
-        27,
-        "Substitution for H.M. Queen Sirikit The Queen Mother's Birthday and Mother's Day",
-        "ชดเชยวันแม่แห่งชาติ",
-    ),
-    xbkk_closed(
-        28,
-        "Substitution for H.M. King Bhumibol Adulyadej The Great Memorial Day",
-        "ชดเชยวันนวมินทรมหาราช",
-    ),
-    xbkk_closed(29, "Substitution for Chulalongkorn Day", "ชดเชยวันปิยมหาราช"),
-    xbkk_closed(
-        30,
-        "Substitution for H.M. King Bhumibol Adulyadej The Great's Birthday, National Day and Father's Day",
-        "ชดเชยวันพ่อแห่งชาติ",
-    ),
-    xbkk_closed(31, "Substitution for Constitution Day", "ชดเชยวันรัฐธรรมนูญ"),
-    xbkk_closed(32, "Substitution for New Year's Eve", "ชดเชยวันสิ้นปี"),
-];
+static XBKK_RULES: &[HolidayRule] = &read_from_year(
+    2022,
+    [
+        xbkk_closed(0, "New Year's Day", "วันขึ้นปีใหม่"),
+        xbkk_closed(1, "Makha Bucha Day", "วันมาฆบูชา"),
+        xbkk_closed(2, "Chakri Memorial Day", "วันจักรี"),
+        xbkk_closed(3, "Songkran Festival", "วันสงกรานต์"),
+        xbkk_closed(4, "National Labour Day", "วันแรงงานแห่งชาติ"),
+        xbkk_closed(5, "Coronation Day", "วันฉัตรมงคล"),
+        xbkk_closed(6, "Visakha Bucha Day", "วันวิสาขบูชา"),
+        xbkk_closed(
+            7,
+            "H.M. Queen Suthida's Birthday",
+            "วันเฉลิมพระชนมพรรษา สมเด็จพระนางเจ้าสุทิดา พัชรสุธาพิมลลักษณ พระบรมราชินี",
+        ),
+        xbkk_closed(8, "Asarnha Bucha Day", "วันอาสาฬหบูชา"),
+        xbkk_closed(
+            9,
+            "H.M. King Maha Vajiralongkorn's Birthday",
+            "วันเฉลิมพระชนมพรรษา พระบาทสมเด็จพระเจ้าอยู่หัว",
+        ),
+        xbkk_closed(
+            10,
+            "H.M. Queen Sirikit The Queen Mother's Birthday and Mother's Day",
+            "วันแม่แห่งชาติ",
+        ),
+        xbkk_closed(
+            11,
+            "H.M. King Bhumibol Adulyadej The Great Memorial Day",
+            "วันนวมินทรมหาราช",
+        ),
+        xbkk_closed(12, "Chulalongkorn Day", "วันปิยมหาราช"),
+        xbkk_closed(
+            13,
+            "H.M. King Bhumibol Adulyadej The Great's Birthday, National Day and Father's Day",
+            "วันพ่อแห่งชาติ",
+        ),
+        xbkk_closed(14, "Constitution Day", "วันรัฐธรรมนูญ"),
+        xbkk_closed(15, "New Year's Eve", "วันสิ้นปี"),
+        xbkk_closed(
+            16,
+            "Additional special holiday",
+            "วันหยุดทำการเพิ่มเติมเป็นกรณีพิเศษ",
+        ),
+        xbkk_closed(17, "Substitution for New Year's Day", "ชดเชยวันขึ้นปีใหม่"),
+        xbkk_closed(18, "Substitution for Makha Bucha Day", "ชดเชยวันมาฆบูชา"),
+        xbkk_closed(19, "Substitution for Chakri Memorial Day", "ชดเชยวันจักรี"),
+        xbkk_closed(20, "Substitution for Songkran Festival", "ชดเชยวันสงกรานต์"),
+        xbkk_closed(
+            21,
+            "Substitution for National Labour Day",
+            "ชดเชยวันแรงงานแห่งชาติ",
+        ),
+        xbkk_closed(22, "Substitution for Coronation Day", "ชดเชยวันฉัตรมงคล"),
+        xbkk_closed(23, "Substitution for Visakha Bucha Day", "ชดเชยวันวิสาขบูชา"),
+        xbkk_closed(
+            24,
+            "Substitution for H.M. Queen Suthida's Birthday",
+            "ชดเชยวันเฉลิมพระชนมพรรษา สมเด็จพระนางเจ้าสุทิดา พัชรสุธาพิมลลักษณ พระบรมราชินี",
+        ),
+        xbkk_closed(25, "Substitution for Asarnha Bucha Day", "ชดเชยวันอาสาฬหบูชา"),
+        xbkk_closed(
+            26,
+            "Substitution for H.M. King Maha Vajiralongkorn's Birthday",
+            "ชดเชยวันเฉลิมพระชนมพรรษา พระบาทสมเด็จพระเจ้าอยู่หัว",
+        ),
+        xbkk_closed(
+            27,
+            "Substitution for H.M. Queen Sirikit The Queen Mother's Birthday and Mother's Day",
+            "ชดเชยวันแม่แห่งชาติ",
+        ),
+        xbkk_closed(
+            28,
+            "Substitution for H.M. King Bhumibol Adulyadej The Great Memorial Day",
+            "ชดเชยวันนวมินทรมหาราช",
+        ),
+        xbkk_closed(29, "Substitution for Chulalongkorn Day", "ชดเชยวันปิยมหาราช"),
+        xbkk_closed(
+            30,
+            "Substitution for H.M. King Bhumibol Adulyadej The Great's Birthday, National Day and Father's Day",
+            "ชดเชยวันพ่อแห่งชาติ",
+        ),
+        xbkk_closed(31, "Substitution for Constitution Day", "ชดเชยวันรัฐธรรมนูญ"),
+        xbkk_closed(32, "Substitution for New Year's Eve", "ชดเชยวันสิ้นปี"),
+    ],
+);
 
 /// The Stock Exchange of Thailand.
 ///
@@ -2414,7 +2490,7 @@ pub static STOCK_EXCHANGE_OF_THAILAND: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XBKK,
     sources_checked: SourceDate::new(2026, 9, 25),
     sources: "SET, \"SET Holidays\" (set.or.th/en/about/event-calendar/holiday?year=YYYY, and \
               the Thai page set.or.th/th/about/event-calendar/holiday), the pages for 2022 to \
@@ -2480,46 +2556,49 @@ const fn xnse_closed(rule: u8, name: &'static str) -> HolidayRule {
     HolidayRule::fixed_public(name, "", xnse_rule(rule))
 }
 
-static XNSE_RULES: &[HolidayRule] = &[
-    xnse_closed(0, "Republic Day"),
-    xnse_closed(1, "Mahashivratri"),
-    xnse_closed(2, "Holi"),
-    xnse_closed(3, "Ram Navami"),
-    xnse_closed(4, "Mahavir Jayanti"),
-    xnse_closed(5, "Good Friday"),
-    xnse_closed(6, "Dr. Baba Saheb Ambedkar Jayanti"),
-    xnse_closed(7, "Maharashtra Day"),
-    xnse_closed(8, "Id-Ul-Fitr (Ramzan Id)"),
-    xnse_closed(9, "Bakri Id"),
-    xnse_closed(10, "Muharram"),
-    xnse_closed(11, "Independence Day"),
-    xnse_closed(12, "Ganesh Chaturthi"),
-    xnse_closed(13, "Mahatma Gandhi Jayanti"),
-    xnse_closed(14, "Dussehra"),
-    xnse_closed(15, "Diwali Laxmi Pujan (Muhurat trading session held)"),
-    xnse_closed(16, "Diwali Balipratipada"),
-    xnse_closed(17, "Guru Nanak Jayanti"),
-    xnse_closed(18, "Christmas"),
-    xnse_closed(19, "Public holiday under the Negotiable Instruments Act"),
-    xnse_closed(20, "General election day in Mumbai"),
-    xnse_closed(21, "Maharashtra Assembly election day"),
-    xnse_closed(22, "Municipal Corporation election day in Maharashtra"),
-    HolidayRule::workday(
-        "Working day, live trading session for the Union Budget",
-        "",
-        xnse_rule(23),
-    ),
-    HolidayRule::workday(
-        "Working day, live trading session on a Saturday",
-        "",
-        xnse_rule(24),
-    ),
-    HolidayRule::workday(
-        "Working day, special live trading session with a switch to the disaster recovery site",
-        "",
-        xnse_rule(25),
-    ),
-];
+static XNSE_RULES: &[HolidayRule] = &read_from_year(
+    2020,
+    [
+        xnse_closed(0, "Republic Day"),
+        xnse_closed(1, "Mahashivratri"),
+        xnse_closed(2, "Holi"),
+        xnse_closed(3, "Ram Navami"),
+        xnse_closed(4, "Mahavir Jayanti"),
+        xnse_closed(5, "Good Friday"),
+        xnse_closed(6, "Dr. Baba Saheb Ambedkar Jayanti"),
+        xnse_closed(7, "Maharashtra Day"),
+        xnse_closed(8, "Id-Ul-Fitr (Ramzan Id)"),
+        xnse_closed(9, "Bakri Id"),
+        xnse_closed(10, "Muharram"),
+        xnse_closed(11, "Independence Day"),
+        xnse_closed(12, "Ganesh Chaturthi"),
+        xnse_closed(13, "Mahatma Gandhi Jayanti"),
+        xnse_closed(14, "Dussehra"),
+        xnse_closed(15, "Diwali Laxmi Pujan (Muhurat trading session held)"),
+        xnse_closed(16, "Diwali Balipratipada"),
+        xnse_closed(17, "Guru Nanak Jayanti"),
+        xnse_closed(18, "Christmas"),
+        xnse_closed(19, "Public holiday under the Negotiable Instruments Act"),
+        xnse_closed(20, "General election day in Mumbai"),
+        xnse_closed(21, "Maharashtra Assembly election day"),
+        xnse_closed(22, "Municipal Corporation election day in Maharashtra"),
+        HolidayRule::workday(
+            "Working day, live trading session for the Union Budget",
+            "",
+            xnse_rule(23),
+        ),
+        HolidayRule::workday(
+            "Working day, live trading session on a Saturday",
+            "",
+            xnse_rule(24),
+        ),
+        HolidayRule::workday(
+            "Working day, special live trading session with a switch to the disaster recovery site",
+            "",
+            xnse_rule(25),
+        ),
+    ],
+);
 
 /// The National Stock Exchange of India, for its Capital Market segment.
 ///
@@ -2554,7 +2633,7 @@ pub static NATIONAL_STOCK_EXCHANGE_OF_INDIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XNSE,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "NSE, \"Trading Holidays\" circulars for the Capital Market segment \
               (nsearchives.nseindia.com/content/circulars/CMTRNNNNN.pdf): NSE/CMTR/42877 for \
@@ -2585,7 +2664,7 @@ pub static BSE: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XBOM,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "BSE, \"Trading Holidays\" notices for the Equity segment \
               (bseindia.com/markets/MarketInfo/DispNewNoticesCirculars.aspx?page=NOTICE): \
@@ -2647,35 +2726,38 @@ const fn xses_closed(rule: u8, name: &'static str) -> HolidayRule {
     HolidayRule::fixed_public(name, "", xses_rule(rule))
 }
 
-static XSES_RULES: &[HolidayRule] = &[
-    xses_closed(0, "New Year's Day"),
-    xses_closed(1, "Chinese New Year"),
-    xses_closed(2, "Good Friday"),
-    xses_closed(3, "Hari Raya Puasa"),
-    xses_closed(4, "Labour Day"),
-    xses_closed(5, "Vesak Day"),
-    xses_closed(6, "Hari Raya Haji"),
-    xses_closed(7, "National Day"),
-    xses_closed(8, "Deepavali"),
-    xses_closed(9, "Christmas Day"),
-    xses_closed(10, "Polling Day"),
-    xses_closed(11, "New Year's Day holiday, in lieu of the Sunday"),
-    xses_closed(12, "Chinese New Year holiday, in lieu of the Sunday"),
-    xses_closed(13, "Hari Raya Puasa holiday, in lieu of the Sunday"),
-    xses_closed(14, "Labour Day holiday, in lieu of the Sunday"),
-    xses_closed(15, "Vesak Day holiday, in lieu of the Sunday"),
-    xses_closed(16, "Hari Raya Haji holiday, in lieu of the Sunday"),
-    xses_closed(17, "National Day holiday, in lieu of the Sunday"),
-    xses_closed(18, "Deepavali holiday, in lieu of the Sunday"),
-    xses_closed(19, "Christmas Day holiday, in lieu of the Sunday"),
-    HolidayRule::observance(
-        "Half trading day, the eve of Chinese New Year",
-        "",
-        xses_rule(20),
-    ),
-    HolidayRule::observance("Half trading day, Christmas Eve", "", xses_rule(21)),
-    HolidayRule::observance("Half trading day, New Year's Eve", "", xses_rule(22)),
-];
+static XSES_RULES: &[HolidayRule] = &read_from_year(
+    2020,
+    [
+        xses_closed(0, "New Year's Day"),
+        xses_closed(1, "Chinese New Year"),
+        xses_closed(2, "Good Friday"),
+        xses_closed(3, "Hari Raya Puasa"),
+        xses_closed(4, "Labour Day"),
+        xses_closed(5, "Vesak Day"),
+        xses_closed(6, "Hari Raya Haji"),
+        xses_closed(7, "National Day"),
+        xses_closed(8, "Deepavali"),
+        xses_closed(9, "Christmas Day"),
+        xses_closed(10, "Polling Day"),
+        xses_closed(11, "New Year's Day holiday, in lieu of the Sunday"),
+        xses_closed(12, "Chinese New Year holiday, in lieu of the Sunday"),
+        xses_closed(13, "Hari Raya Puasa holiday, in lieu of the Sunday"),
+        xses_closed(14, "Labour Day holiday, in lieu of the Sunday"),
+        xses_closed(15, "Vesak Day holiday, in lieu of the Sunday"),
+        xses_closed(16, "Hari Raya Haji holiday, in lieu of the Sunday"),
+        xses_closed(17, "National Day holiday, in lieu of the Sunday"),
+        xses_closed(18, "Deepavali holiday, in lieu of the Sunday"),
+        xses_closed(19, "Christmas Day holiday, in lieu of the Sunday"),
+        HolidayRule::observance(
+            "Half trading day, the eve of Chinese New Year",
+            "",
+            xses_rule(20),
+        ),
+        HolidayRule::observance("Half trading day, Christmas Eve", "", xses_rule(21)),
+        HolidayRule::observance("Half trading day, New Year's Eve", "", xses_rule(22)),
+    ],
+);
 
 /// The Singapore Exchange, for its securities market.
 ///
@@ -2706,7 +2788,7 @@ pub static SINGAPORE_EXCHANGE: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XSES,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "SGX, \"Securities Trading\" (sgx.com/securities/trading, now \
               sgx.com/stock-exchange/trading), the \"Singapore Public Holidays\" and \"Half-day \
@@ -2774,44 +2856,47 @@ const fn xkls_closed(rule: u8, name: &'static str, local_name: &'static str) -> 
     HolidayRule::fixed_public(name, local_name, xkls_rule(rule))
 }
 
-static XKLS_RULES: &[HolidayRule] = &[
-    xkls_closed(0, "New Year's Day", "Tahun Baharu"),
-    xkls_closed(1, "Thaipusam", "Hari Thaipusam"),
-    xkls_closed(2, "Federal Territory Day", "Hari Wilayah Persekutuan"),
-    xkls_closed(3, "Chinese New Year", "Tahun Baharu Cina"),
-    xkls_closed(4, "Nuzul Al-Quran", "Hari Nuzul Al-Quran"),
-    xkls_closed(5, "Hari Raya Puasa", "Hari Raya Aidilfitri"),
-    xkls_closed(6, "Workers' Day", "Hari Pekerja"),
-    xkls_closed(7, "Wesak Day", "Hari Wesak"),
-    xkls_closed(
-        8,
-        "Yang di-Pertuan Agong's Birthday",
-        "Hari Keputeraan Yang di-Pertuan Agong",
-    ),
-    xkls_closed(9, "Hari Raya Haji", "Hari Raya Aidiladha"),
-    xkls_closed(10, "Awal Muharram", "Awal Muharam"),
-    xkls_closed(11, "National Day", "Hari Kebangsaan"),
-    xkls_closed(12, "Malaysia Day", "Hari Malaysia"),
-    xkls_closed(13, "Birthday of Prophet Muhammad", "Maulidur Rasul"),
-    xkls_closed(14, "Deepavali", "Hari Deepavali"),
-    xkls_closed(15, "Christmas Day", "Hari Krismas"),
-    xkls_closed(16, "Special public holiday", "Cuti umum khas"),
-    xkls_closed(17, "Chinese New Year holiday, in lieu", ""),
-    xkls_closed(18, "Nuzul Al-Quran holiday, in lieu", ""),
-    xkls_closed(19, "Hari Raya Puasa holiday, in lieu", ""),
-    xkls_closed(20, "Workers' Day holiday, in lieu", ""),
-    xkls_closed(21, "Wesak Day holiday, in lieu", ""),
-    xkls_closed(22, "Hari Raya Haji holiday, in lieu", ""),
-    xkls_closed(23, "Birthday of Prophet Muhammad holiday, in lieu", ""),
-    xkls_closed(24, "Christmas Day holiday, in lieu", ""),
-    xkls_closed(25, "New Year's Day holiday, in lieu", ""),
-    xkls_closed(26, "Thaipusam holiday, in lieu", ""),
-    xkls_closed(27, "Deepavali holiday, in lieu", ""),
-    xkls_closed(28, "National Day holiday, in lieu", ""),
-    HolidayRule::observance("Half trading day, Chinese New Year Eve", "", xkls_rule(29)),
-    HolidayRule::observance("Half trading day, Hari Raya Puasa Eve", "", xkls_rule(30)),
-    xkls_closed(31, "Awal Muharram holiday, in lieu", ""),
-];
+static XKLS_RULES: &[HolidayRule] = &read_from_year(
+    2020,
+    [
+        xkls_closed(0, "New Year's Day", "Tahun Baharu"),
+        xkls_closed(1, "Thaipusam", "Hari Thaipusam"),
+        xkls_closed(2, "Federal Territory Day", "Hari Wilayah Persekutuan"),
+        xkls_closed(3, "Chinese New Year", "Tahun Baharu Cina"),
+        xkls_closed(4, "Nuzul Al-Quran", "Hari Nuzul Al-Quran"),
+        xkls_closed(5, "Hari Raya Puasa", "Hari Raya Aidilfitri"),
+        xkls_closed(6, "Workers' Day", "Hari Pekerja"),
+        xkls_closed(7, "Wesak Day", "Hari Wesak"),
+        xkls_closed(
+            8,
+            "Yang di-Pertuan Agong's Birthday",
+            "Hari Keputeraan Yang di-Pertuan Agong",
+        ),
+        xkls_closed(9, "Hari Raya Haji", "Hari Raya Aidiladha"),
+        xkls_closed(10, "Awal Muharram", "Awal Muharam"),
+        xkls_closed(11, "National Day", "Hari Kebangsaan"),
+        xkls_closed(12, "Malaysia Day", "Hari Malaysia"),
+        xkls_closed(13, "Birthday of Prophet Muhammad", "Maulidur Rasul"),
+        xkls_closed(14, "Deepavali", "Hari Deepavali"),
+        xkls_closed(15, "Christmas Day", "Hari Krismas"),
+        xkls_closed(16, "Special public holiday", "Cuti umum khas"),
+        xkls_closed(17, "Chinese New Year holiday, in lieu", ""),
+        xkls_closed(18, "Nuzul Al-Quran holiday, in lieu", ""),
+        xkls_closed(19, "Hari Raya Puasa holiday, in lieu", ""),
+        xkls_closed(20, "Workers' Day holiday, in lieu", ""),
+        xkls_closed(21, "Wesak Day holiday, in lieu", ""),
+        xkls_closed(22, "Hari Raya Haji holiday, in lieu", ""),
+        xkls_closed(23, "Birthday of Prophet Muhammad holiday, in lieu", ""),
+        xkls_closed(24, "Christmas Day holiday, in lieu", ""),
+        xkls_closed(25, "New Year's Day holiday, in lieu", ""),
+        xkls_closed(26, "Thaipusam holiday, in lieu", ""),
+        xkls_closed(27, "Deepavali holiday, in lieu", ""),
+        xkls_closed(28, "National Day holiday, in lieu", ""),
+        HolidayRule::observance("Half trading day, Chinese New Year Eve", "", xkls_rule(29)),
+        HolidayRule::observance("Half trading day, Hari Raya Puasa Eve", "", xkls_rule(30)),
+        xkls_closed(31, "Awal Muharram holiday, in lieu", ""),
+    ],
+);
 
 /// Bursa Malaysia, for its securities market.
 ///
@@ -2845,7 +2930,7 @@ pub static BURSA_MALAYSIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XKLS,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Bursa Malaysia, \"Calendar\" — \"Bursa Malaysia Holidays\" \
               (bursamalaysia.com/about_bursa/about_us/calendar), in web.archive.org copies of \
@@ -2911,79 +2996,82 @@ const fn xidx_closed(rule: u8, name: &'static str, local_name: &'static str) -> 
     )
 }
 
-static XIDX_RULES: &[HolidayRule] = &[
-    xidx_closed(0, "New Year's Day", "Tahun Baru Masehi"),
-    xidx_closed(1, "Chinese New Year", "Tahun Baru Imlek"),
-    xidx_closed(2, "Isra Mikraj", "Isra Mikraj Nabi Muhammad SAW"),
-    xidx_closed(3, "Nyepi, the Saka New Year", "Hari Suci Nyepi"),
-    xidx_closed(4, "Good Friday", "Wafat Yesus Kristus"),
-    xidx_closed(5, "Eid al-Fitr", "Idul Fitri"),
-    xidx_closed(6, "Labour Day", "Hari Buruh Internasional"),
-    xidx_closed(7, "Vesak Day", "Hari Raya Waisak"),
-    xidx_closed(8, "Ascension Day", "Kenaikan Yesus Kristus"),
-    xidx_closed(9, "Pancasila Day", "Hari Lahir Pancasila"),
-    xidx_closed(10, "Eid al-Adha", "Idul Adha"),
-    xidx_closed(11, "Islamic New Year", "Tahun Baru Islam"),
-    xidx_closed(12, "Independence Day", "Proklamasi Kemerdekaan"),
-    xidx_closed(
-        13,
-        "Prophet Muhammad's Birthday",
-        "Maulid Nabi Muhammad SAW",
-    ),
-    xidx_closed(14, "Christmas Day", "Kelahiran Yesus Kristus"),
-    xidx_closed(
-        15,
-        "Joint leave, Chinese New Year",
-        "Cuti Bersama Tahun Baru Imlek",
-    ),
-    xidx_closed(16, "Joint leave, Nyepi", "Cuti Bersama Hari Suci Nyepi"),
-    xidx_closed(17, "Joint leave, Eid al-Fitr", "Cuti Bersama Idul Fitri"),
-    xidx_closed(
-        18,
-        "Joint leave, Ascension Day",
-        "Cuti Bersama Kenaikan Yesus Kristus",
-    ),
-    xidx_closed(
-        19,
-        "Joint leave, Vesak Day",
-        "Cuti Bersama Hari Raya Waisak",
-    ),
-    xidx_closed(20, "Joint leave, Eid al-Adha", "Cuti Bersama Idul Adha"),
-    xidx_closed(
-        21,
-        "Joint leave, Islamic New Year",
-        "Cuti Bersama Tahun Baru Islam",
-    ),
-    xidx_closed(
-        22,
-        "Joint leave, Prophet Muhammad's Birthday",
-        "Cuti Bersama Maulid Nabi Muhammad SAW",
-    ),
-    xidx_closed(
-        23,
-        "Joint leave, Independence Day",
-        "Cuti Bersama Proklamasi Kemerdekaan",
-    ),
-    xidx_closed(
-        24,
-        "Joint leave, Christmas",
-        "Cuti Bersama Kelahiran Yesus Kristus",
-    ),
-    xidx_closed(25, "Election day", "Hari Pemilihan Umum"),
-    xidx_closed(
-        26,
-        "Exchange holiday, the last day of the year",
-        "Libur Bursa",
-    ),
-    // The 2023 calendar could not be read: the year is a gap, not a
-    // year without closures.
-    HolidayRule::fixed_public(
-        "Exchange holidays, the calendar for the year not read",
-        "Kalender Libur Bursa",
-        Rule::UNREAD,
-    )
-    .years(Some(2023), Some(2023)),
-];
+static XIDX_RULES: &[HolidayRule] = &read_from_year(
+    2020,
+    [
+        xidx_closed(0, "New Year's Day", "Tahun Baru Masehi"),
+        xidx_closed(1, "Chinese New Year", "Tahun Baru Imlek"),
+        xidx_closed(2, "Isra Mikraj", "Isra Mikraj Nabi Muhammad SAW"),
+        xidx_closed(3, "Nyepi, the Saka New Year", "Hari Suci Nyepi"),
+        xidx_closed(4, "Good Friday", "Wafat Yesus Kristus"),
+        xidx_closed(5, "Eid al-Fitr", "Idul Fitri"),
+        xidx_closed(6, "Labour Day", "Hari Buruh Internasional"),
+        xidx_closed(7, "Vesak Day", "Hari Raya Waisak"),
+        xidx_closed(8, "Ascension Day", "Kenaikan Yesus Kristus"),
+        xidx_closed(9, "Pancasila Day", "Hari Lahir Pancasila"),
+        xidx_closed(10, "Eid al-Adha", "Idul Adha"),
+        xidx_closed(11, "Islamic New Year", "Tahun Baru Islam"),
+        xidx_closed(12, "Independence Day", "Proklamasi Kemerdekaan"),
+        xidx_closed(
+            13,
+            "Prophet Muhammad's Birthday",
+            "Maulid Nabi Muhammad SAW",
+        ),
+        xidx_closed(14, "Christmas Day", "Kelahiran Yesus Kristus"),
+        xidx_closed(
+            15,
+            "Joint leave, Chinese New Year",
+            "Cuti Bersama Tahun Baru Imlek",
+        ),
+        xidx_closed(16, "Joint leave, Nyepi", "Cuti Bersama Hari Suci Nyepi"),
+        xidx_closed(17, "Joint leave, Eid al-Fitr", "Cuti Bersama Idul Fitri"),
+        xidx_closed(
+            18,
+            "Joint leave, Ascension Day",
+            "Cuti Bersama Kenaikan Yesus Kristus",
+        ),
+        xidx_closed(
+            19,
+            "Joint leave, Vesak Day",
+            "Cuti Bersama Hari Raya Waisak",
+        ),
+        xidx_closed(20, "Joint leave, Eid al-Adha", "Cuti Bersama Idul Adha"),
+        xidx_closed(
+            21,
+            "Joint leave, Islamic New Year",
+            "Cuti Bersama Tahun Baru Islam",
+        ),
+        xidx_closed(
+            22,
+            "Joint leave, Prophet Muhammad's Birthday",
+            "Cuti Bersama Maulid Nabi Muhammad SAW",
+        ),
+        xidx_closed(
+            23,
+            "Joint leave, Independence Day",
+            "Cuti Bersama Proklamasi Kemerdekaan",
+        ),
+        xidx_closed(
+            24,
+            "Joint leave, Christmas",
+            "Cuti Bersama Kelahiran Yesus Kristus",
+        ),
+        xidx_closed(25, "Election day", "Hari Pemilihan Umum"),
+        xidx_closed(
+            26,
+            "Exchange holiday, the last day of the year",
+            "Libur Bursa",
+        ),
+        // The 2023 calendar could not be read: the year is a gap, not a
+        // year without closures.
+        HolidayRule::fixed_public(
+            "Exchange holidays, the calendar for the year not read",
+            "Kalender Libur Bursa",
+            Rule::UNREAD,
+        )
+        .years(Some(2023), Some(2023)),
+    ],
+);
 
 /// The Indonesia Stock Exchange.
 ///
@@ -3011,7 +3099,7 @@ pub static INDONESIA_STOCK_EXCHANGE: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XIDX,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "IDX, \"Trading Holiday\" (idx.co.id/en-us/news/trading-holiday/), the calendar \
               images 2020_eng-v3.jpg, 2021_eng-ver03.jpg and 2022_eng-v2.jpg with their earlier \
@@ -3079,38 +3167,41 @@ const fn xphs_closed(rule: u8, name: &'static str) -> HolidayRule {
     HolidayRule::fixed_public(name, "", xphs_rule(rule))
 }
 
-static XPHS_RULES: &[HolidayRule] = &[
-    xphs_closed(0, "New Year's Day"),
-    xphs_closed(1, "Chinese New Year"),
-    xphs_closed(2, "EDSA People Power Revolution Anniversary"),
-    xphs_closed(3, "Maundy Thursday"),
-    xphs_closed(4, "Good Friday"),
-    xphs_closed(5, "Araw ng Kagitingan"),
-    xphs_closed(6, "Labor Day"),
-    xphs_closed(7, "Eid'l Fitr"),
-    xphs_closed(8, "Independence Day"),
-    xphs_closed(9, "Eid'l Adha"),
-    xphs_closed(10, "Ninoy Aquino Day"),
-    xphs_closed(11, "National Heroes Day"),
-    xphs_closed(12, "All Saints' Day"),
-    xphs_closed(13, "Special (non-working) day"),
-    xphs_closed(14, "Bonifacio Day"),
-    xphs_closed(15, "Feast of the Immaculate Conception of Mary"),
-    xphs_closed(16, "Christmas Eve"),
-    xphs_closed(17, "Christmas Day"),
-    xphs_closed(18, "Rizal Day"),
-    xphs_closed(19, "Last Day of the Year"),
-    xphs_closed(20, "Election day"),
-    xphs_closed(21, "All Saints' Day Eve"),
-    xphs_closed(22, "All Souls' Day"),
-    xphs_closed(23, "Trading suspension, the ash emission of Taal Volcano"),
-    xphs_closed(24, "Trading suspension, the COVID-19 community quarantine"),
-    xphs_closed(25, "Trading suspension, Typhoon Ulysses"),
-    xphs_closed(26, "Trading suspension, inclement weather and floods"),
-    xphs_closed(27, "Trading cancelled, a technical problem"),
-    xphs_closed(28, "Trading suspension"),
-    HolidayRule::observance("Half trading day, the Christmas season", "", xphs_rule(29)),
-];
+static XPHS_RULES: &[HolidayRule] = &read_from_year(
+    2020,
+    [
+        xphs_closed(0, "New Year's Day"),
+        xphs_closed(1, "Chinese New Year"),
+        xphs_closed(2, "EDSA People Power Revolution Anniversary"),
+        xphs_closed(3, "Maundy Thursday"),
+        xphs_closed(4, "Good Friday"),
+        xphs_closed(5, "Araw ng Kagitingan"),
+        xphs_closed(6, "Labor Day"),
+        xphs_closed(7, "Eid'l Fitr"),
+        xphs_closed(8, "Independence Day"),
+        xphs_closed(9, "Eid'l Adha"),
+        xphs_closed(10, "Ninoy Aquino Day"),
+        xphs_closed(11, "National Heroes Day"),
+        xphs_closed(12, "All Saints' Day"),
+        xphs_closed(13, "Special (non-working) day"),
+        xphs_closed(14, "Bonifacio Day"),
+        xphs_closed(15, "Feast of the Immaculate Conception of Mary"),
+        xphs_closed(16, "Christmas Eve"),
+        xphs_closed(17, "Christmas Day"),
+        xphs_closed(18, "Rizal Day"),
+        xphs_closed(19, "Last Day of the Year"),
+        xphs_closed(20, "Election day"),
+        xphs_closed(21, "All Saints' Day Eve"),
+        xphs_closed(22, "All Souls' Day"),
+        xphs_closed(23, "Trading suspension, the ash emission of Taal Volcano"),
+        xphs_closed(24, "Trading suspension, the COVID-19 community quarantine"),
+        xphs_closed(25, "Trading suspension, Typhoon Ulysses"),
+        xphs_closed(26, "Trading suspension, inclement weather and floods"),
+        xphs_closed(27, "Trading cancelled, a technical problem"),
+        xphs_closed(28, "Trading suspension"),
+        HolidayRule::observance("Half trading day, the Christmas season", "", xphs_rule(29)),
+    ],
+);
 
 /// The Philippine Stock Exchange.
 ///
@@ -3141,7 +3232,7 @@ pub static PHILIPPINE_STOCK_EXCHANGE: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::XPHS,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "PSE, memoranda \"Non-Trading Day(s)\", \"Trading Suspension\" and \"Half-Day \
               Trading\" (documents.pse.com.ph/CircularOPSPDF/CN-YYYY-NNNN.pdf, listed at \

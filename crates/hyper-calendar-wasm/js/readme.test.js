@@ -423,6 +423,7 @@ test("the humanized times read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.eraTable], columnsAfter("### The eras of a table"));
   assert.deepEqual([...COLUMNS.olympicGames], columnsAfter("### The Olympic Games"));
   assert.deepEqual([...COLUMNS.holidayGroups], columnsAfter("### Groups and names in a locale"));
+  assert.deepEqual([...COLUMNS.holidayCoverage], columnsAfter("### Years a table answers for"));
   assert.deepEqual([...COLUMNS.zoneName], columnsAfter("### A zone's name"));
   assert.deepEqual([...COLUMNS.roman1960Office], columnsAfter("### The 1960 office"));
   assert.deepEqual([...COLUMNS.frenchDecimalTime], columnsAfter("### French Republican decimal time"));

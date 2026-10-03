@@ -2750,7 +2750,14 @@ fn friday_the_thirteenth_is_the_books_unlucky_fridays() {
         })
         .collect();
     assert_eq!(found, book);
-    for year in 1900..=2100 {
+    // The days are read from 2000, the first year of the check; before it
+    // there is a gap and no day.
+    for year in [1900, 1999] {
+        let calendar = HolidayCalendar::for_year(&UNLUCKY_FRIDAYS, None, year);
+        assert!(calendar.all().is_empty(), "{year}");
+        assert!(!calendar.is_complete(), "{year}");
+    }
+    for year in 2000..=2100 {
         let count = HolidayCalendar::for_year(&UNLUCKY_FRIDAYS, None, year)
             .all()
             .len();

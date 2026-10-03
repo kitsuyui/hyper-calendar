@@ -76,7 +76,7 @@ Worked example: Hari Raya Haji 2025 and Awal Muharram 2025 in Kedah.
 `hc_holiday_is_weekend(code, region, fixed)` (JavaScript `holidayIsWeekend`)
 answers 1 or 0 for the law in force on the day in the region, as
 `RuleSet::weekend_in` gives it: Kedah's Friday is 1 from 25 November 2013
-and the country's is 0; a table that states no weekend keeps Saturday and
+and the country's is 0; a table that states no weekend law at all, a tradition's or a list of days, keeps Saturday and
 Sunday. A day on which the region's law was not read, the `unread-weekend`
 gap, is `HC_ERR_OUT_OF_RANGE`, which is what the business-day arithmetic has
 always answered for it: no weekend of no days. The region is the same
@@ -116,19 +116,21 @@ the other calls need, and they are refused for it (ADR 0013):
 
 ## What is carried
 
-`MALAYSIA` (`hc-holiday`, `countries/asia.rs`, `MY_WEEKEND` and
-`MY_SUBSTITUTION`):
+`MALAYSIA` (`hc-holiday`, `countries/weekends.rs`, `MY`, and
+`countries/asia.rs`, `MY_SUBSTITUTION`):
 
 | Region | Weekend | Years | Substitute for a holiday on |
 | --- | --- | --- | --- |
-| the table | Saturday and Sunday | all | a Sunday, to the Monday |
+| the table | not read | to 24 November 2013 | — |
+| the table | Saturday and Sunday | from 25 November 2013 | a Sunday, to the Monday |
+| `MY-01` Johor | Saturday and Sunday | 1995 to 2013 | a Sunday, to the Monday |
 | `MY-01` Johor | not read | to 1994 | — |
 | `MY-01` Johor | Friday and Saturday | 1 January 2014 to 31 December 2024 | a Friday, to the Sunday |
 | `MY-02` Kedah | Friday and Saturday | from 25 November 2013 | a Friday, to the Sunday; 2014 on |
 | `MY-03` Kelantan, `MY-11` Terengganu | Friday and Saturday | from 25 November 2013 | a Saturday, to the Sunday; 2014 on |
 | `MY-02`, `MY-03`, `MY-09` Perlis, `MY-11` | not read | to 24 November 2013 | — |
 
-`UNITED_ARAB_EMIRATES` (`africa_middle_east.rs`, `AE_WEEKEND`): `AE-SH`
+`UNITED_ARAB_EMIRATES` (`countries/weekends.rs`, `AE`): `AE-SH`
 Sharjah, Friday, Saturday and Sunday from 1 January 2022. The emirate has
 no substitution law of its own in the table, as the federation has none.
 
@@ -167,7 +169,8 @@ Not carried, each with its reason:
 - **Other Malaysian states.** Selangor, Penang, Melaka and the rest keep
   the country's weekend, which the sources read state for the present
   and not for earlier years; the table's own policy applies to all of
-  them without a start.
+  them from 25 November 2013, the report's day, and the years before are a
+  gap.
 - **Malaysia's states' own holidays.** See the section on them below.
 - **Aceh.** One English-language article says Aceh keeps Monday to
   Thursday and Saturday [wikipedia-workweek-and-weekend]; it cites nothing, and the
@@ -209,7 +212,7 @@ secondary reproduction.
   2013. When it moved off Friday is not settled: a blog quoting Mahathir's
   memoir says 1994, and a blog's account of a Perlis fatwa of 30 July 2009
   asks to keep Friday. Its years to 24 November 2013 are a gap.
-- **Johor.** To 1994 a gap; 1994 to 2013 the table's own, Saturday and
+- **Johor.** To 1994 a gap; 1995 to 2013 its own, Saturday and
   Sunday, which the Jakarta Post gives as the weekend it was changed from;
   the dates of 2014 and 2025 are three sources' agreeing.
 - **The replacement days** are carried from secondary sources that agree

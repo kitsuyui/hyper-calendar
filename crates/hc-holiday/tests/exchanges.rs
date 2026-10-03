@@ -148,8 +148,8 @@ fn the_nyse_does_not_observe_a_saturday_new_years_day() {
     let calendar = HolidayCalendar::for_year(&NEW_YORK_STOCK_EXCHANGE, None, 2027);
     assert!(!calendar.is_holiday(ymd(2027, 12, 31)));
     // A Sunday New Year's Day still closes the Monday.
-    let calendar = HolidayCalendar::for_year(&NEW_YORK_STOCK_EXCHANGE, None, 2023);
-    assert!(calendar.is_holiday(ymd(2023, 1, 2)));
+    let calendar = HolidayCalendar::for_year(&NEW_YORK_STOCK_EXCHANGE, None, 2034);
+    assert!(calendar.is_holiday(ymd(2034, 1, 2)));
 }
 
 #[test]
@@ -196,10 +196,27 @@ fn the_days_the_exchange_added_later_start_when_they_started() {
     let calendar = HolidayCalendar::for_year(&NEW_YORK_STOCK_EXCHANGE, None, 2021);
     assert!(!calendar.is_holiday(ymd(2021, 6, 18)));
     assert!(!calendar.is_holiday(ymd(2021, 6, 21)));
+    // Martin Luther King, Jr. Day was kept from 1998: it is absent before,
+    // which is an answer, and a gap from then to the first year the lists
+    // read, 2026, because the exchange's practice in those years is not.
     let calendar = HolidayCalendar::for_year(&NEW_YORK_STOCK_EXCHANGE, None, 1997);
     assert!(!calendar.is_holiday(ymd(1997, 1, 20)));
+    assert!(
+        calendar
+            .gaps()
+            .iter()
+            .all(|gap| gap.name != "Martin Luther King, Jr. Day")
+    );
     let calendar = HolidayCalendar::for_year(&NEW_YORK_STOCK_EXCHANGE, None, 1998);
-    assert!(calendar.is_holiday(ymd(1998, 1, 19)));
+    assert!(!calendar.is_holiday(ymd(1998, 1, 19)));
+    assert!(
+        calendar
+            .gaps()
+            .iter()
+            .any(|gap| gap.name == "Martin Luther King, Jr. Day")
+    );
+    let calendar = HolidayCalendar::for_year(&NEW_YORK_STOCK_EXCHANGE, None, 2026);
+    assert!(calendar.is_holiday(ymd(2026, 1, 19)));
     // The exchange trades on Columbus Day and Veterans Day.
     let calendar = HolidayCalendar::for_year(&NEW_YORK_STOCK_EXCHANGE, None, 2026);
     assert!(!calendar.is_holiday(ymd(2026, 10, 12)));
@@ -240,13 +257,13 @@ fn the_asx_closes_on_the_days_its_calendar_lists() {
     assert_eq!(early, [(12, 24), (12, 31)]);
     let calendar = HolidayCalendar::for_year(&AUSTRALIAN_SECURITIES_EXCHANGE, None, 2027);
     assert!(!calendar.is_holiday(ymd(2027, 4, 26)));
-    let calendar = HolidayCalendar::for_year(&AUSTRALIAN_SECURITIES_EXCHANGE, None, 2022);
-    assert_eq!(calendar.name_on(ymd(2022, 6, 13)), Some("Queen's Birthday"));
+    let calendar = HolidayCalendar::for_year(&AUSTRALIAN_SECURITIES_EXCHANGE, None, 2028);
+    assert_eq!(calendar.name_on(ymd(2028, 6, 12)), Some("King's Birthday"));
     // The early closes are the "Last Business day before Christmas Day" and
     // the "Last Business day of the Year", as the calendar names them, not
-    // fixed dates: in 2022, when 24 and 31 December were Saturdays, they
+    // fixed dates: in 2033, when 24 and 31 December are Saturdays, they
     // fall on the Fridays before.
-    let (_, early) = year_of(&AUSTRALIAN_SECURITIES_EXCHANGE, 2022);
+    let (_, early) = year_of(&AUSTRALIAN_SECURITIES_EXCHANGE, 2033);
     assert_eq!(early, [(12, 23), (12, 30)]);
 }
 

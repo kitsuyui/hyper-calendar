@@ -10,8 +10,9 @@
 //! are not carried: they need a scope finer than a parish.
 
 use super::read_all;
+use super::weekends;
 use crate::computus::offsets::{EASTER_MONDAY, GOOD_FRIDAY, SHROVE_MONDAY, WHIT_MONDAY};
-use crate::rule::{HolidayRule, Listing, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions};
+use crate::rule::{HolidayRule, Listing, Rule, RuleSet, SourceDate, Subdivisions};
 
 /// The comuns' instruments read, 2024 to 2026, one for each parish.
 const CANILLO: &str = "Comú de Canillo, avisos pel qual es fa públic el calendari de dies festius \
@@ -289,7 +290,7 @@ pub static ANDORRA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::AD,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Llei 31/2018, del 6 de desembre, de relacions laborals, article 62, from the \
               Cambra de Comerç's copy (ccis.ad), retrieved 2026-09-22; the Government's \

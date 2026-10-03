@@ -157,12 +157,12 @@ fn holiday_tables_answer_by_identifier() {
         .expect("UTF-8");
     assert!(
         text.starts_with(
-            "2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\t\tnew-years-day\t\t0\n"
+            "2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\t\tnew-years-day\t\t0\t\t\n"
         ),
         "{text}"
     );
     assert!(
-        text.contains("\t1\t2026-05-03\t\t\tconstitution-memorial-day\t\t0\n"),
+        text.contains("\t1\t2026-05-03\t\t\tconstitution-memorial-day\t\t0\t\t\n"),
         "{text}"
     );
     assert_eq!(
@@ -339,9 +339,9 @@ fn day(year: i64, month: u8, day: u8) -> i64 {
     fixed
 }
 
-/// A day the table cannot answer is refused, not answered "no": Victoria
-/// Day 2025 is a gap in Newfoundland and Labrador, and Kedah's weekend law
-/// of 2012 was not read.
+/// A day the table cannot answer is refused, not answered "no": a year past
+/// China's lunisolar range is a gap, Canada's weekend of 2025 is read from
+/// 2026, and Kedah's weekend law of 2012 was not read.
 #[test]
 fn a_day_a_gap_leaves_open_is_refused_and_a_known_one_is_answered() {
     let day_off = |code: &core::ffi::CStr, region: &core::ffi::CStr, fixed: i64| {
@@ -359,23 +359,24 @@ fn a_day_a_gap_leaves_open_is_refused_and_a_known_one_is_answered() {
     };
     assert_eq!(
         day_off(c"CA", c"CA-NL", day(2025, 5, 19)),
-        (HC_ERROR_NO_DATA, -1)
+        (HC_ERROR_OUT_OF_RANGE, -1)
     );
+    assert_eq!(day_off(c"CN", c"", day(2151, 3, 4)), (HC_ERROR_NO_DATA, -1));
     assert_eq!(day_off(c"CA", c"CA-NL", day(2025, 12, 25)), (HC_OK, 1));
     assert_eq!(day_off(c"JP", c"", day(2026, 3, 4)), (HC_OK, 0));
     assert_eq!(
         day_off(c"MY", c"MY-02", day(2012, 5, 11)),
         (HC_ERROR_OUT_OF_RANGE, -1)
     );
-    // The walk across the same Victoria Day is open, and so is a count.
+    // A walk over a day of 2151 is open, and so is a count.
     let mut moved = 0i64;
     assert_eq!(
         unsafe {
             hc_holiday_add_business_days(
-                c"CA".as_ptr(),
-                c"CA-NL".as_ptr(),
+                c"CN".as_ptr(),
+                c"".as_ptr(),
                 core::ptr::null(),
-                day(2025, 5, 16),
+                day(2151, 3, 3),
                 1,
                 &mut moved,
             )

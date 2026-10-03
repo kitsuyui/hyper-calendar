@@ -21,10 +21,11 @@
 use hc_calendar::Weekday;
 
 use super::read_all;
+use super::weekends;
 use crate::computus::offsets::{CORPUS_CHRISTI, GOOD_FRIDAY, SHROVE_MONDAY, SHROVE_TUESDAY};
 use crate::rule::{
-    HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions, SubstituteDirection,
-    SubstitutionPolicy, joined,
+    HolidayRule, Rule, RuleSet, SourceDate, Subdivisions, SubstituteDirection, SubstitutionPolicy,
+    joined,
 };
 
 /// The departments, by ISO 3166-2 code.
@@ -455,7 +456,7 @@ pub static BOLIVIA: RuleSet = RuleSet {
     substitution: BO_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::BO,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Decreto Supremo 2750 of 1 May 2016, arts. 2 and 3, and Decreto Supremo \
               5019 of 13 September 2023, lexivox.org, retrieved 2026-09-22; Decreto \

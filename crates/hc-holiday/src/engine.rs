@@ -29,7 +29,7 @@ use crate::group::Group;
 use crate::id::HolidayId;
 use crate::rule::{
     Confidence, EvaluationContext, HolidayRule, Kind, RuleSet, Scope, SubstituteDirection,
-    SubstitutionPolicy, UNREAD_SUBDIVISION, UNREAD_WEEKEND, WeekendPolicy, Window,
+    SubstitutionPolicy, UNREAD_INCLUDED, UNREAD_SUBDIVISION, UNREAD_WEEKEND, Window,
 };
 
 /// The identifier of the gap the engine reports for a subdivision whose
@@ -39,6 +39,10 @@ pub const UNREAD_SUBDIVISION_ID: HolidayId = HolidayId::explicit("unread-subdivi
 /// The identifier of the gap the engine reports for a year whose weekend law
 /// in the region was not read, [`UNREAD_WEEKEND`]'s (ADR 0015).
 pub const UNREAD_WEEKEND_ID: HolidayId = HolidayId::explicit("unread-weekend");
+
+/// The identifier of the gap the engine reports for a year before an
+/// inclusion is read ([`crate::rule::Include::read_from`]).
+pub const UNREAD_INCLUDED_ID: HolidayId = HolidayId::explicit("unread-included-holidays");
 
 /// One holiday on one day.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -130,6 +134,44 @@ pub struct Gap {
     /// `read_from` says what was and was not read; `""` where the table's
     /// `sources` speaks for it.
     pub source: &'static str,
+    /// The first and the last day the unplaced holiday could fall on, both
+    /// included, or `None` where nothing narrows it and any day of the year
+    /// could be it ([`Gap::could_fall_on`]).
+    ///
+    /// A rule whose shape the year can compute gives the days it would
+    /// place, widened by the days a substitution can move one; a table of
+    /// announced dates that has run out gives the span of dates the day
+    /// took in the years it lists. A subdivision not read, a weekend not
+    /// read, a rule whose calendar ended and a day no source dates have no
+    /// window.
+    pub window: Option<(Rd, Rd)>,
+}
+
+impl Gap {
+    /// Whether the holiday the gap stands for could fall on `day`: the day
+    /// lies in its window, or, with no window, in its year.
+    #[must_use]
+    pub fn could_fall_on(&self, day: Rd) -> bool {
+        match self.window {
+            Some((first, last)) => first <= day && day <= last,
+            None => gregorian::year_from_fixed(day).is_ok_and(|year| year == self.year),
+        }
+    }
+
+    /// Whether the holiday the gap stands for could fall on a day of
+    /// `first..=last`.
+    #[must_use]
+    pub fn could_fall_between(&self, first: Rd, last: Rd) -> bool {
+        if last < first {
+            return false;
+        }
+        let (open_first, open_last) = self.window.unwrap_or_else(|| {
+            let start = gregorian::to_fixed(self.year, 1, 1).unwrap_or(Rd(i64::MIN));
+            let end = gregorian::to_fixed(self.year, 12, 31).unwrap_or(Rd(i64::MAX));
+            (start, end)
+        });
+        open_first <= last && first <= open_last
+    }
 }
 
 /// Why a question about a day, or about the days after it, has no answer
@@ -370,13 +412,24 @@ impl<'a> HolidayCalendar<'a> {
         &self.gaps
     }
 
-    /// Whether every rule could be answered for every year asked for.
+    /// The gaps of the holiday list alone: [`HolidayCalendar::gaps`] without
+    /// the year's unread weekend law ([`UNREAD_WEEKEND`]).
+    pub fn holiday_gaps(&self) -> impl Iterator<Item = &Gap> {
+        self.gaps.iter().filter(|gap| gap.id != UNREAD_WEEKEND_ID)
+    }
+
+    /// Whether every rule could be answered for every year asked for: no gap
+    /// in the holiday list. A year whose weekend law was not read
+    /// ([`UNREAD_WEEKEND`]) is a gap of [`HolidayCalendar::gaps`] that does
+    /// not make the list of holidays incomplete;
+    /// [`HolidayCalendar::weekend_is_read`] says whether a day's weekend law
+    /// was read.
     ///
     /// A `false` here does not mean the answers given are wrong; it means
     /// some are missing. See [`HolidayCalendar::gaps`] for which.
     #[must_use]
     pub fn is_complete(&self) -> bool {
-        self.gaps.is_empty()
+        self.gaps.iter().all(|gap| gap.id == UNREAD_WEEKEND_ID)
     }
 
     /// The rule set behind this calendar.
@@ -521,20 +574,17 @@ impl<'a> HolidayCalendar<'a> {
         !self.is_holiday(day) && (!self.is_weekend(day) || self.is_designated_workday(day))
     }
 
-    /// Whether a gap leaves the day's year open: a holiday of a kind
-    /// `wanted` says that the calendar could not place in the Gregorian
-    /// year of `day`, or, whatever the kind, a subdivision whose own days
-    /// were not read, as the year's lines write it. The gap for an unread
-    /// weekend law is not counted here, because
+    /// Whether a gap leaves `day` open: a holiday of a kind `wanted` says
+    /// that the calendar could not place and that could fall on `day`
+    /// ([`Gap::could_fall_on`]), or, whatever the kind, a subdivision
+    /// whose own days were not read, as the year's lines write it. The gap
+    /// for an unread weekend law is not counted here, because
     /// [`HolidayCalendar::weekend_is_read`] says whether the law of the day
     /// itself was read.
-    fn gap_in_year_of(&self, day: Rd, wanted: impl Fn(Kind) -> bool) -> bool {
-        let Ok(year) = gregorian::year_from_fixed(day) else {
-            return false;
-        };
+    fn gap_on(&self, day: Rd, wanted: impl Fn(Kind) -> bool) -> bool {
         self.gaps.iter().any(|gap| {
-            gap.year == year
-                && gap.id != UNREAD_WEEKEND_ID
+            gap.id != UNREAD_WEEKEND_ID
+                && gap.could_fall_on(day)
                 && (gap.id == UNREAD_SUBDIVISION_ID || wanted(gap.kind))
         })
     }
@@ -562,7 +612,7 @@ impl<'a> HolidayCalendar<'a> {
         if !self.weekend_is_read(day) {
             return Err(Unanswered::UnreadWeekend);
         }
-        if self.gap_in_year_of(day, Kind::is_day_off) {
+        if self.gap_on(day, Kind::is_day_off) {
             return Err(Unanswered::Gap);
         }
         Ok(false)
@@ -594,12 +644,12 @@ impl<'a> HolidayCalendar<'a> {
             if self.is_designated_workday(day) {
                 return Ok(true);
             }
-            if self.gap_in_year_of(day, |kind| kind == Kind::Workday) {
+            if self.gap_on(day, |kind| kind == Kind::Workday) {
                 return Err(Unanswered::Gap);
             }
             return Ok(false);
         }
-        if self.gap_in_year_of(day, Kind::is_day_off) {
+        if self.gap_on(day, Kind::is_day_off) {
             return Err(Unanswered::Gap);
         }
         Ok(true)
@@ -698,13 +748,14 @@ impl<'a> HolidayCalendar<'a> {
         Ok(count * sign)
     }
 
-    /// Whether a holiday of one of `kinds` could be missing from the years
-    /// `first..=last`: a gap of such a kind lies in one of them, or, whatever
-    /// the kinds, a subdivision's own days or a weekend law were not read.
-    /// `kinds` empty means the kinds that stop work.
-    fn gap_between_years(&self, first: i64, last: i64, kinds: &[Kind]) -> bool {
+    /// Whether a holiday of one of `kinds` could be missing from the days
+    /// `first..=last`: a gap of such a kind could fall on one of them, or,
+    /// whatever the kinds, a subdivision's own days or a weekend law were
+    /// not read in a year of them. `kinds` empty means the kinds that stop
+    /// work.
+    fn gap_between(&self, first: Rd, last: Rd, kinds: &[Kind]) -> bool {
         self.gaps.iter().any(|gap| {
-            (first..=last).contains(&gap.year)
+            gap.could_fall_between(first, last)
                 && (gap.id == UNREAD_SUBDIVISION_ID
                     || gap.id == UNREAD_WEEKEND_ID
                     || Self::kind_wanted(kinds, gap.kind))
@@ -746,11 +797,10 @@ impl<'a> HolidayCalendar<'a> {
             .iter()
             .find(|holiday| holiday.date > day && Self::kind_wanted(kinds, holiday.kind))
             .copied();
-        let first = gregorian::year_from_fixed(day).unwrap_or(self.first_year);
-        let last = found
-            .and_then(|holiday| gregorian::year_from_fixed(holiday.date).ok())
-            .unwrap_or(self.last_year);
-        if self.gap_between_years(first, last, kinds) {
+        // The days that could hold a nearer holiday: those after `day` up
+        // to the one found, or to the end of the span when there is none.
+        let end = found.map_or(self.last_day, |holiday| Rd(holiday.date.0 - 1));
+        if self.gap_between(Rd(day.0 + 1), end, kinds) {
             return Err(Unanswered::Gap);
         }
         Ok(found)
@@ -772,11 +822,8 @@ impl<'a> HolidayCalendar<'a> {
             .rev()
             .find(|holiday| holiday.date < day && Self::kind_wanted(kinds, holiday.kind))
             .copied();
-        let last = gregorian::year_from_fixed(day).unwrap_or(self.last_year);
-        let first = found
-            .and_then(|holiday| gregorian::year_from_fixed(holiday.date).ok())
-            .unwrap_or(self.first_year);
-        if self.gap_between_years(first, last, kinds) {
+        let start = found.map_or(self.first_day, |holiday| Rd(holiday.date.0 + 1));
+        if self.gap_between(start, Rd(day.0 - 1), kinds) {
             return Err(Unanswered::Gap);
         }
         Ok(found)
@@ -826,6 +873,10 @@ const INCLUDE_DEPTH: u8 = 8;
 /// the year and both its neighbours, as the engine always did.
 const REACH_DAYS: i64 = 62;
 
+/// How many days a substitution or a bridge moves a holiday at most, as a
+/// gap's window counts it ([`Gap::window`]).
+const GAP_MARGIN_DAYS: i64 = 7;
+
 /// A set's own holidays and gaps, with those of every set it includes,
 /// each evaluated under its own policies, merged in date order.
 fn evaluate_with_includes(
@@ -854,6 +905,37 @@ fn evaluate_with_includes(
         // Only the days off: an included set's commemorations are its own.
         // Hong Kong keeps the Winter Solstice as an observance, and the
         // exchange that closes on Hong Kong's holidays trades through it.
+        let (more, more_gaps) = match included.read_from {
+            Some(first) => {
+                let first = i64::from(first);
+                let year_of = |day: Rd| gregorian::year_from_fixed(day).unwrap_or(i64::MIN);
+                let mut kept_gaps: Vec<Gap> = more_gaps
+                    .into_iter()
+                    .filter(|gap| gap.year >= first)
+                    .collect();
+                // A year before the inclusion was read is a gap of its own,
+                // for each year of the span asked for.
+                for year in year_of(first_day).max(i64::MIN + 1)..=year_of(last_day) {
+                    if year < first {
+                        kept_gaps.push(Gap {
+                            year,
+                            id: UNREAD_INCLUDED_ID,
+                            name: UNREAD_INCLUDED,
+                            kind: Kind::Public,
+                            local_name: "",
+                            source: "",
+                            window: None,
+                        });
+                    }
+                }
+                let kept: Vec<Holiday> = more
+                    .into_iter()
+                    .filter(|holiday| year_of(holiday.date) >= first)
+                    .collect();
+                (kept, kept_gaps)
+            }
+            None => (more, more_gaps),
+        };
         holidays.extend(more.into_iter().filter(Holiday::is_day_off));
         gaps.extend(more_gaps);
     }
@@ -927,12 +1009,13 @@ fn evaluate(
                 kind: Kind::Public,
                 local_name: "",
                 source: "",
+                window: None,
             });
         }
     }
     // A year whose weekend law the region's sources did not read is a gap
     // as well, and a day moved off a weekend in it is only as sure.
-    if rules.weekend.iter().any(WeekendPolicy::is_unread) {
+    if !rules.weekend.is_empty() {
         for year in first_year..=last_year {
             if rules.weekend_unread_in(scope.region, year) {
                 gaps.push(Gap {
@@ -942,10 +1025,18 @@ fn evaluate(
                     kind: Kind::Public,
                     local_name: "",
                     source: "",
+                    window: None,
                 });
             }
         }
     }
+    // A day a substitution or a bridge may move lies a few days from the
+    // rule's own, and a gap's window is widened by as many.
+    let margin = if rules.substitution.is_empty() && rules.bridges.is_empty() {
+        0
+    } else {
+        GAP_MARGIN_DAYS
+    };
     for year in first_reached..=last_reached {
         for rule in rules.rules {
             // Outside its establishment and abolition the day did not
@@ -965,20 +1056,28 @@ fn evaluate(
                 // Monday, at the employer's choice", and a year it could
                 // not answer is one gap, not two. The gaps are written year
                 // by year, so only the tail can share the year.
-                let written = gaps
-                    .iter()
-                    .rev()
-                    .take_while(|gap| gap.year == year)
-                    .any(|gap| gap.id == rule.id());
-                if (first_year..=last_year).contains(&year) && !written {
-                    gaps.push(Gap {
-                        year,
-                        id: rule.id(),
-                        name: rule.name,
-                        kind: rule.kind,
-                        local_name: rule.local_name,
-                        source: rule.source,
-                    });
+                if (first_year..=last_year).contains(&year) {
+                    let window = rule.gap_window(year, margin, context);
+                    let written = gaps
+                        .iter()
+                        .rposition(|gap| gap.year == year && gap.id == rule.id());
+                    if let Some(index) = written {
+                        // One unknown day with two windows is open on both.
+                        gaps[index].window = match (gaps[index].window, window) {
+                            (Some((a, b)), Some((c, d))) => Some((a.min(c), b.max(d))),
+                            _ => None,
+                        };
+                    } else {
+                        gaps.push(Gap {
+                            year,
+                            id: rule.id(),
+                            name: rule.name,
+                            kind: rule.kind,
+                            local_name: rule.local_name,
+                            source: rule.source,
+                            window,
+                        });
+                    }
                 }
                 continue;
             }

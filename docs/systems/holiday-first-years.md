@@ -45,11 +45,13 @@ them read for that year; Founding Day is absent, for the order had not been
 made. Asked for 2023 it gives no day and ten gaps, Founding Day's among them,
 as Aparecida's years before 2003 are; asked for 2025 it gives all ten days
 and no gap. Tunisia's table is read from 1961, the year of its earliest
-decree read, and every rule begins in 1961 or later, so before 1961 it gives
-no day and no gap. Where the helper of a table (Ghana's, Rwanda's,
-Somalia's) sets no `valid_from` to the table's first year, as if the days had
-been established then: `read_all` gives the first year and the days of
-earlier years are gaps (Ghana, 2018: no day, ten gaps; 2019: thirteen days).
+decree read; the days that decree lists are read from 1961 and no source read
+dates their establishment, so before 1961 they are a gap, and the days a
+later decree added (Evacuation Day, Women's Day) are absent before it. Where
+the helper of a table (Ghana's, Rwanda's, Somalia's) sets no `valid_from` to
+the table's first year, as if the days had been established then: `read_all`
+gives the first year and the days of earlier years are gaps (Ghana, 2018: no
+day, ten gaps; 2019: thirteen days).
 
 Where an Act's text was read as a revised edition or as amended to a date,
 the first year is that of the edition or the amendment; where only a list was
@@ -318,6 +320,74 @@ Fribourg, Vaud and Valais are served only as scripted pages that could
 not be read in HTML, so those three cantons carry no local name for the
 trio and the English name stands.
 
+### The United States, Japan, Canada and Bosnia and Herzegovina
+
+Four tables say what is and is not known for the years before their sources:
+
+| Code | Table | What is carried | Why |
+| --- | --- | --- | --- |
+| US | United States | Thanksgiving Day is a gap from 1870 to 1941 and the fourth Thursday of November from 1942; Armistice Day is the 11th of November from 1938 to 1953 | The Act of 28 June 1870 made "any day appointed or recommended by the President" for thanksgiving a holiday in the District of Columbia, and the Congressional Research Service's R41990 [crs-r41990-federal-holidays] gives the other dates; the Presidents' proclamations of 1870 to 1941, which named the day each year, were not read. The days before 1870 are absent: no federal holiday existed. Read: R41990 at everycrsreport.com, retrieved 2026-10-04; the Act's own text is not read. |
+| JP | Japan | Every year to 1948 is a gap, for the days of the 休日ニ関スル件 of 1927 and the regime before it | The 国民の祝日に関する法律 begins on 20 July 1948 and repealed the Ordinance; its days were not read. Read: the Act's text as e-Gov's API serves it, retrieved 2026-09-29; the 1927 Ordinance is not read. |
+| CA | Canada | The ten federal general holidays are read from 1985 | The Canada Labour Code as R.S.C. 1985, c. L-2 consolidates it, section 166; the Code's earlier texts were not read, and the years the Wikipedia articles give for Victoria Day (1952), Remembrance Day (1931) and Thanksgiving (1957) are not establishments of the days. Read: Justice Laws' section 166, retrieved 2026-10-04; the Wikipedia articles are secondary and not checked against the statutes. |
+| BA | Bosnia and Herzegovina | A request with no entity is a gap in every year; each entity's own list is read from its own law | No state-level law of public holidays was found among the regulations the state lists on Paragraf Lex; the entities' laws set them. Read: the regulation list on Paragraf Lex, retrieved 2026-10-04, which is weak evidence of absence. |
+
+### The exchanges
+
+Each exchange's table is read from the first year of the lists its `sources`
+names, `read_from_year` in `exchanges.rs`: the NYSE from 2026, Nasdaq's and
+Euronext's from 2021, Borsa İstanbul's from 2019, the Korea Exchange's from
+2009. A closure limited to the one year it happened in (the NYSE's closure
+after the September 11 attacks, Hurricane Sandy, President Bush's funeral) is
+read in that year, and a list that begins before the table's first year
+keeps its own. An exchange that closes on its country's days includes the
+country's table from the same year (`Include::read_from`), and before it the
+engine reports `unread-included-holidays`. The trading week of each exchange is in
+[national-weekends.md](national-weekends.md).
+
+### The United Nations' days and weeks
+
+Each of the 236 days and 11 weeks begins in the year it was first observed,
+where a source read says so, `valid_from`, and is absent before; where only
+the year of the proclamation is known, the day is established that year and
+read from the next (`read_from`), the proclamation's own year being a gap; and
+where only the session of the General Assembly that adopted the resolution
+is known, from the session's year and read two years after. A day with no
+resolution and no date read (Zero Discrimination Day's agency, the weeks the
+agencies set) is read from 2026. A day an earlier body observed on the
+same date before the United Nations proclaimed it (Wetlands, Oceans, the Day
+against Female Genital Mutilation) begins with the proclamation: the
+precursor's year is not the day's. The years were read from the United
+Nations' observance pages and, where those give no year, Wikipedia's articles
+(secondary); the resolutions' own texts were not read, and the number of
+rows with only a proclamation year is higher than with a first observance.
+
+### The traditions
+
+A tradition's table is read from the first year of the calendar it dates its
+days in, where no source dates the tradition itself:
+
+| Code | First year | Why |
+| --- | --- | --- |
+| `christian-western` | 1583 | The Gregorian calendar's first whole year; its movable days are offsets from the Gregorian computus |
+| `christian-orthodox`, `christian-armenian-jerusalem` | 326 | The Julian computus' first year |
+| `christian-orthodox-revised-julian`, `name-days-greek-movable` | 1925 | The Church of Greece took the Revised Julian calendar on 10/23 March 1924 [wikipedia-revised-julian-calendar]; 1925 is the first whole year |
+| `christian-armenian` | 1583 | Gregorian computus |
+| `ethiopian-orthodox` | 401 | The Ethiopic calendar's use begins in 400 (`hc-calendars-solar`'s usage record) |
+| `coptic-orthodox` | 326 | The Julian computus; the Coptic calendar's use begins in 284 |
+| `jewish` | 359 | The Hebrew calendar's fixed rules, in use from 358 |
+| `buddhist-east-asian` (the three Gregorian days) | 1873 | The Meiji reform of the calendar |
+| `shinto` | 1873 | The same |
+| `kyuchu-saishi` | 2020 | The schedule of the Reiwa era, the first whole year of it |
+| `plough-days` | 1753 | The accounts are of England after 1752 |
+| `unlucky-fridays`, `sacred-wednesdays`, `balinese-pawukon-days` | 2000 | The first year of the range the book's code was run for as the check, and the test's |
+| `yazidi` | 1901 | Kreyenbroek's "in this century", the twentieth |
+| `qumran-festivals` | −133 | 134 BCE, the earliest the Hasmonean settlement at Qumran is dated ([wikipedia-qumran], secondary) |
+| `name-days-bulgarian-movable` | 2010 | The first year of the table of dates Bulgarian Wikipedia gives |
+
+Read: the pages named in each row and the calendars' own usage records; no tradition's authority was read for these years. The other tables answer only where their calendars do. `tests/first_years_tables.rs` holds
+every table to its row: nothing is answered before the first year, and the
+year the row gives answers.
+
 ## Accuracy
 
 `tests/first_years.rs` checks for every row of the first table above that the first year has
@@ -385,3 +455,14 @@ a `*_READ_FROM` constant passed to `read_all`; their tests are
 `rules` static is wrapped in it in `americas.rs`, `europe.rs`, `andorra.rs`,
 `bolivia.rs`, `mexico.rs`, `asia.rs` and `bhutan.rs`. The tests are `tests/first_years.rs`, and the
 dated years each table encodes are pinned in `tests/countries.rs`.
+
+`crates/hc-holiday/src/exchanges.rs` has `read_from_year`, which wraps each
+exchange's rules the way `read_all` does the countries' and reads a closure
+limited to one year, and a list that begins earlier, from their own years;
+`Include::read_from` in `rule.rs` reads an exchange's inclusion of its
+country's days; `international.rs` gives each day and week its own years;
+`traditions.rs` wraps each tradition's rules in `read_all` with the first year
+of the table above. `tests/first_years_tables.rs` holds the exchanges, the
+international days and the traditions to their first years,
+`tests/gap_windows.rs` the days a gap leaves open, and
+`tests/national_weekends.rs` every table's first weekend date.

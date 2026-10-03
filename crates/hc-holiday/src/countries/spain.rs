@@ -46,10 +46,9 @@
 //! and the municipalities' two local days (article 46), which the
 //! provincial and regional bulletins publish.
 
+use super::weekends;
 use crate::computus::offsets::GOOD_FRIDAY;
-use crate::rule::{
-    Days, HolidayRule, Listing, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions,
-};
+use crate::rule::{Days, HolidayRule, Listing, Rule, RuleSet, SourceDate, Subdivisions};
 
 /// The resolutions read for 1994 and for 2013 to 2015.
 const EARLY_RESOLUTIONS: &str = "Resolución de la Dirección General de Trabajo de 4 de noviembre \
@@ -2256,7 +2255,7 @@ pub static SPAIN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::ES,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Real Decreto 2001/1983, de 28 de julio, arts. 45 and 46, as amended by Real Decreto \
               2403/1985 and Real Decreto 1346/1989, on the BOE \

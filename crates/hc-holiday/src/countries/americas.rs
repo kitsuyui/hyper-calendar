@@ -5,15 +5,15 @@ use hc_calendars_solar::gregorian;
 use hc_seasons::{Meridian, SolarTerm};
 
 use super::read_all;
+use super::weekends;
 use crate::computus::offsets::{
     ASCENSION, ASH_WEDNESDAY, CORPUS_CHRISTI, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY,
     HOLY_SATURDAY, MAUNDY_THURSDAY, SACRED_HEART, SHROVE_MONDAY, SHROVE_TUESDAY, WHIT_MONDAY,
 };
 use crate::hindu::{DIWALI, HOLI, NARAKA_CHATURDASHI};
 use crate::rule::{
-    CalendarSystem, Days, HolidayRule, Kind, ListedEntry, Listing, Rule, RuleSet, SATURDAY_SUNDAY,
-    SourceDate, Subdivisions, SubstituteDirection, SubstitutionPolicy, TO_ADJACENT_MONDAY,
-    TO_FOLLOWING_MONDAY, WeekendPolicy,
+    CalendarSystem, Days, HolidayRule, Kind, ListedEntry, Listing, Rule, RuleSet, SourceDate,
+    Subdivisions, SubstituteDirection, SubstitutionPolicy, TO_ADJACENT_MONDAY, TO_FOLLOWING_MONDAY,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -96,7 +96,7 @@ pub static BRAZIL: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::BR,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Lei nº 662, de 6 de abril de 1949, art. 1, in the wording of Lei nº 10.607, de \
               19 de dezembro de 2002; Lei nº 6.802, de 30 de junho de 1980, for Nossa Senhora \
@@ -349,7 +349,7 @@ pub static ARGENTINA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::AR,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Decreto 1584/2010 (servicios.infoleg.gob.ar, retrieved \
               2026-09-22), articles 1, 2 and 5, for the 2011 list, the Monday \
@@ -463,7 +463,7 @@ pub static COLOMBIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::CO,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Ley 51 de 1983, article 1 (funcionpublica.gov.co, gestor \
               normativo, retrieved 2026-09-22), for the list and the Monday \
@@ -567,7 +567,7 @@ pub static PERU: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::PE,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Decreto Legislativo 713, art. 6, as amended by Leyes 31381 (2021), 31530 (2022), \
               31788 (2023) and 31822 (2023), not read, El Peruano and gob.pe refusing access; \
@@ -824,7 +824,7 @@ pub static CHILE: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::CL,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Ley 2.977 (1915), Ley 19.668 (2000), Ley 20.215 (2007; Código del Trabajo art. \
               35 ter), Ley 20.299 (2008), Ley 20.983 (2016) and Ley 21.357 (2021), on \
@@ -1039,7 +1039,7 @@ pub static ECUADOR: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::EC,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Ley Orgánica Reformatoria a la Ley Orgánica del Servicio Público y al \
               Código del Trabajo, Registro Oficial 906 of 20 December 2016, as \
@@ -1197,7 +1197,7 @@ pub static URUGUAY: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::UY,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Ley N° 16.805 de 24 de diciembre de 1996, arts. 1 and 2, art. 2 as first enacted \
               (impo.com.uy/bases/leyes-originales/16805-1996) and as worded by Ley N° 17.414 de \
@@ -1346,7 +1346,7 @@ pub static COSTA_RICA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::CR,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Código de Trabajo art. 148 as reformed by Ley 9803 (2020) and Ley 10050 \
               (2021), per the Ministry of Labour's communiqués of October 2020 and \
@@ -1491,7 +1491,7 @@ pub static DOMINICAN_REPUBLIC: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::DO,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Ley 139-97 of 19 June 1997, as published by the Suprema Corte de Justicia \
               (justia.com), for articles 1 to 4; the Ministry of Labour's lists for \
@@ -1624,7 +1624,7 @@ pub static GUATEMALA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::GT,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Código de Trabajo (Decreto 1441), artículo 127, not read (mintrabajo.gob.gt and \
               congreso.gob.gt refusing access), as Wikipedia, \"Public holidays in Guatemala\" \
@@ -1741,7 +1741,7 @@ pub static PANAMA: RuleSet = RuleSet {
     substitution: PA_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::PA,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Código de Trabajo arts. 46 and 47 as amended by Ley 70 of 28 December \
               2007, per the Gaceta Oficial and the Ministry of Labour's consulta of \
@@ -1830,7 +1830,7 @@ pub static JAMAICA: RuleSet = RuleSet {
     substitution: JM_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::JM,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "The Holidays (Public General) Act as the Ministry of Labour and Social \
               Security publishes it (mlss.gov.jm), retrieved 2026-09-22, for sections \
@@ -1936,7 +1936,7 @@ pub static TRINIDAD_AND_TOBAGO: RuleSet = RuleSet {
     substitution: TT_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::TT,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Public Holidays and Festivals Act, Chap. 19:05, as laws.gov.tt publishes it \
               (updated to 31 December 2016), retrieved 2026-09-22, for sections 3 to 5 \
@@ -2018,7 +2018,7 @@ pub static BARBADOS: RuleSet = RuleSet {
     substitution: BB_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::BB,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Public Holidays Act, Cap. 352 (L.R.O. 1998), as barbadoslawcourts.gov.bb \
               publishes it, retrieved 2026-09-22, for section 3 and the First Schedule; \
@@ -2102,7 +2102,7 @@ pub static BAHAMAS: RuleSet = RuleSet {
     substitution: BS_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::BS,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Public Holidays Act, Ch. 36 (Statute Law of The Bahamas, L.R.O. 1/2017), as \
               laws.bahamas.gov.bs publishes it, retrieved 2026-09-22, for sections 3 and \
@@ -2117,17 +2117,6 @@ pub static BAHAMAS: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 // Cuba
 // ─────────────────────────────────────────────────────────────────────────
-
-/// Article 82 of the Labour Code rests the week on Sunday, the "descanso
-/// dominical" that article 97 moves.
-static CU_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
-    days: &[Weekday::Sunday],
-    regions: &[],
-    valid_from: None,
-    valid_from_day: None,
-    valid_until: None,
-    valid_until_day: None,
-}];
 
 /// Article 97: a Sunday 1 May or 10 October moves the Sunday rest to the
 /// Monday; a Sunday 1 January or 26 July does not, "being preceded and
@@ -2215,7 +2204,7 @@ pub static CUBA: RuleSet = RuleSet {
     substitution: CU_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: CU_WEEKEND,
+    weekend: weekends::CU,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Ley No. 116, Código de Trabajo, articles 94 to 100, in the Ministry of \
               Justice's 2014 edition (minjus.gob.cu), retrieved 2026-09-22; ACI Prensa on \
@@ -2346,7 +2335,7 @@ pub static BELIZE: RuleSet = RuleSet {
     substitution: BZ_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::BZ,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Government of Belize Press Office, \"Public and Bank Holidays\" for 2020, \
               2022, 2023, 2024, 2025 and 2026 (pressoffice.gov.bz), each citing section 3 \
@@ -2435,7 +2424,7 @@ pub static GUYANA: RuleSet = RuleSet {
     substitution: GY_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::GY,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Public Holidays Act, Chapter 19:07, L.R.O. 1/2012, as the Ministry of Legal \
               Affairs publishes it (mola.gov.gy), retrieved 2026-09-22, for sections 3 \
@@ -2554,7 +2543,7 @@ pub static HAITI: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::HT,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Code du travail, décret du 24 février 1984, articles 109 to 111, from the \
               CEPAL copy (oig.cepal.org), retrieved 2026-09-22; HDIT Cabinet Volmar, \
@@ -2672,7 +2661,7 @@ pub static VENEZUELA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::VE,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Ley Orgánica del Trabajo, los Trabajadores y las Trabajadoras, Gaceta \
               Oficial Extraordinaria 6.076 of 7 May 2012, articles 173 and 184, from \
@@ -2899,7 +2888,7 @@ pub static PARAGUAY: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::PY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Ley 7544/2025, Ley 8/90, Ley 715/95, Ley 1601/2000, Ley 1723/2001, Ley \
               4531/2011 and Ley 213/93 (Código del Trabajo) articles 213 and 217, from \
@@ -3030,7 +3019,7 @@ pub static HONDURAS: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::HN,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Código del Trabajo, Decreto 189 of 1959, articles 338 and 339, from the \
               edu-honduras.info copy, retrieved 2026-09-23; Decreto 78-2015, La Gaceta \
@@ -3136,7 +3125,7 @@ pub static EL_SALVADOR: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::SV,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Código de Trabajo, Decreto Legislativo 15 of 23 June 1972, articles 190 and \
               194 with the reform list, and Decretos Legislativos 208/2012, 339/2016 and \
@@ -3221,7 +3210,7 @@ pub static NICARAGUA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::NI,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Ley 185, Código del Trabajo, La Gaceta 205 of 30 October 1996, articles 66 \
               to 68, from the Asamblea Nacional's Normas Jurídicas de Nicaragua \
@@ -3367,7 +3356,7 @@ pub static ANTIGUA_AND_BARBUDA: RuleSet = RuleSet {
     substitution: AG_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::AG,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Public Holidays Act, Cap. 354, as laws.gov.ag publishes it, and the Public \
               Holidays (Amendment) Acts No. 8 of 2005, No. 8 of 2014 and No. 23 of 2019 \
@@ -3447,7 +3436,7 @@ pub static DOMINICA: RuleSet = RuleSet {
     substitution: DM_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::DM,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Public Holidays Act, Chap. 19:10, L.R.O. 1/1991, as dominica.gov.dm publishes \
               it, retrieved 2026-09-23, for sections 2, 5 and 9 and the Schedule; the \
@@ -3547,7 +3536,7 @@ pub static GRENADA: RuleSet = RuleSet {
     substitution: GD_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::GD,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Bank Holidays Act, Chapter 25, as the Parliament of Grenada publishes it \
               (grenadaparliament.gd), the Bank Holidays (Amendment) Act No. 2 of 2017 \
@@ -3625,7 +3614,7 @@ pub static SAINT_KITTS_AND_NEVIS: RuleSet = RuleSet {
     substitution: KN_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::KN,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Public Holidays Act, Cap. 23.23, Revised Edition to 31 December 2002, as the \
               St. Kitts and Nevis Law Commission publishes it (lawcommission.gov.kn), \
@@ -3700,7 +3689,7 @@ pub static SAINT_LUCIA: RuleSet = RuleSet {
     substitution: LC_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::LC,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Bank Holidays Act, Revised Laws of Saint Lucia (2023), sections 2, 6 to 8 and \
               the Schedule, as the Attorney General's Chambers published it \
@@ -3818,7 +3807,7 @@ pub static SAINT_VINCENT_AND_THE_GRENADINES: RuleSet = RuleSet {
     substitution: VC_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::VC,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Office of the Prime Minister, \"Public Holidays\" (pmoffice.gov.vc), the 2026 \
               list retrieved 2026-09-23 and the lists for 2019 and 2021 to 2025 through the \
@@ -3935,7 +3924,7 @@ pub static SURINAME: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::SR,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Besluit Vrije Dagen 1971 (G.B. 1971 no. 78) and its amendments S.B. 2007 no. \
               98, S.B. 2012 no. 21 and S.B. 2021 no. 27, from the SRIS copies (sris.sr), and \

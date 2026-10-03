@@ -142,11 +142,15 @@ fn the_years_the_sources_do_not_reach_are_a_gap_not_a_weekend() {
             .weekend_in(Some("MY-02"), ymd(2013, 11, 25))
             .is_some()
     );
-    // The nationwide table has none: it was never unread.
-    assert!(malaysia.weekend_in(None, ymd(1994, 6, 3)).is_some());
+    // The nationwide table's own weekend is read from the same report, and
+    // the years before it are a gap too, for a state with no weekend of its
+    // own as for the whole country.
+    assert_eq!(malaysia.weekend_in(None, ymd(1994, 6, 3)), None);
+    assert_eq!(malaysia.weekend_in(Some("MY-14"), ymd(1994, 6, 3)), None);
+    assert!(malaysia.weekend_in(None, ymd(2013, 11, 25)).is_some());
     assert!(
         malaysia
-            .weekend_in(Some("MY-14"), ymd(1994, 6, 3))
+            .weekend_in(Some("MY-14"), ymd(2013, 11, 25))
             .is_some()
     );
 
@@ -167,9 +171,11 @@ fn the_years_the_sources_do_not_reach_are_a_gap_not_a_weekend() {
         walk.business_days_between(ymd(2010, 6, 1), ymd(2010, 6, 8)),
         None
     );
-    // The nationwide answer is not a gap, and the state's own days are
-    // still the gap they were.
+    // The nationwide answer is a gap in 2010 as well, and not in 2026; the
+    // state's own days are still the gap they were.
     let federal = HolidayCalendar::for_year(table("MY"), None, 2010);
+    assert!(federal.gaps().iter().any(|gap| gap.name == UNREAD_WEEKEND));
+    let federal = HolidayCalendar::for_year(table("MY"), None, 2026);
     assert!(federal.gaps().iter().all(|gap| gap.name != UNREAD_WEEKEND));
     assert!(
         kedah

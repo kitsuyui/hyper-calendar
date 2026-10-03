@@ -281,7 +281,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `AT` | Austria | 14 | none | stated | 2026-09-26 |
 | `AU` | Australia | 25 | yes | stated | 2026-09-27 |
 | `AZ` | Azerbaijan | 25 | yes | stated | 2026-09-22 |
-| `BA` | Bosnia and Herzegovina | 40 | yes | stated | 2026-09-23 |
+| `BA` | Bosnia and Herzegovina | 41 | yes | stated | 2026-09-23 |
 | `BB` | Barbados | 12 | yes | stated | 2026-09-22 |
 | `BD` | Bangladesh | 72 | none | stated | 2026-10-03 |
 | `BE` | Belgium | 10 | none | stated | 2026-09-26 |
@@ -354,7 +354,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `IT` | Italy | 20 | none | stated | 2026-09-29 |
 | `JM` | Jamaica | 11 | yes | stated | 2026-09-22 |
 | `JO` | Jordan | 25 | none | stated | 2026-09-26 |
-| `JP` | Japan | 116 | yes | stated | 2026-09-29 |
+| `JP` | Japan | 117 | yes | stated | 2026-09-29 |
 | `KE` | Kenya | 13 | yes | stated | 2026-09-22 |
 | `KG` | Kyrgyzstan | 30 | yes | stated | 2026-09-22 |
 | `KH` | Cambodia | 54 | none | stated | 2026-09-29 |
@@ -452,7 +452,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `TZ` | Tanzania | 17 | yes | stated | 2026-09-22 |
 | `UA` | Ukraine | 27 | yes | stated | 2026-09-26 |
 | `UG` | Uganda | 14 | none | stated | 2026-09-22 |
-| `US` | United States | 1504 | yes | stated | 2026-09-29 |
+| `US` | United States | 1506 | yes | stated | 2026-09-29 |
 | `UY` | Uruguay | 23 | none | stated | 2026-09-26 |
 | `UZ` | Uzbekistan | 10 | yes | stated | 2026-09-22 |
 | `VA` | Vatican City | 27 | none | stated | 2026-09-23 |

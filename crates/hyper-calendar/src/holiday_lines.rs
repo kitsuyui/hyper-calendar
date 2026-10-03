@@ -33,7 +33,7 @@ use hc_holiday::group::Group;
 use hc_holiday::holy_years::{self, HolyYearOn, Jubilee, JubileeKind, TableDate};
 use hc_holiday::orthodox_fasts::{self, Abstinence, PeriodKind, Reckoning, Status};
 use hc_holiday::roman_calendar_1960;
-use hc_holiday::rule::{Kind, RuleSet, Scope, is_region_code, region_parent};
+use hc_holiday::rule::{Kind, RuleSet, Scope, Subdivisions, is_region_code, region_parent};
 use hc_holiday::{
     Gap, Holiday, HolidayCalendar, Unanswered, computus, countries, exchanges, international,
     lectionary, traditions,
@@ -520,6 +520,11 @@ fn table_region(table: &RuleSet, region: Option<&str>) -> Option<&'static str> {
 /// `0` otherwise, a gap included; a gap's are its rule's, and
 /// `unread-subdivision` and nothing for a subdivision not read.
 ///
+/// Two cells end the line: for a gap, the first and the last day its
+/// holiday could fall on ([`hc_holiday::engine::Gap::window`]), ISO 8601,
+/// the only days it refuses, and nothing where nothing narrows it or on an
+/// entry.
+///
 /// `kinds` keeps the entries of those kinds and the gaps of the rules of
 /// those kinds, and all of them when it is empty; a subdivision not read
 /// is a gap whatever the kinds, because none of its days is known, and so
@@ -582,7 +587,9 @@ pub fn year_lines(table: &RuleSet, scope: Scope<'_>, kinds: &[Kind], year: i64) 
             .cell_or_empty(grouped)
             .value(holiday.id)
             .cell(holiday.source)
-            .flag(holiday.bridged);
+            .flag(holiday.bridged)
+            .empty()
+            .empty();
         line.end();
     }
     let own_gap = |parent: Option<&HolidayCalendar<'_>>, gap: &Gap, code| {
@@ -609,7 +616,9 @@ pub fn year_lines(table: &RuleSet, scope: Scope<'_>, kinds: &[Kind], year: i64) 
             .cell_or_empty(grouped)
             .value(gap.id)
             .cell(gap.source)
-            .flag(false);
+            .flag(false)
+            .cell_or_empty(gap.window.map(|(first, _)| iso(first)).as_deref())
+            .cell_or_empty(gap.window.map(|(_, last)| iso(last)).as_deref());
         line.end();
     }
     out
@@ -673,6 +682,56 @@ pub fn holidays_in_year(
     Ok(year_lines(table, scope, &requested_kinds(kind)?, year))
 }
 
+/// The columns of a line of `hc_holiday_coverage`.
+pub const HOLIDAY_COVERAGE_COLUMNS: usize = 7;
+
+/// The lines of `hc_holiday_coverage`: which years the table `code` names
+/// answers for, nationwide and then in each subdivision it answers for or
+/// was read for from a year, in code order, and from which year its
+/// weekend law is read.
+///
+/// One line per scope, tab-separated: the subdivision's ISO 3166-2 code, or
+/// nothing for the whole country; the first year any rule of the scope is
+/// read for, or nothing where some rule has no first year; the first year
+/// from which no rule of the scope is a gap for want of reading, or nothing
+/// where no rule declares one; the last year no announced list in scope has
+/// run out in, or nothing where none runs out; `1` where every rule of the
+/// scope is read in some year and `0` where one is read in none; the first
+/// year the scope's weekend law is read, or nothing where the table's
+/// weekend has none; and the rule, or the subdivision, that sets the
+/// `answered from` year, or nothing. A year before the first is a gap
+/// (ADR 0013), written by `hc_holidays_in_year`; the ranges of the
+/// calendars the rules count in are not repeated here.
+///
+/// # Errors
+///
+/// As [`rule_set`].
+pub fn holiday_coverage_lines(code: &str) -> Answer<String> {
+    let table = rule_set(code)?;
+    let mut scopes: alloc::vec::Vec<Option<&str>> = alloc::vec![None];
+    let mut regions: alloc::vec::Vec<&str> = table.answered_regions();
+    if let Subdivisions::ReadFrom(listed) = table.subdivisions {
+        regions.extend(listed.iter().map(|(region, _)| *region));
+    }
+    regions.sort_unstable();
+    regions.dedup();
+    scopes.extend(regions.into_iter().map(Some));
+    let mut out = String::new();
+    for region in scopes {
+        let coverage = table.coverage(region);
+        let mut line = Line::new(&mut out);
+        line.cell_or_empty(region)
+            .value_or_empty(coverage.first_read)
+            .value_or_empty(coverage.answered_from)
+            .value_or_empty(coverage.answered_until)
+            .flag(!coverage.never_complete)
+            .value_or_empty(coverage.weekend_from)
+            .cell(coverage.reason);
+        line.end();
+    }
+    Ok(out)
+}
+
 /// One table's nationwide lines of `hc_holidays_on` for one day: the
 /// entries `calendar` has on the day, then the gaps it reports.
 /// Tab-separated: the table's identifier, its English name, the holiday's
@@ -686,13 +745,13 @@ pub fn holidays_in_year(
 /// `1` for an entry a bridge policy made ([`Holiday::bridged`]) and `0`
 /// for every other line.
 pub fn push_day_lines(out: &mut String, table: &RuleSet, calendar: &HolidayCalendar<'_>, day: Rd) {
-    push_entry_lines(
-        out,
-        table,
-        Scope::EVERYONE,
-        &calendar.on(day),
-        calendar.gaps(),
-    );
+    let gaps: alloc::vec::Vec<Gap> = calendar
+        .gaps()
+        .iter()
+        .filter(|gap| gap_is_on(calendar, gap, day))
+        .copied()
+        .collect();
+    push_entry_lines(out, table, Scope::EVERYONE, &calendar.on(day), &gaps);
 }
 
 /// One subdivision's lines of `hc_holidays_on` for one day: the entries
@@ -752,10 +811,21 @@ pub fn push_scoped_day_lines(
         .gaps()
         .iter()
         .filter(|gap| !(never_read && gap.id == UNREAD_SUBDIVISION_ID))
+        .filter(|gap| gap_is_on(scoped, gap, day))
         .filter(|gap| !parents.iter().any(|parent| parent.gaps().contains(gap)))
         .copied()
         .collect();
     push_entry_lines(out, table, scope, &own, &gaps);
+}
+
+/// Whether a gap of `calendar` is written on `day`: the holiday it stands
+/// for could fall on that day ([`Gap::could_fall_on`]), and a weekend law
+/// not read is a gap of a day whose law that is.
+fn gap_is_on(calendar: &HolidayCalendar<'_>, gap: &Gap, day: Rd) -> bool {
+    if gap.id == UNREAD_WEEKEND_ID {
+        return !calendar.weekend_is_read(day);
+    }
+    gap.could_fall_on(day)
 }
 
 /// The lines of [`push_day_lines`] and [`push_scoped_day_lines`].
@@ -1786,18 +1856,24 @@ mod tests {
         let rows = rows_in("en");
         assert_eq!(
             rows["MY"][13],
-            "6+7///;unread//1994-12-31/MY-01;5+6/2014-01-01/2024-12-31/MY-01;\
+            "unread//2013-11-24/;6+7/2013-11-25//;unread//1994-12-31/MY-01;\
+             6+7/1995-01-01/2013-12-31/MY-01;5+6/2014-01-01/2024-12-31/MY-01;\
              unread//2013-11-24/MY-02,MY-03,MY-09,MY-11;5+6/2013-11-25//MY-02,MY-03,MY-11"
         );
         assert_eq!(
             rows["AE"][13],
-            "4+5//2006-08-31/;5+6/2006-09-01/2021-12-31/;6+7/2022-01-01//;\
-             5+6+7/2022-01-01//AE-SH"
+            "unread//1998-12-31/;4+5/1999-01-01/2006-08-31/;5+6/2006-09-01/2021-12-31/;\
+             6+7/2022-01-01//;5+6+7/2022-01-01//AE-SH"
         );
-        assert_eq!(rows["JP"][13], "6+7///");
-        assert_eq!(rows["SA"][13].split(';').count(), 2);
-        assert_eq!(rows["BD"][13], "5+6///");
-        assert_eq!(rows["BN"][13], "5+7///");
+        assert_eq!(rows["JP"][13], "unread//1992-04-30/;6+7/1992-05-01//");
+        assert_eq!(rows["SA"][13].split(';').count(), 3);
+        assert_eq!(
+            rows["BD"][13],
+            "unread//1982-03-31/;5/1982-04-01/2005-09-08/;5+6/2005-09-09//"
+        );
+        assert_eq!(rows["BN"][13], "unread//2018-12-31/;5+7/2019-01-01//");
+        // A table of a tradition states none.
+        assert_eq!(rows["christian-western"][13], "");
     }
 
     /// A year in which a region's weekend law was not read is a gap line of
@@ -1817,13 +1893,17 @@ mod tests {
             .filter(|line| line.contains("\tThe weekend\t"))
             .collect();
         assert!(
-            gap[0].contains("\tgap\t") && gap[0].ends_with("unread-weekend\t\t0"),
+            gap[0].contains("\tgap\t") && gap[0].ends_with("unread-weekend\t\t0\t\t"),
             "{gap:?}"
         );
         let filtered = year_lines(malaysia, Scope::region("MY-02"), &[Kind::Observance], 2010);
         assert!(filtered.contains("\tThe weekend\t"), "{filtered}");
+        // The country's own weekend is read from the same report, so 2010
+        // is a gap nationwide too, and 2026 is not.
         let nationwide = year_lines(malaysia, Scope::EVERYONE, &[], 2010);
-        assert!(!nationwide.contains("The weekend"), "{nationwide}");
+        assert!(nationwide.contains("The weekend"), "{nationwide}");
+        let read = year_lines(malaysia, Scope::EVERYONE, &[], 2026);
+        assert!(!read.contains("The weekend"), "{read}");
         let later = year_lines(malaysia, Scope::region("MY-02"), &[], 2025);
         assert!(!later.contains("The weekend"), "{later}");
         let moved: Vec<&str> = later
@@ -1849,7 +1929,7 @@ mod tests {
             own,
             [concat!(
                 "2026-03-08\tWomen's Day\t妇女节\thalf-day\texact\t0\t\t\twomen\twomens-day\t",
-                "全国年节及纪念日放假办法, 第三条 (一): 妇女放假半天\t0"
+                "全国年节及纪念日放假办法, 第三条 (一): 妇女放假半天\t0\t\t"
             )]
         );
         assert!(women.starts_with(
@@ -2196,7 +2276,7 @@ mod tests {
         );
         assert_eq!(
             text,
-            "2026-01-01\tNew Year's Day\t元  日\tpublic\texact\t0\t\t\t\tnew-years-day\t\t0\n"
+            "2026-01-01\tNew Year's Day\t元  日\tpublic\texact\t0\t\t\t\tnew-years-day\t\t0\t\t\n"
         );
     }
 
@@ -2235,13 +2315,13 @@ mod tests {
         let hampshire = holidays_in_year("US", Some("US-NH"), None, None, 2026).unwrap_or_default();
         assert!(
             hampshire.lines().any(|line| line
-                == "\tThe subdivision's own days\t\tgap\t\t0\t\tUS-NH\t\tunread-subdivision\t\t0"),
+                == "\tThe subdivision's own days\t\tgap\t\t0\t\tUS-NH\t\tunread-subdivision\t\t0\t\t"),
             "{hampshire}"
         );
-        // Every line keeps its nine columns and ends with the identifier, the
-        // source and the bridge flag.
+        // Every line keeps its columns and ends with the identifier, the
+        // source, the bridge flag and the window of a gap.
         for line in women.lines().chain(hampshire.lines()) {
-            assert_eq!(line.split('\t').count(), 12, "{line}");
+            assert_eq!(line.split('\t').count(), 14, "{line}");
         }
         // A day's gap line carries the rule's source.
         let day = hc_holiday::rule::Scope::group("women");
@@ -2414,7 +2494,7 @@ mod tests {
         };
         let all = holidays_in_year("US", None, None, None, 2026).expect("US");
         for line in all.lines() {
-            assert_eq!(line.split('\t').count(), 12, "{line}");
+            assert_eq!(line.split('\t').count(), 14, "{line}");
         }
         assert!(all.lines().any(|line| line.contains("\tnew-years-day\t")));
         // A state with observances: the days of its own kinds go and the
@@ -2475,7 +2555,7 @@ mod tests {
         assert!(
             hampshire
                 .lines()
-                .any(|line| line.ends_with("\tunread-subdivision\t\t0")),
+                .any(|line| line.ends_with("\tunread-subdivision\t\t0\t\t")),
             "{hampshire}"
         );
         // An entry cites the instrument its rule does: the United Nations'
@@ -2595,14 +2675,14 @@ mod tests {
         assert!(
             before
                 .lines()
-                .any(|line| line.ends_with("\tunread-subdivision\t\t0")),
+                .any(|line| line.ends_with("\tunread-subdivision\t\t0\t\t")),
             "{before}"
         );
         let after = holidays_in_year("JP", Some("JP-27"), None, None, 2026).expect("JP");
         assert!(
             !after
                 .lines()
-                .any(|line| line.ends_with("\tunread-subdivision\t\t0"))
+                .any(|line| line.ends_with("\tunread-subdivision\t\t0\t\t"))
         );
     }
 
@@ -2639,27 +2719,28 @@ mod tests {
     }
 
     /// A day the table cannot answer is refused, not answered `false` or
-    /// counted: Victoria Day 2025 is a gap in Newfoundland
-    /// and Labrador, Louisiana's Mardi Gras 2025 a gap in the walk that
-    /// would cross it, and Kedah's weekend law of 2012 was not read.
+    /// counted: Canada's weekend of 2025 is read from 2026, so a day of it
+    /// is refused for that first; Egypt's holidays of 2025 follow an
+    /// announcement not read, Louisiana's Mardi Gras 2025 is a gap in the walk
+    /// that would cross it, and Kedah's weekend law of 2012 was not read.
     #[test]
     fn a_day_a_gap_leaves_open_is_refused_by_the_day_off_and_the_business_days() {
         let monday = ymd(2025, 5, 19);
         assert_eq!(
             is_day_off("CA", Some("CA-NL"), None, monday),
-            Err(Refusal::NoData)
+            Err(Refusal::OutOfRange)
         );
         // A holiday the table has is a day off whatever else is open.
         assert_eq!(
             is_day_off("CA", Some("CA-NL"), None, ymd(2025, 12, 25)),
             Ok(true)
         );
-        // The walk from Friday 16 May 2025 in Newfoundland and Labrador
-        // would count or skip Victoria Day, and so does Egypt's, whose
-        // holidays of 2025 follow an announcement not read.
+        // A walk over days whose weekend law was not read is refused, and so
+        // is one over Egypt's, whose holidays of 2025 follow an announcement
+        // not read.
         assert_eq!(
             add_business_days("CA", Some("CA-NL"), None, ymd(2025, 5, 16), 1),
-            Err(Refusal::NoData)
+            Err(Refusal::OutOfRange)
         );
         assert_eq!(
             business_days_between(
@@ -2669,10 +2750,16 @@ mod tests {
                 ymd(2025, 5, 16),
                 ymd(2025, 5, 21)
             ),
-            Err(Refusal::NoData)
+            Err(Refusal::OutOfRange)
         );
         assert_eq!(
             add_business_days("EG", None, None, ymd(2025, 3, 3), 1),
+            Err(Refusal::NoData)
+        );
+        // China's festivals are dated in the lunisolar calendar to 2150: a
+        // day of 2151 that is no fixed holiday might be one of them.
+        assert_eq!(
+            is_day_off("CN", None, None, ymd(2151, 3, 4)),
             Err(Refusal::NoData)
         );
         // A walk in the nationwide table of a year it reads whole is not.
@@ -2727,11 +2814,27 @@ mod tests {
             Err(Refusal::OutOfRange)
         );
         assert_eq!(is_weekend("MY", Some("MY-02"), ymd(2013, 11, 29)), Ok(true));
-        assert_eq!(is_weekend("MY", None, ymd(2013, 11, 24)), Ok(true));
+        // The country's own weekend is read from the same day.
+        assert_eq!(
+            is_weekend("MY", None, ymd(2013, 11, 24)),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(is_weekend("MY", None, ymd(2013, 11, 29)), Ok(false));
+        assert_eq!(is_weekend("MY", None, ymd(2013, 11, 30)), Ok(true));
         // Sharjah's government keeps Friday to Sunday from 2022.
         assert_eq!(is_weekend("AE", Some("AE-SH"), ymd(2026, 3, 6)), Ok(true));
         assert_eq!(is_weekend("AE", None, ymd(2026, 3, 6)), Ok(false));
-        // A table that states nothing keeps Saturday and Sunday.
+        // A table of a tradition states nothing and keeps Saturday and
+        // Sunday; a country's reads its weekend from a first date.
+        assert_eq!(
+            is_weekend("christian-western", None, ymd(1500, 3, 3)),
+            Ok(true)
+        );
+        assert_eq!(
+            is_weekend("JP", None, ymd(1992, 4, 25)),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(is_weekend("JP", None, ymd(1992, 5, 2)), Ok(true));
         assert_eq!(is_weekend("JP", None, ymd(2026, 3, 7)), Ok(true));
         assert_eq!(is_weekend("JP", Some("JP-13"), ymd(2026, 3, 6)), Ok(false));
         assert_eq!(is_weekend("XNYS", None, ymd(2026, 3, 8)), Ok(true));

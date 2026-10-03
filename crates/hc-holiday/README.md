@@ -353,7 +353,9 @@ year, and open from 1:00 p.m. on Ash Wednesday; and Tokyo (`XJPX`) and Hong
 Kong (`XHKG`), which close on every national or general holiday and add days
 of their own — Tokyo 2 and 3 January and 31 December, Hong Kong three half
 days — and so include their countries' tables through `includes` rather than
-copy them; London (`XLON`), which includes the United Kingdom's table for
+copy them, each from the first year of the exchange's own lists
+(`Include::read_from`), the years before it a gap, `unread-included-holidays`;
+London (`XLON`), which includes the United Kingdom's table for
 England and Wales, the region the inclusion names, and halves the last
 weekdays before Christmas and of the year; Seoul (`XKRX`), which includes
 South Korea's table and adds 1 May, a day off for employees before it was a
@@ -722,7 +724,13 @@ Sunday, a Saturday holiday in Kelantan and Terengganu to the Sunday. A
 `WeekendPolicy` with no days says that the weekend law of those years was
 not read, as Johor's to 1994 and the Friday states' before 25 November
 2013: it is the gap `UNREAD_WEEKEND`, and business-day arithmetic over such
-a day answers `None`. A
+a day answers `None`. Every national table and every exchange begins with
+such a policy, up to the first date its sources state a weekend: Japan's
+civil service has Saturday and Sunday from 1 May 1992, the United States'
+executive agencies from 6 September 1966, and most tables from 2026, the
+year the sources were read in ([national-weekends.md](../../docs/systems/national-weekends.md)).
+A table of a tradition or of a list of days states no weekend and keeps
+Saturday and Sunday as a default. A
 few tables rest on one day: Iran and Djibouti the Friday, Israel the
 Saturday, which is its only statutory day of rest, and Cuba, Cambodia,
 Timor-Leste and the Vatican the Sunday.
