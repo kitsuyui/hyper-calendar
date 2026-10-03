@@ -83,6 +83,17 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | 1 or 0 | `hc_day_has_leap_second` | `unix_seconds` −9 223 372 036 854 720 000 through 9 223 372 036 854 719 999, the whole days of the `int64_t` range; the part-days at its two ends begin or end where no `int64_t` reaches, and are `HC_ERROR_OUT_OF_RANGE` |
 | a POSIX timestamp | `hc_utc_from_tai` | every `tai_seconds`; under `strict`, as for `hc_tai_from_unix` |
 | a fixed day | `hc_fixed_from_unix_in_zone` | `unix_seconds` −315 631 497 830 400 through 315 507 195 014 399, the instants of the years −9 999 994 to 9 999 994 by UTC, which a zone's rules answer for: they are read on the Gregorian years ±9 999 999, and an instant's answer reads the years around its own, which beyond these would give standard time whatever the rules say; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_interval` | every `first_low_seconds`, `first_high_seconds`, `second_low_seconds` and `second_high_seconds` with each low bound not above its high one; a bound past 128 bits of seconds is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_unit_convert` | every `count_numerator` and `count_denominator` that is not 0 in the denominator; a count or a length past 128 bits is `HC_ERROR_OVERFLOW`, and a unit `hc_units` does not list `HC_ERROR_UNKNOWN` |
+| a line | `hc_tempo` | every `bpm_numerator` and `bpm_denominator` whose tempo is positive; any other is `HC_ERROR_OUT_OF_RANGE`, and a length past 128 bits `HC_ERROR_OVERFLOW` |
+| a line | `hc_fiscal_year_on` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERROR_OUT_OF_RANGE`; a day a system's start calendar does not reach is that system's `outside-calendar-range` line, and a country or kind not carried `HC_ERROR_UNKNOWN` |
+| a line | `hc_fiscal_year_span` | every `label`; a label whose start the calendar does not reach is the system's `outside-calendar-range` line, and a country or kind not carried `HC_ERROR_UNKNOWN` |
+| a line | `hc_week_year_on` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERROR_OUT_OF_RANGE`, and a system not listed `HC_ERROR_UNKNOWN` |
+| a line | `hc_name_days_on` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERROR_OUT_OF_RANGE`, and a country neither listed nor a gap `HC_ERROR_UNKNOWN` |
+| a line | `hc_name_day` | `year` within the Gregorian years ±9 999 999; any other is `HC_ERROR_OUT_OF_RANGE`, and a country neither listed nor a gap `HC_ERROR_UNKNOWN` |
+| a line | `hc_attributions` | `key` 1 through 12, or 1 through 7 for `weekday`; any other is `HC_ERROR_OUT_OF_RANGE`, and a subject not named `HC_ERROR_UNKNOWN` |
+| a line | `hc_attributions_on` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and a meridian not read `HC_ERROR_UNKNOWN` |
+| a line | `hc_harvest_moon` | `year` −999 through 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and a meridian not read `HC_ERROR_UNKNOWN` |
 | a line | `hc_zone_offset` | `unix_seconds` −315 631 497 830 400 through 315 507 195 014 399, the instants of `hc_fixed_from_unix_in_zone`; any other is `HC_ERROR_OUT_OF_RANGE`, and a name neither the loaded zones nor the built-in table knows `HC_ERROR_UNKNOWN` |
 | a line | `hc_zone_name`, `hc_format_pattern` | `unix_seconds` −315 631 497 830 400 through 315 507 195 014 399, the instants of `hc_zone_offset`; any other is `HC_ERROR_OUT_OF_RANGE`, and a zone or a field not known `HC_ERROR_UNKNOWN` |
 | a POSIX timestamp | `hc_unix_from_fixed_in_zone` | `fixed` −3 652 423 173 through 3 652 422 808, the days of the same years as `hc_fixed_from_unix_in_zone`'s; any other is `HC_ERROR_OUT_OF_RANGE` |
@@ -297,7 +308,7 @@ follows it (`docs/policy.md` §5). A name no table carries is
 The entry points come in layers, each a Cargo feature, the same layers as
 the WebAssembly module's: `civil` (the default), `timestamps`, `time-codes`, `calendars`, `holiday`,
 `seasons`, `deep-time`, `tz`, `sky`, `orbital`, `jupiter`, `planetary`, `relativity`, `places`,
-`humanize`, `natural`, `datetime`, `patterns`, `zone-names` and `full`.
+`humanize`, `natural`, `datetime`, `patterns`, `zone-names`, `uncertainty`, `units`, `fiscal`, `name-days`, `attributes` and `full`.
 One pair sits in a different layer: `hc_tai_from_unix` and
 `hc_utc_from_tai` are `civil` here and `timestamps` there.
 Each builds on its own —
@@ -323,7 +334,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-250 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+286 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -489,6 +500,10 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_earliest_evidence(const char *locale, char *buffer, size_t capacity, size_t *written);` | `deep-time` | Every claim to the earliest evidence of life, of *Homo sapiens* and of writing, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_archaeological_periods(const char *locale, char *buffer, size_t capacity, size_t *written);` | `deep-time` | Every conventional archaeological period, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_future_events(const char *locale, char *buffer, size_t capacity, size_t *written);` | `deep-time` | Every dated event of the far future, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_planck_units(char *buffer, size_t capacity, size_t *written);` | `deep-time` | The CODATA constants the Planck units are built from, and the Planck units, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_bp_convert(double years, double std_dev_years, const char *from, const char *to, char *buffer, size_t capacity, size_t *written);` | `deep-time` | A calendar age or year in one datum written in another, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
+| `HcStatus hc_deep_convert(double value, double std_dev, const char *from, const char *to, char *buffer, size_t capacity, size_t *written);` | `deep-time` | A magnitude of time in one unit written in another, with its uncertainty carried through, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
+| `HcStatus hc_deep_compare(double first_value, double first_std_dev, const char *first_unit, double second_value, double second_std_dev, const char *second_unit, char *buffer, size_t capacity, size_t *written);` | `deep-time` | Two magnitudes of time compared across the decades between them, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
 | `HcStatus hc_zone_load(const char *name, const uint8_t *tzif, size_t tzif_len);` | `tz` | Give the library a zone's TZif data under an IANA name. |
 | `HcStatus hc_fixed_from_unix_in_zone(int64_t unix_seconds, const char *zone, int64_t *out_fixed);` | `tz` | The fixed day a POSIX timestamp falls on by the wall clock of a zone. |
 | `HcStatus hc_unix_from_fixed_in_zone(int64_t fixed, const char *zone, int64_t *out_unix_seconds);` | `tz` | The POSIX timestamp at which a fixed day begins by the wall clock of a zone. |
@@ -523,6 +538,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_planetary_hours_of_day(int64_t fixed, double latitude, double longitude, double elevation, const char *locale, char *buffer, size_t capacity, size_t *written);` | `sky` | The twenty-four planetary hours of the planetary day that begins at the sunrise of a fixed day at a place, as NUL-terminated UTF-8 lines in `hc_planetary_hour`'s columns, each ruler named in a locale, in a caller-owned buffer. |
 | `HcStatus hc_orbit_at(double years_before_1950, char *buffer, size_t capacity, size_t *written);` | `orbital` | Earth's orbital elements and the June insolation at 65° N at an epoch, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_orbit_series(double from_years_before_1950, double to_years_before_1950, double step_years, char *buffer, size_t capacity, size_t *written);` | `orbital` | The line of `hc_orbit_at` at every epoch from `from_years_before_1950` to `to_years_before_1950` in steps of `step_years`, each with the epoch as a first column, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_daily_insolation(double years_before_present, double latitude_degrees, double solar_longitude_degrees, char *buffer, size_t capacity, size_t *written);` | `orbital` | The daily mean insolation at any latitude and solar longitude, for the orbit of an epoch, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
 | `HcStatus hc_jupiter_at(int64_t unix_seconds, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `jupiter` | Where Jupiter is at a POSIX timestamp, tropical and sidereal, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_jupiter_ingresses(int64_t from_unix_seconds, int64_t to_unix_seconds, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `jupiter` | Jupiter's crossings of the boundaries of the sidereal signs in a span of POSIX seconds, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_jupiter_risings(int64_t from_unix_seconds, int64_t to_unix_seconds, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `jupiter` | Jupiter's heliacal risings in a span of POSIX seconds, each with the name a year of Jupiter has from it, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
@@ -541,6 +557,13 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_proper_time(double speed_metres_per_second, double coordinate_seconds, char *buffer, size_t capacity, size_t *written);` | `relativity` | A clock moving at a constant speed while some coordinate time passes, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_gravitational_dilation(const char *body, double radius_metres, char *buffer, size_t capacity, size_t *written);` | `relativity` | A clock held still at a radius from a body's centre, against one far from every mass, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_gravitating_bodies(char *buffer, size_t capacity, size_t *written);` | `relativity` | Every body `hc-relativity` carries a gravitational parameter for, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_orbit_rate_offset(const char *body, double orbit_radius_metres, double ground_radius_metres, char *buffer, size_t capacity, size_t *written);` | `relativity` | A clock on a circular orbit against one held still on the ground, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
+| `HcStatus hc_rocket(double proper_acceleration, double proper_seconds, char *buffer, size_t capacity, size_t *written);` | `relativity` | A rocket of constant proper acceleration burning from rest, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
+| `HcStatus hc_flip_and_burn(double proper_acceleration, double distance_metres, char *buffer, size_t capacity, size_t *written);` | `relativity` | A flip-and-burn voyage between two points at rest, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
+| `HcStatus hc_doppler(double beta, double cos_theta, char *buffer, size_t capacity, size_t *written);` | `relativity` | The relativistic Doppler shift of a source moving at β, seen at an angle, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
+| `HcStatus hc_velocity_add(double first_beta, double second_beta, char *buffer, size_t capacity, size_t *written);` | `relativity` | The composition of two collinear velocities, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
+| `HcStatus hc_schwarzschild_radius(const char *body, char *buffer, size_t capacity, size_t *written);` | `relativity` | The Schwarzschild radius of a body, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
+| `HcStatus hc_proper_time_uncertain(double speed_metres_per_second, double speed_std_dev, double coordinate_seconds, char *buffer, size_t capacity, size_t *written);` | `relativity` | A clock moving at a constant speed that is not exactly known, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
 | `HcStatus hc_territories(const char *locale, char *buffer, size_t capacity, size_t *written);` | `places` | Every territory CLDR 48 names, with its name in a locale, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_subdivisions(const char *country, const char *locale, char *buffer, size_t capacity, size_t *written);` | `places` | The ISO 3166-2 subdivisions of a country CLDR 48 names, with their names in a locale, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_place_name(const char *code, const char *locale, char *buffer, size_t capacity, size_t *written);` | `places` | One territory or subdivision, as the NUL-terminated UTF-8 line `hc_territories` or `hc_subdivisions` writes for it, in a caller-owned buffer. |
@@ -577,6 +600,30 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_parse_pattern_in(const char *syntax, const char *pattern, const char *text, const char *locale, char *buffer, size_t capacity, size_t *written);` | `patterns` | A text read against a `strptime` or CLDR pattern in the names of a locale, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_zone_name(const char *zone, int64_t unix_seconds, const char *locale, const char *field, char *buffer, size_t capacity, size_t *written);` | `zone-names` | A time zone's name at a POSIX timestamp in a locale, as a CLDR pattern field writes it, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_format_pattern(const char *zone, int64_t unix_seconds, const char *locale, const char *syntax, const char *pattern, char *buffer, size_t capacity, size_t *written);` | `zone-names` | An instant formatted in a time zone and a locale by a CLDR or a `strftime` pattern, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_edtf_parse(const char *text, char *buffer, size_t capacity, size_t *written);` | `uncertainty` | An ISO 8601-2 value placed on the timeline, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_edtf_relations(const char *first, const char *second, char *buffer, size_t capacity, size_t *written);` | `uncertainty` | What can hold between two EDTF values placed on the timeline, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
+| `HcStatus hc_significant(double value, uint32_t figures, char *buffer, size_t capacity, size_t *written);` | `uncertainty` | A number with a count of significant figures, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
+| `HcStatus hc_significant_op(const char *operation, double first, uint32_t first_figures, double second, uint32_t second_figures, char *buffer, size_t capacity, size_t *written);` | `uncertainty` | Arithmetic on two numbers with figure counts, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
+| `HcStatus hc_uncertain(double value, double std_dev, char *buffer, size_t capacity, size_t *written);` | `uncertainty` | A Gaussian quantity, `value ± σ`, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
+| `HcStatus hc_uncertain_op(const char *operation, double first, double first_std_dev, double second, double second_std_dev, char *buffer, size_t capacity, size_t *written);` | `uncertainty` | Arithmetic on Gaussian quantities, with the errors propagated to first order, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
+| `HcStatus hc_interval(const char *operation, int64_t first_low_seconds, int64_t first_high_seconds, int64_t second_low_seconds, int64_t second_high_seconds, char *buffer, size_t capacity, size_t *written);` | `uncertainty` | Arithmetic on intervals of time, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
+| `HcStatus hc_units(char *buffer, size_t capacity, size_t *written);` | `units` | Every unit of time with an exactly defined length, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_unit_convert(int64_t count_numerator, int64_t count_denominator, const char *from, const char *to, char *buffer, size_t capacity, size_t *written);` | `units` | A count of one unit of time written in another, exactly, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
+| `HcStatus hc_rates(char *buffer, size_t capacity, size_t *written);` | `units` | Every frame rate and sample rate the crate carries as an exact period, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_frame_period(const char *rate, const char *in_unit, char *buffer, size_t capacity, size_t *written);` | `units` | The length of one frame or one sample, exactly, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
+| `HcStatus hc_tempo(int64_t bpm_numerator, int64_t bpm_denominator, uint32_t note_halvings, uint32_t dots, uint32_t tuplet_space, uint32_t tuplet_count, uint32_t beat_halvings, char *buffer, size_t capacity, size_t *written);` | `units` | A note at a tempo, exactly, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
+| `HcStatus hc_fiscal_profiles(char *buffer, size_t capacity, size_t *written);` | `fiscal` | Every fiscal, tax and academic year system the crate carries, country by country, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_fiscal_year_on(const char *country, const char *kind, int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `fiscal` | What the year systems of a country say a fixed day is, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_fiscal_year_span(const char *country, const char *kind, int64_t label, char *buffer, size_t capacity, size_t *written);` | `fiscal` | The span of the year a label names in each year system of a country, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_week_year_systems(char *buffer, size_t capacity, size_t *written);` | `fiscal` | Every named year of whole weeks, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_week_year_on(const char *system, int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `fiscal` | Where a fixed day is in a year of whole weeks, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
+| `HcStatus hc_name_day_lists(char *buffer, size_t capacity, size_t *written);` | `name-days` | Every name-day list the crate ships and every country it declines to ship one for, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_name_days_on(const char *country, int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `name-days` | What the lists of a country name on a day, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_name_day(const char *country, const char *given_name, int64_t year, char *buffer, size_t capacity, size_t *written);` | `name-days` | The days of a year on which the lists of a country give a name, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_attribution_authorities(const char *subject, char *buffer, size_t capacity, size_t *written);` | `attributes` | Every attribution list the crate ships, with what it declines to ship, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_attributions(const char *subject, int64_t key, char *buffer, size_t capacity, size_t *written);` | `attributes` | What every list of a subject attributes to one key, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_attributions_on(int64_t fixed, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `attributes` | What every list attributes to the month, the weekday and the sign of a day, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_harvest_moon(int64_t year, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `attributes` | The Harvest Moon of a year, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
 
 ### Status codes
 
@@ -1611,8 +1658,8 @@ that README's "What is not here" gives: `hc-planetary`'s circad and
 Martiana calendars in the registry, whose day number is a circad or a sol
 and not an Earth day, though `hc_circad_date` dates an instant in them;
 most of `hc-humanize`'s `natural` module (the WebAssembly module's README
-lists what is exported), `hc-fiscal`, `hc-name-days`, `hc-attributes` and
-`hc-units`, for which no line format has been designed, and of
+lists what is exported), the loader of `hc-name-days` for a list a caller
+has licensed, and of
 `hc-almanac` 七曜, which is the weekday, and the English glosses of its
 annotations; a
 whole UUID with its clock sequence and node, where

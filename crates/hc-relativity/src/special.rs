@@ -41,6 +41,18 @@ pub fn check_beta(beta: f64) -> RelativityResult<f64> {
     Ok(beta)
 }
 
+/// `1 − β²` as `(1 − |β|)(1 + |β|)`.
+///
+/// For `|β|` from 1/2 up, `1 − |β|` is exact (Sterbenz), so the product has
+/// the rounding of one multiplication; `1 − β·β` rounds `β²` first and has
+/// lost the digits of the difference before it is taken: at β = 0.999 the
+/// factor `γ` is wrong in its 14th figure that way, and at β = 1 − 10⁻⁹ in
+/// its 8th.
+pub(crate) fn one_minus_beta_squared(beta: f64) -> f64 {
+    let magnitude = math::abs(beta);
+    (1.0 - magnitude) * (1.0 + magnitude)
+}
+
 /// The Lorentz factor `γ = 1/√(1 − β²)`.
 ///
 /// ```
@@ -55,7 +67,7 @@ pub fn check_beta(beta: f64) -> RelativityResult<f64> {
 /// See [`check_beta`].
 pub fn lorentz_factor(beta: f64) -> RelativityResult<f64> {
     let beta = check_beta(beta)?;
-    Ok(1.0 / math::sqrt(1.0 - beta * beta))
+    Ok(1.0 / math::sqrt(one_minus_beta_squared(beta)))
 }
 
 /// The Lorentz factor from a speed in metres per second.
@@ -135,6 +147,48 @@ pub fn add_velocities(first: f64, second: f64) -> RelativityResult<f64> {
     check_beta((first + second) / denominator)
 }
 
+/// `1 − β` of the composition of two collinear velocities, without the
+/// cancellation of subtracting the composed `β` from 1.
+///
+/// Near the speed of light the composed `β` has no digits left to say how
+/// near: two ships at 0.999 each compose to 0.999 999 5, and `1 − β` of that
+/// is `5·10⁻⁷` with eight figures lost. The identity
+/// `1 − (β₁ + β₂)/(1 + β₁β₂) = (1 − β₁)(1 − β₂)/(1 + β₁β₂)` has no
+/// subtraction in its right-hand side but the two the arguments carry
+/// already.
+///
+/// # Errors
+///
+/// See [`add_velocities`].
+pub fn add_velocities_complement(first: f64, second: f64) -> RelativityResult<f64> {
+    let first = check_beta(first)?;
+    let second = check_beta(second)?;
+    let denominator = 1.0 + first * second;
+    if denominator == 0.0 {
+        return Err(RelativityError::NotFinite);
+    }
+    finite((1.0 - first) * (1.0 - second) / denominator)
+}
+
+/// The Lorentz factor of the composition of two collinear velocities,
+/// `γ₁ γ₂ (1 + β₁β₂)`.
+///
+/// Computed from the two factors rather than from the composed `β`, which
+/// near the speed of light has too few digits left to give a factor.
+///
+/// # Errors
+///
+/// See [`add_velocities`].
+pub fn composed_lorentz_factor(first: f64, second: f64) -> RelativityResult<f64> {
+    let first_beta = check_beta(first)?;
+    let second_beta = check_beta(second)?;
+    let denominator = 1.0 + first_beta * second_beta;
+    if denominator == 0.0 {
+        return Err(RelativityError::NotFinite);
+    }
+    finite(lorentz_factor(first_beta)? * lorentz_factor(second_beta)? * denominator)
+}
+
 /// The proper time a clock records while coordinate time `coordinate_time`
 /// passes, moving at `β`.
 ///
@@ -149,7 +203,7 @@ pub fn proper_time_of(
     beta: f64,
 ) -> RelativityResult<hc_core::Duration> {
     let beta = check_beta(beta)?;
-    Ok(coordinate_time.scale_f64(math::sqrt(1.0 - beta * beta))?)
+    Ok(coordinate_time.scale_f64(math::sqrt(one_minus_beta_squared(beta)))?)
 }
 
 /// The coordinate time that passes while a clock moving at `β` records
@@ -250,6 +304,16 @@ mod tests {
         // 1/sqrt(1 - 0.36) = 1/0.8 = 1.25, the canonical textbook anchor.
         assert!((lorentz_factor(0.6).unwrap() - 1.25).abs() < 1e-15);
         assert!((lorentz_factor(-0.6).unwrap() - 1.25).abs() < 1e-15);
+    }
+
+    #[test]
+    fn the_lorentz_factor_near_light_speed_keeps_its_figures() {
+        // 50-digit decimal arithmetic (Python's `decimal`) on the doubles
+        // themselves: gamma(0.999) is 22.366_272_042_129_218 and
+        // gamma(1 - 1e-9) is 22_360.680_096_789_68.
+        assert!((lorentz_factor(0.999).unwrap() / 22.366_272_042_129_21 - 1.0).abs() < 1e-15);
+        let near = lorentz_factor(1.0 - 1e-9).unwrap();
+        assert!((near / 22_360.680_096_789_68 - 1.0).abs() < 1e-15, "{near}");
     }
 
     #[test]
@@ -373,6 +437,39 @@ mod tests {
         let composed = add_velocities(0.999_999, 0.999_999).unwrap();
         assert!(composed < 1.0, "got {composed}");
         assert!(composed > 0.999_999);
+    }
+
+    #[test]
+    fn the_complement_and_the_factor_of_a_composition_keep_their_figures() {
+        // 50-digit decimal arithmetic (Python's `decimal`): two ships at
+        // 0.999 compose to 1 - 5.0050024999987487...e-7, with a Lorentz
+        // factor 999.50025012506253...; 0.6 and 0.8 compose to 35/37 exactly,
+        // whose complement is 2/37.
+        let complement = add_velocities_complement(0.999, 0.999).unwrap();
+        assert!(
+            (complement / 5.005_002_499_998_749e-7 - 1.0).abs() < 1e-14,
+            "{complement:e}"
+        );
+        let gamma = composed_lorentz_factor(0.999, 0.999).unwrap();
+        assert!(
+            (gamma / 999.500_250_125_062_5 - 1.0).abs() < 1e-14,
+            "{gamma}"
+        );
+        assert!((add_velocities_complement(0.6, 0.8).unwrap() - 2.0 / 37.0).abs() < 1e-16);
+        assert!(
+            (composed_lorentz_factor(0.6, 0.8).unwrap()
+                - 1.0 / (1.0 - (35.0f64 / 37.0).powi(2)).sqrt())
+            .abs()
+                < 1e-12
+        );
+        assert_eq!(
+            add_velocities_complement(1.0, 0.5),
+            Err(RelativityError::FasterThanLight)
+        );
+        assert_eq!(
+            composed_lorentz_factor(0.5, -1.0),
+            Err(RelativityError::FasterThanLight)
+        );
     }
 
     #[test]

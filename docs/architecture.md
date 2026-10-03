@@ -163,7 +163,9 @@ The two *boundary crates*, `hyper-calendar-wasm` and `hyper-calendar-ffi`,
 marshal those answers across a WebAssembly or C interface. They expose the
 same *layers*, each a Cargo feature: `civil` (the default), `timestamps`,
 `time-codes`, `calendars`, `holiday`, `seasons`, `deep-time`, `tz`, `sky`,
-`orbital`, `jupiter`, `planetary`, `relativity`, `places`, `humanize`, `natural`, `datetime`, `patterns`, `zone-names` and `full`. A page or a host program
+`orbital`, `jupiter`, `planetary`, `relativity`, `places`, `humanize`, `natural`, `datetime`, `patterns`, `zone-names`,
+`uncertainty`, `units`, `fiscal`, `name-days`
+and `attributes`, and `full`. A page or a host program
 builds only the layers it loads. Each layer is a module of each crate,
 which expands that layer's rows of the facade's `exports!` table with the
 crate's own marshalling (`marshal.rs`), and writes out by hand only the

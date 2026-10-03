@@ -36,7 +36,12 @@ fn querying_the_version_works_in_both_passes() {
     feature = "natural",
     feature = "datetime",
     feature = "patterns",
-    feature = "zone-names"
+    feature = "zone-names",
+    feature = "uncertainty",
+    feature = "units",
+    feature = "fiscal",
+    feature = "name-days",
+    feature = "attributes"
 ))]
 fn read_lines(call: impl Fn(*mut c_char, usize, *mut usize) -> HcStatus) -> String {
     let mut written = 0usize;
@@ -154,6 +159,21 @@ mod patterns;
 
 #[cfg(feature = "zone-names")]
 mod zone_names;
+
+#[cfg(feature = "uncertainty")]
+mod uncertainty;
+
+#[cfg(feature = "units")]
+mod units;
+
+#[cfg(feature = "fiscal")]
+mod fiscal;
+
+#[cfg(feature = "name-days")]
+mod name_days;
+
+#[cfg(feature = "attributes")]
+mod attributes;
 
 #[cfg(feature = "time-codes")]
 mod time_codes;

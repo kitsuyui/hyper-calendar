@@ -86,6 +86,8 @@ pub use hc_calendar::{
 pub mod almanac_lines;
 #[cfg(all(feature = "alloc", feature = "astro"))]
 pub mod astro_lines;
+#[cfg(all(feature = "alloc", feature = "attributes"))]
+pub mod attribution_lines;
 #[cfg(feature = "alloc")]
 pub mod boundary;
 #[cfg(all(feature = "alloc", feature = "regional"))]
@@ -99,6 +101,8 @@ pub mod datetime_lines;
 #[cfg(all(feature = "alloc", feature = "deep-time"))]
 pub mod deep_time_lines;
 mod exports;
+#[cfg(all(feature = "alloc", feature = "fiscal"))]
+pub mod fiscal_lines;
 #[cfg(all(
     feature = "alloc",
     feature = "indic",
@@ -129,6 +133,8 @@ pub mod jupiter_lines;
     feature = "format"
 ))]
 pub mod lines;
+#[cfg(all(feature = "alloc", feature = "name-days"))]
+pub mod name_day_lines;
 #[cfg(all(feature = "alloc", feature = "orbital"))]
 pub mod orbital_lines;
 #[cfg(all(feature = "alloc", feature = "indic"))]
@@ -156,6 +162,10 @@ pub mod tibetan_lines;
 pub mod time_code_lines;
 #[cfg(all(feature = "alloc", feature = "civil"))]
 pub mod time_lines;
+#[cfg(all(feature = "alloc", feature = "uncertainty", feature = "civil"))]
+pub mod uncertainty_lines;
+#[cfg(all(feature = "alloc", feature = "units"))]
+pub mod units_lines;
 #[cfg(all(feature = "alloc", feature = "tz"))]
 pub mod zone_lines;
 

@@ -1,6 +1,10 @@
 use super::super::*;
 use super::read_lines;
 
+fn row(text: &str) -> Vec<String> {
+    text.trim_end().split('\t').map(str::to_owned).collect()
+}
+
 fn cells(text: &str) -> Vec<Vec<&str>> {
     let rows: Vec<Vec<&str>> = text
         .lines()
@@ -261,6 +265,189 @@ fn the_geologic_ranks_are_numbered_coarsest_first() {
     assert_eq!(cells(&eons)[0][15], "显生宇");
     assert_eq!(
         unsafe { hc_geologic_intervals(5, core::ptr::null(), 0, core::ptr::null_mut(), 0) },
+        HC_ERR_UNKNOWN
+    );
+}
+
+#[test]
+fn hc_planck_units_crosses_the_boundary() {
+    let text = read_lines(|buffer, capacity| unsafe { hc_planck_units(buffer, capacity) });
+    assert!(!text.is_empty());
+    assert!(
+        text.lines().all(|line| line.split('\t').count() == 10),
+        "{text}"
+    );
+    let first = row(text.lines().next().unwrap_or_default());
+    assert_eq!(first[0], "c");
+}
+
+#[test]
+fn hc_bp_convert_crosses_the_boundary() {
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_bp_convert(
+            11650.0,
+            5.0,
+            "bp".as_ptr(),
+            "bp".len(),
+            "b2k".as_ptr(),
+            "b2k".len(),
+            buffer,
+            capacity,
+        )
+    });
+    assert!(!text.is_empty());
+    assert!(
+        text.lines().all(|line| line.split('\t').count() == 8),
+        "{text}"
+    );
+    let first = row(text.lines().next().unwrap_or_default());
+    assert_eq!(first[0], "bp");
+    assert_eq!(first[1], "b2k");
+    assert_eq!(first[4], "11700");
+    assert_eq!(first[6], "11700 b2k");
+    assert_eq!(
+        unsafe {
+            hc_bp_convert(
+                3200.0,
+                50.0,
+                "radiocarbon-bp".as_ptr(),
+                "radiocarbon-bp".len(),
+                "bp".as_ptr(),
+                "bp".len(),
+                core::ptr::null_mut(),
+                0,
+            )
+        },
+        HC_ERR_NO_DATA
+    );
+    assert_eq!(
+        unsafe {
+            hc_bp_convert(
+                1.0,
+                0.0,
+                "bp".as_ptr(),
+                "bp".len(),
+                "ad".as_ptr(),
+                "ad".len(),
+                core::ptr::null_mut(),
+                0,
+            )
+        },
+        HC_ERR_UNKNOWN
+    );
+}
+
+#[test]
+fn hc_deep_convert_crosses_the_boundary() {
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_deep_convert(
+            13.787,
+            0.02,
+            "gigayear".as_ptr(),
+            "gigayear".len(),
+            "second".as_ptr(),
+            "second".len(),
+            buffer,
+            capacity,
+        )
+    });
+    assert!(!text.is_empty());
+    assert!(
+        text.lines().all(|line| line.split('\t').count() == 13),
+        "{text}"
+    );
+    let first = row(text.lines().next().unwrap_or_default());
+    assert_eq!(first[0], "gigayear");
+    assert_eq!(first[1], "second");
+    assert_eq!(first[11], "1");
+    assert_eq!(
+        unsafe {
+            hc_deep_convert(
+                1.0,
+                0.0,
+                "gigayear".as_ptr(),
+                "gigayear".len(),
+                "furlong".as_ptr(),
+                "furlong".len(),
+                core::ptr::null_mut(),
+                0,
+            )
+        },
+        HC_ERR_UNKNOWN
+    );
+    assert_eq!(
+        unsafe {
+            hc_deep_convert(
+                1.0,
+                -1.0,
+                "gigayear".as_ptr(),
+                "gigayear".len(),
+                "second".as_ptr(),
+                "second".len(),
+                core::ptr::null_mut(),
+                0,
+            )
+        },
+        HC_ERR_OUT_OF_RANGE
+    );
+}
+
+#[test]
+fn hc_deep_compare_crosses_the_boundary() {
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_deep_compare(
+            13.787,
+            0.02,
+            "gigayear".as_ptr(),
+            "gigayear".len(),
+            1.0,
+            0.0,
+            "planck-time".as_ptr(),
+            "planck-time".len(),
+            buffer,
+            capacity,
+        )
+    });
+    assert!(!text.is_empty());
+    assert!(
+        text.lines().all(|line| line.split('\t').count() == 12),
+        "{text}"
+    );
+    let first = row(text.lines().next().unwrap_or_default());
+    assert_eq!(first[9], "0");
+    assert_eq!(first[10], "1");
+    assert_eq!(
+        unsafe {
+            hc_deep_compare(
+                0.0,
+                0.0,
+                "day".as_ptr(),
+                "day".len(),
+                1.0,
+                0.0,
+                "day".as_ptr(),
+                "day".len(),
+                core::ptr::null_mut(),
+                0,
+            )
+        },
+        HC_ERR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe {
+            hc_deep_compare(
+                1.0,
+                0.0,
+                "day".as_ptr(),
+                "day".len(),
+                1.0,
+                0.0,
+                "fortnight".as_ptr(),
+                "fortnight".len(),
+                core::ptr::null_mut(),
+                0,
+            )
+        },
         HC_ERR_UNKNOWN
     );
 }

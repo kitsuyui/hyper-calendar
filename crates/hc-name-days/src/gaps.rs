@@ -57,6 +57,19 @@ pub enum GapReason {
 }
 
 impl GapReason {
+    /// A stable identifier, lower-case and hyphenated, which a boundary
+    /// writes the reason as.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::LicensedForAFee => "licensed-for-a-fee",
+            Self::LicenceUnknown => "licence-unknown",
+            Self::SourcesDisagreeWithNoAuthority => "sources-disagree-with-no-authority",
+            Self::MethodUnpublished => "method-unpublished",
+            Self::SaintsNotNames => "saints-not-names",
+        }
+    }
+
     /// A one-line description.
     #[must_use]
     pub const fn english_description(self) -> &'static str {
@@ -391,5 +404,27 @@ mod tests {
                 assert_ne!(gap.id, list.country, "{} is both a gap and a list", gap.id);
             }
         }
+    }
+
+    #[test]
+    fn every_reason_has_a_distinct_kebab_identifier() {
+        let reasons = [
+            GapReason::LicensedForAFee,
+            GapReason::LicenceUnknown,
+            GapReason::SourcesDisagreeWithNoAuthority,
+            GapReason::MethodUnpublished,
+            GapReason::SaintsNotNames,
+        ];
+        for (index, reason) in reasons.iter().enumerate() {
+            let id = reason.id();
+            assert!(
+                id.bytes().all(|b| b.is_ascii_lowercase() || b == b'-'),
+                "{id}"
+            );
+            for other in &reasons[index + 1..] {
+                assert_ne!(id, other.id());
+            }
+        }
+        assert_eq!(GapReason::LicensedForAFee.id(), "licensed-for-a-fee");
     }
 }

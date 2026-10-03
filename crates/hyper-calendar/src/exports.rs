@@ -5299,6 +5299,186 @@ macro_rules! exports {
         }
         fn hc_future_events(locale: text(locale_len)) -> line =
             |locale| Ok($crate::deep_time_lines::future_events(locale));
+
+        c {
+            /// The CODATA constants the Planck units are built from, and the Planck units, as
+            /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+            ///
+            /// One line each for the speed of light, the reduced Planck constant, the Newtonian
+            /// constant of gravitation and the Planck time, length, mass, energy and temperature,
+            /// from the 2022 CODATA adjustment. `c` and ℏ are defined exactly and have a standard
+            /// uncertainty of 0; `G` is the one measured constant, and every Planck unit inherits
+            /// its 2.2·10⁻⁵, halved or thirded by the root.
+            ///
+            /// One line each, the cells tab-separated: symbol, name, unit, value, std dev, figures,
+            /// relative uncertainty, defined, text, source.
+            ///
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// The CODATA constants the Planck units are built from, and the Planck units, as UTF-8
+            /// lines, returning the byte length written.
+            ///
+            /// One line each for the speed of light, the reduced Planck constant, the Newtonian
+            /// constant of gravitation and the Planck time, length, mass, energy and temperature,
+            /// from the 2022 CODATA adjustment. `c` and ℏ are defined exactly and have a standard
+            /// uncertainty of 0; `G` is the one measured constant, and every Planck unit inherits
+            /// its 2.2·10⁻⁵, halved or thirded by the root.
+            ///
+            /// One line each, the cells tab-separated: symbol, name, unit, value, std dev, figures,
+            /// relative uncertainty, defined, text, source.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_planck_units() -> line =
+            || Ok($crate::deep_time_lines::planck_units_lines());
+
+        c {
+            /// A calendar age or year in one datum written in another, as NUL-terminated UTF-8 one
+            /// line in a caller-owned buffer.
+            ///
+            /// The datums are `bp` (calendar years before 1950 CE), `b2k` (before 2000 CE, the
+            /// ice-core scale) and `ce` (a calendar year in astronomical numbering, where year 0 is
+            /// 1 BCE and −9700 is 9701 BCE). Moving between them adds or subtracts a whole number
+            /// of years, so the standard deviation is unchanged. The Holocene's base is 11 700 b2k
+            /// and 11 650 BP. A conventional radiocarbon age, `radiocarbon-bp`, is not a count of
+            /// calendar years and needs a calibration curve (IntCal20 and its companions) that the
+            /// crate does not carry: it is `HC_ERROR_NO_DATA`, on either side. A datum that is not
+            /// one of these is `HC_ERROR_UNKNOWN`, and a number or standard deviation that is not
+            /// finite, or a negative standard deviation, is `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// `from` is the datum of `years`: `bp`, `b2k`, `ce` or `radiocarbon-bp`. `to` is the
+            /// datum to write it in.
+            ///
+            /// Tab-separated: from, to, years, std dev, converted, converted std dev, label,
+            /// source.
+            ///
+            /// A null name is `HC_ERROR_NULL_POINTER`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// A calendar age or year in one datum written in another, as one UTF-8 line, returning
+            /// the byte length written.
+            ///
+            /// The datums are `bp` (calendar years before 1950 CE), `b2k` (before 2000 CE, the
+            /// ice-core scale) and `ce` (a calendar year in astronomical numbering, where year 0 is
+            /// 1 BCE and −9700 is 9701 BCE). Moving between them adds or subtracts a whole number
+            /// of years, so the standard deviation is unchanged. The Holocene's base is 11 700 b2k
+            /// and 11 650 BP. A conventional radiocarbon age, `radiocarbon-bp`, is not a count of
+            /// calendar years and needs a calibration curve (IntCal20 and its companions) that the
+            /// crate does not carry: it is `HC_ERR_NO_DATA`, on either side. A datum that is not
+            /// one of these is `HC_ERR_UNKNOWN`, and a number or standard deviation that is not
+            /// finite, or a negative standard deviation, is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `from` is the datum of `years`: `bp`, `b2k`, `ce` or `radiocarbon-bp`. `to` is the
+            /// datum to write it in.
+            ///
+            /// Tab-separated: from, to, years, std dev, converted, converted std dev, label,
+            /// source.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_bp_convert(
+            years: f64,
+            std_dev_years: f64,
+            from: name(from_len),
+            to: name(to_len),
+        ) -> line =
+            $crate::deep_time_lines::bp_convert_line;
+
+        c {
+            /// A magnitude of time in one unit written in another, with its uncertainty carried
+            /// through, as NUL-terminated UTF-8 one line in a caller-owned buffer.
+            ///
+            /// The units are `planck-time`, `yoctosecond`, `zeptosecond`, `attosecond`,
+            /// `femtosecond`, `picosecond`, `nanosecond`, `microsecond`, `millisecond`, `second`,
+            /// `minute`, `hour`, `day`, `julian-year`, `kiloyear`, `megayear` and `gigayear`, in
+            /// any ASCII case. Every one but the Planck time is a defined multiple of the second
+            /// and rescales the standard deviation exactly; the Planck time is CODATA's measurement
+            /// and brings its 1.1·10⁻⁵ into the answer, so a round trip through it returns the same
+            /// number with a wider bar. A unit that is not one of these is `HC_ERROR_UNKNOWN`; a
+            /// number or standard deviation that is not finite, a negative standard deviation, or a
+            /// result that leaves the range of a double is `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// `from` is the unit of `value`. `to` is the unit to write it in.
+            ///
+            /// Tab-separated: from, to, value, std dev, converted, converted std dev, text,
+            /// seconds, seconds std dev, log10 seconds, log10 std dev, exact, source.
+            ///
+            /// A null name is `HC_ERROR_NULL_POINTER`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// A magnitude of time in one unit written in another, with its uncertainty carried
+            /// through, as one UTF-8 line, returning the byte length written.
+            ///
+            /// The units are `planck-time`, `yoctosecond`, `zeptosecond`, `attosecond`,
+            /// `femtosecond`, `picosecond`, `nanosecond`, `microsecond`, `millisecond`, `second`,
+            /// `minute`, `hour`, `day`, `julian-year`, `kiloyear`, `megayear` and `gigayear`, in
+            /// any ASCII case. Every one but the Planck time is a defined multiple of the second
+            /// and rescales the standard deviation exactly; the Planck time is CODATA's measurement
+            /// and brings its 1.1·10⁻⁵ into the answer, so a round trip through it returns the same
+            /// number with a wider bar. A unit that is not one of these is `HC_ERR_UNKNOWN`; a
+            /// number or standard deviation that is not finite, a negative standard deviation, or a
+            /// result that leaves the range of a double is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `from` is the unit of `value`. `to` is the unit to write it in.
+            ///
+            /// Tab-separated: from, to, value, std dev, converted, converted std dev, text,
+            /// seconds, seconds std dev, log10 seconds, log10 std dev, exact, source.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_deep_convert(
+            value: f64,
+            std_dev: f64,
+            from: name(from_len),
+            to: name(to_len),
+        ) -> line =
+            $crate::deep_time_lines::deep_convert_line;
+
+        c {
+            /// Two magnitudes of time compared across the decades between them, as NUL-terminated
+            /// UTF-8 one line in a caller-owned buffer.
+            ///
+            /// The units are those of `hc_deep_convert`. The two are treated as independent, so
+            /// comparing a magnitude with itself reports a non-zero deviation around a ratio of 1.
+            /// A unit that is not one of those is `HC_ERROR_UNKNOWN`; a number or standard
+            /// deviation that is not finite, a negative standard deviation, a span of no length or
+            /// a negative one (there is no logarithm of it), or a ratio that leaves the range of a
+            /// double is `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// Tab-separated: first seconds, first std dev, second seconds, second std dev, ratio,
+            /// ratio std dev, log10 ratio, log10 std dev, decades, overlap, order, source.
+            ///
+            /// A null name is `HC_ERROR_NULL_POINTER`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// Two magnitudes of time compared across the decades between them, as one UTF-8 line,
+            /// returning the byte length written.
+            ///
+            /// The units are those of `hc_deep_convert`. The two are treated as independent, so
+            /// comparing a magnitude with itself reports a non-zero deviation around a ratio of 1.
+            /// A unit that is not one of those is `HC_ERR_UNKNOWN`; a number or standard deviation
+            /// that is not finite, a negative standard deviation, a span of no length or a negative
+            /// one (there is no logarithm of it), or a ratio that leaves the range of a double is
+            /// `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// Tab-separated: first seconds, first std dev, second seconds, second std dev, ratio,
+            /// ratio std dev, log10 ratio, log10 std dev, decades, overlap, order, source.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_deep_compare(
+            first_value: f64,
+            first_std_dev: f64,
+            first_unit: name(first_unit_len),
+            second_value: f64,
+            second_std_dev: f64,
+            second_unit: name(second_unit_len),
+        ) -> line =
+            $crate::deep_time_lines::deep_compare_line;
     } };
     ("tz", $backend:ident) => { $backend! {
         c {
@@ -6382,6 +6562,53 @@ macro_rules! exports {
             step_years: f64,
         ) -> line =
             $crate::orbital_lines::series_lines;
+
+        c {
+            /// The daily mean insolation at any latitude and solar longitude, for the orbit of an
+            /// epoch, as NUL-terminated UTF-8 one line in a caller-owned buffer.
+            ///
+            /// The Sun's true longitude is 0 at the March equinox, 90 at the June solstice, 180 at
+            /// the September equinox and 270 at the December solstice. It is not a date: Berger's
+            /// program turns a date into a longitude with a 365-day year, which differs from a
+            /// calendar's by up to a day, and the honest input is the longitude. `hc_orbit_at` is
+            /// the case of 65° N at 90°. The insolation is 0 in the polar night. An epoch the crate
+            /// refuses (not finite, or beyond a million years either side of 1950), a latitude that
+            /// is not finite or is beyond ±90°, or a longitude that is not finite or is outside 0
+            /// to 360, is `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// `years_before_present` is years before 1950, negative for the future.
+            ///
+            /// Tab-separated: years before 1950, latitude, solar longitude, insolation, solar
+            /// constant, source.
+            ///
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// The daily mean insolation at any latitude and solar longitude, for the orbit of an
+            /// epoch, as one UTF-8 line, returning the byte length written.
+            ///
+            /// The Sun's true longitude is 0 at the March equinox, 90 at the June solstice, 180 at
+            /// the September equinox and 270 at the December solstice. It is not a date: Berger's
+            /// program turns a date into a longitude with a 365-day year, which differs from a
+            /// calendar's by up to a day, and the honest input is the longitude. `hc_orbit_at` is
+            /// the case of 65° N at 90°. The insolation is 0 in the polar night. An epoch the crate
+            /// refuses (not finite, or beyond a million years either side of 1950), a latitude that
+            /// is not finite or is beyond ±90°, or a longitude that is not finite or is outside 0
+            /// to 360, is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `years_before_present` is years before 1950, negative for the future.
+            ///
+            /// Tab-separated: years before 1950, latitude, solar longitude, insolation, solar
+            /// constant, source.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_daily_insolation(
+            years_before_present: f64,
+            latitude_degrees: f64,
+            solar_longitude_degrees: f64,
+        ) -> line =
+            $crate::orbital_lines::insolation_line;
     } };
     ("jupiter", $backend:ident) => { $backend! {
         c {
@@ -7054,6 +7281,1319 @@ macro_rules! exports {
         }
         fn hc_gravitating_bodies() -> line =
             || Ok($crate::relativity_lines::gravitating_bodies_lines());
+
+        c {
+            /// A clock on a circular orbit against one held still on the ground, as NUL-terminated
+            /// UTF-8 one line in a caller-owned buffer.
+            ///
+            /// The line is the one kind of figure GPS is built on: the gravitational part of the
+            /// rate, in microseconds per 86 400-second day (positive: the higher clock runs fast),
+            /// the kinematic part (negative), their weak-field sum, and the exact Schwarzschild
+            /// figure for the same two clocks. A clock at `GPS_ORBIT_RADIUS` against one at
+            /// `EARTH_EQUATORIAL_RADIUS` gains +45.65 from the potential, loses 7.21 from its
+            /// speed, and nets +38.44. `body` is an identifier `hc_gravitating_bodies` lists, in
+            /// any ASCII case; another is `HC_ERROR_UNKNOWN`. A radius that is not finite or not
+            /// positive, a ground radius at or inside the Schwarzschild radius, or an orbit radius
+            /// at or inside the photon sphere 3GM/c², where no circular orbit exists, is
+            /// `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// `body` is the body's identifier.
+            ///
+            /// Tab-separated: id, gm, gm constant, circular speed, gravitational microseconds per
+            /// day, kinematic microseconds per day, weak-field microseconds per day, exact
+            /// microseconds per day, constants, source.
+            ///
+            /// A null name is `HC_ERROR_NULL_POINTER`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// A clock on a circular orbit against one held still on the ground, as one UTF-8 line,
+            /// returning the byte length written.
+            ///
+            /// The line is the one kind of figure GPS is built on: the gravitational part of the
+            /// rate, in microseconds per 86 400-second day (positive: the higher clock runs fast),
+            /// the kinematic part (negative), their weak-field sum, and the exact Schwarzschild
+            /// figure for the same two clocks. A clock at `GPS_ORBIT_RADIUS` against one at
+            /// `EARTH_EQUATORIAL_RADIUS` gains +45.65 from the potential, loses 7.21 from its
+            /// speed, and nets +38.44. `body` is an identifier `hc_gravitating_bodies` lists, in
+            /// any ASCII case; another is `HC_ERR_UNKNOWN`. A radius that is not finite or not
+            /// positive, a ground radius at or inside the Schwarzschild radius, or an orbit radius
+            /// at or inside the photon sphere 3GM/c², where no circular orbit exists, is
+            /// `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `body` is the body's identifier.
+            ///
+            /// Tab-separated: id, gm, gm constant, circular speed, gravitational microseconds per
+            /// day, kinematic microseconds per day, weak-field microseconds per day, exact
+            /// microseconds per day, constants, source.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_orbit_rate_offset(
+            body: name(body_len),
+            orbit_radius_metres: f64,
+            ground_radius_metres: f64,
+        ) -> line =
+            $crate::relativity_lines::orbit_rate_offset_line;
+
+        c {
+            /// A rocket of constant proper acceleration burning from rest, as NUL-terminated UTF-8
+            /// one line in a caller-owned buffer.
+            ///
+            /// The line is the hyperbolic motion of a constant proper acceleration
+            /// `proper_acceleration` in m s⁻² after `proper_seconds` aboard: the time that passes
+            /// elsewhere, the distance covered, β, `1 − β` computed without cancellation, and the
+            /// Lorentz factor. One year at 1 g, 9.80665 m s⁻², is 0.5636 light-years at three
+            /// quarters of the speed of light, and 1.19 years pass elsewhere. An acceleration that
+            /// is not finite and positive, a proper time that is not finite or is negative, or a
+            /// burn long enough that a value leaves the range of a double, is
+            /// `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// `proper_acceleration` is metres per second squared.
+            ///
+            /// Tab-separated: acceleration, proper seconds, coordinate seconds, distance, distance
+            /// light years, beta, one minus beta, lorentz factor, constants, source.
+            ///
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// A rocket of constant proper acceleration burning from rest, as one UTF-8 line,
+            /// returning the byte length written.
+            ///
+            /// The line is the hyperbolic motion of a constant proper acceleration
+            /// `proper_acceleration` in m s⁻² after `proper_seconds` aboard: the time that passes
+            /// elsewhere, the distance covered, β, `1 − β` computed without cancellation, and the
+            /// Lorentz factor. One year at 1 g, 9.80665 m s⁻², is 0.5636 light-years at three
+            /// quarters of the speed of light, and 1.19 years pass elsewhere. An acceleration that
+            /// is not finite and positive, a proper time that is not finite or is negative, or a
+            /// burn long enough that a value leaves the range of a double, is
+            /// `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `proper_acceleration` is metres per second squared.
+            ///
+            /// Tab-separated: acceleration, proper seconds, coordinate seconds, distance, distance
+            /// light years, beta, one minus beta, lorentz factor, constants, source.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_rocket(proper_acceleration: f64, proper_seconds: f64) -> line =
+            $crate::relativity_lines::rocket_line;
+
+        c {
+            /// A flip-and-burn voyage between two points at rest, as NUL-terminated UTF-8 one line
+            /// in a caller-owned buffer.
+            ///
+            /// The ship accelerates at a constant proper acceleration for half the distance, turns
+            /// over, and decelerates for the other half, arriving at rest. At 1 g to Andromeda, 2.5
+            /// million light-years, it is 28.60 years aboard and 2 500 001.94 at home. An
+            /// acceleration that is not finite and positive, a distance that is not finite or is
+            /// negative, or a voyage that leaves the range of a double, is `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// `proper_acceleration` is metres per second squared.
+            ///
+            /// Tab-separated: acceleration, distance, proper seconds, coordinate seconds, proper
+            /// years, coordinate years, peak beta, one minus peak beta, peak lorentz factor,
+            /// constants, source.
+            ///
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// A flip-and-burn voyage between two points at rest, as one UTF-8 line, returning the
+            /// byte length written.
+            ///
+            /// The ship accelerates at a constant proper acceleration for half the distance, turns
+            /// over, and decelerates for the other half, arriving at rest. At 1 g to Andromeda, 2.5
+            /// million light-years, it is 28.60 years aboard and 2 500 001.94 at home. An
+            /// acceleration that is not finite and positive, a distance that is not finite or is
+            /// negative, or a voyage that leaves the range of a double, is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `proper_acceleration` is metres per second squared.
+            ///
+            /// Tab-separated: acceleration, distance, proper seconds, coordinate seconds, proper
+            /// years, coordinate years, peak beta, one minus peak beta, peak lorentz factor,
+            /// constants, source.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_flip_and_burn(proper_acceleration: f64, distance_metres: f64) -> line =
+            $crate::relativity_lines::flip_and_burn_line;
+
+        c {
+            /// The relativistic Doppler shift of a source moving at β, seen at an angle, as
+            /// NUL-terminated UTF-8 one line in a caller-owned buffer.
+            ///
+            /// A cosine of +1 is a source coming straight at the observer, −1 going straight away,
+            /// 0 transverse in the observer's frame. At β = 0.6 head-on the frequency is doubled,
+            /// receding it is halved, and across the line of sight it is 4/5. A β that is not
+            /// finite or whose magnitude is 1 or more, or a cosine that is not finite or whose
+            /// magnitude is above 1, is `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// `beta` is the source's speed as a fraction of the speed of light. `cos_theta` is the
+            /// cosine of the angle between the source's velocity and the direction from source to
+            /// observer, in the observer's frame.
+            ///
+            /// Tab-separated: beta, cos theta, factor, redshift, head-on factor, transverse factor,
+            /// source.
+            ///
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// The relativistic Doppler shift of a source moving at β, seen at an angle, as one
+            /// UTF-8 line, returning the byte length written.
+            ///
+            /// A cosine of +1 is a source coming straight at the observer, −1 going straight away,
+            /// 0 transverse in the observer's frame. At β = 0.6 head-on the frequency is doubled,
+            /// receding it is halved, and across the line of sight it is 4/5. A β that is not
+            /// finite or whose magnitude is 1 or more, or a cosine that is not finite or whose
+            /// magnitude is above 1, is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `beta` is the source's speed as a fraction of the speed of light. `cos_theta` is the
+            /// cosine of the angle between the source's velocity and the direction from source to
+            /// observer, in the observer's frame.
+            ///
+            /// Tab-separated: beta, cos theta, factor, redshift, head-on factor, transverse factor,
+            /// source.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_doppler(beta: f64, cos_theta: f64) -> line =
+            $crate::relativity_lines::doppler_line;
+
+        c {
+            /// The composition of two collinear velocities, as NUL-terminated UTF-8 one line in a
+            /// caller-owned buffer.
+            ///
+            /// Both velocities are fractions of the speed of light, positive one way and negative
+            /// the other; they do not add, their rapidities do. Two ships at 0.999 compose to 0.999
+            /// 999 5, and `1 − β` of that, 5.005·10⁻⁷, is carried without the cancellation that
+            /// would lose eight of its figures. A β that is not finite or whose magnitude is 1 or
+            /// more is `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// Tab-separated: first beta, second beta, composed beta, composed speed, one minus
+            /// composed beta, first rapidity, second rapidity, composed rapidity, composed lorentz
+            /// factor, source.
+            ///
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// The composition of two collinear velocities, as one UTF-8 line, returning the byte
+            /// length written.
+            ///
+            /// Both velocities are fractions of the speed of light, positive one way and negative
+            /// the other; they do not add, their rapidities do. Two ships at 0.999 compose to 0.999
+            /// 999 5, and `1 − β` of that, 5.005·10⁻⁷, is carried without the cancellation that
+            /// would lose eight of its figures. A β that is not finite or whose magnitude is 1 or
+            /// more is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// Tab-separated: first beta, second beta, composed beta, composed speed, one minus
+            /// composed beta, first rapidity, second rapidity, composed rapidity, composed lorentz
+            /// factor, source.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_velocity_add(first_beta: f64, second_beta: f64) -> line =
+            $crate::relativity_lines::velocity_add_line;
+
+        c {
+            /// The Schwarzschild radius of a body, as NUL-terminated UTF-8 one line in a
+            /// caller-owned buffer.
+            ///
+            /// The radius is 2GM/c² from the body's standard gravitational parameter, which the
+            /// table carries more exactly than its mass. `body` is an identifier
+            /// `hc_gravitating_bodies` lists, in any ASCII case; another, a name such as
+            /// `Sagittarius A*` included, is `HC_ERROR_UNKNOWN`.
+            ///
+            /// `body` is the body's identifier.
+            ///
+            /// Tab-separated: id, gm, gm constant, schwarzschild radius, constants, source.
+            ///
+            /// A null name is `HC_ERROR_NULL_POINTER`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// The Schwarzschild radius of a body, as one UTF-8 line, returning the byte length
+            /// written.
+            ///
+            /// The radius is 2GM/c² from the body's standard gravitational parameter, which the
+            /// table carries more exactly than its mass. `body` is an identifier
+            /// `hc_gravitating_bodies` lists, in any ASCII case; another, a name such as
+            /// `Sagittarius A*` included, is `HC_ERR_UNKNOWN`.
+            ///
+            /// `body` is the body's identifier.
+            ///
+            /// Tab-separated: id, gm, gm constant, schwarzschild radius, constants, source.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_schwarzschild_radius(body: name(body_len)) -> line =
+            $crate::relativity_lines::schwarzschild_radius_line;
+
+        c {
+            /// A clock moving at a constant speed that is not exactly known, as NUL-terminated
+            /// UTF-8 one line in a caller-owned buffer.
+            ///
+            /// The standard deviation of the proper time is t β σ_β / √(1 − β²), first order, so a
+            /// speed known to a metre a second near the speed of light is an error of seconds a
+            /// year. A speed at or beyond the speed of light either way, a standard deviation that
+            /// is not finite or is negative, or a coordinate time that is not finite or whose
+            /// proper time leaves the range of a duration, is `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// `speed_std_dev` is the speed's standard deviation, in metres per second.
+            ///
+            /// Tab-separated: beta, beta std dev, proper seconds, proper std dev, text, constants,
+            /// source.
+            ///
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// A clock moving at a constant speed that is not exactly known, as one UTF-8 line,
+            /// returning the byte length written.
+            ///
+            /// The standard deviation of the proper time is t β σ_β / √(1 − β²), first order, so a
+            /// speed known to a metre a second near the speed of light is an error of seconds a
+            /// year. A speed at or beyond the speed of light either way, a standard deviation that
+            /// is not finite or is negative, or a coordinate time that is not finite or whose
+            /// proper time leaves the range of a duration, is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `speed_std_dev` is the speed's standard deviation, in metres per second.
+            ///
+            /// Tab-separated: beta, beta std dev, proper seconds, proper std dev, text, constants,
+            /// source.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_proper_time_uncertain(
+            speed_metres_per_second: f64,
+            speed_std_dev: f64,
+            coordinate_seconds: f64,
+        ) -> line =
+            $crate::relativity_lines::proper_time_uncertain_line;
+    } };
+    ("uncertainty", $backend:ident) => { $backend! {
+        c {
+            /// An ISO 8601-2 value placed on the timeline, as NUL-terminated UTF-8 lines in a
+            /// caller-owned buffer.
+            ///
+            /// The first line is the value itself and the lines after it are the parts it is made
+            /// of: the two sides of an interval, or each member of a `[...]` or `{...}` set. The
+            /// first cell is the role: `value`, `start`, `end` or `member`. A set is placed by the
+            /// hull of its members, which is wider than the set: `[1667,1670]` is somewhere from
+            /// 1667 to the end of 1670, and the gap is lost. Times of day, seasons, sub-year
+            /// divisions, component-level qualifiers and exponential years are refused rather than
+            /// half-read. Text that is not a supported EDTF value is `HC_ERROR_MALFORMED`, and a
+            /// year past what a fixed day can count is `HC_ERROR_OVERFLOW`.
+            ///
+            /// `text` is an ISO 8601-2 Extended Date/Time Format value.
+            ///
+            /// One line each, the cells tab-separated: role, kind, text, precision, qualifier, long
+            /// form, first day, last day, support, estimate, span days.
+            ///
+            /// A null name is `HC_ERROR_NULL_POINTER`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// An ISO 8601-2 value placed on the timeline, as UTF-8 lines, returning the byte
+            /// length written.
+            ///
+            /// The first line is the value itself and the lines after it are the parts it is made
+            /// of: the two sides of an interval, or each member of a `[...]` or `{...}` set. The
+            /// first cell is the role: `value`, `start`, `end` or `member`. A set is placed by the
+            /// hull of its members, which is wider than the set: `[1667,1670]` is somewhere from
+            /// 1667 to the end of 1670, and the gap is lost. Times of day, seasons, sub-year
+            /// divisions, component-level qualifiers and exponential years are refused rather than
+            /// half-read. Text that is not a supported EDTF value is `HC_ERR_MALFORMED`, and a year
+            /// past what a fixed day can count is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `text` is an ISO 8601-2 Extended Date/Time Format value.
+            ///
+            /// One line each, the cells tab-separated: role, kind, text, precision, qualifier, long
+            /// form, first day, last day, support, estimate, span days.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_edtf_parse(text: name(text_len)) -> line =
+            $crate::uncertainty_lines::edtf_lines;
+
+        c {
+            /// What can hold between two EDTF values placed on the timeline, as NUL-terminated
+            /// UTF-8 one line in a caller-owned buffer.
+            ///
+            /// Allen's thirteen relations between intervals are tested over the two supports: where
+            /// a bound is unknown, every ordering it could have is considered, so the set is what
+            /// remains possible, never a guess. A date known to the year is the year; `1984~` is
+            /// 1983 to 1985; an open interval has no bound on its open side. Text that is not a
+            /// supported EDTF value is `HC_ERROR_MALFORMED`, and a year past what a fixed day can
+            /// count is `HC_ERROR_OVERFLOW`.
+            ///
+            /// Tab-separated: relations, symbols, definitely before, possibly before, definitely
+            /// after, possibly after, possibly concurrent.
+            ///
+            /// A null name is `HC_ERROR_NULL_POINTER`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// What can hold between two EDTF values placed on the timeline, as one UTF-8 line,
+            /// returning the byte length written.
+            ///
+            /// Allen's thirteen relations between intervals are tested over the two supports: where
+            /// a bound is unknown, every ordering it could have is considered, so the set is what
+            /// remains possible, never a guess. A date known to the year is the year; `1984~` is
+            /// 1983 to 1985; an open interval has no bound on its open side. Text that is not a
+            /// supported EDTF value is `HC_ERR_MALFORMED`, and a year past what a fixed day can
+            /// count is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// Tab-separated: relations, symbols, definitely before, possibly before, definitely
+            /// after, possibly after, possibly concurrent.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_edtf_relations(first: name(first_len), second: name(second_len)) -> line =
+            $crate::uncertainty_lines::edtf_relations_line;
+
+        c {
+            /// A number with a count of significant figures, as NUL-terminated UTF-8 one line in a
+            /// caller-owned buffer.
+            ///
+            /// 17 figures is the most a double holds and means every digit is claimed, as for a
+            /// count or a definition; the shortest numeral that reads back as the same double is
+            /// printed without padding. A number that is not finite, or a count of figures that is
+            /// not from 1 to 17, is `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// `figures` is 1 to 17.
+            ///
+            /// Tab-separated: value, figures, text, rounded, exponent, last place.
+            ///
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// A number with a count of significant figures, as one UTF-8 line, returning the byte
+            /// length written.
+            ///
+            /// 17 figures is the most a double holds and means every digit is claimed, as for a
+            /// count or a definition; the shortest numeral that reads back as the same double is
+            /// printed without padding. A number that is not finite, or a count of figures that is
+            /// not from 1 to 17, is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `figures` is 1 to 17.
+            ///
+            /// Tab-separated: value, figures, text, rounded, exponent, last place.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_significant(value: f64, figures: u32) -> line =
+            $crate::uncertainty_lines::significant_line;
+
+        c {
+            /// Arithmetic on two numbers with figure counts, as NUL-terminated UTF-8 one line in a
+            /// caller-owned buffer.
+            ///
+            /// `add` and `sub` are significant down to the coarser of the two last places, so
+            /// `100.0 + 0.001` keeps four figures and `1.0000 − 0.9999` keeps one; `mul` and `div`
+            /// carry the smaller figure count; `pow` raises the first number to the second as an
+            /// integer and keeps the first's count, the second's figures being ignored. An
+            /// operation that is not one of these is `HC_ERROR_UNKNOWN`. A number that is not
+            /// finite, a count of figures that is not from 1 to 17, a division by zero, a power
+            /// whose exponent is not an integer within an `i32`, or a result that leaves the range
+            /// of a double, is `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// `operation` is `add`, `sub`, `mul`, `div` or `pow`.
+            ///
+            /// Tab-separated: operation, text, value, figures, exponent, last place.
+            ///
+            /// A null name is `HC_ERROR_NULL_POINTER`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// Arithmetic on two numbers with figure counts, as one UTF-8 line, returning the byte
+            /// length written.
+            ///
+            /// `add` and `sub` are significant down to the coarser of the two last places, so
+            /// `100.0 + 0.001` keeps four figures and `1.0000 − 0.9999` keeps one; `mul` and `div`
+            /// carry the smaller figure count; `pow` raises the first number to the second as an
+            /// integer and keeps the first's count, the second's figures being ignored. An
+            /// operation that is not one of these is `HC_ERR_UNKNOWN`. A number that is not finite,
+            /// a count of figures that is not from 1 to 17, a division by zero, a power whose
+            /// exponent is not an integer within an `i32`, or a result that leaves the range of a
+            /// double, is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `operation` is `add`, `sub`, `mul`, `div` or `pow`.
+            ///
+            /// Tab-separated: operation, text, value, figures, exponent, last place.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_significant_op(
+            operation: name(operation_len),
+            first: f64,
+            first_figures: u32,
+            second: f64,
+            second_figures: u32,
+        ) -> line =
+            $crate::uncertainty_lines::significant_op_line;
+
+        c {
+            /// A Gaussian quantity, `value ± σ`, as NUL-terminated UTF-8 one line in a caller-owned
+            /// buffer.
+            ///
+            /// A standard deviation of 0 is an exact value, and its significant text is the
+            /// shortest numeral that reads back as the same double. A value or a standard deviation
+            /// that is not finite, or a negative standard deviation, is `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// Tab-separated: value, std dev, text, significant, relative, low 1σ, high 1σ, low 2σ,
+            /// high 2σ, low 3σ, high 3σ.
+            ///
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// A Gaussian quantity, `value ± σ`, as one UTF-8 line, returning the byte length
+            /// written.
+            ///
+            /// A standard deviation of 0 is an exact value, and its significant text is the
+            /// shortest numeral that reads back as the same double. A value or a standard deviation
+            /// that is not finite, or a negative standard deviation, is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// Tab-separated: value, std dev, text, significant, relative, low 1σ, high 1σ, low 2σ,
+            /// high 2σ, low 3σ, high 3σ.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_uncertain(value: f64, std_dev: f64) -> line =
+            $crate::uncertainty_lines::uncertain_line;
+
+        c {
+            /// Arithmetic on Gaussian quantities, with the errors propagated to first order, as
+            /// NUL-terminated UTF-8 one line in a caller-owned buffer.
+            ///
+            /// `add`, `sub`, `mul` and `div` are of independent quantities, with the errors
+            /// combined in quadrature; `combine` is the inverse-variance weighted mean of two
+            /// measurements of one quantity, where an exact one wins outright; `z-score` is how
+            /// many combined standard deviations separate the two; `scale` multiplies the first by
+            /// the second's value as an exact factor, its standard deviation ignored; `pow` raises
+            /// the first to the second's value as an exact exponent; `ln` and `exp` are of the
+            /// first, the second ignored. An operation that is not one of these is
+            /// `HC_ERROR_UNKNOWN`. A value or standard deviation that is not finite, a negative
+            /// standard deviation, a division by a value of 0, a logarithm of a value that is not
+            /// positive, a power outside the real numbers, two exact values that disagree under
+            /// `combine`, a z-score of two exact values, or a result that leaves the range of a
+            /// double, is `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// `operation` is `add`, `sub`, `mul`, `div`, `combine`, `z-score`, `scale`, `pow`,
+            /// `ln` or `exp`.
+            ///
+            /// Tab-separated: operation, value, std dev, text, significant.
+            ///
+            /// A null name is `HC_ERROR_NULL_POINTER`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// Arithmetic on Gaussian quantities, with the errors propagated to first order, as one
+            /// UTF-8 line, returning the byte length written.
+            ///
+            /// `add`, `sub`, `mul` and `div` are of independent quantities, with the errors
+            /// combined in quadrature; `combine` is the inverse-variance weighted mean of two
+            /// measurements of one quantity, where an exact one wins outright; `z-score` is how
+            /// many combined standard deviations separate the two; `scale` multiplies the first by
+            /// the second's value as an exact factor, its standard deviation ignored; `pow` raises
+            /// the first to the second's value as an exact exponent; `ln` and `exp` are of the
+            /// first, the second ignored. An operation that is not one of these is
+            /// `HC_ERR_UNKNOWN`. A value or standard deviation that is not finite, a negative
+            /// standard deviation, a division by a value of 0, a logarithm of a value that is not
+            /// positive, a power outside the real numbers, two exact values that disagree under
+            /// `combine`, a z-score of two exact values, or a result that leaves the range of a
+            /// double, is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `operation` is `add`, `sub`, `mul`, `div`, `combine`, `z-score`, `scale`, `pow`,
+            /// `ln` or `exp`.
+            ///
+            /// Tab-separated: operation, value, std dev, text, significant.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_uncertain_op(
+            operation: name(operation_len),
+            first: f64,
+            first_std_dev: f64,
+            second: f64,
+            second_std_dev: f64,
+        ) -> line =
+            $crate::uncertainty_lines::uncertain_op_line;
+
+        c {
+            /// Arithmetic on intervals of time, as NUL-terminated UTF-8 one line in a caller-owned
+            /// buffer.
+            ///
+            /// The two intervals are `[first_low_seconds, first_high_seconds]` and
+            /// `[second_low_seconds, second_high_seconds]` in whole seconds. `add` and `sub` (the
+            /// crossed bounds: `[lo₁ − hi₂, hi₁ − lo₂]`), `intersect` (empty when they do not meet)
+            /// and `hull` (the smallest interval holding both) write an interval, as whole seconds
+            /// and attoseconds each; `overlaps` and `contains` (whether the first holds the second)
+            /// answer a question, and write only the last cell. The width is the high bound minus
+            /// the low, and the midpoint is floored to an attosecond. An empty interval has no
+            /// bounds, width or midpoint. An operation that is not one of these is
+            /// `HC_ERROR_UNKNOWN`; an interval whose low bound is above its high bound, which is
+            /// the empty interval written backwards, is `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// `operation` is `add`, `sub`, `intersect`, `hull`, `overlaps` or `contains`.
+            ///
+            /// Tab-separated: operation, empty, low seconds, low attoseconds, high seconds, high
+            /// attoseconds, width seconds, width attoseconds, midpoint seconds, midpoint
+            /// attoseconds, holds.
+            ///
+            /// A null name is `HC_ERROR_NULL_POINTER`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// Arithmetic on intervals of time, as one UTF-8 line, returning the byte length
+            /// written.
+            ///
+            /// The two intervals are `[first_low_seconds, first_high_seconds]` and
+            /// `[second_low_seconds, second_high_seconds]` in whole seconds. `add` and `sub` (the
+            /// crossed bounds: `[lo₁ − hi₂, hi₁ − lo₂]`), `intersect` (empty when they do not meet)
+            /// and `hull` (the smallest interval holding both) write an interval, as whole seconds
+            /// and attoseconds each; `overlaps` and `contains` (whether the first holds the second)
+            /// answer a question, and write only the last cell. The width is the high bound minus
+            /// the low, and the midpoint is floored to an attosecond. An empty interval has no
+            /// bounds, width or midpoint. An operation that is not one of these is
+            /// `HC_ERR_UNKNOWN`; an interval whose low bound is above its high bound, which is the
+            /// empty interval written backwards, is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `operation` is `add`, `sub`, `intersect`, `hull`, `overlaps` or `contains`.
+            ///
+            /// Tab-separated: operation, empty, low seconds, low attoseconds, high seconds, high
+            /// attoseconds, width seconds, width attoseconds, midpoint seconds, midpoint
+            /// attoseconds, holds.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_interval(
+            operation: name(operation_len),
+            first_low_seconds: i64,
+            first_high_seconds: i64,
+            second_low_seconds: i64,
+            second_high_seconds: i64,
+        ) -> line =
+            $crate::uncertainty_lines::interval_line;
+    } };
+    ("units", $backend:ident) => { $backend! {
+        c {
+            /// Every unit of time with an exactly defined length, as NUL-terminated UTF-8 lines in
+            /// a caller-owned buffer.
+            ///
+            /// One line each, shortest first. A length is a numerator and a denominator in lowest
+            /// terms, written in decimal, because they are 128-bit integers and a quectosecond is
+            /// 10⁻³⁰ of a second: no double holds that, nor a flick's 705 600 000th. A unit that is
+            /// measured rather than defined, such as the sidereal day or the tropical year, is not
+            /// here: it lives with the model that measured it.
+            ///
+            /// One line each, the cells tab-separated: id, name, symbol, seconds numerator, seconds
+            /// denominator, family, authority.
+            ///
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// Every unit of time with an exactly defined length, as UTF-8 lines, returning the
+            /// byte length written.
+            ///
+            /// One line each, shortest first. A length is a numerator and a denominator in lowest
+            /// terms, written in decimal, because they are 128-bit integers and a quectosecond is
+            /// 10⁻³⁰ of a second: no double holds that, nor a flick's 705 600 000th. A unit that is
+            /// measured rather than defined, such as the sidereal day or the tropical year, is not
+            /// here: it lives with the model that measured it.
+            ///
+            /// One line each, the cells tab-separated: id, name, symbol, seconds numerator, seconds
+            /// denominator, family, authority.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_units() -> line =
+            || Ok($crate::units_lines::units_lines());
+
+        c {
+            /// A count of one unit of time written in another, exactly, as NUL-terminated UTF-8 one
+            /// line in a caller-owned buffer.
+            ///
+            /// The count is `count_numerator / count_denominator`, and may be negative. Both counts
+            /// are written as a numerator and a denominator in lowest terms. A unit that `hc_units`
+            /// does not list is `HC_ERROR_UNKNOWN`; a denominator of 0 is `HC_ERROR_OUT_OF_RANGE`;
+            /// and a count or a length whose numerator or denominator leaves 128 bits is
+            /// `HC_ERROR_OVERFLOW`.
+            ///
+            /// `from` is the unit of the count: an identifier `hc_units` lists. `to` is the unit to
+            /// write it in.
+            ///
+            /// Tab-separated: from, to, count numerator, count denominator, converted numerator,
+            /// converted denominator, whole, seconds numerator, seconds denominator, attosecond
+            /// exact.
+            ///
+            /// A null name is `HC_ERROR_NULL_POINTER`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// A count of one unit of time written in another, exactly, as one UTF-8 line,
+            /// returning the byte length written.
+            ///
+            /// The count is `count_numerator / count_denominator`, and may be negative. Both counts
+            /// are written as a numerator and a denominator in lowest terms. A unit that `hc_units`
+            /// does not list is `HC_ERR_UNKNOWN`; a denominator of 0 is `HC_ERR_OUT_OF_RANGE`; and
+            /// a count or a length whose numerator or denominator leaves 128 bits is
+            /// `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `from` is the unit of the count: an identifier `hc_units` lists. `to` is the unit to
+            /// write it in.
+            ///
+            /// Tab-separated: from, to, count numerator, count denominator, converted numerator,
+            /// converted denominator, whole, seconds numerator, seconds denominator, attosecond
+            /// exact.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_unit_convert(
+            count_numerator: i64,
+            count_denominator: i64,
+            from: name(from_len),
+            to: name(to_len),
+        ) -> line =
+            $crate::units_lines::unit_convert_line;
+
+        c {
+            /// Every frame rate and sample rate the crate carries as an exact period, as
+            /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+            ///
+            /// The NTSC rates are exact: 29.97 is 30 000 / 1 001. Each identifier is what
+            /// `hc_frame_period` reads for its rate.
+            ///
+            /// One line each, the cells tab-separated: id, kind, hertz numerator, hertz
+            /// denominator.
+            ///
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// Every frame rate and sample rate the crate carries as an exact period, as UTF-8
+            /// lines, returning the byte length written.
+            ///
+            /// The NTSC rates are exact: 29.97 is 30 000 / 1 001. Each identifier is what
+            /// `hc_frame_period` reads for its rate.
+            ///
+            /// One line each, the cells tab-separated: id, kind, hertz numerator, hertz
+            /// denominator.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_rates() -> line =
+            || Ok($crate::units_lines::rates_lines());
+
+        c {
+            /// The length of one frame or one sample, exactly, as NUL-terminated UTF-8 one line in
+            /// a caller-owned buffer.
+            ///
+            /// `rate` is an identifier of `hc_rates`, such as `29.97` or `48000`, or an exact rate
+            /// written `n` or `n/d` events per second, such as `30000/1001`. A rate that is
+            /// neither, or a unit `hc_units` does not list, is `HC_ERROR_UNKNOWN`; a rate that is
+            /// not positive, or a denominator of 0, is `HC_ERROR_OUT_OF_RANGE`; and a length whose
+            /// numerator or denominator leaves 128 bits is `HC_ERROR_OVERFLOW`.
+            ///
+            /// `rate` is an identifier `hc_rates` lists, or an exact rate written `n` or `n/d`
+            /// events per second. `in_unit` is the unit to count the length in.
+            ///
+            /// Tab-separated: rate, kind, hertz numerator, hertz denominator, period numerator,
+            /// period denominator, count numerator, count denominator, unit, whole, whole flicks.
+            ///
+            /// A null name is `HC_ERROR_NULL_POINTER`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// The length of one frame or one sample, exactly, as one UTF-8 line, returning the
+            /// byte length written.
+            ///
+            /// `rate` is an identifier of `hc_rates`, such as `29.97` or `48000`, or an exact rate
+            /// written `n` or `n/d` events per second, such as `30000/1001`. A rate that is
+            /// neither, or a unit `hc_units` does not list, is `HC_ERR_UNKNOWN`; a rate that is not
+            /// positive, or a denominator of 0, is `HC_ERR_OUT_OF_RANGE`; and a length whose
+            /// numerator or denominator leaves 128 bits is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `rate` is an identifier `hc_rates` lists, or an exact rate written `n` or `n/d`
+            /// events per second. `in_unit` is the unit to count the length in.
+            ///
+            /// Tab-separated: rate, kind, hertz numerator, hertz denominator, period numerator,
+            /// period denominator, count numerator, count denominator, unit, whole, whole flicks.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_frame_period(rate: name(rate_len), in_unit: name(in_unit_len)) -> line =
+            $crate::units_lines::frame_period_line;
+
+        c {
+            /// A note at a tempo, exactly, as NUL-terminated UTF-8 one line in a caller-owned
+            /// buffer.
+            ///
+            /// The tempo is `bpm_numerator / bpm_denominator` beats per minute, where a beat is the
+            /// note of `beat_halvings` halvings of a whole note. The note is `note_halvings`
+            /// halvings, with `dots` augmentation dots, each adding half of what came before (one
+            /// dot makes it 3/2 as long, two 7/4), and, when `tuplet_count` and `tuplet_space` are
+            /// both above 0, `tuplet_count` of it in the time of `tuplet_space`: a triplet is 3 in
+            /// the time of 2. Both 0 is no tuplet. A tempo that is not positive, a denominator of
+            /// 0, a tuplet with only one of its two numbers 0, or halvings or dots that do not fit
+            /// a byte, is `HC_ERROR_OUT_OF_RANGE`; a length whose numerator or denominator leaves
+            /// 128 bits, or halvings or dots of 127 or more, is `HC_ERROR_OVERFLOW`.
+            ///
+            /// `note_halvings` is 0 whole, 1 half, 2 quarter, 3 eighth. `dots` is augmentation
+            /// dots. `tuplet_space` is the tuplet's "in the time of" number; 0 for none.
+            /// `tuplet_count` is the tuplet's count: 3 for a triplet; 0 for none. `beat_halvings`
+            /// is the note the beat is counted in: 2 for a quarter.
+            ///
+            /// Tab-separated: bpm numerator, bpm denominator, beat numerator, beat denominator,
+            /// note fraction numerator, note fraction denominator, note numerator, note
+            /// denominator, midi microseconds, midi exact.
+            ///
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// A note at a tempo, exactly, as one UTF-8 line, returning the byte length written.
+            ///
+            /// The tempo is `bpm_numerator / bpm_denominator` beats per minute, where a beat is the
+            /// note of `beat_halvings` halvings of a whole note. The note is `note_halvings`
+            /// halvings, with `dots` augmentation dots, each adding half of what came before (one
+            /// dot makes it 3/2 as long, two 7/4), and, when `tuplet_count` and `tuplet_space` are
+            /// both above 0, `tuplet_count` of it in the time of `tuplet_space`: a triplet is 3 in
+            /// the time of 2. Both 0 is no tuplet. A tempo that is not positive, a denominator of
+            /// 0, a tuplet with only one of its two numbers 0, or halvings or dots that do not fit
+            /// a byte, is `HC_ERR_OUT_OF_RANGE`; a length whose numerator or denominator leaves 128
+            /// bits, or halvings or dots of 127 or more, is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `note_halvings` is 0 whole, 1 half, 2 quarter, 3 eighth. `dots` is augmentation
+            /// dots. `tuplet_space` is the tuplet's "in the time of" number; 0 for none.
+            /// `tuplet_count` is the tuplet's count: 3 for a triplet; 0 for none. `beat_halvings`
+            /// is the note the beat is counted in: 2 for a quarter.
+            ///
+            /// Tab-separated: bpm numerator, bpm denominator, beat numerator, beat denominator,
+            /// note fraction numerator, note fraction denominator, note numerator, note
+            /// denominator, midi microseconds, midi exact.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_tempo(
+            bpm_numerator: i64,
+            bpm_denominator: i64,
+            note_halvings: u32,
+            dots: u32,
+            tuplet_space: u32,
+            tuplet_count: u32,
+            beat_halvings: u32,
+        ) -> line =
+            $crate::units_lines::tempo_line;
+    } };
+    ("fiscal", $backend:ident) => { $backend! {
+        c {
+            /// Every fiscal, tax and academic year system the crate carries, country by country, as
+            /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+            ///
+            /// A validity bound is a label of the system's own calendar: Iran's are Solar Hijri
+            /// years and Nepal's Bikram Sambat. Nepal is in a build that has the `calendars` layer
+            /// too, since its year starts on 1 Shrawan of the Bikram Sambat; in a build without it
+            /// the country is absent, which `hc_fiscal_year_on` reports as `HC_ERROR_UNKNOWN`. No
+            /// label convention is a default: the year is named for the year it starts in, or for
+            /// the one it ends in, and every line says which.
+            ///
+            /// One line each, the cells tab-separated: country, country name, table, kind, name,
+            /// local name, authority, national, start calendar, start month, start day, label
+            /// convention, valid from, valid until, approximate, note, sources checked, sources.
+            ///
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// Every fiscal, tax and academic year system the crate carries, country by country, as
+            /// UTF-8 lines, returning the byte length written.
+            ///
+            /// A validity bound is a label of the system's own calendar: Iran's are Solar Hijri
+            /// years and Nepal's Bikram Sambat. Nepal is in a build that has the `calendars` layer
+            /// too, since its year starts on 1 Shrawan of the Bikram Sambat; in a build without it
+            /// the country is absent, which `hc_fiscal_year_on` reports as `HC_ERR_UNKNOWN`. No
+            /// label convention is a default: the year is named for the year it starts in, or for
+            /// the one it ends in, and every line says which.
+            ///
+            /// One line each, the cells tab-separated: country, country name, table, kind, name,
+            /// local name, authority, national, start calendar, start month, start day, label
+            /// convention, valid from, valid until, approximate, note, sources checked, sources.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_fiscal_profiles() -> line =
+            || Ok($crate::fiscal_lines::profiles_lines());
+
+        c {
+            /// What the year systems of a country say a fixed day is, as NUL-terminated UTF-8 lines
+            /// in a caller-owned buffer.
+            ///
+            /// One line each. The status is `in-force`, or `outside-validity` where the system was
+            /// not in force in the year the day falls in (the United States' October year had not
+            /// begun in 1970), or `outside-calendar-range` where the start's calendar does not
+            /// reach the day; the cells after the status are then empty. A country the tables do
+            /// not carry, or a kind that is not one of the four, is `HC_ERROR_UNKNOWN`; a country
+            /// that has no system of the kind asked is `HC_ERROR_NO_DATA`; a fixed day beyond the
+            /// Gregorian years ±9 999 999 is `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// `country` is an ISO 3166-1 alpha-2 code, in any case. `kind` is a kind
+            /// `hc_fiscal_profiles` writes, or empty for every kind the country has.
+            ///
+            /// One line each, the cells tab-separated: country, table, kind, name, status, label,
+            /// first, last, day of year, days in year, weekday, month, quarter, half, start
+            /// calendar, label convention, approximate, sources checked.
+            ///
+            /// A null name is `HC_ERROR_NULL_POINTER`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// What the year systems of a country say a fixed day is, as UTF-8 lines, returning the
+            /// byte length written.
+            ///
+            /// One line each. The status is `in-force`, or `outside-validity` where the system was
+            /// not in force in the year the day falls in (the United States' October year had not
+            /// begun in 1970), or `outside-calendar-range` where the start's calendar does not
+            /// reach the day; the cells after the status are then empty. A country the tables do
+            /// not carry, or a kind that is not one of the four, is `HC_ERR_UNKNOWN`; a country
+            /// that has no system of the kind asked is `HC_ERR_NO_DATA`; a fixed day beyond the
+            /// Gregorian years ±9 999 999 is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `country` is an ISO 3166-1 alpha-2 code, in any case. `kind` is a kind
+            /// `hc_fiscal_profiles` writes, or empty for every kind the country has.
+            ///
+            /// One line each, the cells tab-separated: country, table, kind, name, status, label,
+            /// first, last, day of year, days in year, weekday, month, quarter, half, start
+            /// calendar, label convention, approximate, sources checked.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_fiscal_year_on(
+            country: name(country_len),
+            kind: text(kind_len),
+            fixed: i64,
+        ) -> line =
+            $crate::fiscal_lines::year_on_lines;
+
+        c {
+            /// The span of the year a label names in each year system of a country, as
+            /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+            ///
+            /// One line each. The label is the system's own: a label of Iran's is a Solar Hijri
+            /// year, a label of Japan's 年度 the Gregorian year it begins in, and a label of the
+            /// United States' fiscal year the one it ends in. The status is `in-force`,
+            /// `outside-validity` where the system was not in force in that year (the cells after
+            /// the label are then empty) or `outside-calendar-range` where the start's calendar
+            /// does not reach it. A country the tables do not carry, or a kind that is not one of
+            /// the four, is `HC_ERROR_UNKNOWN`; a country with no system of the kind asked is
+            /// `HC_ERROR_NO_DATA`.
+            ///
+            /// `country` is an ISO 3166-1 alpha-2 code, in any case. `kind` is a kind
+            /// `hc_fiscal_profiles` writes, or empty for every kind the country has. `label` is a
+            /// year label of the system's own calendar and convention.
+            ///
+            /// One line each, the cells tab-separated: country, table, kind, name, status, label,
+            /// first, last, days.
+            ///
+            /// A null name is `HC_ERROR_NULL_POINTER`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// The span of the year a label names in each year system of a country, as UTF-8 lines,
+            /// returning the byte length written.
+            ///
+            /// One line each. The label is the system's own: a label of Iran's is a Solar Hijri
+            /// year, a label of Japan's 年度 the Gregorian year it begins in, and a label of the
+            /// United States' fiscal year the one it ends in. The status is `in-force`,
+            /// `outside-validity` where the system was not in force in that year (the cells after
+            /// the label are then empty) or `outside-calendar-range` where the start's calendar
+            /// does not reach it. A country the tables do not carry, or a kind that is not one of
+            /// the four, is `HC_ERR_UNKNOWN`; a country with no system of the kind asked is
+            /// `HC_ERR_NO_DATA`.
+            ///
+            /// `country` is an ISO 3166-1 alpha-2 code, in any case. `kind` is a kind
+            /// `hc_fiscal_profiles` writes, or empty for every kind the country has. `label` is a
+            /// year label of the system's own calendar and convention.
+            ///
+            /// One line each, the cells tab-separated: country, table, kind, name, status, label,
+            /// first, last, days.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_fiscal_year_span(
+            country: name(country_len),
+            kind: text(kind_len),
+            label: i64,
+        ) -> line =
+            $crate::fiscal_lines::year_span_lines;
+
+        c {
+            /// Every named year of whole weeks, as NUL-terminated UTF-8 lines in a caller-owned
+            /// buffer.
+            ///
+            /// The NRF 4-5-4 retail calendar, ISO 8601's week-numbering year and a 4-4-5 year
+            /// ending the last Saturday of December. The two anchor rules are two names and not one
+            /// parameter: they put the year end up to a week apart and sometimes in different
+            /// months.
+            ///
+            /// One line each, the cells tab-separated: id, name, weekday, month, anchor rule, label
+            /// convention, shape, note, source, sources checked.
+            ///
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// Every named year of whole weeks, as UTF-8 lines, returning the byte length written.
+            ///
+            /// The NRF 4-5-4 retail calendar, ISO 8601's week-numbering year and a 4-4-5 year
+            /// ending the last Saturday of December. The two anchor rules are two names and not one
+            /// parameter: they put the year end up to a week apart and sometimes in different
+            /// months.
+            ///
+            /// One line each, the cells tab-separated: id, name, weekday, month, anchor rule, label
+            /// convention, shape, note, source, sources checked.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_week_year_systems() -> line =
+            || Ok($crate::fiscal_lines::week_year_systems_lines());
+
+        c {
+            /// Where a fixed day is in a year of whole weeks, as NUL-terminated UTF-8 one line in a
+            /// caller-owned buffer.
+            ///
+            /// In a 53-week year the extra week is the last period's. A system
+            /// `hc_week_year_systems` does not list is `HC_ERROR_UNKNOWN`, and a day beyond the
+            /// Gregorian years ±9 999 999 is `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// `system` is an identifier `hc_week_year_systems` lists.
+            ///
+            /// Tab-separated: system, name, label, first, last, weeks, long, week, week first, week
+            /// last, period, period first, period last, quarter.
+            ///
+            /// A null name is `HC_ERROR_NULL_POINTER`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// Where a fixed day is in a year of whole weeks, as one UTF-8 line, returning the byte
+            /// length written.
+            ///
+            /// In a 53-week year the extra week is the last period's. A system
+            /// `hc_week_year_systems` does not list is `HC_ERR_UNKNOWN`, and a day beyond the
+            /// Gregorian years ±9 999 999 is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `system` is an identifier `hc_week_year_systems` lists.
+            ///
+            /// Tab-separated: system, name, label, first, last, weeks, long, week, week first, week
+            /// last, period, period first, period last, quarter.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_week_year_on(system: name(system_len), fixed: i64) -> line =
+            $crate::fiscal_lines::week_year_on_line;
+    } };
+    ("name-days", $backend:ident) => { $backend! {
+        c {
+            /// Every name-day list the crate ships and every country it declines to ship one for,
+            /// as NUL-terminated UTF-8 lines in a caller-owned buffer.
+            ///
+            /// Each list is a named edition of a named authority, and the crate reports what the
+            /// lists say and asserts none of them. A gap is a country whose list the crate declines
+            /// to ship, with the reason in its words: a list a university sells by the copy, a
+            /// church calendar that names saints and not given names, several published lists that
+            /// no body chooses between. A gap's identifier is the country's code, or two codes
+            /// joined by a hyphen where one reasoning covers both; `hc_name_days_on` and
+            /// `hc_name_day` read a code of either. A column that does not apply to the kind is
+            /// empty.
+            ///
+            /// One line each, the cells tab-separated: kind, id, country, language, name,
+            /// authority, decided, provenance, valid from, valid until, licence, leap day, total
+            /// names, source, retrieved, reason, explanation.
+            ///
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// Every name-day list the crate ships and every country it declines to ship one for,
+            /// as UTF-8 lines, returning the byte length written.
+            ///
+            /// Each list is a named edition of a named authority, and the crate reports what the
+            /// lists say and asserts none of them. A gap is a country whose list the crate declines
+            /// to ship, with the reason in its words: a list a university sells by the copy, a
+            /// church calendar that names saints and not given names, several published lists that
+            /// no body chooses between. A gap's identifier is the country's code, or two codes
+            /// joined by a hyphen where one reasoning covers both; `hc_name_days_on` and
+            /// `hc_name_day` read a code of either. A column that does not apply to the kind is
+            /// empty.
+            ///
+            /// One line each, the cells tab-separated: kind, id, country, language, name,
+            /// authority, decided, provenance, valid from, valid until, licence, leap day, total
+            /// names, source, retrieved, reason, explanation.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_name_day_lists() -> line =
+            || Ok($crate::name_day_lines::lists_lines());
+
+        c {
+            /// What the lists of a country name on a day, as NUL-terminated UTF-8 lines in a
+            /// caller-owned buffer.
+            ///
+            /// The kind is `list` for an edition in force in the year the day falls in (a country
+            /// may keep two at once: Latvia's traditional and extended lists), `outside` for a
+            /// shipped edition whose years do not include it, with no names, and `gap` for a
+            /// country the crate carries no list for. A day no list has a name for is a `list` line
+            /// with no names, and never the nearest edition's. A country the crate has neither a
+            /// list nor a gap for is `HC_ERROR_UNKNOWN`; a day beyond the Gregorian years ±9 999
+            /// 999 is `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// `country` is a two-letter code in any case.
+            ///
+            /// One line each, the cells tab-separated: kind, id, name, authority, valid from, valid
+            /// until, licence, names, count, unlisted names day, notes, source, reason,
+            /// explanation.
+            ///
+            /// A null name is `HC_ERROR_NULL_POINTER`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// What the lists of a country name on a day, as UTF-8 lines, returning the byte length
+            /// written.
+            ///
+            /// The kind is `list` for an edition in force in the year the day falls in (a country
+            /// may keep two at once: Latvia's traditional and extended lists), `outside` for a
+            /// shipped edition whose years do not include it, with no names, and `gap` for a
+            /// country the crate carries no list for. A day no list has a name for is a `list` line
+            /// with no names, and never the nearest edition's. A country the crate has neither a
+            /// list nor a gap for is `HC_ERR_UNKNOWN`; a day beyond the Gregorian years ±9 999 999
+            /// is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `country` is a two-letter code in any case.
+            ///
+            /// One line each, the cells tab-separated: kind, id, name, authority, valid from, valid
+            /// until, licence, names, count, unlisted names day, notes, source, reason,
+            /// explanation.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_name_days_on(country: name(country_len), fixed: i64) -> line =
+            $crate::name_day_lines::names_on_lines;
+
+        c {
+            /// The days of a year on which the lists of a country give a name, as NUL-terminated
+            /// UTF-8 lines in a caller-owned buffer.
+            ///
+            /// The match is exact and case-sensitive: the list's own spelling, diacritics included,
+            /// and no diminutive the authority did not print. A name may fall on several days (the
+            /// extended Latvian list has some) or on none, which is a `list` line with no days. The
+            /// kinds are those of `hc_name_days_on`: `outside` for an edition not in force in the
+            /// year, with no days, and `gap`. A country the crate has neither a list nor a gap for
+            /// is `HC_ERROR_UNKNOWN`; a year beyond the Gregorian years ±9 999 999 or past an `i32`
+            /// is `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// `country` is a two-letter code in any case. `given_name` is the name, in the list's
+            /// own spelling.
+            ///
+            /// One line each, the cells tab-separated: kind, id, name, authority, valid from, valid
+            /// until, licence, dates, fixed days, count, source, reason, explanation.
+            ///
+            /// A null name is `HC_ERROR_NULL_POINTER`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// The days of a year on which the lists of a country give a name, as UTF-8 lines,
+            /// returning the byte length written.
+            ///
+            /// The match is exact and case-sensitive: the list's own spelling, diacritics included,
+            /// and no diminutive the authority did not print. A name may fall on several days (the
+            /// extended Latvian list has some) or on none, which is a `list` line with no days. The
+            /// kinds are those of `hc_name_days_on`: `outside` for an edition not in force in the
+            /// year, with no days, and `gap`. A country the crate has neither a list nor a gap for
+            /// is `HC_ERR_UNKNOWN`; a year beyond the Gregorian years ±9 999 999 or past an `i32`
+            /// is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `country` is a two-letter code in any case. `given_name` is the name, in the list's
+            /// own spelling.
+            ///
+            /// One line each, the cells tab-separated: kind, id, name, authority, valid from, valid
+            /// until, licence, dates, fixed days, count, source, reason, explanation.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_name_day(
+            country: name(country_len),
+            given_name: name(given_name_len),
+            year: i64,
+        ) -> line =
+            $crate::name_day_lines::days_of_lines;
+    } };
+    ("attributes", $backend:ident) => { $backend! {
+        c {
+            /// Every attribution list the crate ships, with what it declines to ship, as
+            /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+            ///
+            /// There is no "the birthstone of March": there are six lists, each with an authority,
+            /// a date, a region and the years it was current, and they disagree in eleven months
+            /// out of twelve. A gap is a subject the crate declined to ship, such as Japan's
+            /// day-by-day 誕生花 or Robert Graves's "Celtic tree calendar"; its columns about a list
+            /// are empty. A gap belongs to no subject here and is written only for the empty one. A
+            /// subject that is not one of the seven is `HC_ERROR_UNKNOWN`.
+            ///
+            /// `subject` is `birthstone`, `birth-flower`, `moon-name`, `lunation-name`,
+            /// `month-name`, `zodiac-stone` or `weekday`, or empty for every list and every gap.
+            ///
+            /// One line each, the cells tab-separated: kind, subject, id, name, body, region,
+            /// region name, established, revised, valid from, valid until, provenance, key kind,
+            /// source, caveat, reason, explanation.
+            ///
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// Every attribution list the crate ships, with what it declines to ship, as UTF-8
+            /// lines, returning the byte length written.
+            ///
+            /// There is no "the birthstone of March": there are six lists, each with an authority,
+            /// a date, a region and the years it was current, and they disagree in eleven months
+            /// out of twelve. A gap is a subject the crate declined to ship, such as Japan's
+            /// day-by-day 誕生花 or Robert Graves's "Celtic tree calendar"; its columns about a list
+            /// are empty. A gap belongs to no subject here and is written only for the empty one. A
+            /// subject that is not one of the seven is `HC_ERR_UNKNOWN`.
+            ///
+            /// `subject` is `birthstone`, `birth-flower`, `moon-name`, `lunation-name`,
+            /// `month-name`, `zodiac-stone` or `weekday`, or empty for every list and every gap.
+            ///
+            /// One line each, the cells tab-separated: kind, subject, id, name, body, region,
+            /// region name, established, revised, valid from, valid until, provenance, key kind,
+            /// source, caveat, reason, explanation.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_attribution_authorities(subject: text(subject_len)) -> line =
+            $crate::attribution_lines::authorities_lines;
+
+        c {
+            /// What every list of a subject attributes to one key, as NUL-terminated UTF-8 lines in
+            /// a caller-owned buffer.
+            ///
+            /// One line per list. There is no line for "the" birthstone: a question about March has
+            /// six answers, and the last cell says whether they agree. A contested list's caveat is
+            /// on its line, and a caller who shows the answer should show it. A leap month is no
+            /// key: no tradition attributes anything to an intercalary one. A subject that is not
+            /// one of the seven is `HC_ERROR_UNKNOWN`, and a key outside its range is
+            /// `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// `subject` is one of the seven `hc_attribution_authorities` names. `key` is the month
+            /// from 1, the lunation from 1, the sign from Aries = 1, or the ISO weekday from Monday
+            /// = 1 to Sunday = 7.
+            ///
+            /// One line each, the cells tab-separated: subject, id, name, key, key kind,
+            /// attributions, count, gloss, valid from, valid until, provenance, caveat, agreed.
+            ///
+            /// A null name is `HC_ERROR_NULL_POINTER`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// What every list of a subject attributes to one key, as UTF-8 lines, returning the
+            /// byte length written.
+            ///
+            /// One line per list. There is no line for "the" birthstone: a question about March has
+            /// six answers, and the last cell says whether they agree. A contested list's caveat is
+            /// on its line, and a caller who shows the answer should show it. A leap month is no
+            /// key: no tradition attributes anything to an intercalary one. A subject that is not
+            /// one of the seven is `HC_ERR_UNKNOWN`, and a key outside its range is
+            /// `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `subject` is one of the seven `hc_attribution_authorities` names. `key` is the month
+            /// from 1, the lunation from 1, the sign from Aries = 1, or the ISO weekday from Monday
+            /// = 1 to Sunday = 7.
+            ///
+            /// One line each, the cells tab-separated: subject, id, name, key, key kind,
+            /// attributions, count, gloss, valid from, valid until, provenance, caveat, agreed.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_attributions(subject: name(subject_len), key: i64) -> line =
+            $crate::attribution_lines::attributions_lines;
+
+        c {
+            /// What every list attributes to the month, the weekday and the sign of a day, as
+            /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+            ///
+            /// The lines of `hc_attributions` for the birthstones, birth flowers, full-moon names,
+            /// month names, zodiac stones and weekday attributions, each list on its own line, the
+            /// subjects in that order; the lunation names are left out, because a day has no
+            /// lunation number without the March equinox of its year. The month is the Gregorian
+            /// month, the weekday its ISO weekday, and the sign the tropical sign the Sun is in at
+            /// the day, judged at the meridian, which a day whose sign changes within about ten
+            /// minutes of local midnight can move by a day. A meridian that is not read is
+            /// `HC_ERROR_UNKNOWN`, and a day outside the years −1000 to 3000 is
+            /// `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// `meridian` is `universal`, `japan`, `china`, `korea`, `india`, `china-before-1929`,
+            /// a longitude in degrees east, or empty for `universal`.
+            ///
+            /// One line each, the cells tab-separated: subject, id, name, key, key kind,
+            /// attributions, count, gloss, valid from, valid until, provenance, caveat, agreed.
+            ///
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// What every list attributes to the month, the weekday and the sign of a day, as UTF-8
+            /// lines, returning the byte length written.
+            ///
+            /// The lines of `hc_attributions` for the birthstones, birth flowers, full-moon names,
+            /// month names, zodiac stones and weekday attributions, each list on its own line, the
+            /// subjects in that order; the lunation names are left out, because a day has no
+            /// lunation number without the March equinox of its year. The month is the Gregorian
+            /// month, the weekday its ISO weekday, and the sign the tropical sign the Sun is in at
+            /// the day, judged at the meridian, which a day whose sign changes within about ten
+            /// minutes of local midnight can move by a day. A meridian that is not read is
+            /// `HC_ERR_UNKNOWN`, and a day outside the years −1000 to 3000 is
+            /// `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `meridian` is `universal`, `japan`, `china`, `korea`, `india`, `china-before-1929`,
+            /// a longitude in degrees east, or empty for `universal`.
+            ///
+            /// One line each, the cells tab-separated: subject, id, name, key, key kind,
+            /// attributions, count, gloss, valid from, valid until, provenance, caveat, agreed.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_attributions_on(fixed: i64, meridian: text(meridian_len)) -> line =
+            $crate::attribution_lines::attributions_on_lines;
+
+        c {
+            /// The Harvest Moon of a year, as NUL-terminated UTF-8 one line in a caller-owned
+            /// buffer.
+            ///
+            /// The Harvest Moon is the full moon nearest the September equinox, a rule and not a
+            /// table row: it falls in September in about three years of four and in October in the
+            /// rest. In 2025 it is 7 October, and September's full moon is the Corn Moon. The days
+            /// are judged at the meridian, and a full moon within about a minute of a day's end can
+            /// move by a day. A meridian that is not read is `HC_ERROR_UNKNOWN`, and a year outside
+            /// −999 to 3000 is `HC_ERROR_OUT_OF_RANGE`.
+            ///
+            /// `meridian` is `universal`, `japan`, `china`, `korea`, `india`, `china-before-1929`,
+            /// a longitude in degrees east, or empty for `universal`.
+            ///
+            /// Tab-separated: year, harvest moon, hunters moon, month, september moon, meridian,
+            /// source.
+            ///
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// The Harvest Moon of a year, as one UTF-8 line, returning the byte length written.
+            ///
+            /// The Harvest Moon is the full moon nearest the September equinox, a rule and not a
+            /// table row: it falls in September in about three years of four and in October in the
+            /// rest. In 2025 it is 7 October, and September's full moon is the Corn Moon. The days
+            /// are judged at the meridian, and a full moon within about a minute of a day's end can
+            /// move by a day. A meridian that is not read is `HC_ERR_UNKNOWN`, and a year outside
+            /// −999 to 3000 is `HC_ERR_OUT_OF_RANGE`.
+            ///
+            /// `meridian` is `universal`, `japan`, `china`, `korea`, `india`, `china-before-1929`,
+            /// a longitude in degrees east, or empty for `universal`.
+            ///
+            /// Tab-separated: year, harvest moon, hunters moon, month, september moon, meridian,
+            /// source.
+            ///
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_harvest_moon(year: i64, meridian: text(meridian_len)) -> line =
+            $crate::attribution_lines::harvest_moon_line;
     } };
     ("places", $backend:ident) => { $backend! {
         c {
