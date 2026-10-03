@@ -22,7 +22,8 @@
 //!
 //! The rule is held by a test in `crates/hc-holiday/tests/ids.rs`: every
 //! identifier is well formed, and one a rule sets itself is no other
-//! name's.
+//! name's. `docs/systems/holiday-ids.md` describes the identifiers and how
+//! they are carried at the boundary.
 
 use core::fmt::{self, Write as _};
 use core::hash::{Hash, Hasher};

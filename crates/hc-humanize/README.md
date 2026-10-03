@@ -131,8 +131,8 @@ CLDR 48 file, **generated**: `scripts/humanize-cldr.py` reads the files of
 the `release-48` tag, resolves each value in all three styles as CLDR does
 — a value a file marks `↑↑↑` is the parent file's, then what `root.xml`'s
 aliases give (narrow from short, short from long), and last the style's
-`other` — and writes `src/data/cldr48.rs`. Nothing here is a copy of
-CLDR's 600.
+`other` — and writes `src/data/cldr48.rs`. The files read are those of the
+39 locales above, not all of CLDR's; the others are not yet carried.
 
 The generator then applies one list, `src/data/cldr48_overrides.tsv`, 76
 values, each a value of CLDR's that a source argues against, with its

@@ -198,7 +198,8 @@ Not carried:
   December 1971), Nagaland 1963 (inaugurated 1 December 1963) and Goa 1961
   (under Indian rule from 19 December 1961) — or for the older states to
   1882, the Negotiable Instruments Act, 1881, having commenced on 1 March
-  1882 (Wikipedia's pages on each Act and "Maharashtra Day", and
+  1882 (Wikipedia's pages on each Act and "Maharashtra Day"
+  [wikipedia-india-reorganisation-acts], and
   [wikipedia-indian-state-formation], secondary, read 2026-09-29). Assam,
   Delhi, Himachal Pradesh, Jammu and Kashmir, Manipur and Tripura were
   provinces or princely states before they were states, and the year each
@@ -225,6 +226,7 @@ have parts left out, 12 of them Maharashtra's for 2026 by its own list.
 | --- | --- | --- |
 | [rbi-ni-act-holidays] | Every day carried, its description, the offices, and which parts of a description the list shows a state not keeping | Yes, 2026-09-29, each office's list for 2019 to 2026 through the page's form, and 2019 to 2024 again the same day, every row the same; the all-offices table for May 2026 and the Mumbai and Bhubaneswar lists for May 2026 again the same day |
 | [livenagpur-maharashtra-holidays-2026] | The names of Maharashtra's days in 2026 | Yes, 2026-09-29, secondary; the notification it reports, a gazette PDF, not read |
+| [wikipedia-india-reorganisation-acts] | The Negotiable Instruments Act, 1881, commenced 1 March 1882; the States Reorganisation Act, 1956; the Bombay and Andhra Pradesh reorganisation Acts: the years before which a state's holidays are absent | Yes, 2026-09-29, secondary |
 | [wikipedia-indian-state-formation] | The years the newer states and union territories were formed, before which their holidays are absent | Yes, 2026-09-29, secondary |
 | `hc-holiday`'s India table | The DoPT's nationwide list, beside which the states' days stand | This repository |
 

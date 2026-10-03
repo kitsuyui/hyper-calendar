@@ -721,7 +721,7 @@ pub static UNITED_ARAB_EMIRATES: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: AE_WEEKEND,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 10, 3),
     sources: "Federal Decree-Law No. 33 of 2021, article 28, on the public holidays the \
               Cabinet sets, as Gulf News reports it (secondary); Cabinet Resolution No. 27 of \
               2024 on the public holidays, Official Gazette No. 775, in force 1 January 2025, \
@@ -1518,7 +1518,7 @@ pub static BAHRAIN: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: BH_WEEKEND,
-    sources_checked: SourceDate::new(2026, 9, 22),
+    sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Law 36 of 2012, Labour Law for the Private Sector, art. 64, per the Labour \
               Market Regulatory Authority; HONO, a private aggregator (secondary), for its \
               2026 list of Bahrain's fourteen public \
@@ -1699,7 +1699,7 @@ pub static KUWAIT: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: KW_WEEKEND,
-    sources_checked: SourceDate::new(2026, 9, 22),
+    sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Law 6 of 2010, the Private Sector Labour Law, art. 68, as published in \
               English by the Public Authority of Manpower and summarised by Kuwait \
               Up To Date, retrieved 2026-09-22; the Arabic Wikipedia, \"قائمة العطل \
@@ -2296,7 +2296,7 @@ pub static ALGERIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: DZ_WEEKEND,
-    sources_checked: SourceDate::new(2026, 9, 22),
+    sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Law 23-10 of 26 June 2023 amending law 63-278 of 26 July 1963 fixing the list \
               of legal holidays, Journal officiel no. 43 of 27 June 2023; legal-doctrine.com, \
               \"Les jours fériés en Algérie\", for articles 1, 3 and 4 of law 63-278 and \
@@ -3325,7 +3325,7 @@ pub static OMAN: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: OM_WEEKEND,
-    sources_checked: SourceDate::new(2026, 9, 22),
+    sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Royal Decree 88/2022 Determining the Official Holidays and Royal Decree \
               15/2025 amending it, in Decree's translations (decree.om), retrieved \
               2026-09-22; Royal Decree 56/2020 on the same site; the Arabian Stories \
@@ -3417,7 +3417,7 @@ pub static QATAR: RuleSet = RuleSet {
     bridges: QA_BRIDGES,
     includes: &[],
     weekend: QA_WEEKEND,
-    sources_checked: SourceDate::new(2026, 9, 22),
+    sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Emiri Decision No. 57 of 2025 determining the working days, occasions and \
               official holidays in the State, and Cabinet Decision No. 18 of 2025 amending \
               Cabinet Decision No. 6 of 2008, as Al Meezan publishes them (almeezan.qa), \
@@ -4347,7 +4347,7 @@ pub static PALESTINE: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: FRIDAY_SATURDAY,
-    sources_checked: SourceDate::new(2026, 9, 23),
+    sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Palestinian National Information Centre (WAFA), \"العطل الرسمية في فلسطين\" \
               (info.wafa.ps/pages/details/29601), retrieved 2026-09-23, for the Council of \
               Ministers' 2025 tables, the fourth, the Samaritan employees', re-read \
@@ -4573,7 +4573,7 @@ pub static YEMEN: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: YE_WEEKEND,
-    sources_checked: SourceDate::new(2026, 9, 23),
+    sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Law No. 2 of 2000 determining the official leave and holidays, articles 3 to \
               7, from the Public Prosecution's legislation library (agoyemen.net), \
               retrieved 2026-09-23; Yemen Post (16 August 2013) on Council of Ministers \

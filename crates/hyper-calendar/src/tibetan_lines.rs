@@ -15,6 +15,10 @@
 //!
 //! A longitude or a weekday is written as the almanacs print it, the whole
 //! part and two sexagesimal places, `2;11,24`, and beside it as a decimal.
+//!
+//! `docs/systems/tibetan-almanac.md` describes the components, the planets
+//! and the Bhutanese solstice, and `docs/systems/tibetan-calendar-holidays.md`
+//! the festival rule for a skipped or repeated day.
 
 use alloc::string::String;
 

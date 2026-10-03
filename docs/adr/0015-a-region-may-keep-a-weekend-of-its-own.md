@@ -90,7 +90,7 @@ holiday rule, with the same codes.
   not thereby a region whose holidays were read:
   `RuleSet::reads_region` is unchanged, and Kedah's own days are still the
   gap `UNREAD_SUBDIVISION` until a source is read for them.
-- **At the boundary** the weekend is column 12 of `hc_holiday_tables`,
+- **At the boundary** the weekend is column 14 of `hc_holiday_tables`,
   which lists a table's weekend laws, each as the days, the first and last
   day in force and the regions, written out in
   [docs/systems/regional-weekends.md](../systems/regional-weekends.md).
@@ -110,7 +110,7 @@ holiday rule, with the same codes.
   sector's, which the federal Labour Law governs. A table that wants the
   weekend of both has to say which it carries; this one carries the
   government's.
-- The line shape changes: `hc_holiday_tables` has a twelfth column.
+- The line shape changes: `hc_holiday_tables` has a weekend column, its last (column 14).
 - Years before the earliest a source reaches are reported, not guessed;
   Kedah, Kelantan, Terengganu and Perlis before 25 November 2013, and
   Johor to 1994, are gaps.

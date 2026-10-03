@@ -899,7 +899,7 @@ pub static GENERAL_ROMAN_CALENDAR_1960: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 27),
+    sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Code of Rubrics approved by John XXIII's motu proprio Rubricarum instructum of \
               25 July 1960, General Rubrics nos. 10-36 (the Sundays after Epiphany resumed \
               after Pentecost, no. 18; the ferias of 17-23 December, no. 24) and 96, the \

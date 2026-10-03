@@ -306,20 +306,18 @@ locale no table names, `de` or `zh-Hans`, gets `en`.
   on: the holiday tables and the zone names read a country's name from it.
   The subdivisions, their names and their containment are the
   `place-names` feature on top, which only the `places` layer turns on.
-- **Sizes**, measured on 2026-09-29. The names are 2 594 289 bytes of
+- **Sizes**, measured on 2026-09-29 (the names) and 2026-10-03 (the layers). The names are 2 594 289 bytes of
   subdivision text (127 976 names, English's 5 399 included) and 232 003
   of territory text (13 306 names), with the line feeds; storing a name
   equal to English's as an empty line keeps 22 725 subdivision names and
   1 618 territory names out. The bits are 26 551 and 1 948 bytes, the
   codes 33 018 and 885, the containment 5 824 bytes of pairs and 688 of
-  bits. On 2026-09-29 the `places` layer of the WebAssembly module is
-  2 960 517 bytes, 857 904 gzipped (`gzip -9`) and 635 341 with Brotli
-  (`-q 11`). Dropping the old `territories` module's second copy of the
-  countries and carrying the 295 territories with their forms in its
-  place moved the `holiday` layer from 2 043 473 to 2 159 659 bytes
-  (+5.7 %) and `zone-names` from 1 522 408 to 1 639 641 (+7.7 %, the 184-day
-  rule of `docs/systems/zone-names.md` among it), and `full`, which carried
-  both copies, from 7 637 697 to 7 545 624 (−1.2 %).
+  bits. The `places` layer of the WebAssembly module is 2 968 604 bytes,
+  860 901 gzipped (`gzip -9`) and 637 841 with Brotli (`-q 11`). The
+  territories, with their forms, are carried once, in `hc-i18n`'s
+  `territories` feature, which the `holiday` layer (2 435 012 bytes) and
+  `zone-names` (1 651 483, the 184-day rule of `docs/systems/zone-names.md`
+  among it) read their countries' names from; `full` is 7 959 092 bytes.
   Sharing a string across locales was measured on 2026-09-28 and is not
   done: a line that pointed to another table's identical name for the
   same code would save 78 429 bytes of the text (2.8 %), and 31 879 of it
@@ -413,11 +411,11 @@ their names agree in some languages.
   before English's: Tibetan's missing names are Chinese, Sanskrit's Hindi.
   That is what CLDR's matching data says a reader of the one understands
   best; a caller that wants English instead asks for `en`.
-- **The unification changed no holiday name but where it should.** Before
-  the old `territories` module was dropped, every one of its names for
-  the 195 countries, in every carried locale and ten other tags, was
-  compared with this lookup at the release levels: they differed only
-  where a new table or a fallback answers, as the section above lists.
+- **The countries' names are this lookup's alone.** A holiday table's
+  name, in every carried locale and ten other tags, is the name this
+  lookup gives its country at the release levels, with a new table or a
+  fallback answering where CLDR has none, as the section above lists;
+  there is no second list of the 195 countries' names.
 - **The generator is checked against CLDR.**
   `python3 scripts/place-names-cldr.py --check` reads the release again
   and fails when the generated file differs.

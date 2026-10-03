@@ -205,7 +205,7 @@ León") is split between them.
 | Key | Used for | Read |
 | --- | --- | --- |
 | [es-rd-2001-1983] | Articles 45 and 46: the national days, the Monday rest, the communities' replacement, the local days | Yes, 2026-09-26 and 2026-09-29, the BOE's consolidated text |
-| [es-fiestas-2013] … [es-fiestas-2026] | Each year's annex: every community's days and marks, and the notes | Yes, 2026-09-29, the BOE's HTML text, for 2013–2015 and 2018–2026 |
+| [es-fiestas-2013], [es-fiestas-2014], [es-fiestas-2015], [es-fiestas-2019], [es-fiestas-2020], [es-fiestas-2021], [es-fiestas-2022], [es-fiestas-2023], [es-fiestas-2024], [es-fiestas-2025], [es-fiestas-2026] | Each year's annex: every community's days and marks, and the notes | Yes, 2026-09-29, the BOE's HTML text, for 2013–2015 and 2018–2026 |
 | [es-fiestas-2018] | The 2018 resolution's two corrections | Yes, 2026-09-29 |
 | [es-fiestas-2016-2017] | The 2016 and 2017 resolutions, whose annexes are images | The text read, the annexes not |
 | [es-fiestas-1994] | The 1994 annex, with its correction | Yes, 2026-09-29, the BOE's HTML text |

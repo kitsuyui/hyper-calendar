@@ -113,12 +113,12 @@ Highlights:
 - Allen's thirteen relations, their names and their symbols: James F. Allen,
   *Maintaining knowledge about temporal intervals*, CACM 26(11), 1983.
 - The uniform-distribution factor `w/√12`: JCGM 100:2008, the *GUM*, §4.3.7.
-- Rounding: NIST Guide to the SI (SP 811), Appendix B.7.1, rules 1 to 3, read
-  on nist.gov (HTML) on 2026-10-03; its examples 6.974 951 5 and
+- Rounding: NIST Guide to the SI (SP 811), Appendix B.7.1, rules 1 to 3
+  (`nist-sp811-b7`), read on nist.gov (HTML) on 2026-10-03; its examples 6.974 951 5 and
   6.974 950 5 are tests here. The even-digit rule on exactly one half is
   that source's; other conventions (round half up) exist and are not carried.
 - Two digits of the error bar, and the estimate rounded to match: GUM 7.2.6
-  (JCGM 100:2008), including its example 10.057 62 Ω with 27 mΩ reported as
+  (JCGM 100:2008, `jcgm100-gum-7-2-6`), including its example 10.057 62 Ω with 27 mΩ reported as
   10.058 Ω. **Not read from the source**: the JCGM's HTML at iso.org answered
   the fetch with a bot challenge and the PDF is not opened (policy), so the
   sentence and the example are as a search summary quoted them; the example
@@ -126,7 +126,8 @@ Highlights:
 - The Particle Data Group's variable rule (two digits of σ when its leading
   three digits are 100–354, one when 355–949, and 950–999 rounded up to 1000
   with two digits kept) was read only as a quotation of PDG 2011 §5.3 in the
-  r-quantities/errors issue 45 on GitHub; the PDG's own text is a PDF and was
+  r-quantities/errors issue 45 on GitHub (`pdg-rounding-quoted-errors-45`);
+  the PDG's own text is a PDF and was
   not opened. It is not implemented.
 - The two proleptic Gregorian Rata Die formulas, and the `1945-11-12 = RD
   710347` and `1970-01-01 = RD 719163` anchors used to test them: Reingold and

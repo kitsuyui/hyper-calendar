@@ -172,6 +172,7 @@ for the years above.
 | --- | --- | --- |
 | [bcp1662-vigils] | The Prayer Book's Ember Days after Lent 1, Pentecost, 14 September and 13 December, and the Rogation Days | Yes, the PDF, 2026-09-26 and 2026-09-27 |
 | [cw-rules] | *Common Worship*'s Ember Days before an ordination, its traditional weeks, and its Rogation Days | Yes, 2026-09-26 and 2026-09-27 |
+| [wikipedia-rogation-days] | The major rogation on 25 April and the minor on the three days before the Ascension, and Code of Rubrics no. 80 for the transfer of the major one | Yes, 2026-09-26, secondary |
 | [rubrics-1960] | Nos. 80 and 87, the Greater and Lesser Litanies | Yes, in English translation, 2026-09-26; the Latin not read |
 | [wikipedia-ember-days] | The older Western rule for the September week, John XXIII's change, the Episcopal Church's set, the Roman practice after 1969 | Yes, 2026-09-26 and 2026-09-27 (secondary) |
 | [cct-rcl] | The window of the First Sunday of Advent | Yes, the PDF, 2026-09-26 |

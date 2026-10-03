@@ -1053,8 +1053,13 @@ fn the_sgpc_days_of_2021_to_2026_are_reproduced() {
     // Hola Mohalla: SikhNet's SGPC lists for 2021 and 2026; dekho-ji for
     // 2022 and 2023; The Tribune, 27 March 2024; AIR, 15 March 2025.
     // Vaisakhi: The Tribune's reports of every year from 2010 to 2025 from
-    // Amritsar, Anandpur Sahib and Talwandi Sabo (tribune-baisakhi-2010 to
-    // -2025), The Week of 17 March 2025 and SikhNet's 2021 and 2026 lists;
+    // Amritsar, Anandpur Sahib and Talwandi Sabo (tribune-baisakhi-2010,
+    // tribune-baisakhi-2011, tribune-baisakhi-2012, tribune-baisakhi-2013,
+    // tribune-baisakhi-2014, tribune-baisakhi-2015, tribune-baisakhi-2016,
+    // tribune-baisakhi-2017, tribune-baisakhi-2018, tribune-baisakhi-2019,
+    // tribune-baisakhi-2020, tribune-baisakhi-2021, tribune-baisakhi-2022,
+    // tribune-baisakhi-2023, tribune-baisakhi-2024 and
+    // tribune-baisakhi-2025), The Week of 17 March 2025 and SikhNet's 2021 and 2026 lists;
     // 13 April in 2017, 2021 and 2025, when the saṅkrānti fell between
     // midnight and sunrise. Bandi Chhor Divas: the published days,
     // a day after Diwali in 2024 and 2025.

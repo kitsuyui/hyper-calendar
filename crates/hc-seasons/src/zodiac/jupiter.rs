@@ -5,8 +5,10 @@
 //! `hc-calendars-indic`) are set by Jupiter's sidereal sign. This module
 //! reads it from `hc_astro::jupiter`, the VSOP87B series for Jupiter, and the
 //! same ayanāṃśa the Sun's sidereal longitude takes ([`super::sidereal`]);
-//! `docs/systems/jupiter-festivals.md` has the worked examples and what the
-//! agreement with Drik Panchang's published entries comes to.
+//! `docs/systems/jupiter-ephemeris.md` has the position, the search for an
+//! ingress and its accuracy, and `docs/systems/jupiter-festivals.md` the
+//! worked examples and what the agreement with Drik Panchang's published
+//! entries comes to.
 //!
 //! # The longitude
 //!
@@ -423,7 +425,8 @@ pub fn entry_into(
 /// they are found once and each is tested against the rule in turn. The
 /// lines of the festivals found are identical to those of the signs asked
 /// for one by one, to the bit; what is saved is the walk, which is the whole
-/// cost (`docs/systems/jupiter-festivals.md` §Accuracy has the timings).
+/// cost (`docs/systems/jupiter-ephemeris.md`, §The search, and what it
+/// costs, has the timings).
 /// The search is lazy: an iterator that is dropped has searched no further
 /// than the entry it last gave and the ingress that follows it.
 #[must_use]
@@ -796,9 +799,8 @@ mod tests {
     }
 
     /// An ingress is one instant, to the last bit, whatever span it is asked
-    /// for: the span's start, which the walk began from and which used to
-    /// decide the bits, and its end, which used to clip the last step, change
-    /// nothing. The ingresses of a long span, and of spans that begin at a
+    /// for: neither the span's start, which the walk begins from, nor its end,
+    /// which would clip the last step, changes anything. The ingresses of a long span, and of spans that begin at a
     /// grid point, a hair after one, a day, days and months into it, and that
     /// end at all sorts of moments, are the same ingresses, each exactly.
     #[test]
