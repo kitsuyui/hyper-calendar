@@ -22,6 +22,15 @@ one (`Plural::english`), a translated one with its forms
 the catalogue's own `Plural-Forms` expression (`natural::gettext`), which
 this script copies as written.
 
+A catalogue also says which groups of messages it really translates
+(`NaturalPhrases::translated`): a group is translated only when every message
+in it has a non-empty translation that holds no raw placeholder (`%d`,
+`%(value)s`), which the catalogues of a few languages carry by mistake. The
+locale lookup (`NaturalPhrases::for_locale`) serves a function only from a
+catalogue that translates every message the function can write, so a result
+is never half in one language and half in another; the groups are those of
+`GROUPS` below, and the functions that need them are `natural::NaturalWords`.
+
 The ordinal suffixes are `pgettext` entries whose contexts read `3 (male)`;
 `apnumber`'s words, the names of the powers, the `%d Byte` and the sizes'
 suffixes are plain or plural messages.
@@ -171,19 +180,57 @@ def rust(text):
     return json.dumps(text, ensure_ascii=False)
 
 
+# The groups of messages a function needs, in the order of
+# `natural::Translated`'s fields.
+GROUPS = ['articles', 'units', 'fine_units', 'moments', 'list_last', 'ordinals',
+          'apnumber', 'powers', 'days', 'sizes']
+ARTICLES = {'a_moment', 'a_second', 'a_minute', 'an_hour', 'a_day', 'a_month', 'a_year',
+            'one_year_one_month', 'one_year_days', 'one_year_months'}
+UNITS = {'seconds', 'minutes', 'hours', 'days', 'months', 'years'}
+FINE_UNITS = {'microseconds', 'milliseconds'}
+MOMENTS = {'now', 'ago', 'from_now'}
+DAYS = {'today', 'tomorrow', 'yesterday'}
+SIZES = {'byte', 'bytes'}
+
+
+def group_of(field):
+    for group, fields in (('articles', ARTICLES), ('units', UNITS), ('fine_units', FINE_UNITS),
+                          ('moments', MOMENTS), ('days', DAYS), ('sizes', SIZES)):
+        if field in fields:
+            return group
+    raise SystemExit(f'no group for {field}')
+
+
+def has_placeholder(forms):
+    """A gettext placeholder in the translation of a word that takes none: the
+    translator copied `%d` or `%(value)s` from another message, where the crate
+    writes the number itself."""
+    return any('%' in form for form in forms)
+
+
 def phrases_for(name, kept, head, separators):
     out = []
     asked = ASKED
     english = 'NaturalPhrases::ENGLISH'
+    translated = {group: True for group in GROUPS}
+
+    def note(group, forms, raw=False):
+        """Record whether a message is translated. A translation of a message
+        with a number (`convert` has checked those) may hold `%d`; the words
+        that take no number, which are written as they stand (`raw`), may not."""
+        if not forms or (raw and has_placeholder(forms)):
+            translated[group] = False
 
     def simple(field, msgid, ctx=None):
         asked.add((ctx, msgid))
         forms = kept.get((ctx, msgid))
+        note(group_of(field), forms)
         return rust(convert(forms[0], msgid)) if forms else f'{english}.{field}'
 
     def plural(field, one, other):
         asked.add((None, one))
         forms = kept.get((None, one))
+        note(group_of(field), forms)
         if not forms:
             return f'{english}.{field}'
         listed = ', '.join(rust(convert(form, one)) for form in forms)
@@ -202,6 +249,7 @@ def phrases_for(name, kept, head, separators):
     out.append(f'        list_separator: {english}.list_separator,')
     asked.add((None, '%s and %s'))
     forms = kept.get((None, '%s and %s'))
+    note('list_last', forms)
     out.append('        list_last: ' + (rust(convert(forms[0], '%s and %s')) if forms else f'{english}.list_last') + ',')
     for gender in ('male', 'female'):
         field = 'ordinal_by_last_digit' + ('' if gender == 'male' else '_female')
@@ -210,12 +258,14 @@ def phrases_for(name, kept, head, separators):
             ctx = f'{digit} ({gender})'
             asked.add((ctx, msgid))
             forms = kept.get((ctx, msgid))
+            note('ordinals', forms, raw=True)
             cells.append(rust(forms[0]) if forms else f'{english}.{field}[{digit}]')
         out.append(f'        {field}: [{", ".join(cells)}],')
     powers = []
     for index, word in enumerate(POWERS):
         asked.add((None, word))
         forms = kept.get((None, word))
+        note('powers', forms, raw=True)
         powers.append(
             f'Plural::translated({rust(word)}, {rust(word)}, &[{", ".join(rust(f) for f in forms)}])'
             if forms else f'{english}.powers[{index}]')
@@ -224,6 +274,7 @@ def phrases_for(name, kept, head, separators):
     for index, word in enumerate(WORDS):
         asked.add((None, word))
         forms = kept.get((None, word))
+        note('apnumber', forms, raw=True)
         cells.append(rust(forms[0]) if forms else f'{english}.apnumber[{index}]')
     out.append('        apnumber: [' + ', '.join(cells) + '],')
     for field, msgids in (('size_decimal', DECIMAL), ('size_binary', BINARY)):
@@ -231,9 +282,12 @@ def phrases_for(name, kept, head, separators):
         for index, msgid in enumerate(msgids):
             asked.add((None, msgid))
             forms = kept.get((None, msgid))
+            note('sizes', forms)
             cells.append(rust(forms[0]) if forms else f'{english}.{field}[{index}]')
         out.append(f'        {field}: [{", ".join(cells)}],')
     out.append(f'        size_gnu: {english}.size_gnu,')
+    fields = ', '.join(f'{group}: {"true" if translated[group] else "false"}' for group in GROUPS)
+    out.append(f'        translated: Translated {{ {fields} }},')
     return out
 
 
@@ -269,7 +323,7 @@ def main():
         '//! compiled catalogue, because it is fuzzy or untranslated, is the English',
         '//! one here, as it is in Python.',
         '',
-        'use super::{Grouping, NaturalPhrases, Plural};',
+        'use super::{Grouping, NaturalPhrases, Plural, Translated};',
         '',
     ]
     consts = []

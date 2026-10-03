@@ -216,7 +216,8 @@ fn the_generated_file_carries_every_override_reason() {
 /// The decimal separator is the one of the digits `hc-i18n` writes the
 /// number in, CLDR 48's default system, which `scripts/humanize-cldr.py`
 /// reads too: `latn` for `ar`, whose `ar.xml` inherits root's, `arab`, ٫,
-/// for `ar-EG`, and `arabext` for `ur-IN`. A change of digits in `hc-i18n`
+/// for `ar-EG`, `arabext` for `fa`, `ps` and `ur-IN`, `beng` for `bn`, `deva`
+/// for `mr` and `ne`, and `mymr` for `my`. A change of digits in `hc-i18n`
 /// fails here, and the script's `NUMBERING` and its output then follow it.
 #[test]
 fn the_decimal_separator_belongs_to_the_digits_written() {
@@ -225,8 +226,10 @@ fn the_decimal_separator_belongs_to_the_digits_written() {
         let digits = hc_i18n::NumberingSystem::for_locale(&locale).id();
         let expected = match data.tag {
             "ar-EG" => "arab",
-            "ur-IN" => "arabext",
-            "mr" => "deva",
+            "fa" | "ps" | "ur-IN" => "arabext",
+            "bn" => "beng",
+            "mr" | "ne" => "deva",
+            "my" => "mymr",
             _ => "latn",
         };
         assert_eq!(digits, expected, "{}", data.tag);

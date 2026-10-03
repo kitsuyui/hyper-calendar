@@ -14,9 +14,9 @@
 //! file's list patterns, decimal separator and long `relative` date-time
 //! pattern, which UTS #35 Part 4 gives a relative date joined to a time.
 //! They are a subset: CLDR carries roughly 600 locales and this crate
-//! carries 39.
+//! carries 50.
 //!
-//! Every one of the 39 takes that part from its CLDR 48 file, generated:
+//! Every one of the 50 takes that part from its CLDR 48 file, generated:
 //! `scripts/humanize-cldr.py` resolves each value as CLDR resolves it and
 //! writes `data/cldr48.rs`, applying the documented overrides of
 //! `data/cldr48_overrides.tsv`, each a value of CLDR's that a source argues
@@ -56,7 +56,10 @@
 
 mod cldr48;
 
-use cldr48::{FIL, HA, MN, MR, PA_GURU, PCM, SW, TE, UR, UR_IN, YUE_HANS, YUE_HANT};
+use cldr48::{
+    AM, BN, FA, FIL, HA, HE, JV, ML, MN, MR, MY, NE, PA_GURU, PCM, PS, SW, SYR, TA, TE, UR, UR_IN,
+    YUE_HANS, YUE_HANT,
+};
 
 use crate::pattern::{
     ApproximatePatterns, ListForms, ListPatterns, LocaleData, PluralForms, StyleData, UnitPatterns,
@@ -1226,9 +1229,9 @@ const ZH_HANT_HK: LocaleData = regional(cldr48::ZH_HANT_HK, &ZH_HANT);
 ///
 /// Adding a language is one line here plus one `const` above.
 pub static LOCALES: &[LocaleData] = &[
-    AR, AR_EG, CS, CY, DE, EN, EN_001, EN_GB, ES, ES_419, FIL, FR, HA, HI, ID, IT, JA, KO, MN, MR,
-    NL, PA_GURU, PCM, PL, PT, PT_PT, RU, SW, TE, TH, TR, UR, UR_IN, VI, YUE_HANS, YUE_HANT, ZH,
-    ZH_HANT, ZH_HANT_HK,
+    AM, AR, AR_EG, BN, CS, CY, DE, EN, EN_001, EN_GB, ES, ES_419, FA, FIL, FR, HA, HE, HI, ID, IT,
+    JA, JV, KO, ML, MN, MR, MY, NE, NL, PA_GURU, PCM, PL, PS, PT, PT_PT, RU, SW, SYR, TA, TE, TH,
+    TR, UR, UR_IN, VI, YUE_HANS, YUE_HANT, ZH, ZH_HANT, ZH_HANT_HK,
 ];
 
 #[cfg(test)]

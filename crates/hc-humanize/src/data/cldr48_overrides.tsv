@@ -1,6 +1,6 @@
 # The documented overrides of hc-humanize's CLDR 48 data.
 #
-# scripts/humanize-cldr.py resolves every value of the 39 locales from its
+# scripts/humanize-cldr.py resolves every value of the locales from its
 # CLDR 48 file and then replaces the values listed here, writing each
 # reason above the value in src/data/cldr48.rs; docs/i18n.md lists them.
 # tests/cldr48_resolved.rs holds that every value differs from CLDR's own

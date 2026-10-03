@@ -612,7 +612,7 @@ one job a layer.
 | `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`, `hc_circad_date`: Mars time, the Darian date, the surface missions' sols, the solar day and local time of every body in `hc-planetary`'s table, and the dates of the Titan, Galilean and Martiana calendars | `hc-planetary`, `hc-astro` | 97,713 | 95 KiB |
 | `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies`, `hc_orbit_rate_offset`, `hc_rocket`, `hc_flip_and_burn`, `hc_doppler`, `hc_velocity_add`, `hc_schwarzschild_radius`, `hc_proper_time_uncertain` | `hc-relativity`, `hc-uncertainty` | 78,319 | 76 KiB |
 | `places` | `hc_territories`, `hc_subdivisions`, `hc_place_name`: what each carried locale calls every territory and every ISO 3166-2 subdivision CLDR 48 names | `hc-i18n`'s `place_names`: 2.8 MB of names, 2.6 MB of them the subdivisions' | 2,968,740 | 2.83 MiB |
-| `humanize` | `hc_relative_time`, `hc_relative_day`, `hc_relative_day_at`, `hc_duration`, `hc_unit_choice`, `hc_relative_time_with`, `hc_approximate_duration`: how one instant reads from another, which calendar day a day is seen from another, with a time of day, how long a span is, which unit a span is said in and a span hedged as a round number, in every locale `hc-humanize` carries, under the conversational thresholds or a table and a rounding of the caller's | `hc-humanize`, `hc-i18n` | 663,902 | 648 KiB |
+| `humanize` | `hc_relative_time`, `hc_relative_day`, `hc_relative_day_at`, `hc_duration`, `hc_unit_choice`, `hc_relative_time_with`, `hc_approximate_duration`: how one instant reads from another, which calendar day a day is seen from another, with a time of day, how long a span is, which unit a span is said in and a span hedged as a round number, in every locale `hc-humanize` carries, under the conversational thresholds or a table and a rounding of the caller's | `hc-humanize`, `hc-i18n` | 737,410 | 720 KiB |
 | `natural` | `hc_apnumber`, `hc_fractional`, `hc_scientific`, `hc_metric`, `hc_naturalsize`, `hc_naturallist`, `hc_intword`, `hc_naturaldelta`, `hc_naturaltime`, `hc_precisedelta`, `hc_naturalday`, `hc_naturaldate`, `hc_ordinal`, `hc_intcomma`, `hc_intcomma_float`: the number, size, list and time functions of Python's `humanize`, in the language of the catalogue (of its 35) that serves the locale | `hc-humanize`'s `natural` and its 35 gettext catalogues | 699,209 | 683 KiB |
 | `datetime` | `hc_parse_datetime`, `hc_format_datetime`, `hc_format_iso_date_as`, `hc_iso_date_parts`, `hc_iso_duration`, `hc_format_iso_duration`, `hc_iso_interval`: ISO 8601 beyond a calendar date, date-times with a zone read as readings and written in ISO 8601, RFC 3339, RFC 2822, HTTP and Python's `isoformat`, week and ordinal dates, dates of reduced accuracy, durations, intervals and repeating intervals | `hc-format` | 103,619 | 101 KiB |
 | `patterns` | `hc_parse_pattern`, `hc_parse_pattern_in`: a text read against a POSIX `strptime`, Python `strptime` or CLDR pattern, in the C locale's names or a locale's | `hc-format`'s `patterns`, and every carried locale's names from `hc-i18n` | 441,483 | 431 KiB |
@@ -6235,7 +6235,11 @@ gives them. `style` is `long`, `short` or `narrow`, CLDR's widths, and
 for a duration `compact` as well. A locale that does not parse, and the
 empty one, is the root locale, whose phrases are CLDR's `root.xml`'s,
 `-1 d`, not English's; the binding's methods default to it, so a page
-passes the reader's locale.
+passes the reader's locale. A locale `hc-i18n` carries that has no phrases
+(`aeb-Latn`, `ayl-Latn`, `ban`, `bo`, `cop`, `kab`, `mid`, `mix`, `nah`,
+`pa-Arab`, `rif`, `sa`, `shi-Latn`, `yua`, `zap`, `zgh`: CLDR 48 has no file, or no pattern, or only
+draft ones for them) is `HC_ERR_NO_DATA` from the relative-time, relative-day,
+duration, unit-choice and approximate-duration exports, never the root's.
 
 ### Relative time
 
@@ -6381,8 +6385,10 @@ script (`zh-Hant` is `zh_HK`, the one Traditional catalogue). A bare
 language with two catalogues, `pt`, picks neither: no region is guessed. A
 catalogue the `humanize` project has only part translated holds the English
 of the source for what it lacks, so a catalogue is passed over, for the next
-step of the chain and then English, when it does not translate the words of
-the function asked: the German catalogue has *fünf* and *Millionen* and
+step of the chain and then English, when it does not translate every word of
+the function asked (the German catalogue lacks *milliseconds*, so `de` writes
+`hc_naturaltime` with a minimum unit below the second in English, and a
+catalogue that writes a raw `%d` for a word is not served): the German catalogue has *fünf* and *Millionen* and
 *vor 3 Sekunden*, but no *Byte* or `kB`, and so `hc_naturalsize` in `de` is
 English whole, never *3.0 MB* with a German word beside it. The root locale,
 the empty one and a tag that does not parse have no catalogue and are

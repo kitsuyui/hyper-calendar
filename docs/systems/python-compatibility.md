@@ -107,10 +107,20 @@ expression is evaluated as written (`natural::gettext`).
   functions in the parity table, and every function with words at the boundary
   in the `natural` layer, in the catalogue that serves the locale. A locale
   resolves along its fallback chain to the first catalogue that is for it and
-  translates the words of the function asked: a catalogue holds the English of
-  the source for a message it lacks, so the German catalogue, which has *fünf*
-  and *Millionen* and no *Byte*, serves `apnumber` and `intword` and not
-  `naturalsize`, and a result is never written in two languages. `natural_list`
+  translates *every* message the function can write: a catalogue holds the
+  English of the source for a message it lacks, and a few hold a raw `%d` or
+  `%(value)s` for a word that takes no number (Korean, Bengali and Vietnamese
+  in the powers), so a message that is empty, fuzzy or a raw placeholder in
+  the `.po` file counts as untranslated. The German catalogue, which has
+  *fünf* and *Millionen* and no *Byte*, serves `apnumber` and `intword` and
+  not `naturalsize`; Japanese, which leaves *now*, *a moment* and the *and* of
+  a list untranslated, serves `naturalday` and `ordinal` but not
+  `naturaltime`, `naturaldelta` or `precisedelta`, which are then English
+  whole, as are `precisedelta` in Korean, Simplified Chinese and Slovak. The
+  fine units (*milliseconds*, *microseconds*) are needed only when the
+  minimum unit is below the second. The language cell of every line says
+  which catalogue wrote it, `en` where none serves, so a result is never
+  written in two languages. `natural_list`
   is in no catalogue (its `, ` and ` and ` are literals in `lists.py`), so every
   locale gets English for it. *Not carried*: the behaviour `main` changed after
   the release (listed in the parity document), the parsing of strings into
@@ -148,6 +158,17 @@ every disagreement was either fixed or is listed in the parity document.
   `naturaltime`, `naturaldelta`, `precisedelta`, `ordinal` of both genders,
   `apnumber`, `intword`, `naturalsize` and `intcomma`; 154 000 random cases
   over the 35, none different.
+- **One language in a result**: `crates/hc-humanize/tests/serving.rs` runs
+  every function that writes words (`naturaldelta`, `naturaltime` and
+  `precisedelta`, each with and without a minimum unit below the second,
+  `apnumber`, `intword`, `naturalsize`, `naturalday`, `ordinal` of both
+  genders) over every locale `hc-i18n` carries, the language of every
+  catalogue with and without a region and a few chains (`de-AT`, `pt-AO`,
+  `zh-Hant-TW`, `no`), and holds each result either to the English of the
+  source, character for character, or to the words of one catalogue with no
+  English word of the source left in it and no raw placeholder; the same
+  holds of the boundary lines in `hyper-calendar`. The catalogues' groups of
+  translated messages are generated from the `.po` files with the catalogues.
 - **`strptime`**: CPython 3.12.14 over about 400 000 random patterns and texts
   and 233 hand-picked ones. The only disagreements are the accepted
   differences above (a year beyond 9999, a leap second), and CPython 3.14's

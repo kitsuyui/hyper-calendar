@@ -8716,7 +8716,9 @@ macro_rules! exports {
             /// own word for an offset where it has one, *yesterday*. `locale` is a
             /// NUL-terminated BCP 47 tag, or null for the root locale, whose
             /// phrases are CLDR's `root.xml`'s, `-1 d`; one that does not parse is
-            /// the root locale too. Two instants further apart
+            /// the root locale too. A locale `hc-i18n` carries that has no phrases
+            /// (`bo`, `kab`, `pa-Arab` and thirteen more) is `HC_ERROR_NO_DATA`, not the
+            /// root's. Two instants further apart
             /// than an `int64_t` of seconds are `HC_ERROR_OUT_OF_RANGE`. Writes the
             /// required length, including the terminator, into `written`.
         }
@@ -8738,7 +8740,9 @@ macro_rules! exports {
             /// `Intl.RelativeTimeFormat`'s `numeric: "auto"`; zero always the
             /// numeric pattern. `locale` fails as for `hc_parse_iso_date`; the
             /// empty string, and a tag that does not parse, is the root locale,
-            /// whose phrases are CLDR's `root.xml`'s, `-1 d`, not English's. Two
+            /// whose phrases are CLDR's `root.xml`'s, `-1 d`, not English's. A
+            /// locale `hc-i18n` carries that has no phrases (`bo`, `kab`,
+            /// `pa-Arab` and ten more) is `HC_ERR_NO_DATA`, not the root's. Two
             /// instants further apart than an `i64` of seconds are
             /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
             /// needs.
@@ -9006,7 +9010,7 @@ macro_rules! exports {
             /// `locale` is a BCP 47 tag, the empty string or a tag that does not
             /// parse being the root locale, which has no catalogue and so writes
             /// English: the first step of its fallback chain that one of the 35
-            /// `humanize` catalogues is for and that translates the numerals serves
+            /// `humanize` catalogues is for and that translates every numeral serves
             /// (`pt-AO` is `pt-PT`, `zh-Hant` is `zh-HK`); a bare language with two
             /// catalogues, `pt`, picks neither and a language with none is English;
             /// the second cell is the language of the catalogue used, `ru-RU`, `en`,
@@ -9213,7 +9217,7 @@ macro_rules! exports {
             /// `locale` is a BCP 47 tag, the empty string or a tag that does not
             /// parse being the root locale, which has no catalogue and so writes
             /// English: the first step of its fallback chain that one of the 35
-            /// `humanize` catalogues is for and that translates the words of the powers serves
+            /// `humanize` catalogues is for and that translates every word of the powers serves
             /// (`pt-AO` is `pt-PT`, `zh-Hant` is `zh-HK`); a bare language with two
             /// catalogues, `pt`, picks neither and a language with none is English;
             /// the second cell is the language of the catalogue used, `ru-RU`, `en`,
@@ -9267,7 +9271,7 @@ macro_rules! exports {
             /// `HC_ERR_OUT_OF_RANGE`.
             /// `locale` is read as for `hc_apnumber`: the first step of its fallback
             /// chain that one of the 35 `humanize` catalogues is for and that
-            /// translates the units serves, a bare language with two catalogues, `pt`, and
+            /// translates every word of the function (the units, *ago*, *and*, the fine units below a second) serves, a bare language with two catalogues, `pt`, and
             /// a language with none are English, and the second cell is the language
             /// of the catalogue used, never a mixture. It fails as for
             /// `hc_parse_iso_date`.
@@ -9352,7 +9356,7 @@ macro_rules! exports {
             /// Python.
             /// `locale` is read as for `hc_apnumber`: the first step of its fallback
             /// chain that one of the 35 `humanize` catalogues is for and that
-            /// translates the units serves, a bare language with two catalogues, `pt`, and
+            /// translates every word of the function (the units, *ago*, *and*, the fine units below a second) serves, a bare language with two catalogues, `pt`, and
             /// a language with none are English, and the second cell is the language
             /// of the catalogue used, never a mixture. It fails as for
             /// `hc_parse_iso_date`.
@@ -9471,7 +9475,7 @@ macro_rules! exports {
             /// in any case; another, the empty string included, is `HC_ERR_UNKNOWN`.
             /// `locale` is read as for `hc_apnumber`: the first step of its fallback
             /// chain that one of the 35 `humanize` catalogues is for and that
-            /// translates the suffixes serves, a bare language with two catalogues, `pt`, and
+            /// translates *Byte* and every suffix serves, a bare language with two catalogues, `pt`, and
             /// a language with none are English, and the second cell is the language
             /// of the catalogue used, never a mixture. It fails as for
             /// `hc_parse_iso_date`.

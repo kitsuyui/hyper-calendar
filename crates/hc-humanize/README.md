@@ -49,9 +49,13 @@ the googol through `intword_digits`, which takes an integer of any length.
 finds the one catalogue of a language that has exactly one.
 `NaturalPhrases::for_locale(&locale, NaturalWords::Intword)` chooses the one
 that serves a locale: the first step of its fallback chain that a catalogue
-is for and that translates those words, English where none does, since a
-catalogue holds the English of the source for a message it lacks and a result
-must not be written in two languages. A plural message
+is for and that translates *every* message the function can write
+(`NaturalPhrases::translates`), English whole where none does, since a
+catalogue holds the English of the source for a message it lacks and a few
+write a raw `%d` or `%(value)s` for a word; a result must not be written in
+two languages. The generator records which groups of messages each catalogue
+translates (`NaturalPhrases::translated`), and a test runs every function
+over every locale and catalogue. A plural message
 is chosen by the catalogue's own `Plural-Forms` expression, evaluated as
 written (`natural::gettext`) and not by CLDR's categories, since the two
 disagree for some languages and for some counts; a message the catalogue
@@ -109,9 +113,18 @@ style, every `other` pattern able to take a number, no padded strings, no
 placeholder in a special word, list patterns shaped `{0}<glue>{1}`, and a
 language `hc-i18n` has plural rules for.
 
-Locales shipped, 39 of them: `ar ar-EG cs cy de en en-001 en-GB es es-419
-fil fr ha hi id it ja ko mn mr nl pa-Guru pcm pl pt pt-PT ru sw te th tr ur
-ur-IN vi yue-Hans yue-Hant zh zh-Hant zh-Hant-HK`. The regional entries take
+Locales shipped, 50 of them: `am ar ar-EG bn cs cy de en en-001 en-GB es
+es-419 fa fil fr ha he hi id it ja jv ko ml mn mr my ne nl pa-Guru pcm pl ps
+pt pt-PT ru sw syr ta te th tr ur ur-IN vi yue-Hans yue-Hant zh zh-Hant
+zh-Hant-HK`. Every locale `hc-i18n` carries is among them or
+answers `NoPattern` here (`NoData` at the boundary), never the root's
+`-5 h`: `aeb-Latn`, `ayl-Latn`, `ban`, `cop`, `mid`, `mix`, `nah`, `rif`, `yua`
+and `zap` have no `common/main` file in CLDR 48, `bo`, `pa-Arab`, `sa`,
+`shi-Latn` and `zgh` have a file with no relative-time pattern, and `kab`'s
+are all draft `unconfirmed`, below the `contributed` level the generator
+accepts; a
+language `hc-i18n` does not carry answers with the root's language-free
+phrases, which is CLDR's own resolution for it. The regional entries take
 their CLDR part from their own files and everything CLDR has no field for
 from their language's entry, so that `en-GB` writes *1 hour, 2 minutes and
 3 seconds* and *3 mo ago*, as `en_001.xml` has them, and `zh-HK` *3 星期前*.
@@ -121,7 +134,7 @@ Cantonese or Punjabi tag and CLDR's `parentLocales`, so `zh-Hans` and
 `zh-MO` `zh-Hant-HK`, `en-AU` and `en-IN` reach `en-001` and `es-MX`
 `es-419`, `yue-CN` reaches `yue-Hans`, and
 `pa` reaches `pa-Guru`; `pa-PK`, Punjabi in the Arabic script, whose CLDR
-file states no fields, reaches root.
+file states no fields, is `NoPattern`.
 
 ## Accuracy and provenance
 
@@ -131,13 +144,13 @@ The relative-time phrases follow the Unicode CLDR `<fields>` section of
 patterns, the decimal separator of the digits `hc-i18n` writes and its
 long `relative` date-time pattern, which UTS #35 Part 4 gives a relative
 date with a time (*yesterday at 15:05*; `es` *ayer, 15:05*, not its
-`atTime` *ayer a las 15:05*). All 39 locales take that part from their
+`atTime` *ayer a las 15:05*). All 50 locales take that part from their
 CLDR 48 file, **generated**: `scripts/humanize-cldr.py` reads the files of
 the `release-48` tag, resolves each value in all three styles as CLDR does
 — a value a file marks `↑↑↑` is the parent file's, then what `root.xml`'s
 aliases give (narrow from short, short from long), and last the style's
 `other` — and writes `src/data/cldr48.rs`. The files read are those of the
-39 locales above, not all of CLDR's; the others are not yet carried.
+50 locales above, not all of CLDR's; the others are not yet carried.
 
 The generator then applies one list, `src/data/cldr48_overrides.tsv`, 76
 values, each a value of CLDR's that a source argues against, with its
@@ -220,9 +233,11 @@ and quarter means are exact integers too. A day is the nominal 86 400 s.
 - **`ar`, `hi` and `th` state no compact suffixes**, so `DurationStyle::Compact`
   falls back to the root's Latin ones. Inside right-to-left text that needs
   bidi isolation the compact form does not carry; use `Narrow` there.
-- **The root entry is language-free**, not English: an unknown locale gets
-  `-3 d`, which is what CLDR's root says. An unknown locale that answered in
-  English would be a bug only a speaker of the missing language could see.
+- **The root entry is language-free**, not English: a language `hc-i18n` does
+  not carry gets `-3 d`, which is what CLDR's root says. One that answered in
+  English would be a bug only a speaker of the missing language could see. A
+  locale `hc-i18n` carries that has no phrases here is `NoPattern`, not the
+  root's `-3 d`.
 
 ## No allocator needed
 
