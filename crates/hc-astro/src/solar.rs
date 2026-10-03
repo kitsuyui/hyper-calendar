@@ -52,13 +52,31 @@ pub fn geometric_solar_ecliptic_at_centuries(centuries: f64) -> (f64, f64, f64) 
         crate::vsop87::earth_heliocentric(centuries / 10.0);
     let longitude = normalize_degrees(earth_longitude * RAD_TO_DEG + 180.0);
     let latitude = -earth_latitude * RAD_TO_DEG;
-    // From VSOP87's dynamical ecliptic to the FK5 frame: a constant shift in
-    // longitude and a small periodic one in latitude.
+    let (fk5_longitude, fk5_latitude) = fk5_from_dynamical(longitude, latitude, centuries);
+    (normalize_degrees(fk5_longitude), fk5_latitude, radius)
+}
+
+/// The constant shift in longitude from VSOP87's dynamical ecliptic to the
+/// FK5 frame, 0.09033″ (Meeus 32.3).
+const FK5_LONGITUDE_SHIFT_ARCSECONDS: f64 = 0.090_33;
+
+/// The amplitude of the periodic shift in latitude to the FK5 frame,
+/// 0.03916″ (Meeus 32.3).
+const FK5_LATITUDE_AMPLITUDE_ARCSECONDS: f64 = 0.039_16;
+
+/// A longitude and latitude in degrees in VSOP87's dynamical ecliptic of the
+/// date, moved to the FK5 frame: a constant shift in longitude and a small
+/// periodic one in latitude, Meeus 32.3, at `centuries` from J2000.0. The
+/// longitude comes back unreduced. The Sun's position here and Jupiter's in
+/// `crate::jupiter` both pass through this one function.
+pub(crate) fn fk5_from_dynamical(longitude: f64, latitude: f64, centuries: f64) -> (f64, f64) {
     let lambda_prime = longitude - 1.397 * centuries - 0.000_31 * centuries * centuries;
-    let fk5_longitude = normalize_degrees(longitude - 0.090_33 / 3_600.0);
-    let fk5_latitude =
-        latitude + 0.039_16 / 3_600.0 * (cos_deg(lambda_prime) - sin_deg(lambda_prime));
-    (fk5_longitude, fk5_latitude, radius)
+    (
+        longitude - FK5_LONGITUDE_SHIFT_ARCSECONDS / 3_600.0,
+        latitude
+            + FK5_LATITUDE_AMPLITUDE_ARCSECONDS / 3_600.0
+                * (cos_deg(lambda_prime) - sin_deg(lambda_prime)),
+    )
 }
 
 /// The Sun's geometric ecliptic latitude in degrees: never more than about

@@ -212,9 +212,9 @@ impl DeepTime {
     /// Build a magnitude from seconds, letting the error bar fix the figure
     /// count.
     ///
-    /// The rule is the Particle Data Group's: the uncertainty is quoted to two
-    /// digits and fixes the last significant place of the value. An exact
-    /// input claims every digit `f64` can carry.
+    /// The rule is CODATA's, the one of [`Uncertain::to_significant`]: the
+    /// uncertainty is quoted to two digits and fixes the last significant
+    /// place of the value. An exact input claims every digit `f64` can carry.
     ///
     /// # Errors
     ///
@@ -667,7 +667,7 @@ impl fmt::Display for DeepTime {
     ///
     /// The central value is printed through [`Significant`], so it never shows
     /// a digit the source did not claim, and the uncertainty is printed to two
-    /// digits, which is the Particle Data Group's table convention.
+    /// digits, which is CODATA's table convention.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match Significant::new(self.seconds.value, self.figures) {
             Ok(value) => write!(f, "{value} s")?,

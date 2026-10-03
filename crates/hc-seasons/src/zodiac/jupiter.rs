@@ -28,7 +28,7 @@
 
 use hc_astro::jupiter::{self, DEFAULT_TRUNCATION};
 use hc_calendar::fixed::Moment;
-use hc_core::math::{floor, modulo, normalize_degrees, signed_degrees};
+use hc_core::math::{floor, normalize_degrees, signed_degrees};
 
 use super::sidereal::{Ayanamsa, SiderealSign};
 use super::{DEGREES_PER_SIGN, SIGNS_PER_ZODIAC};
@@ -634,7 +634,7 @@ fn elongation_falls_through(target: f64, from: Moment) -> Option<Moment> {
     // that follows it.
     let mut here = elongation(Moment(at));
     while at < from.0 + 800.0 {
-        let to_go = modulo(here - target, 360.0);
+        let to_go = normalize_degrees(here - target);
         let cells = floor(0.8 * to_go / 1.3 / ELONGATION_GRID_DAYS).max(1.0);
         let next = at + cells * ELONGATION_GRID_DAYS;
         let there = elongation(Moment(next));

@@ -37,11 +37,20 @@
 //! state both.
 //!
 //! Not exact beyond the astronomy either. The equinox instant comes from
-//! `hc-astro` to within seconds, so a year whose equinox falls within
-//! [`TOLERANCE_MINUTES`] of noon is a year this calendar decides by a model
-//! where the country decided by an ephemeris. [`new_year_margin`] says how
-//! close the call was; 1309 (21 March 1930) is such a year, its equinox
-//! about ten seconds before 08:30 UT.
+//! `hc-astro` in Terrestrial Time to within seconds, and its Universal Time
+//! is that less ΔT, which is a fit to the historical record: the two models
+//! `hc-astro` carries put the equinox up to 80 s apart in the 600s, 190 s
+//! in the 1200s and 1300s, 94 s in the 1500s, 5 s in the 1700s and 1800s
+//! and 1 s in the 1900s. So a year whose equinox falls within
+//! [`tolerance_minutes`] of noon, a minute for the Sun plus that
+//! disagreement, is a year this calendar decides by a model where the
+//! country decided by an ephemeris. [`new_year_margin`] says how close the
+//! call was; 1309 (21 March 1930) is such a year, its equinox about ten
+//! seconds before 08:30 UT, and so are 265, 426, 459, 525, 686, 719, 1144,
+//! 1701 and 2159, ten in all. The years 166, 525, 686, 719, 1111 and 1210
+//! have margins between one and four minutes: of those, 525, 686 and 719
+//! lie inside the ΔT disagreement, and 166, 1111 and 1210 do not.
+//! Before 1925 the rule is also a projection: Iran adopted it that year.
 //!
 //! The month names in Persian script are the ones the arithmetic module
 //! declares, [`hc_calendars_solar::persian::MONTHS`], and the date type is
@@ -72,11 +81,70 @@ pub const MIN_YEAR: i64 = 1;
 /// 3000 — as far as the astronomy behind it is worth asking.
 pub const MAX_YEAR: i64 = 3_000 - GREGORIAN_YEAR_OFFSET;
 
-/// How close, in minutes, an equinox may fall to noon before this calendar
-/// is deciding by a model rather than by the sky. The noon is a clock time
-/// and exact; the equinox is placed to seconds; what is left is ΔT and the
-/// truncation of the solar series, and a minute covers them many times over.
+/// The floor of [`tolerance_minutes`]: how close, in minutes, an equinox may
+/// fall to noon before this calendar is deciding by a model rather than by
+/// the sky, **where ΔT is known well**: the years since 1925, and the
+/// centuries the two ΔT models carried agree on to a few seconds. The noon
+/// is a clock time and exact; the equinox is placed to seconds; what is left
+/// is the truncation of the solar series, and a minute covers it many times
+/// over. Earlier the error is ΔT's, and [`tolerance_minutes`] adds it.
 pub const TOLERANCE_MINUTES: f64 = 1.0;
+
+/// The decimal Gregorian year at which the March equinox of a Gregorian
+/// year falls, near enough to read ΔT at: 20 March is 22 % of the way
+/// through the year.
+const EQUINOX_YEAR_FRACTION: f64 = 0.22;
+
+/// How far apart, in minutes, the two ΔT models `hc-astro` carries,
+/// `espenak-meeus-2006` (the one the equinox is placed with) and
+/// `morrison-stephenson-2021`, put the equinox that begins `year`.
+///
+/// The equinox is placed in Terrestrial Time and brought to Universal Time
+/// by subtracting ΔT, so a model's ΔT moves the instant, and so the margin,
+/// one for one. Zero where the second model does not answer (after 2019) or
+/// where both read the observed table (since 1974); the second model is
+/// silent there, so nothing is known about ΔT's error in the future from
+/// this. Measured on 2026-10-03 over the Solar Hijri years 1 to 1304 the
+/// largest difference in each Gregorian century is 80 s in the 600s, 53 s
+/// in the 700s, 29 s in the 800s, 76 s in the 900s, 134 s in the 1000s,
+/// 178 s in the 1100s, 190 s in the 1200s, 189 s in the 1300s, 160 s in
+/// the 1400s, 94 s in the 1500s, 16 s in the 1600s, 5 s in the 1700s, 5 s
+/// in the 1800s and 1 s in the 1900s.
+fn delta_t_spread_minutes(year: i64) -> f64 {
+    use hc_astro::time::delta_t_for_year_with;
+    use hc_astro::{ESPENAK_MEEUS_2006, MORRISON_STEPHENSON_2021};
+    let decimal_year = (year + GREGORIAN_YEAR_OFFSET) as f64 + EQUINOX_YEAR_FRACTION;
+    match (
+        delta_t_for_year_with(decimal_year, &ESPENAK_MEEUS_2006),
+        delta_t_for_year_with(decimal_year, &MORRISON_STEPHENSON_2021),
+    ) {
+        (Some(first), Some(second)) => (first - second).abs() / 60.0,
+        _ => 0.0,
+    }
+}
+
+/// How close, in minutes, the equinox that begins `year` may fall to the
+/// deciding noon before the year is decided here by a model: the floor
+/// [`TOLERANCE_MINUTES`] for the Sun and the series, plus the two ΔT
+/// models' disagreement about that equinox, which is the error that grows
+/// as the year recedes.
+///
+/// It is 1 minute from 1974 and just over 4 minutes at the largest, in
+/// the 1200s and 1300s, and between those it follows the centuries
+/// measured in `delta_t_spread_minutes`. The two models are two fits to one
+/// historical record, so their difference is a lower bound on ΔT's real
+/// error, which is not known from them.
+///
+/// # Errors
+///
+/// Returns [`CalendarError::YearOutOfRange`] outside
+/// [`MIN_YEAR`]..=[`MAX_YEAR`].
+pub fn tolerance_minutes(year: i64) -> CalendarResult<f64> {
+    if !(MIN_YEAR..=MAX_YEAR).contains(&year) {
+        return Err(CalendarError::YearOutOfRange);
+    }
+    Ok(TOLERANCE_MINUTES + delta_t_spread_minutes(year))
+}
 
 /// The fraction of a Universal Time day at which noon, Iran Standard Time,
 /// falls: 08:30 UT.
@@ -277,8 +345,9 @@ pub fn new_year(year: i64) -> CalendarResult<Rd> {
 /// (Nowruz is the equinox day), negative when after (Nowruz is the day
 /// after).
 ///
-/// The astronomy is good to a few minutes, so a year whose margin is
-/// smaller than that is a year this calendar decides by a model.
+/// A year whose margin is smaller than [`tolerance_minutes`] is a year this
+/// calendar decides by a model: a minute for the Sun, plus ΔT's share, up
+/// to four minutes in the thirteenth century.
 ///
 /// # Errors
 ///
@@ -511,6 +580,72 @@ mod tests {
         }
         for year in [1_177, 1_635] {
             assert_ne!(persian_33::to_fixed(year, 1, 1), new_year(year), "{year}");
+        }
+    }
+
+    #[test]
+    fn the_tolerance_is_a_minute_plus_the_two_delta_t_models_disagreement() {
+        // Where the observed ΔT table answers, from 1974 (SH 1353), both
+        // models read it and the tolerance is the floor.
+        assert_eq!(tolerance_minutes(1_404), Ok(TOLERANCE_MINUTES));
+        assert_eq!(tolerance_minutes(1_353), Ok(TOLERANCE_MINUTES));
+        // The two models differ by up to 190 s in the 1200s and 1300s
+        // (`docs/systems/jalali.md`, measured 2026-09-29, and again here):
+        // SH 657 is AD 1278, where it is 190.2 s, so 1 + 3.17 minutes.
+        let widest = tolerance_minutes(657).unwrap();
+        assert!((widest - (1.0 + 190.2 / 60.0)).abs() < 0.02, "{widest}");
+        // In no year does it fall below the floor or pass four and a
+        // quarter minutes, and it is never smaller than the disagreement.
+        let mut largest = 0.0f64;
+        for year in MIN_YEAR..=MAX_YEAR {
+            let tolerance = tolerance_minutes(year).unwrap();
+            assert!(tolerance >= TOLERANCE_MINUTES, "{year}");
+            assert!(tolerance < 4.25, "{year}: {tolerance}");
+            largest = largest.max(tolerance);
+        }
+        assert!(
+            (largest - widest).abs() < 0.05,
+            "{largest} against {widest}"
+        );
+        // From the 1700s (SH 1080) on it is within a few seconds of the
+        // floor, so the modern calendar's minute stands.
+        for year in 1_100..=1_352 {
+            assert!(tolerance_minutes(year).unwrap() < 1.1, "{year}");
+        }
+        assert_eq!(tolerance_minutes(0), Err(CalendarError::YearOutOfRange));
+        assert_eq!(
+            tolerance_minutes(MAX_YEAR + 1),
+            Err(CalendarError::YearOutOfRange)
+        );
+    }
+
+    #[test]
+    fn the_years_the_model_decides_are_ten() {
+        // Years whose equinox falls within `tolerance_minutes` of 08:30 UT,
+        // measured on 2026-10-03 over the whole range. With the flat minute
+        // this module had before, the list was 265, 426, 459, 1144, 1309,
+        // 1701 and 2159 and the docs named only 1309; ΔT's disagreement
+        // adds 525, 686 and 719, whose margins are 3.0 to 3.6 minutes.
+        let decided: Vec<i64> = (MIN_YEAR..=MAX_YEAR)
+            .filter(|year| {
+                new_year_margin(*year).unwrap().abs() < tolerance_minutes(*year).unwrap()
+            })
+            .collect();
+        assert_eq!(
+            decided,
+            [265, 426, 459, 525, 686, 719, 1144, 1309, 1701, 2159]
+        );
+        let flat: Vec<i64> = (MIN_YEAR..=MAX_YEAR)
+            .filter(|year| new_year_margin(*year).unwrap().abs() < TOLERANCE_MINUTES)
+            .collect();
+        assert_eq!(flat, [265, 426, 459, 1144, 1309, 1701, 2159]);
+        // Years 166, 1111 and 1210 have margins between three and four
+        // minutes but lie in centuries where the two models agree to
+        // seconds, so the sky decides them.
+        for year in [166, 1_111, 1_210] {
+            let margin = new_year_margin(year).unwrap().abs();
+            assert!((2.9..4.0).contains(&margin), "{year}: {margin}");
+            assert!(margin > tolerance_minutes(year).unwrap(), "{year}");
         }
     }
 

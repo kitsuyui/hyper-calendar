@@ -878,28 +878,29 @@ pub static SOUTH_AFRICA: FiscalProfile = FiscalProfile {
 /// it *is* the Solar Hijri calendar year, and its Gregorian start moves
 /// between 20 and 21 March. This entry is the crate's proof that the
 /// calendar abstraction carries — the start is expressed as 1 Farvardin in
-/// [`StartCalendar::SOLAR_HIJRI_ARITHMETIC`] and converted by the calendar,
+/// [`StartCalendar::SOLAR_HIJRI_33`] and converted by the calendar,
 /// not hard-coded as "about 21 March".
 ///
 /// # What is approximated, and by how much
 ///
 /// The official rule is astronomical: 1 Farvardin is the day on which the
-/// March equinox falls before noon, true time, at the 52.5°E meridian.
-/// `hc-calendars-solar` has no ephemeris, so this entry goes through the
-/// 2 820-year arithmetic cycle associated with Ahmad Birashk, which is very
-/// nearly but not exactly that calendar.
+/// March equinox falls before noon at the 52.5°E meridian. This entry goes
+/// through the 33-year arithmetic rule, `persian-arithmetic-33`, which agrees
+/// with that calendar on every Nowruz from AP 1178 to 1634 (AD 1799 to 2255):
+/// the span Borkowski gives, as Heydari-Malayeri reports him, and one that
+/// `hc-calendars-equinox` tests against its own equinox calendar `persian`.
+/// So every year the statute covers (from AP 1366) up to AP 1634 starts on
+/// the official day. After 1634 the rule is an extrapolation and the entry
+/// claims nothing; `is_approximate` stays true for that reason.
 ///
-/// Measured against the published Solar Hijri years, the cycle agrees for
-/// 1400, 1401, 1402, 1403 and 1405 and is **one day early for 1404**: it
-/// starts that year on 20 March 2025 where the official calendar starts it
-/// on 21 March. Claus Tøndering's survey names 1404 and 1437 as the only two
-/// such disagreements between AP 1244 and 1531 (AD 1865 and 2152), so the
-/// claim this entry makes is: correct to the day for every Iranian fiscal
-/// year in that window except two, and this crate's tests name both.
+/// The crate used Birashk's 2 820-year cycle, `persian-arithmetic`, until
+/// this was corrected. That cycle starts AP 1404 on 20 March 2025 where Iran
+/// began it on 21 March (the Solar Hijri calendar's correspondence table on
+/// Wikipedia, `wikipedia-solar-hijri-calendar`), and Tøndering names 1404 and
+/// 1437 as its only two disagreements between AP 1244 and 1531.
 ///
-/// That is a stated precision, not a hidden one. A caller who needs the
-/// official date needs an ephemeris, which is `hc-astro`'s job and a
-/// documented gap in `hc-calendars-solar` rather than here.
+/// A caller who needs the official date of a year after 1634 needs the
+/// equinox calendar, `persian` of `hc-calendars-equinox`.
 pub static IRAN: FiscalProfile = FiscalProfile {
     code: "IR",
     english_name: "Iran",
@@ -908,19 +909,20 @@ pub static IRAN: FiscalProfile = FiscalProfile {
         local_name: "سال مالی",
         kind: SystemKind::Government,
         authority: Authority::Statute,
-        start: YearStart::new(StartCalendar::SOLAR_HIJRI_ARITHMETIC, 1, 1),
+        start: YearStart::new(StartCalendar::SOLAR_HIJRI_33, 1, 1),
         label: LabelConvention::LabelledByStartYear,
         valid_from: Some(1366),
         valid_until: None,
-        note: "Labels are Solar Hijri years. Computed through the arithmetic Birashk cycle, \
-               which is one day early for AP 1404 and AP 1437 against the official \
-               equinox-based calendar; every other year between AP 1244 and AP 1531 agrees. \
-               valid_from is the year the cited Public Accounting Act was enacted, not the \
-               year Iran began using this fiscal year.",
+        note: "Labels are Solar Hijri years. Computed through the 33-year arithmetic rule, \
+               which agrees with the official equinox-based calendar on every Nowruz from \
+               AP 1178 to AP 1634 and is an extrapolation after it. valid_from is the year the \
+               cited Public Accounting Act was enacted, not the year Iran began using this \
+               fiscal year.",
     }],
     sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "قانون محاسبات عمومی کشور art. 6 (enacted 1/6/1366 SH); Claus Tøndering, \
-              \"The Persian Calendar\", for the arithmetic approximation's error",
+    sources: "قانون محاسبات عمومی کشور art. 6 (enacted 1/6/1366 SH); Wikipedia, \"Solar Hijri \
+              calendar\", correspondence table, for the year starts; M. Heydari-Malayeri, \
+              \"A concise review of the Iranian calendar\", for the 33-year rule's span",
 };
 
 /// Ethiopia 🇪🇹 — Hamle 1 to Sene 30, labelled by the Ethiopic year it
@@ -1056,7 +1058,7 @@ pub fn by_code(code: &str) -> Option<&'static FiscalProfile> {
 
 #[cfg(test)]
 mod tests {
-    use hc_calendars_solar::{buddhist, ethiopic, gregorian, persian};
+    use hc_calendars_solar::{buddhist, ethiopic, gregorian, persian_33};
 
     use super::*;
     use crate::error::FiscalError;
@@ -1283,22 +1285,35 @@ mod tests {
     #[test]
     fn the_iranian_fiscal_year_is_the_solar_hijri_year_itself() {
         let system = IRAN.government(1403).unwrap();
-        assert_eq!(system.start.calendar, StartCalendar::SOLAR_HIJRI_ARITHMETIC);
+        assert_eq!(system.start.calendar, StartCalendar::SOLAR_HIJRI_33);
         let span = system.span(1403).unwrap();
-        assert_eq!(span.first, persian::to_fixed(1403, 1, 1).unwrap());
-        assert_eq!(span.last, Rd(persian::to_fixed(1404, 1, 1).unwrap().0 - 1));
+        assert_eq!(span.first, persian_33::to_fixed(1403, 1, 1).unwrap());
+        assert_eq!(
+            span.last,
+            Rd(persian_33::to_fixed(1404, 1, 1).unwrap().0 - 1)
+        );
     }
 
     #[test]
     fn the_iranian_fiscal_year_matches_the_published_gregorian_starts() {
-        // Published Solar Hijri year starts. 1404 is deliberately absent:
-        // see the next test.
+        // The first day of each Solar Hijri year 1399 to 1410, from the
+        // correspondence table of Wikipedia's "Solar Hijri calendar"
+        // (`wikipedia-solar-hijri-calendar`, secondary), read 2026-10-03.
+        // 1404 starts on 21 March 2025: Birashk's 2 820-year cycle, which
+        // this crate used before, gave the 20th.
         let published = [
+            (1399, (2020, 3, 20)),
             (1400, (2021, 3, 21)),
             (1401, (2022, 3, 21)),
             (1402, (2023, 3, 21)),
             (1403, (2024, 3, 20)),
+            (1404, (2025, 3, 21)),
             (1405, (2026, 3, 21)),
+            (1406, (2027, 3, 21)),
+            (1407, (2028, 3, 20)),
+            (1408, (2029, 3, 20)),
+            (1409, (2030, 3, 21)),
+            (1410, (2031, 3, 21)),
         ];
         let system = IRAN.government(1403).unwrap();
         for (label, (year, month, day)) in published {
@@ -1308,21 +1323,29 @@ mod tests {
                 "Iranian fiscal year {label}"
             );
         }
-        // 1402 ended on 19 March 2024, the least obvious value in the set.
+        // The table's last days: 1402 ended on 19 March 2024, the least
+        // obvious value in the set, and 1404 on 20 March 2026.
         assert_eq!(system.span(1402).unwrap().last, greg(2024, 3, 19));
+        assert_eq!(system.span(1404).unwrap().last, greg(2026, 3, 20));
+        assert_eq!(system.span(1406).unwrap().last, greg(2028, 3, 19));
     }
 
     #[test]
-    fn the_arithmetic_approximation_is_one_day_early_for_ap_1404() {
-        // The official, equinox-based calendar starts AP 1404 on 21 March
-        // 2025. The Birashk cycle this crate uses starts it on 20 March.
-        // Tøndering names AP 1404 and AP 1437 as the only two disagreements
-        // between AP 1244 and AP 1531. Asserting the wrong answer here is
-        // deliberate: the test exists so that the day the crate gains an
-        // astronomical Solar Hijri calendar, it fails and says so.
+    fn the_iranian_fiscal_year_is_not_the_2820_year_cycle() {
+        // The cycle this crate used before puts AP 1404 on 20 March 2025,
+        // a day before Iran did; the 33-year rule does not.
+        use hc_calendars_solar::persian;
+        assert_eq!(
+            persian::to_fixed(1404, 1, 1).unwrap(),
+            greg(2025, 3, 20),
+            "the 2 820-year cycle's start of 1404, the day this entry left"
+        );
         let system = IRAN.government(1404).unwrap();
-        assert_eq!(system.span(1404).unwrap().first, greg(2025, 3, 20));
-        assert_ne!(system.span(1404).unwrap().first, greg(2025, 3, 21));
+        assert_eq!(system.span(1404).unwrap().first, greg(2025, 3, 21));
+        assert_ne!(
+            system.span(1404).unwrap().first,
+            persian::to_fixed(1404, 1, 1).unwrap()
+        );
         assert!(system.start.calendar.is_approximate());
     }
 

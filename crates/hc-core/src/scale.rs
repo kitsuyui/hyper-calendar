@@ -162,6 +162,11 @@ pub struct NavicTime;
 /// `TT - TAI`, an exact defined constant.
 pub const TT_MINUS_TAI: Duration = Duration::from_attos(32_184_000_000_000_000_000);
 
+/// [`TT_MINUS_TAI`] in seconds, 32.184, for the `f64` and `const` arithmetic
+/// of the series and tables that state a time in TT. One definition, tied to
+/// [`TT_MINUS_TAI`] by a test.
+pub const TT_MINUS_TAI_SECONDS: f64 = 32.184;
+
 /// `TAI - GPS`, exact by convention.
 pub const TAI_MINUS_GPS: Duration = Duration::from_secs(19);
 
@@ -236,7 +241,7 @@ behind_tai!(NavicTime, TimeScaleId::Navic, TAI_MINUS_NAVIC);
 
 /// `TCG - TT` in seconds, given a TT reading in seconds from the 1970 epoch.
 fn tcg_minus_tt_secs(tt_secs: f64) -> f64 {
-    let elapsed = tt_secs - (T0_TAI_SECS + 32.184);
+    let elapsed = tt_secs - (T0_TAI_SECS + TT_MINUS_TAI_SECONDS);
     L_G / (1.0 - L_G) * elapsed
 }
 
@@ -252,7 +257,7 @@ impl TimeScale for Tcg {
     fn to_tai(value: Duration) -> Duration {
         // TCG - TT is linear in TT, so the inverse is closed-form:
         // TCG - TT = L_G * (TCG - origin).
-        let delta = L_G * (value.as_secs_f64() - (T0_TAI_SECS + 32.184));
+        let delta = L_G * (value.as_secs_f64() - (T0_TAI_SECS + TT_MINUS_TAI_SECONDS));
         Tt::to_tai(add_small_offset(value, -delta))
     }
 }
@@ -318,14 +323,14 @@ impl TimeScale for Tcb {
     fn from_tai(tai: Duration) -> Duration {
         let tt = Tt::from_tai(tai);
         let tt_secs = tt.as_secs_f64();
-        let elapsed = tt_secs - (T0_TAI_SECS + 32.184);
+        let elapsed = tt_secs - (T0_TAI_SECS + TT_MINUS_TAI_SECONDS);
         let delta = tdb_minus_tt_secs(tt_secs) + L_B * elapsed - TDB_0;
         add_small_offset(tt, delta)
     }
 
     fn to_tai(value: Duration) -> Duration {
         let tcb_secs = value.as_secs_f64();
-        let origin = T0_TAI_SECS + 32.184;
+        let origin = T0_TAI_SECS + TT_MINUS_TAI_SECONDS;
         // TCB - TT is a linear secular term plus the small TDB periodic one;
         // iterate on the offset rather than on the absolute reading.
         let mut delta = 0.0;
@@ -492,6 +497,9 @@ mod tests {
         let tai = Instant::<Tai>::from_epoch(Duration::from_secs(1_000));
         let tt: Instant<Tt> = tai.convert();
         assert_eq!(tt.since_epoch(), Duration::from_secs(1_000) + TT_MINUS_TAI);
+        // The `f64` constant is the same number as the `Duration`.
+        assert_eq!(TT_MINUS_TAI.as_secs_f64(), TT_MINUS_TAI_SECONDS);
+        assert_eq!(TT_MINUS_TAI, Duration::from_millis(32_184));
         let back: Instant<Tai> = tt.convert();
         assert_eq!(back, tai);
     }

@@ -158,7 +158,7 @@ pub fn almanac_day_lines(id: &str, fixed: i64) -> Answer<String> {
     }
     let year = day.date.year;
     let (tibetan_name, sanskrit) = almanac::rab_byung_name(year);
-    let position = (year - 1_027).rem_euclid(60) as usize + 1;
+    let position = tibetan::prabhava_index(year) + 1;
     push(
         &mut out,
         "rab-byung",
@@ -240,8 +240,7 @@ pub fn bhutanese_winter_solstice_line(year: i64) -> Answer<String> {
             _ => Refusal::OutOfRange,
         })?;
     let day = Rd::from_julian_day_number(instant.floor() as i64);
-    let shifted = instant.add(Ratio::int(2));
-    let weekday = shifted.sub(Ratio::int(shifted.floor().div_euclid(7) * 7));
+    let weekday = tibetan::weekday_of_instant(instant);
     let mut out = String::new();
     let mut line = Line::new(&mut out);
     line.value(day.0).value(weekday).value(instant.to_f64());

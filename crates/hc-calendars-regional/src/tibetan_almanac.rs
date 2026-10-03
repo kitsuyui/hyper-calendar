@@ -285,10 +285,6 @@ pub struct AlmanacDay {
     pub half_day: u8,
 }
 
-fn modulo(value: Ratio, modulus: i128) -> Ratio {
-    value.sub(Ratio::int(value.floor().div_euclid(modulus) * modulus))
-}
-
 impl AlmanacDay {
     /// The true Sun in signs of the zodiac, `[0, 12)`: the column the
     /// Tsurphu almanac prints after the *yoga* where the Phugpa prints the
@@ -342,11 +338,11 @@ pub fn almanac_day(calendar: &TibetanCalendar, rd: Rd) -> CalendarResult<Almanac
     Ok(AlmanacDay {
         date,
         month_count: n,
-        weekday: (jdn + 2).rem_euclid(7) as u8,
+        weekday: tibetan::weekday(jdn),
         lunar_day_end: if date.leap_day {
             None
         } else {
-            Some(modulo(lunar.true_date.add(Ratio::int(2)), 7))
+            Some(tibetan::weekday_of_instant(lunar.true_date))
         },
         moon,
         sun,
@@ -647,7 +643,7 @@ pub const RAB_BYUNG_NAMES: [(&str, &str); 60] = [
 /// `(Y − 6) amod 60` (Janson, Section 4). 2007 is *thams cad 'dul*, *sarvajit*.
 #[must_use]
 pub const fn rab_byung_name(year: i64) -> (&'static str, &'static str) {
-    RAB_BYUNG_NAMES[(year - 1_027).rem_euclid(60) as usize]
+    RAB_BYUNG_NAMES[tibetan::prabhava_index(year)]
 }
 
 /// The year counted from the traditional ascent of the first Tibetan king
@@ -677,30 +673,7 @@ pub const MONGOLIAN_COLOURS: [(&str, &str); 5] = [
     ("хар", "харагчин"),
 ];
 
-/// An element, gender and animal of the Chinese-style cycles, as indexes:
-/// the element into [`hc_calendars_lunar::tibetan::ELEMENTS`] and
-/// [`COLOURS`], the animal into [`hc_calendars_lunar::tibetan::ANIMALS`].
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Symbol {
-    /// The element, 0 for Wood to 4 for Water.
-    pub element: u8,
-    /// Male (the Chinese *yang*) or female.
-    pub male: bool,
-    /// The animal, 0 for the Mouse to 11 for the Pig.
-    pub animal: u8,
-}
-
-/// The year's element, gender and animal: its colour is
-/// `COLOURS[element]`, so 1992, Water–Monkey, is the black monkey year.
-#[must_use]
-pub const fn year_symbol(year: i64) -> Symbol {
-    let position = (year - 4).rem_euclid(60) as u8; // 0 is Wood–male–Mouse
-    Symbol {
-        element: (position % 10) / 2,
-        male: position.is_multiple_of(2),
-        animal: position % 12,
-    }
-}
+pub use hc_calendars_lunar::tibetan::{Symbol, day_symbol, year_symbol};
 
 /// Whose rule names the months by animal and element.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -736,20 +709,6 @@ pub const fn month_symbol(cycle: MonthCycle, year: i64, month: u8) -> Symbol {
         element: (element - 1).rem_euclid(5) as u8,
         male: m % 2 == 1,
         animal: animal.rem_euclid(12) as u8,
-    }
-}
-
-/// The calendar day's element, gender and animal: the element number
-/// `⌈JD/2⌉ amod 5`, male when the Julian Day Number is odd, and the animal
-/// `(JD + 2) amod 12`, as in the Chinese calendar (Janson, Appendix E, attributes for calendar days).
-/// 12 February 1992 is the yellow horse day.
-#[must_use]
-pub const fn day_symbol(rd: Rd) -> Symbol {
-    let jdn = rd.to_julian_day_number();
-    Symbol {
-        element: ((jdn + 1).div_euclid(2) - 1).rem_euclid(5) as u8,
-        male: jdn.rem_euclid(2) == 1,
-        animal: (jdn + 1).rem_euclid(12) as u8,
     }
 }
 
@@ -1094,7 +1053,7 @@ pub const MONGOLIAN_LEAP_WORD: &str = "илүү";
 /// in Bhutan (Janson, Appendix A.4; Henning, "The Bhutanese calendar").
 #[must_use]
 pub const fn bhutanese_weekday(rd: Rd) -> u8 {
-    (rd.to_julian_day_number() + 3).rem_euclid(7) as u8
+    (tibetan::weekday(rd.to_julian_day_number()) + 1) % 7
 }
 
 /// The Bhutanese winter solstice of Gregorian year `year`: the instant the

@@ -362,7 +362,7 @@ mod tests {
     /// R = 0.99760853 AU.
     #[test]
     fn meeus_example_25b_comes_out_of_the_series() {
-        let millennia = (2_448_908.5 - 2_451_545.0) / 365_250.0;
+        let millennia = (2_448_908.5 - crate::time::J2000_JULIAN_DATE) / 365_250.0;
         let (longitude, latitude, radius) = earth_heliocentric(millennia);
         let longitude = hc_core::math::normalize_degrees(longitude * RAD_TO_DEG);
         let latitude = latitude * RAD_TO_DEG;

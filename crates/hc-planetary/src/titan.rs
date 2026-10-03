@@ -26,7 +26,9 @@
 //! *Astronomical Almanac* for 2002, pp. A11 and F45, which was not read.
 
 use crate::circad::{self, CircadCalendar, CircadRule, YearCycle};
+use hc_astro::time::J2000_JULIAN_DATE;
 use hc_core::duration::SECONDS_PER_DAY_F64;
+use hc_core::scale::TT_MINUS_TAI_SECONDS;
 
 /// Titan's solar day in Earth days, as the page derives it (§3.2).
 pub const SOLAR_DAY_DAYS: f64 = 15.969_095;
@@ -90,8 +92,8 @@ pub const RULE: CircadRule = CircadRule {
     solar_day_days: SOLAR_DAY_DAYS,
     circads_per_solar_day: 16,
     circad_days: CIRCAD_DAYS,
-    anchor_j2000_tt_days: (CALIBRATION_JULIAN_DATE_UTC - 2_451_545.0)
-        + (CALIBRATION_TAI_MINUS_UTC + 32.184) / SECONDS_PER_DAY_F64,
+    anchor_j2000_tt_days: (CALIBRATION_JULIAN_DATE_UTC - J2000_JULIAN_DATE)
+        + (CALIBRATION_TAI_MINUS_UTC + TT_MINUS_TAI_SECONDS) / SECONDS_PER_DAY_F64,
     anchor_circad: CALIBRATION_JULIAN_CIRCAD,
     epoch_year: 0,
     month_names: &MONTH_NAMES,
@@ -176,8 +178,9 @@ mod tests {
         // 2308809.27604.
         let zero = DARIAN_TITAN.circad_start(0).unwrap();
         let tt_days = crate::util::j2000_offset_days(zero);
-        let page_scale = tt_days - (CALIBRATION_TAI_MINUS_UTC + 32.184) / SECONDS_PER_DAY_F64;
-        let julian_date = page_scale + 2_451_545.0;
+        let page_scale =
+            tt_days - (CALIBRATION_TAI_MINUS_UTC + TT_MINUS_TAI_SECONDS) / SECONDS_PER_DAY_F64;
+        let julian_date = page_scale + J2000_JULIAN_DATE;
         let gap = (julian_date - PRINTED_JULIAN_CIRCAD_ZERO_JULIAN_DATE) * SECONDS_PER_DAY_F64;
         assert!(gap.abs() < 3.0, "{gap} s");
         assert_eq!(

@@ -123,6 +123,27 @@ held by the agreement with Horizons below):
 The gravitational deflection of light, under a milliarcsecond at Jupiter's
 distance from the Sun except within a few degrees of it, is not applied.
 
+**Three precessions, on purpose.** `hc-astro` carries three, each the one its
+consumer's data is stated in. Jupiter's rotation in step 1 is IAU 1976's
+(`jupiter::Precession`, Meeus's 21.5), because the Earth of step 2 is
+VSOP87D's, in the ecliptic of date, and the two positions are differenced:
+rotating one in a different model would put them in frames that part by the
+two models' difference, 0.30″ a century in the leading term (5 029.097″
+against 5 028.796″), about 6″ at the ends of the 2 000 years VSOP87 serves,
+which is more than the 1″ of the series. The general precession of IAU 2006
+(`earth::general_precession_arcseconds`, 5 028.796 195″ a century) carries
+the ayanāṃśa and brings the Earth back to the J2000 equinox in `hjd`, where
+the target's frame is J2000. VSOP87D's own is the frame of the Earth series
+and is not a function here. They were not merged because merging means
+re-deriving Jupiter in IAU 2006 and re-measuring it against Horizons
+(`the_apparent_position_agrees_with_horizons`); that is a
+change of model, not a removal of a copy, and is not made.
+
+The constants in common are written once: the light-time per astronomical
+unit is `hjd::LIGHT_TIME_PER_AU_SECONDS` (this module's `LIGHT_DAYS_PER_AU` is
+that over 86 400 s), and the FK5 shift of step 5 is
+`solar::fk5_from_dynamical`, which the Sun and Jupiter both call.
+
 **Worked example.** Jupiter at its opposition, 0 h UT on 7 December 2024.
 ΔT is 69.14 s, so τ is 0.024 932 240 4 millennia of TT, the unit of the
 series (0.249 322 4 centuries). The series gives

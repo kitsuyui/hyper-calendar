@@ -30,7 +30,7 @@ date:
 
 | Country | Start | Calendar | Labelled by |
 | --- | --- | --- | --- |
-| Iran | 1 Farvardin | `persian-arithmetic` | start year (Solar Hijri) |
+| Iran | 1 Farvardin | `persian-arithmetic-33` | start year (Solar Hijri) |
 | Ethiopia | Hamle 1 | `ethiopic` | **end** year (Ethiopic) |
 | Thailand | 1 October | `buddhist` | **end** year (Buddhist Era) |
 | Nepal | 1 Shrawan | `bikram-sambat` | start year (Bikram Sambat) |
@@ -84,15 +84,18 @@ example shows why the distinction matters — a Saturday year end in November
   September and never lands inside the Sene-to-Hamle boundary — but that is a
   *consequence*, so the crate computes it through the calendar rather than
   hard-coding it.
-* **Iran is approximate, by a stated amount.** The official rule is
-  astronomical: 1 Farvardin is the day the March equinox falls before noon at
-  52.5°E. `hc-calendars-solar` has no ephemeris, so this crate uses the 2 820-
-  year Birashk cycle under the identifier `persian-arithmetic`. Measured
-  against the published Solar Hijri years it agrees for 1400, 1401, 1402, 1403
-  and 1405, and is **one day early for 1404**. Tøndering names AP 1404 and
-  AP 1437 as the only two disagreements between AP 1244 and AP 1531
-  (AD 1865–2152). There is a test that asserts the wrong answer on purpose, so
-  that the day an astronomical Solar Hijri calendar lands, it fails and says so.
+* **Iran is exact from AP 1366 to 1634, and an extrapolation after.** The
+  official rule is astronomical: 1 Farvardin is the day the March equinox
+  falls before noon at 52.5°E, which is `persian` in `hc-calendars-equinox`.
+  This crate depends only on the arithmetic calendars of `hc-calendars-solar`,
+  and uses the 33-year rule, `persian-arithmetic-33`, which agrees with the
+  astronomical calendar on every Nowruz from AP 1178 to 1634 (AD 1799 to
+  2255; Borkowski's span as Heydari-Malayeri reports it, tested in
+  `hc-calendars-equinox`). It started with Birashk's 2 820-year cycle,
+  `persian-arithmetic`, which was one day early for 1404; the tests now pin
+  the twelve year starts of AP 1399 to 1410 against the correspondence
+  table of Wikipedia's "Solar Hijri calendar" (21 March 2025 for 1404).
+  After 1634 the rule is not known to agree, and `is_approximate` stays true.
 * **Nepal is exact where the months are published, and approximate elsewhere,
   by a stated amount.** The year begins on 1 Shrawan in the Bikram Sambat, and
   a Bikram Sambat month is as long as the Government of Nepal says. The months

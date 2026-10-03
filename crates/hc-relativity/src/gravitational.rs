@@ -463,6 +463,17 @@ mod tests {
             rate_offset_to_micros_per_day(kinematic_rate_offset(GM_EARTH, iss_radius).unwrap())
                 .unwrap();
         assert!((speed_only + 28.2).abs() < 0.1, "got {speed_only} us/day");
+        // The two terms by hand, in a separate script from GM = 3.986004418e14,
+        // c = 299 792 458 and R = 6 378 137 m: -GM/(2 r c^2) = -28.183 and
+        // +GM/c^2 (1/R - 1/r) = +3.712 us/day, net -24.471. The README's
+        // earlier "nearer -28" was the first term alone.
+        let gravity_only = rate_offset_to_micros_per_day(
+            gravitational_rate_offset(GM_EARTH, iss_radius, EARTH_EQUATORIAL_RADIUS).unwrap(),
+        )
+        .unwrap();
+        assert!((gravity_only - 3.712).abs() < 0.005, "got {gravity_only}");
+        assert!((speed_only + 28.183).abs() < 0.005, "got {speed_only}");
+        assert!((micros + 24.471).abs() < 0.005, "got {micros}");
         // Comparing with a clock on the rotating geoid instead of a static
         // one at the equatorial radius barely moves it. A geoid clock runs
         // slow of TCG by the defining constant L_G (IAU 2000 Resolution

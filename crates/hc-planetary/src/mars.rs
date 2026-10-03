@@ -53,6 +53,7 @@ pub mod missions;
 
 use core::fmt;
 
+use hc_astro::time::J2000_JULIAN_DATE;
 use hc_core::math::{cos_deg, floor, fract, normalize_degrees, signed_degrees, sin_deg};
 use hc_core::{Duration, Instant, Tai, TimeResult};
 
@@ -90,7 +91,7 @@ pub const SOL_IN_DAYS: f64 = 1.027_491_251_7;
 pub const MSD_EPOCH_JULIAN_DATE_TT: f64 = 2_451_549.5;
 
 /// The `Δt_J2000` of [`MSD_EPOCH_JULIAN_DATE_TT`], in TT days.
-pub const MSD_EPOCH_J2000_OFFSET: f64 = MSD_EPOCH_JULIAN_DATE_TT - 2_451_545.0;
+pub const MSD_EPOCH_J2000_OFFSET: f64 = MSD_EPOCH_JULIAN_DATE_TT - J2000_JULIAN_DATE;
 
 /// The Mars Sol Date at the MSD epoch, before the midnight adjustment.
 pub const MSD_AT_EPOCH: f64 = 44_796.0;
@@ -327,7 +328,7 @@ impl MarsMoment {
     /// The Julian Date in TT.
     #[must_use]
     pub fn julian_date_tt(self) -> f64 {
-        self.j2000_offset_days + 2_451_545.0
+        self.j2000_offset_days + J2000_JULIAN_DATE
     }
 
     /// The TAI instant this moment stands for.

@@ -744,7 +744,8 @@ mod tests {
             )
             .unwrap()
             .as_secs_f64();
-            let implied_dut1 = 32.184 + tai_minus_utc - sample.seconds;
+            let implied_dut1 =
+                hc_core::scale::TT_MINUS_TAI_SECONDS + tai_minus_utc - sample.seconds;
             assert!(
                 implied_dut1.abs() < 0.9,
                 "{}-{:02}: ΔT {} implies DUT1 {implied_dut1}",
@@ -774,7 +775,7 @@ mod tests {
             let tai_minus_utc = tai_minus_utc_at(unix_seconds_of(year, month), LeapPolicy::Strict)
                 .unwrap()
                 .as_secs_f64();
-            let by_identity = 32.184 + tai_minus_utc - dut1;
+            let by_identity = hc_core::scale::TT_MINUS_TAI_SECONDS + tai_minus_utc - dut1;
             let sample = TABULATED_DELTA_T
                 .iter()
                 .find(|sample| (sample.year, sample.month) == (year, month))

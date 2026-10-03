@@ -25,9 +25,12 @@
 //! and the sources.
 //!
 //! Like `persian`, this is a model of a rule: [`new_year_margin`] says how
-//! close each year's call was, and a year within [`TOLERANCE_MINUTES`] is
-//! decided by the model. 1470 is such a year: its equinox falls about ten
-//! seconds before the Sun's noon at Tehran.
+//! close each year's call was, and a year within [`tolerance_minutes`], a
+//! minute for the Sun plus the disagreement of the two ΔT models about
+//! that equinox (up to 190 s in the 1200s and 1300s), is decided by the
+//! model. 1470 is such a year: its equinox falls about ten seconds before
+//! the Sun's noon at Tehran. The others are 67, 100, 327, 653, 785 and 979,
+//! seven in all.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
@@ -44,10 +47,12 @@ use crate::places::TEHRAN_PERSIAN;
 /// The calendar's identifier.
 pub const ID: CalendarId = CalendarId("persian-apparent-noon");
 
-/// How close, in minutes, an equinox may fall to Tehran's apparent noon
-/// before this calendar is deciding by a model. Both instants are placed
-/// to seconds; a minute covers ΔT and the truncation of the solar series
-/// many times over, as for [`crate::persian::TOLERANCE_MINUTES`].
+/// The floor of [`tolerance_minutes`]: how close, in minutes, an equinox may
+/// fall to Tehran's apparent noon before this calendar is deciding by a
+/// model, where ΔT is known well. Both instants are placed to seconds; a
+/// minute covers the truncation of the solar series, as for
+/// [`crate::persian::TOLERANCE_MINUTES`]. Where ΔT is not known well, which
+/// is every year before 1925, [`tolerance_minutes`] adds its error.
 pub const TOLERANCE_MINUTES: f64 = 1.0;
 
 /// The rule this module's calendar follows.
@@ -86,6 +91,19 @@ pub fn new_year_margin(year: i64) -> CalendarResult<f64> {
         return Err(CalendarError::YearOutOfRange);
     }
     Ok(margin_by(RULE, year))
+}
+
+/// How close, in minutes, the equinox that begins `year` may fall to
+/// Tehran's apparent noon before the year is decided here by a model; see
+/// [`crate::persian::tolerance_minutes`], which gives the same number for
+/// both readings of noon, since ΔT moves the equinox and not the noon.
+///
+/// # Errors
+///
+/// Returns [`CalendarError::YearOutOfRange`] outside
+/// [`MIN_YEAR`]..=[`MAX_YEAR`].
+pub fn tolerance_minutes(year: i64) -> CalendarResult<f64> {
+    crate::persian::tolerance_minutes(year)
 }
 
 /// The earliest fixed day this calendar converts.
@@ -279,6 +297,24 @@ mod tests {
             assert!(new_year_margin(year).unwrap() > 0.0, "{year}");
             assert!(persian::new_year_margin(year).unwrap() < 0.0, "{year}");
         }
+    }
+
+    #[test]
+    fn the_years_the_model_decides_are_seven() {
+        // Years whose equinox falls within `tolerance_minutes` of Tehran's
+        // apparent noon, measured on 2026-10-03 over the whole range. With
+        // the flat minute this module had before, the list was 67, 100, 979
+        // and 1470; ΔT's disagreement adds 327, 653 and 785.
+        let decided: Vec<i64> = (MIN_YEAR..=MAX_YEAR)
+            .filter(|year| {
+                new_year_margin(*year).unwrap().abs() < tolerance_minutes(*year).unwrap()
+            })
+            .collect();
+        assert_eq!(decided, [67, 100, 327, 653, 785, 979, 1470]);
+        let flat: Vec<i64> = (MIN_YEAR..=MAX_YEAR)
+            .filter(|year| new_year_margin(*year).unwrap().abs() < TOLERANCE_MINUTES)
+            .collect();
+        assert_eq!(flat, [67, 100, 979, 1470]);
     }
 
     #[test]

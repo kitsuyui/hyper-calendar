@@ -20,7 +20,10 @@
 //! calculation, which this library has not seen. It is Reingold and Dershowitz's
 //! "modern calculation" of it, the `samaritan-*` functions of their
 //! published `calendar.l` (`reingold2018code`, Apache License 2.0, read
-//! 2026-09-26), from the true conjunction:
+//! 2026-09-26), from the true conjunction. The sources that would show
+//! the priesthood's own rule, its computer algorithm or the High Priest's
+//! printed calendars, were not found, which is why 2016, 2025 and 2026
+//! below stay as differences (`docs/systems/samaritan.md`):
 //!
 //! 1. **A month begins on the day of the conjunction** when the conjunction
 //!    falls at or before apparent noon at Mount Gerizim ([`GERIZIM`],
@@ -50,7 +53,11 @@
 //!
 //! The rule agrees with the community's published Passover sacrifices of
 //! 2017 to 2020 and with its new moons and festivals of autumn 2026, and
-//! puts the sacrifice of 2016 a day after the published one. It lets the
+//! puts the sacrifices of 2016, 2025 and 2026 a day after the published
+//! ones (20 April 2016, 11 April 2025, 30 April 2026), because their
+//! conjunctions fall at about 13:43, 13:15 and 14:14 apparent time at
+//! Gerizim, one to two hours after noon, and the community kept the day of
+//! the conjunction. It lets the
 //! sacrifice fall on 7 April in six years of the range, where the community
 //! says it is never earlier than the 8th. It is
 //! bounded to the Samaritan years [`MIN_YEAR`] to [`MAX_YEAR`], autumn 1900
