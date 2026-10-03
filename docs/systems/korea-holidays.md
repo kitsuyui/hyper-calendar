@@ -192,8 +192,10 @@ closed.
   where a text read here gives a start — Seollal from 1985 and 1989,
   2 and 3 January, 식목일, Constitution Day and Hangul Day from 1949,
   현충일 from 1956, Children's Day and Buddha's Birthday from 1975, 국군의
-  날 from 1976 — so for years before a rule's start the table is silent
-  rather than wrong, and for 1949 onward it answers with the days it has.
+  날 from 1976 — so for a year before a rule's start the table does not
+  have the day, and for 1949 onward it answers with the days it has. Every
+  rule is read from 1949, the first decree read: a year before it is a gap
+  (ADR 0013), not a year without days.
 - **The 익일휴무제 of 1989–1990**, as a Sunday-only policy, and **the
   대체공휴일** in its three steps and the collision rule, from 2014.
 - **Election days** for the thirteen elections from December 2007 to the

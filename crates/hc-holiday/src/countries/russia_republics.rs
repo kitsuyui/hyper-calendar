@@ -439,6 +439,14 @@ static RU_REPUBLIC_DAYS: Listing = Listing::Named(&[
 
 /// The instruments, cited by the rules.
 mod cite {
+    pub(super) const KR: &str = "Закон Республики Карелия № 346-ЗРК of 1999: 8 June is a holiday \
+                                 with no day off; the text read is of that year, its date of effect not read";
+    pub(super) const KK: &str = "Закон Республики Хакасия of 1992, as restated in 2005: 3 July is a \
+                                 holiday with no day off; the text read is the restatement";
+    pub(super) const ME: &str = "Закон Республики Марий Эл № 21-З of 05.07.2022, articles 1 to 4: no \
+                                 day off; in force on publication, so read from 2023";
+    pub(super) const UD: &str = "Закон Удмуртской Республики № 81-РЗ of 2020, article 3: holidays \
+                                 with no day off; the text read is of that year, its date of effect not read";
     pub(super) const TA: &str = "Закон Республики Татарстан от 19.02.1992 № 1448-XII «О праздничных днях и \
                                  памятных датах Республики Татарстан», статья 1, as restated by 39-ЗРТ \
                                  (2003) and 74-ЗРТ (2010) and amended by 67-ЗРТ (2016) and 24-ЗРТ (2023)";
@@ -1242,7 +1250,30 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
     .in_regions(TY)
     .cited(cite::TY),
     moved_day(ty_moved, 2013, None, TY, cite::TY),
+    // The four republics whose law was read and gives no day off: a day of
+    // their own is none in the years from the law read, and a gap before
+    // it, because the acts before were not read (ADR 0013).
+    no_day_law("Karelia", &["RU-KR"], 1999, cite::KR),
+    no_day_law("Khakassia", &["RU-KK"], 2005, cite::KK),
+    no_day_law("Mari El", &["RU-ME"], 2023, cite::ME),
+    no_day_law("Udmurtia", &["RU-UD"], 2020, cite::UD),
 ];
+
+/// A republic whose law read gives no non-working day of its own: no day
+/// from `first`, the first year the law read answers for, and a gap in every
+/// year before it, the earlier acts not having been read. The rule is named
+/// for the republic so that the gap says whose.
+const fn no_day_law(
+    republic: &'static str,
+    regions: &'static [&'static str],
+    first: i32,
+    source: &'static str,
+) -> HolidayRule {
+    HolidayRule::fixed_public(republic, "", Rule::NO_DAY)
+        .in_regions(regions)
+        .read_from(first)
+        .cited(source)
+}
 
 /// How many rules [`RUSSIA`](super::RUSSIA) has in all.
 const RU_ALL_LEN: usize = RU_RULES.len() + RU_REPUBLIC_RULES.len();

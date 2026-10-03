@@ -236,16 +236,16 @@ Buryatia, Mari El and the acts before 2024 were read on 2026-10-03.
 | Kabardino-Balkaria `RU-KB` | decrees of 25.03.1994 and 12.08.2014, the Parliament's resolution of 01.09.1997 [ru-kb-decrees]; the Head's decrees «Об объявлении ... нерабочим праздничным днем» [ru-kb-decrees-portal] | 28 March, 1 September, 20 September | public | 1995 (1994 a gap), 1998 (1997 a gap), 2014 | Uraza Bayram 2015–2021 and 2023–2026 and Kurban Bayram 2015–2026, by the decrees' titles on the portal of official publication (the title gives the day, not the festival) and the texts of 2020 and 2021; Radonitsa 2023–2026; gaps: Uraza 2022, Radonitsa before 2023, the others before 2015 | not stated |
 | Kalmykia `RU-KL` | Закон РК № 156-III-З of 2004, as restated in 2019 [ru-kl-holidays-law]; the Head's decrees «Об объявлении ... Днем национального праздника» [ru-kl-national-holiday-decrees] | 5 July, День Республики Калмыкия | public | 2020 | Tsagan Sar 2015–2026, the Buddha's Birthday 2015–2016 and 2018–2026, Zul 2014–2015, 2017 and 2019–2025 (the day off moved from Monday 24 to Tuesday 25 February 2020); gaps from 2005, the law's first year, and Buddha 2017, Zul 2016 and 2018; the wording of article 1 before 2019 was not read | moved: gap |
 | Karachay-Cherkessia `RU-KC` | decree of 27.04.2001 and the Head's decrees for 2026 [ru-kc-decrees] | 3 May | public | 2002 (2001 a gap) | Uraza and Kurban Bayram 2026 (read); every year before a gap | not stated |
-| Karelia `RU-KR` | Закон РК № 346-ЗРК of 1999 | none: 8 June is a holiday with no day off | — | — | — | — |
-| Khakassia `RU-KK` | the law of 1992 as restated in 2005 | none: 3 July is a holiday with no day off | — | — | — | — |
+| Karelia `RU-KR` | Закон РК № 346-ЗРК of 1999 | none: 8 June is a holiday with no day off | — | 1999; earlier years gaps | — | — |
+| Khakassia `RU-KK` | the law of 1992 as restated in 2005 | none: 3 July is a holiday with no day off | — | 2005, the text read; earlier years gaps | — | — |
 | Komi `RU-KO` | Закон РК № 30-РЗ of 05.05.2014 [ru-ko-holidays-law] | 22 August, День Республики Коми, for the republic's bodies and institutions | government | 2014 | — | not moved |
-| Mari El `RU-ME` | Закон РМЭ № 21-З of 05.07.2022 [ru-me-holidays-law] | none: 4 November is the Day of the Republic and the federal Unity Day, and Peledysh Payrem is a Saturday | — | — | — | — |
+| Mari El `RU-ME` | Закон РМЭ № 21-З of 05.07.2022 [ru-me-holidays-law] | none: 4 November is the Day of the Republic and the federal Unity Day, and Peledysh Payrem is a Saturday | — | 2023, the first whole year after the law; earlier years gaps | — | — |
 | Mordovia `RU-MO` | none standing; the one-off day of 5 August 2026 was seen in a list only, not read | — | — | — | — | — |
 | North Ossetia–Alania `RU-SE` | Закон РСО-А № 61-РЗ of 2018 [ru-se-holidays-law]; Указ № 453 of 12.11.2025 [ru-se-decree-453-2025] | — | — | — | the first Monday of Uastyrdzhi, 18 November 2024, 17 and 24 November 2025 (the decree's title and the list) and 23 November 2026 (list); 2018–2023 gaps, for which only news items were found | — |
 | Sakha (Yakutia) `RU-SA` | Закон РС(Я) 1993-З № 1545-V of 2018 [ru-sa-holidays-law] | 27 April, 21 June (Ysyakh), for the organisations the republic's budget funds | government | 2019, 2018 | — | moved: gap |
 | Tatarstan `RU-TA` | Закон РТ № 1448-XII of 1992, restated 2003 and 2010, amended 2016 and 2023 [ru-ta-holidays-law] | 30 August, 6 November | public | 2004, 2003; gaps from 1992 | Uraza Bayram and Kurban Bayram 2015–2023 (the President's and the Rais's decrees give the day each begins [ru-ta-bayram-decrees-2015-2023]) and 2024–2026 (2026 read, the rest list); Uraza gaps 2011–2014, Uraza having been added in 2010, Kurban 1992–2014 | moved until 2016: gap; from 2017 none |
 | Tuva `RU-TY` | Закон РТ № 143 of 1999, as worded in 2012 [ru-ty-holidays-law]; the resolutions of the Supreme Khural and the Government [ru-ty-resolutions-2016-2023] | 15 August, 6 May (7 May in 2021 by № 927 ПВХ-III, 8 May in 2026 by № 742, list) | public | 2013; 1999–2012 gaps | Shagaa 2016–2017 and 2019–2023, Naadym 2017, 2018 and 2021, with the days off the resolutions move (Monday 14 August 2017; Monday 16 and Tuesday 17 July 2018; Monday 4 February 2019 for Saturday 2 February worked; Tuesday 25 February 2020); 2024–2026 (list); gaps 1999–2015, Shagaa 2018, Naadym 2019–2020 and 2022–2023 | moved: the resolutions name the day where they were read; a year with more days on the weekend than they move: gap |
-| Udmurtia `RU-UD` | Закон УР № 81-РЗ of 2020, art. 3 | none: holidays with no day off | — | — | — | — |
+| Udmurtia `RU-UD` | Закон УР № 81-РЗ of 2020, art. 3 | none: holidays with no day off | — | 2020; earlier years gaps | — | — |
 
 Every year after the last act read is a gap for a movable day. Where the
 table says "not stated", no instrument read moves a day off the weekend,
@@ -283,11 +283,18 @@ the place (article 2); the memorable dates are left to the Head's decrees
 (article 3); the law takes effect on publication (article 4). It makes
 no day a day off. Semyk and Sürem are not in it, and ConsultantPlus's
 reference list of the regions' non-working days has no entry for the
-republic. The republic is therefore read and keeps no day of its own;
+republic. The republic is therefore read and keeps no day of its own from 2023, the
+first whole year after the law, which takes effect on publication;
 whether an earlier act of the republic made Semyk non-working was not
-found, and the law of 2022 was read, not the acts before it. Karelia,
-Khakassia and Udmurtia are registered the same way: read, and keeping
-no day off beyond the nationwide ones.
+found, and the law of 2022 was read, not the acts before it, so 2022 and
+every year before it is a gap for Mari El. Karelia, Khakassia and
+Udmurtia are registered the same way, each as a rule scoped to the
+republic with no day and a `read_from`: Karelia from 1999 (the law's year;
+its date of effect was not read), Khakassia from 2005 (the text read is the
+restatement of 1992's law) and Udmurtia from 2020 (the law's year; its date
+of effect was not read), a gap in every year before and no day off beyond
+the nationwide ones from then
+(`the_republics_that_keep_no_day_are_a_gap_before_their_law`).
 
 **The acts before 2024.** A year is carried where the act's text, a
 reference list that gives the act's title and date and so the day, or

@@ -15,6 +15,7 @@ use hc_calendars_solar::gregorian;
 use hc_seasons::SolarTerm;
 use hc_seasons::zodiac::Ayanamsa;
 
+use super::read_all;
 use crate::computus::offsets::{
     ASCENSION, CORPUS_CHRISTI, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY,
     MAUNDY_THURSDAY,
@@ -741,83 +742,90 @@ const fn tw_new_year_day(name: &'static str, local_name: &'static str, rule: Rul
     HolidayRule::public(name, local_name, rule).substitute_towards(SubstituteDirection::Forward)
 }
 
-pub(super) static TW_RULES: &[HolidayRule] = &[
-    tw_public(
-        "Founding Day of the Republic of China",
-        "中華民國開國紀念日",
-        Rule::gregorian(1, 1),
-    ),
-    // 小年夜, the day before the eve, since the 條例 of 28 May 2025.
-    tw_new_year_day(
-        "Day before Lunar New Year's Eve",
-        "小年夜",
-        Rule::Offset {
-            base: &TW_NEW_YEAR,
-            days: -2,
-        },
-    )
-    .years(Some(2026), None),
-    tw_new_year_day(
-        "Lunar New Year's Eve",
-        "農曆除夕",
-        Rule::Offset {
-            base: &TW_NEW_YEAR,
-            days: -1,
-        },
-    ),
-    tw_new_year_day(
-        "Spring Festival",
-        "春節",
-        Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
-    ),
-    tw_new_year_day(
-        "Spring Festival",
-        "春節",
-        Rule::in_calendar(CalendarSystem::CHINESE, 1, 2),
-    ),
-    tw_new_year_day(
-        "Spring Festival",
-        "春節",
-        Rule::in_calendar(CalendarSystem::CHINESE, 1, 3),
-    ),
-    tw_public("Peace Memorial Day", "和平紀念日", Rule::gregorian(2, 28)).years(Some(1997), None),
-    // The coincidence rule entered the 辦法 on 25 September 2012, after
-    // that year's 4 April, which was also 清明; what 2012 gave is not in
-    // the sources read, so it is a gap.
-    tw_public("Children's Day", "兒童節", Rule::gregorian(4, 4)).years(Some(2011), Some(2011)),
-    tw_public("Children's Day", "兒童節", TW_UNREAD).years(Some(2012), Some(2012)),
-    tw_public("Children's Day", "兒童節", Rule::Computed(tw_childrens_day)).years(Some(2013), None),
-    // 民族掃墓節 under the 辦法, 清明節 under the 條例.
-    tw_public("Tomb Sweeping Day", "民族掃墓節", TW_QINGMING).years(None, Some(2025)),
-    tw_public("Qingming Festival", "清明節", TW_QINGMING).years(Some(2026), None),
-    // A day off for everyone only since the 條例; before, for workers under
-    // the 勞動基準法 and not for government offices.
-    tw_public("Labour Day", "勞動節", Rule::gregorian(5, 1)).years(Some(2026), None),
-    tw_public(
-        "Dragon Boat Festival",
-        "端午節",
-        Rule::in_calendar(CalendarSystem::CHINESE, 5, 5),
-    ),
-    tw_public(
-        "Mid-Autumn Festival",
-        "中秋節",
-        Rule::in_calendar(CalendarSystem::CHINESE, 8, 15),
-    ),
-    tw_public("Teachers' Day", "孔子誕辰紀念日", Rule::gregorian(9, 28)).years(Some(2025), None),
-    tw_public("National Day", "國慶日", Rule::gregorian(10, 10)),
-    tw_public(
-        "Taiwan Retrocession and Guningtou Victory Memorial Day",
-        "臺灣光復暨金門古寧頭大捷紀念日",
-        Rule::gregorian(10, 25),
-    )
-    .years(Some(2025), None),
-    tw_public("Constitution Day", "行憲紀念日", Rule::gregorian(12, 25)).years(Some(2025), None),
-    // The swaps of each year's calendar, until they ended.
-    HolidayRule::fixed_public("Adjusted day off", "調整放假", TW_ADJUSTED)
-        .years(None, Some(TW_ADJUSTED_LAST as i32)),
-    HolidayRule::workday("Make-up working day", "補行上班", TW_MADE_UP_DAYS)
-        .years(None, Some(TW_ADJUSTED_LAST as i32)),
-];
+pub(super) static TW_RULES: &[HolidayRule] = &read_all(
+    2012,
+    [
+        tw_public(
+            "Founding Day of the Republic of China",
+            "中華民國開國紀念日",
+            Rule::gregorian(1, 1),
+        ),
+        // 小年夜, the day before the eve, since the 條例 of 28 May 2025.
+        tw_new_year_day(
+            "Day before Lunar New Year's Eve",
+            "小年夜",
+            Rule::Offset {
+                base: &TW_NEW_YEAR,
+                days: -2,
+            },
+        )
+        .years(Some(2026), None),
+        tw_new_year_day(
+            "Lunar New Year's Eve",
+            "農曆除夕",
+            Rule::Offset {
+                base: &TW_NEW_YEAR,
+                days: -1,
+            },
+        ),
+        tw_new_year_day(
+            "Spring Festival",
+            "春節",
+            Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
+        ),
+        tw_new_year_day(
+            "Spring Festival",
+            "春節",
+            Rule::in_calendar(CalendarSystem::CHINESE, 1, 2),
+        ),
+        tw_new_year_day(
+            "Spring Festival",
+            "春節",
+            Rule::in_calendar(CalendarSystem::CHINESE, 1, 3),
+        ),
+        tw_public("Peace Memorial Day", "和平紀念日", Rule::gregorian(2, 28))
+            .years(Some(1997), None),
+        // The coincidence rule entered the 辦法 on 25 September 2012, after
+        // that year's 4 April, which was also 清明; what 2012 gave is not in
+        // the sources read, so it is a gap.
+        tw_public("Children's Day", "兒童節", Rule::gregorian(4, 4)).years(Some(2011), Some(2011)),
+        tw_public("Children's Day", "兒童節", TW_UNREAD).years(Some(2012), Some(2012)),
+        tw_public("Children's Day", "兒童節", Rule::Computed(tw_childrens_day))
+            .years(Some(2013), None),
+        // 民族掃墓節 under the 辦法, 清明節 under the 條例.
+        tw_public("Tomb Sweeping Day", "民族掃墓節", TW_QINGMING).years(None, Some(2025)),
+        tw_public("Qingming Festival", "清明節", TW_QINGMING).years(Some(2026), None),
+        // A day off for everyone only since the 條例; before, for workers under
+        // the 勞動基準法 and not for government offices.
+        tw_public("Labour Day", "勞動節", Rule::gregorian(5, 1)).years(Some(2026), None),
+        tw_public(
+            "Dragon Boat Festival",
+            "端午節",
+            Rule::in_calendar(CalendarSystem::CHINESE, 5, 5),
+        ),
+        tw_public(
+            "Mid-Autumn Festival",
+            "中秋節",
+            Rule::in_calendar(CalendarSystem::CHINESE, 8, 15),
+        ),
+        tw_public("Teachers' Day", "孔子誕辰紀念日", Rule::gregorian(9, 28))
+            .years(Some(2025), None),
+        tw_public("National Day", "國慶日", Rule::gregorian(10, 10)),
+        tw_public(
+            "Taiwan Retrocession and Guningtou Victory Memorial Day",
+            "臺灣光復暨金門古寧頭大捷紀念日",
+            Rule::gregorian(10, 25),
+        )
+        .years(Some(2025), None),
+        tw_public("Constitution Day", "行憲紀念日", Rule::gregorian(12, 25))
+            .years(Some(2025), None),
+        // The swaps of each year's calendar, until they ended.
+        HolidayRule::fixed_public("Adjusted day off", "調整放假", TW_ADJUSTED)
+            .years(None, Some(TW_ADJUSTED_LAST as i32)),
+        HolidayRule::workday("Make-up working day", "補行上班", TW_MADE_UP_DAYS)
+            .years(None, Some(TW_ADJUSTED_LAST as i32)),
+    ],
+);
 
 /// Taiwan's adjustment rule: a Saturday holiday is made up the working day
 /// before, a Sunday holiday the working day after, and the Lunar New Year
@@ -845,8 +853,10 @@ static TW_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 /// made up on the working day before a Saturday and after a Sunday — the
 /// Lunar New Year days after the run, and from 2012 to 2014 only they —
 /// and the swapped days of the Executive Yuan's calendars for 2017 to
-/// 2025, the last year with any; a year before 2017 is a gap. The regime is
-/// written up in `docs/systems/taiwan-holidays.md`.
+/// 2025, the last year with any; a year before 2017 is a gap. The table
+/// answers from 2012, the year of the earliest 辦法 text and Executive Yuan
+/// calendar read, and every year before it is a gap (ADR 0013). The regime
+/// is written up in `docs/systems/taiwan-holidays.md`.
 pub static TAIWAN: RuleSet = RuleSet {
     code: "TW",
     english_name: "Taiwan",
@@ -884,260 +894,267 @@ static KR_CHUSEOK: Rule = Rule::in_calendar(CalendarSystem::DANGI, 8, 15);
 /// that added Saturdays applies to the four national days, not to these.
 const SUNDAY_ONLY: &[Weekday] = &[Weekday::Sunday];
 
-static KR_RULES: &[HolidayRule] = &[
-    // New Year's Day and Memorial Day are the two the 대체공휴일 never
-    // reaches. The 1949 decree (대통령령 제124호 of 4 June 1949) listed
-    // 1, 2 and 3 January; 제12616호 of 1 February 1989 kept only the 1st
-    // and 2nd, so the 3rd was last a holiday in 1989, and 제15939호 of
-    // 18 December 1998 dropped the 2nd from 1999. The 익일휴무제 of 1989–90
-    // excluded the 신정 run, so the three are never substituted.
-    HolidayRule::fixed_public("New Year's Day", "신정", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("New Year Holiday", "신정 연휴", Rule::gregorian(1, 2))
-        .years(Some(1949), Some(1998)),
-    HolidayRule::fixed_public("New Year Holiday", "신정 연휴", Rule::gregorian(1, 3))
-        .years(Some(1949), Some(1989)),
-    // Seollal is three days: the eve, the day, and the day after. The
-    // three-day form dates from 1989; 1985–88 kept the day alone, under the
-    // name 민속의 날.
-    HolidayRule::public(
-        "Seollal",
-        "설날",
-        Rule::Offset {
-            base: &KR_SEOLLAL,
-            days: -1,
-        },
-    )
-    .substituted_from(2014)
-    .substitute_on(SUNDAY_ONLY)
-    .years(Some(1989), None),
-    HolidayRule::public(
-        "Seollal",
-        "설날",
-        Rule::in_calendar(CalendarSystem::DANGI, 1, 1),
-    )
-    .substituted_from(2014)
-    .substitute_on(SUNDAY_ONLY)
-    .years(Some(1985), None),
-    HolidayRule::public(
-        "Seollal",
-        "설날",
-        Rule::Offset {
-            base: &KR_SEOLLAL,
-            days: 1,
-        },
-    )
-    .substituted_from(2014)
-    .substitute_on(SUNDAY_ONLY)
-    .years(Some(1989), None),
-    // The holidays the 익일휴무제 of 1989–90 could reach are split at
-    // 1990: the earlier row substitutes whenever a policy is in force,
-    // which before 2014 is only those two years, and the later row carries
-    // the year its step of the 대체공휴일 began. The four national days came
-    // under the 대체공휴일 by 대통령령 제31930호 of 4 August 2021; the first
-    // day it produced was 16 August 2021.
-    HolidayRule::public("Independence Movement Day", "삼일절", Rule::gregorian(3, 1))
-        .years(None, Some(1990)),
-    HolidayRule::public("Independence Movement Day", "삼일절", Rule::gregorian(3, 1))
-        .substituted_from(2021)
-        .years(Some(1991), None),
-    // 식목일 was in the 1949 decree; 제1568호 of 16 March 1960 replaced it
-    // for that year by 사방의 날, 15 March, which its 부칙 set at 21 March
-    // for 1960, and 국무원령 제210호 of 27 February 1961 put 식목일 back;
-    // 제18893호 of 30 June 2005 dropped it from 2006.
-    HolidayRule::public("Arbor Day", "식목일", Rule::gregorian(4, 5)).years(Some(1949), Some(1959)),
-    kr_one_off("Erosion Control Day", "사방의 날", 1960, 3, 21),
-    HolidayRule::public("Arbor Day", "식목일", Rule::gregorian(4, 5)).years(Some(1961), Some(2005)),
-    // 대통령령 제36290호 made 노동절, the renamed 근로자의 날, a public
-    // holiday from 1 May 2026, under the 대체공휴일 from the start. Before
-    // then it was a paid day off for employees under its own Act, and not a
-    // public holiday.
-    HolidayRule::public("Labour Day", "노동절", Rule::gregorian(5, 1))
-        .substituted_from(2026)
-        .years(Some(2026), None),
-    // Children's Day and Buddha's Birthday were added by 대통령령
-    // 제7538호 of 27 January 1975, in force on promulgation.
-    HolidayRule::public("Children's Day", "어린이날", Rule::gregorian(5, 5))
-        .years(Some(1975), Some(1990)),
-    HolidayRule::public("Children's Day", "어린이날", Rule::gregorian(5, 5))
+static KR_RULES: &[HolidayRule] = &read_all(
+    1949,
+    [
+        // New Year's Day and Memorial Day are the two the 대체공휴일 never
+        // reaches. The 1949 decree (대통령령 제124호 of 4 June 1949) listed
+        // 1, 2 and 3 January; 제12616호 of 1 February 1989 kept only the 1st
+        // and 2nd, so the 3rd was last a holiday in 1989, and 제15939호 of
+        // 18 December 1998 dropped the 2nd from 1999. The 익일휴무제 of 1989–90
+        // excluded the 신정 run, so the three are never substituted.
+        HolidayRule::fixed_public("New Year's Day", "신정", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("New Year Holiday", "신정 연휴", Rule::gregorian(1, 2))
+            .years(Some(1949), Some(1998)),
+        HolidayRule::fixed_public("New Year Holiday", "신정 연휴", Rule::gregorian(1, 3))
+            .years(Some(1949), Some(1989)),
+        // Seollal is three days: the eve, the day, and the day after. The
+        // three-day form dates from 1989; 1985–88 kept the day alone, under the
+        // name 민속의 날.
+        HolidayRule::public(
+            "Seollal",
+            "설날",
+            Rule::Offset {
+                base: &KR_SEOLLAL,
+                days: -1,
+            },
+        )
         .substituted_from(2014)
-        .years(Some(1991), None),
-    HolidayRule::public(
-        "Buddha's Birthday",
-        "부처님 오신 날",
-        Rule::in_calendar(CalendarSystem::DANGI, 4, 8),
-    )
-    .years(Some(1975), Some(1990)),
-    HolidayRule::public(
-        "Buddha's Birthday",
-        "부처님 오신 날",
-        Rule::in_calendar(CalendarSystem::DANGI, 4, 8),
-    )
-    .substituted_from(2023)
-    .years(Some(1991), None),
-    // 현충일 dates from 제1145호 of 19 April 1956, in force from 6 June
-    // 1956 by its 부칙.
-    HolidayRule::public("Memorial Day", "현충일", Rule::gregorian(6, 6))
-        .years(Some(1956), Some(1990)),
-    HolidayRule::fixed_public("Memorial Day", "현충일", Rule::gregorian(6, 6))
-        .years(Some(1991), None),
-    HolidayRule::public("Constitution Day", "제헌절", Rule::gregorian(7, 17))
-        .years(Some(1949), Some(2007)),
-    // Restored by the same decree, in force for it from 11 May 2026, and
-    // substituted like the other national days.
-    HolidayRule::public("Constitution Day", "제헌절", Rule::gregorian(7, 17))
-        .substituted_from(2026)
-        .years(Some(2026), None),
-    HolidayRule::public("Liberation Day", "광복절", Rule::gregorian(8, 15)).years(None, Some(1990)),
-    HolidayRule::public("Liberation Day", "광복절", Rule::gregorian(8, 15))
-        .substituted_from(2021)
-        .years(Some(1991), None),
-    // Chuseok is the fourteenth, fifteenth and sixteenth of the eighth
-    // month.
-    HolidayRule::public(
-        "Chuseok",
-        "추석",
-        Rule::Offset {
-            base: &KR_CHUSEOK,
-            days: -1,
-        },
-    )
-    .substituted_from(2014)
-    .substitute_on(SUNDAY_ONLY)
-    .years(Some(1989), None),
-    HolidayRule::public(
-        "Chuseok",
-        "추석",
-        Rule::in_calendar(CalendarSystem::DANGI, 8, 15),
-    )
-    .substituted_from(2014)
-    .substitute_on(SUNDAY_ONLY),
-    HolidayRule::public(
-        "Chuseok",
-        "추석",
-        Rule::Offset {
-            base: &KR_CHUSEOK,
-            days: 1,
-        },
-    )
-    .substituted_from(2014)
-    .substitute_on(SUNDAY_ONLY)
-    .years(Some(1989), None),
-    // 국군의 날 was made a holiday by 대통령령 제8235호 of 3 September 1976
-    // — whose text was not read; the number and date are the 국가법령정보센터
-    // index's — and dropped, with 한글날, by 제13155호 of 5 November 1990
-    // from 1991. Sunday 1 October 1989 is the one day the 익일휴무제 ever
-    // moved: Monday the 2nd was off.
-    HolidayRule::public("Armed Forces Day", "국군의 날", Rule::gregorian(10, 1))
-        .years(Some(1976), Some(1990)),
-    HolidayRule::public("National Foundation Day", "개천절", Rule::gregorian(10, 3))
-        .years(None, Some(1990)),
-    HolidayRule::public("National Foundation Day", "개천절", Rule::gregorian(10, 3))
-        .substituted_from(2021)
-        .years(Some(1991), None),
-    // Hangul Day was a public holiday until 1990, dropped to make room for
-    // more working days, and restored in 2013.
-    HolidayRule::public("Hangul Day", "한글날", Rule::gregorian(10, 9))
-        .years(Some(1949), Some(1990)),
-    HolidayRule::public("Hangul Day", "한글날", Rule::gregorian(10, 9))
-        .substituted_from(2021)
-        .years(Some(2013), None),
-    HolidayRule::public("Christmas Day", "성탄절", Rule::gregorian(12, 25)).years(None, Some(1990)),
-    HolidayRule::public("Christmas Day", "성탄절", Rule::gregorian(12, 25))
+        .substitute_on(SUNDAY_ONLY)
+        .years(Some(1989), None),
+        HolidayRule::public(
+            "Seollal",
+            "설날",
+            Rule::in_calendar(CalendarSystem::DANGI, 1, 1),
+        )
+        .substituted_from(2014)
+        .substitute_on(SUNDAY_ONLY)
+        .years(Some(1985), None),
+        HolidayRule::public(
+            "Seollal",
+            "설날",
+            Rule::Offset {
+                base: &KR_SEOLLAL,
+                days: 1,
+            },
+        )
+        .substituted_from(2014)
+        .substitute_on(SUNDAY_ONLY)
+        .years(Some(1989), None),
+        // The holidays the 익일휴무제 of 1989–90 could reach are split at
+        // 1990: the earlier row substitutes whenever a policy is in force,
+        // which before 2014 is only those two years, and the later row carries
+        // the year its step of the 대체공휴일 began. The four national days came
+        // under the 대체공휴일 by 대통령령 제31930호 of 4 August 2021; the first
+        // day it produced was 16 August 2021.
+        HolidayRule::public("Independence Movement Day", "삼일절", Rule::gregorian(3, 1))
+            .years(None, Some(1990)),
+        HolidayRule::public("Independence Movement Day", "삼일절", Rule::gregorian(3, 1))
+            .substituted_from(2021)
+            .years(Some(1991), None),
+        // 식목일 was in the 1949 decree; 제1568호 of 16 March 1960 replaced it
+        // for that year by 사방의 날, 15 March, which its 부칙 set at 21 March
+        // for 1960, and 국무원령 제210호 of 27 February 1961 put 식목일 back;
+        // 제18893호 of 30 June 2005 dropped it from 2006.
+        HolidayRule::public("Arbor Day", "식목일", Rule::gregorian(4, 5))
+            .years(Some(1949), Some(1959)),
+        kr_one_off("Erosion Control Day", "사방의 날", 1960, 3, 21),
+        HolidayRule::public("Arbor Day", "식목일", Rule::gregorian(4, 5))
+            .years(Some(1961), Some(2005)),
+        // 대통령령 제36290호 made 노동절, the renamed 근로자의 날, a public
+        // holiday from 1 May 2026, under the 대체공휴일 from the start. Before
+        // then it was a paid day off for employees under its own Act, and not a
+        // public holiday.
+        HolidayRule::public("Labour Day", "노동절", Rule::gregorian(5, 1))
+            .substituted_from(2026)
+            .years(Some(2026), None),
+        // Children's Day and Buddha's Birthday were added by 대통령령
+        // 제7538호 of 27 January 1975, in force on promulgation.
+        HolidayRule::public("Children's Day", "어린이날", Rule::gregorian(5, 5))
+            .years(Some(1975), Some(1990)),
+        HolidayRule::public("Children's Day", "어린이날", Rule::gregorian(5, 5))
+            .substituted_from(2014)
+            .years(Some(1991), None),
+        HolidayRule::public(
+            "Buddha's Birthday",
+            "부처님 오신 날",
+            Rule::in_calendar(CalendarSystem::DANGI, 4, 8),
+        )
+        .years(Some(1975), Some(1990)),
+        HolidayRule::public(
+            "Buddha's Birthday",
+            "부처님 오신 날",
+            Rule::in_calendar(CalendarSystem::DANGI, 4, 8),
+        )
         .substituted_from(2023)
         .years(Some(1991), None),
-    // ── Election days, 제2조제10호의2 ────────────────────────────────────
-    // The day of every election held because a term has run out has been a
-    // public holiday since 대통령령 제19674호 of 6 September 2006; before,
-    // each was designated in turn. None is substituted, and none triggers a
-    // substitute by coinciding with another holiday.
-    kr_one_off(
-        "17th presidential election",
-        "제17대 대통령 선거",
-        2007,
-        12,
-        19,
-    ),
-    kr_one_off(
-        "18th National Assembly election",
-        "제18대 국회의원 선거",
-        2008,
-        4,
-        9,
-    ),
-    kr_one_off("5th local elections", "제5회 전국동시지방선거", 2010, 6, 2),
-    kr_one_off(
-        "19th National Assembly election",
-        "제19대 국회의원 선거",
-        2012,
-        4,
-        11,
-    ),
-    kr_one_off(
-        "18th presidential election",
-        "제18대 대통령 선거",
-        2012,
-        12,
-        19,
-    ),
-    kr_one_off("6th local elections", "제6회 전국동시지방선거", 2014, 6, 4),
-    kr_one_off(
-        "20th National Assembly election",
-        "제20대 국회의원 선거",
-        2016,
-        4,
-        13,
-    ),
-    kr_one_off("7th local elections", "제7회 전국동시지방선거", 2018, 6, 13),
-    kr_one_off(
-        "21st National Assembly election",
-        "제21대 국회의원 선거",
-        2020,
-        4,
-        15,
-    ),
-    kr_one_off(
-        "20th presidential election",
-        "제20대 대통령 선거",
-        2022,
-        3,
-        9,
-    ),
-    kr_one_off("8th local elections", "제8회 전국동시지방선거", 2022, 6, 1),
-    kr_one_off(
-        "22nd National Assembly election",
-        "제22대 국회의원 선거",
-        2024,
-        4,
-        10,
-    ),
-    kr_one_off("9th local elections", "제9회 전국동시지방선거", 2026, 6, 3),
-    // ── Days the government designated, 제2조제11호 ─────────────────────
-    // Each by a Cabinet decision. Carried from 2009, the first year the
-    // Korea Exchange's closure lists reach, which they were checked
-    // against. The two presidential elections that followed a vacancy
-    // rather than a term's end are here, not above.
-    kr_one_off("Temporary holiday", "임시공휴일", 2015, 8, 14),
-    kr_one_off("Temporary holiday", "임시공휴일", 2016, 5, 6),
-    kr_one_off(
-        "19th presidential election",
-        "제19대 대통령 선거",
-        2017,
-        5,
-        9,
-    ),
-    kr_one_off("Temporary holiday", "임시공휴일", 2017, 10, 2),
-    kr_one_off("Temporary holiday", "임시공휴일", 2020, 8, 17),
-    kr_one_off("Temporary holiday", "임시공휴일", 2023, 10, 2),
-    kr_one_off("Armed Forces Day", "국군의 날", 2024, 10, 1),
-    kr_one_off("Temporary holiday", "임시공휴일", 2025, 1, 27),
-    kr_one_off(
-        "21st presidential election",
-        "제21대 대통령 선거",
-        2025,
-        6,
-        3,
-    ),
-];
+        // 현충일 dates from 제1145호 of 19 April 1956, in force from 6 June
+        // 1956 by its 부칙.
+        HolidayRule::public("Memorial Day", "현충일", Rule::gregorian(6, 6))
+            .years(Some(1956), Some(1990)),
+        HolidayRule::fixed_public("Memorial Day", "현충일", Rule::gregorian(6, 6))
+            .years(Some(1991), None),
+        HolidayRule::public("Constitution Day", "제헌절", Rule::gregorian(7, 17))
+            .years(Some(1949), Some(2007)),
+        // Restored by the same decree, in force for it from 11 May 2026, and
+        // substituted like the other national days.
+        HolidayRule::public("Constitution Day", "제헌절", Rule::gregorian(7, 17))
+            .substituted_from(2026)
+            .years(Some(2026), None),
+        HolidayRule::public("Liberation Day", "광복절", Rule::gregorian(8, 15))
+            .years(None, Some(1990)),
+        HolidayRule::public("Liberation Day", "광복절", Rule::gregorian(8, 15))
+            .substituted_from(2021)
+            .years(Some(1991), None),
+        // Chuseok is the fourteenth, fifteenth and sixteenth of the eighth
+        // month.
+        HolidayRule::public(
+            "Chuseok",
+            "추석",
+            Rule::Offset {
+                base: &KR_CHUSEOK,
+                days: -1,
+            },
+        )
+        .substituted_from(2014)
+        .substitute_on(SUNDAY_ONLY)
+        .years(Some(1989), None),
+        HolidayRule::public(
+            "Chuseok",
+            "추석",
+            Rule::in_calendar(CalendarSystem::DANGI, 8, 15),
+        )
+        .substituted_from(2014)
+        .substitute_on(SUNDAY_ONLY),
+        HolidayRule::public(
+            "Chuseok",
+            "추석",
+            Rule::Offset {
+                base: &KR_CHUSEOK,
+                days: 1,
+            },
+        )
+        .substituted_from(2014)
+        .substitute_on(SUNDAY_ONLY)
+        .years(Some(1989), None),
+        // 국군의 날 was made a holiday by 대통령령 제8235호 of 3 September 1976
+        // — whose text was not read; the number and date are the 국가법령정보센터
+        // index's — and dropped, with 한글날, by 제13155호 of 5 November 1990
+        // from 1991. Sunday 1 October 1989 is the one day the 익일휴무제 ever
+        // moved: Monday the 2nd was off.
+        HolidayRule::public("Armed Forces Day", "국군의 날", Rule::gregorian(10, 1))
+            .years(Some(1976), Some(1990)),
+        HolidayRule::public("National Foundation Day", "개천절", Rule::gregorian(10, 3))
+            .years(None, Some(1990)),
+        HolidayRule::public("National Foundation Day", "개천절", Rule::gregorian(10, 3))
+            .substituted_from(2021)
+            .years(Some(1991), None),
+        // Hangul Day was a public holiday until 1990, dropped to make room for
+        // more working days, and restored in 2013.
+        HolidayRule::public("Hangul Day", "한글날", Rule::gregorian(10, 9))
+            .years(Some(1949), Some(1990)),
+        HolidayRule::public("Hangul Day", "한글날", Rule::gregorian(10, 9))
+            .substituted_from(2021)
+            .years(Some(2013), None),
+        HolidayRule::public("Christmas Day", "성탄절", Rule::gregorian(12, 25))
+            .years(None, Some(1990)),
+        HolidayRule::public("Christmas Day", "성탄절", Rule::gregorian(12, 25))
+            .substituted_from(2023)
+            .years(Some(1991), None),
+        // ── Election days, 제2조제10호의2 ────────────────────────────────────
+        // The day of every election held because a term has run out has been a
+        // public holiday since 대통령령 제19674호 of 6 September 2006; before,
+        // each was designated in turn. None is substituted, and none triggers a
+        // substitute by coinciding with another holiday.
+        kr_one_off(
+            "17th presidential election",
+            "제17대 대통령 선거",
+            2007,
+            12,
+            19,
+        ),
+        kr_one_off(
+            "18th National Assembly election",
+            "제18대 국회의원 선거",
+            2008,
+            4,
+            9,
+        ),
+        kr_one_off("5th local elections", "제5회 전국동시지방선거", 2010, 6, 2),
+        kr_one_off(
+            "19th National Assembly election",
+            "제19대 국회의원 선거",
+            2012,
+            4,
+            11,
+        ),
+        kr_one_off(
+            "18th presidential election",
+            "제18대 대통령 선거",
+            2012,
+            12,
+            19,
+        ),
+        kr_one_off("6th local elections", "제6회 전국동시지방선거", 2014, 6, 4),
+        kr_one_off(
+            "20th National Assembly election",
+            "제20대 국회의원 선거",
+            2016,
+            4,
+            13,
+        ),
+        kr_one_off("7th local elections", "제7회 전국동시지방선거", 2018, 6, 13),
+        kr_one_off(
+            "21st National Assembly election",
+            "제21대 국회의원 선거",
+            2020,
+            4,
+            15,
+        ),
+        kr_one_off(
+            "20th presidential election",
+            "제20대 대통령 선거",
+            2022,
+            3,
+            9,
+        ),
+        kr_one_off("8th local elections", "제8회 전국동시지방선거", 2022, 6, 1),
+        kr_one_off(
+            "22nd National Assembly election",
+            "제22대 국회의원 선거",
+            2024,
+            4,
+            10,
+        ),
+        kr_one_off("9th local elections", "제9회 전국동시지방선거", 2026, 6, 3),
+        // ── Days the government designated, 제2조제11호 ─────────────────────
+        // Each by a Cabinet decision. Carried from 2009, the first year the
+        // Korea Exchange's closure lists reach, which they were checked
+        // against. The two presidential elections that followed a vacancy
+        // rather than a term's end are here, not above.
+        kr_one_off("Temporary holiday", "임시공휴일", 2015, 8, 14),
+        kr_one_off("Temporary holiday", "임시공휴일", 2016, 5, 6),
+        kr_one_off(
+            "19th presidential election",
+            "제19대 대통령 선거",
+            2017,
+            5,
+            9,
+        ),
+        kr_one_off("Temporary holiday", "임시공휴일", 2017, 10, 2),
+        kr_one_off("Temporary holiday", "임시공휴일", 2020, 8, 17),
+        kr_one_off("Temporary holiday", "임시공휴일", 2023, 10, 2),
+        kr_one_off("Armed Forces Day", "국군의 날", 2024, 10, 1),
+        kr_one_off("Temporary holiday", "임시공휴일", 2025, 1, 27),
+        kr_one_off(
+            "21st presidential election",
+            "제21대 대통령 선거",
+            2025,
+            6,
+            3,
+        ),
+    ],
+);
 
 /// A day off for one year only.
 const fn kr_one_off(
@@ -1206,7 +1223,8 @@ static KR_SUBSTITUTION: &[SubstitutionPolicy] = &[
 /// moved. The policy has two entries: the 익일휴무제 of 1989–1990, a Sunday
 /// trigger for the holidays outside the 신정, 설날 and 추석 runs, and the
 /// 대체공휴일 from 2014 with `on_collision`, so two holidays on one day earn
-/// a third.
+/// a third. The table answers from 1949, the year of the first decree read,
+/// and every year before it is a gap (ADR 0013).
 pub static SOUTH_KOREA: RuleSet = RuleSet {
     code: "KR",
     english_name: "South Korea",
@@ -1282,8 +1300,8 @@ const IN_LISTED_LAST: i32 = 2027;
 /// A day of the DoPT lists: the lists' day for the years read, exactly
 /// for a Hindu day and approximately for a Hijri one, whose date the
 /// Ministry may change on the sighting of the Moon; and `base`,
-/// approximate, before and after them. `base` is `None` for a day Delhi
-/// kept in a year read and is not carried outside them.
+/// approximate, after them, and a gap before them, which the row `base`
+/// carries by the table's first year (ADR 0013).
 const fn in_listed(base: HolidayRule, name: &'static str, hijri: bool) -> [HolidayRule; 3] {
     let read = HolidayRule {
         rule: Rule::listed(
@@ -1371,7 +1389,7 @@ const IN_NANAK: [HolidayRule; 3] = in_listed(
     false,
 );
 /// Maha Shivaratri, one of Delhi's three optional days in 2025 alone of
-/// the years read; outside them the three are taken to be those of 2026
+/// the years read; after them the three are taken to be those of 2026
 /// and 2027.
 const IN_SHIVARATRI: HolidayRule = in_listed(
     HolidayRule::fixed_public("Maha Shivaratri", "महाशिवरात्रि", MAHA_SHIVARATRI),
@@ -1379,54 +1397,57 @@ const IN_SHIVARATRI: HolidayRule = in_listed(
     false,
 )[0];
 
-pub(super) static IN_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("Republic Day", "गणतंत्र दिवस", Rule::gregorian(1, 26))
-        .years(Some(1950), None),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Independence Day", "स्वतंत्रता दिवस", Rule::gregorian(8, 15))
-        .years(Some(1947), None),
-    HolidayRule::fixed_public("Gandhi Jayanti", "गांधी जयंती", Rule::gregorian(10, 2)),
-    HolidayRule::fixed_public("Christmas Day", "", Rule::gregorian(12, 25)),
-    IN_FITR[0],
-    IN_FITR[1],
-    IN_FITR[2],
-    IN_ZUHA[0],
-    IN_ZUHA[1],
-    IN_ZUHA[2],
-    IN_MUHARRAM[0],
-    IN_MUHARRAM[1],
-    IN_MUHARRAM[2],
-    IN_MILAD[0],
-    IN_MILAD[1],
-    IN_MILAD[2],
-    // The gazetted Hindu, Jain, Buddhist and Sikh days: the lists' days,
-    // and outside them the rules, approximate.
-    IN_SHIVARATRI,
-    IN_HOLI[0],
-    IN_HOLI[1],
-    IN_HOLI[2],
-    IN_RAMA[0],
-    IN_RAMA[1],
-    IN_RAMA[2],
-    IN_MAHAVIR[0],
-    IN_MAHAVIR[1],
-    IN_MAHAVIR[2],
-    IN_BUDDHA[0],
-    IN_BUDDHA[1],
-    IN_BUDDHA[2],
-    IN_JANMASHTAMI[0],
-    IN_JANMASHTAMI[1],
-    IN_JANMASHTAMI[2],
-    IN_DUSSEHRA[0],
-    IN_DUSSEHRA[1],
-    IN_DUSSEHRA[2],
-    IN_DIWALI[0],
-    IN_DIWALI[1],
-    IN_DIWALI[2],
-    IN_NANAK[0],
-    IN_NANAK[1],
-    IN_NANAK[2],
-];
+pub(super) static IN_RULES: &[HolidayRule] = &read_all(
+    IN_LISTED_FIRST,
+    [
+        HolidayRule::fixed_public("Republic Day", "गणतंत्र दिवस", Rule::gregorian(1, 26))
+            .years(Some(1950), None),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Independence Day", "स्वतंत्रता दिवस", Rule::gregorian(8, 15))
+            .years(Some(1947), None),
+        HolidayRule::fixed_public("Gandhi Jayanti", "गांधी जयंती", Rule::gregorian(10, 2)),
+        HolidayRule::fixed_public("Christmas Day", "", Rule::gregorian(12, 25)),
+        IN_FITR[0],
+        IN_FITR[1],
+        IN_FITR[2],
+        IN_ZUHA[0],
+        IN_ZUHA[1],
+        IN_ZUHA[2],
+        IN_MUHARRAM[0],
+        IN_MUHARRAM[1],
+        IN_MUHARRAM[2],
+        IN_MILAD[0],
+        IN_MILAD[1],
+        IN_MILAD[2],
+        // The gazetted Hindu, Jain, Buddhist and Sikh days: the lists' days,
+        // and outside them the rules, approximate.
+        IN_SHIVARATRI,
+        IN_HOLI[0],
+        IN_HOLI[1],
+        IN_HOLI[2],
+        IN_RAMA[0],
+        IN_RAMA[1],
+        IN_RAMA[2],
+        IN_MAHAVIR[0],
+        IN_MAHAVIR[1],
+        IN_MAHAVIR[2],
+        IN_BUDDHA[0],
+        IN_BUDDHA[1],
+        IN_BUDDHA[2],
+        IN_JANMASHTAMI[0],
+        IN_JANMASHTAMI[1],
+        IN_JANMASHTAMI[2],
+        IN_DUSSEHRA[0],
+        IN_DUSSEHRA[1],
+        IN_DUSSEHRA[2],
+        IN_DIWALI[0],
+        IN_DIWALI[1],
+        IN_DIWALI[2],
+        IN_NANAK[0],
+        IN_NANAK[1],
+        IN_NANAK[2],
+    ],
+);
 
 /// India: the three national holidays and the gazetted days of the central
 /// government's list — Christian, Muslim, Hindu, Jain, Buddhist and Sikh —
@@ -1453,10 +1474,11 @@ pub static INDIA: RuleSet = RuleSet {
               three. For 2025 to 2027 the Hindu, Jain, Buddhist and Sikh days are the lists' \
               days, among them the Vaiṣṇava Janmashtami, and the Hijri-dated days the lists' \
               days, approximate, as the Ministry may move them on the sighting of the Moon. \
-              Outside those years every one of those days is a rule, approximate: the Hindu \
+              After 2027 every one of those days is a rule, approximate: the Hindu \
               days computed on the `hindu-lunar` calendar as the Rashtriya Panchang keeps \
               them, with the three optional days of 2026 and 2027, and the Hijri days the \
-              tabular prediction. Diwali is Lakṣmī Pūjā, as the O.M.s for 2017, 2018 and \
+              tabular prediction; before 2025, the first list read, every day of the \
+              table is a gap. Diwali is Lakṣmī Pūjā, as the O.M.s for 2017, 2018 and \
               2027 date it — 19 October 2017, 7 November 2018 and 29 October 2027 — the \
               first two read as GConnect reproduces them (secondary), retrieved 2026-09-27; \
               the states' days from the Reserve Bank of India's \"Holidays under Negotiable \
@@ -1470,51 +1492,54 @@ pub static INDIA: RuleSet = RuleSet {
 // Thailand
 // ─────────────────────────────────────────────────────────────────────────
 
-static TH_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "วันขึ้นปีใหม่", Rule::gregorian(1, 1)),
-    HolidayRule::public("Makha Bucha", "วันมาฆบูชา", THAI_MAKHA_BUCHA),
-    HolidayRule::public("Chakri Memorial Day", "วันจักรี", Rule::gregorian(4, 6)),
-    HolidayRule::fixed_public("Songkran", "วันสงกรานต์", Rule::gregorian(4, 13)),
-    HolidayRule::fixed_public("Songkran", "วันสงกรานต์", Rule::gregorian(4, 14)),
-    HolidayRule::fixed_public("Songkran", "วันสงกรานต์", Rule::gregorian(4, 15)),
-    HolidayRule::public("Labour Day", "วันแรงงานแห่งชาติ", Rule::gregorian(5, 1)),
-    HolidayRule::public("Coronation Day", "วันฉัตรมงคล", Rule::gregorian(5, 4))
+static TH_RULES: &[HolidayRule] = &read_all(
+    1992,
+    [
+        HolidayRule::public("New Year's Day", "วันขึ้นปีใหม่", Rule::gregorian(1, 1)),
+        HolidayRule::public("Makha Bucha", "วันมาฆบูชา", THAI_MAKHA_BUCHA),
+        HolidayRule::public("Chakri Memorial Day", "วันจักรี", Rule::gregorian(4, 6)),
+        HolidayRule::fixed_public("Songkran", "วันสงกรานต์", Rule::gregorian(4, 13)),
+        HolidayRule::fixed_public("Songkran", "วันสงกรานต์", Rule::gregorian(4, 14)),
+        HolidayRule::fixed_public("Songkran", "วันสงกรานต์", Rule::gregorian(4, 15)),
+        HolidayRule::public("Labour Day", "วันแรงงานแห่งชาติ", Rule::gregorian(5, 1)),
+        HolidayRule::public("Coronation Day", "วันฉัตรมงคล", Rule::gregorian(5, 4))
+            .years(Some(2019), None),
+        HolidayRule::public("Visakha Bucha", "วันวิสาขบูชา", THAI_VISAKHA_BUCHA),
+        HolidayRule::public(
+            "Queen Suthida's Birthday",
+            "วันเฉลิมพระชนมพรรษาสมเด็จพระนางเจ้าฯ",
+            Rule::gregorian(6, 3),
+        )
         .years(Some(2019), None),
-    HolidayRule::public("Visakha Bucha", "วันวิสาขบูชา", THAI_VISAKHA_BUCHA),
-    HolidayRule::public(
-        "Queen Suthida's Birthday",
-        "วันเฉลิมพระชนมพรรษาสมเด็จพระนางเจ้าฯ",
-        Rule::gregorian(6, 3),
-    )
-    .years(Some(2019), None),
-    HolidayRule::public("Asalha Bucha", "วันอาสาฬหบูชา", THAI_ASALHA_BUCHA),
-    HolidayRule::fixed_public("Khao Phansa", "วันเข้าพรรษา", THAI_KHAO_PHANSA),
-    HolidayRule::public(
-        "King Vajiralongkorn's Birthday",
-        "วันเฉลิมพระชนมพรรษา",
-        Rule::gregorian(7, 28),
-    )
-    .years(Some(2017), None),
-    HolidayRule::public(
-        "Queen Mother's Birthday",
-        "วันแม่แห่งชาติ",
-        Rule::gregorian(8, 12),
-    ),
-    HolidayRule::public(
-        "Passing of King Bhumibol",
-        "วันคล้ายวันสวรรคต",
-        Rule::gregorian(10, 13),
-    )
-    .years(Some(2017), None),
-    HolidayRule::public("Chulalongkorn Day", "วันปิยมหาราช", Rule::gregorian(10, 23)),
-    HolidayRule::public(
-        "King Bhumibol's Birthday",
-        "วันพ่อแห่งชาติ",
-        Rule::gregorian(12, 5),
-    ),
-    HolidayRule::public("Constitution Day", "วันรัฐธรรมนูญ", Rule::gregorian(12, 10)),
-    HolidayRule::public("New Year's Eve", "วันสิ้นปี", Rule::gregorian(12, 31)),
-];
+        HolidayRule::public("Asalha Bucha", "วันอาสาฬหบูชา", THAI_ASALHA_BUCHA),
+        HolidayRule::fixed_public("Khao Phansa", "วันเข้าพรรษา", THAI_KHAO_PHANSA),
+        HolidayRule::public(
+            "King Vajiralongkorn's Birthday",
+            "วันเฉลิมพระชนมพรรษา",
+            Rule::gregorian(7, 28),
+        )
+        .years(Some(2017), None),
+        HolidayRule::public(
+            "Queen Mother's Birthday",
+            "วันแม่แห่งชาติ",
+            Rule::gregorian(8, 12),
+        ),
+        HolidayRule::public(
+            "Passing of King Bhumibol",
+            "วันคล้ายวันสวรรคต",
+            Rule::gregorian(10, 13),
+        )
+        .years(Some(2017), None),
+        HolidayRule::public("Chulalongkorn Day", "วันปิยมหาราช", Rule::gregorian(10, 23)),
+        HolidayRule::public(
+            "King Bhumibol's Birthday",
+            "วันพ่อแห่งชาติ",
+            Rule::gregorian(12, 5),
+        ),
+        HolidayRule::public("Constitution Day", "วันรัฐธรรมนูญ", Rule::gregorian(12, 10)),
+        HolidayRule::public("New Year's Eve", "วันสิ้นปี", Rule::gregorian(12, 31)),
+    ],
+);
 
 static TH_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     trigger: &[Weekday::Saturday, Weekday::Sunday],
@@ -1531,7 +1556,9 @@ static TH_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 ///
 /// The four Buddhist holy days are the Thai lunar ones the
 /// [`crate::traditions::BUDDHIST_THAI`] table carries, on `thai-lunar`,
-/// exact for 1992–2027 and reported as gaps outside those years.
+/// exact for 1992–2027 and reported as gaps outside those years. The whole
+/// table answers from 1992, the first of the Bank of Thailand's lists read,
+/// and every year before it is a gap (ADR 0013).
 pub static THAILAND: RuleSet = RuleSet {
     code: "TH",
     english_name: "Thailand",
@@ -1663,67 +1690,70 @@ const fn vn_work(
     HolidayRule::workday(name, local_name, vn_noticed(VN_WORKDAYS.named(holiday)))
 }
 
-static VN_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Tết Dương lịch", Rule::gregorian(1, 1)),
-    // Tết is five days by article 112(1)(b), and which five is the Prime
-    // Minister's decision each year under article 112(3). There is no
-    // rule for it, only the notices.
-    vn_off("Tết", "Tết Nguyên Đán", vn::TET),
-    HolidayRule::public(
-        "Hùng Kings' Festival",
-        "Giỗ Tổ Hùng Vương",
-        Rule::in_calendar(CalendarSystem::VIETNAMESE, 3, 10),
-    )
-    .years(Some(2007), None),
-    HolidayRule::public(
-        "Reunification Day",
-        "Ngày Giải phóng miền Nam",
-        Rule::gregorian(4, 30),
-    ),
-    HolidayRule::public("Labour Day", "Ngày Quốc tế Lao động", Rule::gregorian(5, 1)),
-    HolidayRule::public("National Day", "Quốc khánh", Rule::gregorian(9, 2)),
-    // The second National Day holiday, from 2021, is "the day before or
-    // after" 2 September, and which is again the Prime Minister's choice.
-    vn_off("National Day", "Quốc khánh", vn::NATIONAL_DAY),
-    // Ngày Văn hóa Việt Nam, a paid day off by Nghị quyết 28/2026/QH16
-    // from 1 July 2026. The resolution says nothing of a weekend, and the
-    // make-up rule of article 111(3) reaches only the days of article
-    // 112(1), which does not list it yet, so it is not moved.
-    HolidayRule::fixed_public(
-        "Vietnamese Culture Day",
-        "Ngày Văn hóa Việt Nam",
-        Rule::gregorian(11, 24),
-    )
-    .years(Some(2026), None),
-    // The weekdays the notices swap for a Saturday.
-    vn_off("New Year's Day", "Tết Dương lịch", vn::NEW_YEARS_DAY),
-    vn_off(
-        "Reunification Day and Labour Day",
-        "Ngày Chiến thắng và Ngày Quốc tế Lao động",
-        vn::VICTORY_AND_LABOUR,
-    ),
-    // And the Saturdays worked for them.
-    vn_work(
-        "Make-up working day, New Year's Day",
-        "Làm bù, Tết Dương lịch",
-        vn::NEW_YEARS_DAY,
-    ),
-    vn_work(
-        "Make-up working day, Tết",
-        "Làm bù, Tết Nguyên Đán",
-        vn::TET,
-    ),
-    vn_work(
-        "Make-up working day, Reunification Day and Labour Day",
-        "Làm bù, Ngày Chiến thắng và Ngày Quốc tế Lao động",
-        vn::VICTORY_AND_LABOUR,
-    ),
-    vn_work(
-        "Make-up working day, National Day",
-        "Làm bù, Quốc khánh",
-        vn::NATIONAL_DAY,
-    ),
-];
+static VN_RULES: &[HolidayRule] = &read_all(
+    2021,
+    [
+        HolidayRule::public("New Year's Day", "Tết Dương lịch", Rule::gregorian(1, 1)),
+        // Tết is five days by article 112(1)(b), and which five is the Prime
+        // Minister's decision each year under article 112(3). There is no
+        // rule for it, only the notices.
+        vn_off("Tết", "Tết Nguyên Đán", vn::TET),
+        HolidayRule::public(
+            "Hùng Kings' Festival",
+            "Giỗ Tổ Hùng Vương",
+            Rule::in_calendar(CalendarSystem::VIETNAMESE, 3, 10),
+        )
+        .years(Some(2007), None),
+        HolidayRule::public(
+            "Reunification Day",
+            "Ngày Giải phóng miền Nam",
+            Rule::gregorian(4, 30),
+        ),
+        HolidayRule::public("Labour Day", "Ngày Quốc tế Lao động", Rule::gregorian(5, 1)),
+        HolidayRule::public("National Day", "Quốc khánh", Rule::gregorian(9, 2)),
+        // The second National Day holiday, from 2021, is "the day before or
+        // after" 2 September, and which is again the Prime Minister's choice.
+        vn_off("National Day", "Quốc khánh", vn::NATIONAL_DAY),
+        // Ngày Văn hóa Việt Nam, a paid day off by Nghị quyết 28/2026/QH16
+        // from 1 July 2026. The resolution says nothing of a weekend, and the
+        // make-up rule of article 111(3) reaches only the days of article
+        // 112(1), which does not list it yet, so it is not moved.
+        HolidayRule::fixed_public(
+            "Vietnamese Culture Day",
+            "Ngày Văn hóa Việt Nam",
+            Rule::gregorian(11, 24),
+        )
+        .years(Some(2026), None),
+        // The weekdays the notices swap for a Saturday.
+        vn_off("New Year's Day", "Tết Dương lịch", vn::NEW_YEARS_DAY),
+        vn_off(
+            "Reunification Day and Labour Day",
+            "Ngày Chiến thắng và Ngày Quốc tế Lao động",
+            vn::VICTORY_AND_LABOUR,
+        ),
+        // And the Saturdays worked for them.
+        vn_work(
+            "Make-up working day, New Year's Day",
+            "Làm bù, Tết Dương lịch",
+            vn::NEW_YEARS_DAY,
+        ),
+        vn_work(
+            "Make-up working day, Tết",
+            "Làm bù, Tết Nguyên Đán",
+            vn::TET,
+        ),
+        vn_work(
+            "Make-up working day, Reunification Day and Labour Day",
+            "Làm bù, Ngày Chiến thắng và Ngày Quốc tế Lao động",
+            vn::VICTORY_AND_LABOUR,
+        ),
+        vn_work(
+            "Make-up working day, National Day",
+            "Làm bù, Quốc khánh",
+            vn::NATIONAL_DAY,
+        ),
+    ],
+);
 
 /// Article 111(3) of the Labour Code: a weekly rest day that coincides
 /// with a holiday of article 112(1) is made up on the next working day.
@@ -1748,7 +1778,10 @@ static VN_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 /// make-up rule of article 111(3); Tết, the second National Day holiday
 /// and the swapped working days from the notices for the civil service
 /// for 2021 to 2026, which the Labour Code leaves to the Prime Minister
-/// each year. A year outside them is a gap. Private employers may choose
+/// each year. A year outside them is a gap. The table answers from 2021,
+/// when the Labour Code came into force; the Hùng Kings' Festival, a
+/// holiday from 2007 under the Labour Code of 2012, which was not read, is
+/// a gap from 2007 to 2020. Private employers may choose
 /// their own Tết split and are not modelled. The regime is written up in
 /// `docs/systems/vietnam-holidays.md`.
 pub static VIETNAM: RuleSet = RuleSet {
@@ -1792,8 +1825,9 @@ const SEA_LISTED_ANNOUNCED: i32 = 2027;
 /// A day the lists date, in three parts: exactly for `first..=settled`,
 /// the years whose lists are final; as announced for the years after it
 /// to `announced`, a list published ahead of its year and subject to
-/// change, and so approximate; and by `base`, flagged approximate, before
-/// and after. For a Hijri-dated day `base` is the tabular prediction.
+/// change, and so approximate; and by `base`, flagged approximate, after
+/// `announced`, a gap before `first` (the table's `read_from`, ADR 0013).
+/// For a Hijri-dated day `base` is the tabular prediction.
 const fn listed(
     base: HolidayRule,
     entry: ListedEntry,
@@ -1918,74 +1952,77 @@ const ID_NYEPI_RULE: Rule = Rule::listed(
     SEA_LISTED_ANNOUNCED as i64,
 );
 
-static ID_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Tahun Baru Masehi", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Chinese New Year",
-        "Tahun Baru Imlek",
-        Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
-    )
-    .years(Some(2003), None),
-    ID_ISRA[0],
-    ID_ISRA[1],
-    ID_ISRA[2],
-    ID_ISRA[3],
-    HolidayRule::fixed_public("Nyepi", "Hari Suci Nyepi", ID_NYEPI_RULE)
-        .years(None, Some(SEA_LISTED_SETTLED)),
-    HolidayRule::fixed_public("Nyepi", "Hari Suci Nyepi", ID_NYEPI_RULE)
-        .approximate()
-        .years(Some(SEA_LISTED_SETTLED + 1), None),
-    HolidayRule::fixed_public(
-        "Good Friday",
-        "Wafat Isa Almasih",
-        Rule::easter(GOOD_FRIDAY),
-    ),
-    // Easter Sunday, first listed by the SKB for 2024 as "Hari Paskah" and
-    // from 2025 as "Kebangkitan Yesus Kristus (Paskah)"; the lists for
-    // 2022 and 2023 do not have it.
-    HolidayRule::fixed_public("Easter Sunday", "Hari Paskah", Rule::easter(EASTER_SUNDAY))
-        .years(Some(2024), None),
-    HolidayRule::fixed_public("Labour Day", "Hari Buruh", Rule::gregorian(5, 1))
-        .years(Some(2014), None),
-    HolidayRule::fixed_public("Ascension", "Kenaikan Isa Almasih", Rule::easter(ASCENSION)),
-    ID_WAISAK[0],
-    ID_WAISAK[1],
-    ID_WAISAK[2],
-    ID_WAISAK[3],
-    HolidayRule::fixed_public(
-        "Pancasila Day",
-        "Hari Lahir Pancasila",
-        Rule::gregorian(6, 1),
-    )
-    .years(Some(2017), None),
-    ID_FITR_1[0],
-    ID_FITR_1[1],
-    ID_FITR_1[2],
-    ID_FITR_1[3],
-    ID_FITR_2[0],
-    ID_FITR_2[1],
-    ID_FITR_2[2],
-    ID_FITR_2[3],
-    ID_ADHA[0],
-    ID_ADHA[1],
-    ID_ADHA[2],
-    ID_ADHA[3],
-    ID_MUHARRAM[0],
-    ID_MUHARRAM[1],
-    ID_MUHARRAM[2],
-    ID_MUHARRAM[3],
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Hari Kemerdekaan",
-        Rule::gregorian(8, 17),
-    )
-    .years(Some(1945), None),
-    ID_MAWLID[0],
-    ID_MAWLID[1],
-    ID_MAWLID[2],
-    ID_MAWLID[3],
-    HolidayRule::fixed_public("Christmas Day", "Hari Raya Natal", Rule::gregorian(12, 25)),
-];
+static ID_RULES: &[HolidayRule] = &read_all(
+    2020,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Tahun Baru Masehi", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Chinese New Year",
+            "Tahun Baru Imlek",
+            Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
+        )
+        .years(Some(2003), None),
+        ID_ISRA[0],
+        ID_ISRA[1],
+        ID_ISRA[2],
+        ID_ISRA[3],
+        HolidayRule::fixed_public("Nyepi", "Hari Suci Nyepi", ID_NYEPI_RULE)
+            .years(None, Some(SEA_LISTED_SETTLED)),
+        HolidayRule::fixed_public("Nyepi", "Hari Suci Nyepi", ID_NYEPI_RULE)
+            .approximate()
+            .years(Some(SEA_LISTED_SETTLED + 1), None),
+        HolidayRule::fixed_public(
+            "Good Friday",
+            "Wafat Isa Almasih",
+            Rule::easter(GOOD_FRIDAY),
+        ),
+        // Easter Sunday, first listed by the SKB for 2024 as "Hari Paskah" and
+        // from 2025 as "Kebangkitan Yesus Kristus (Paskah)"; the lists for
+        // 2022 and 2023 do not have it.
+        HolidayRule::fixed_public("Easter Sunday", "Hari Paskah", Rule::easter(EASTER_SUNDAY))
+            .years(Some(2024), None),
+        HolidayRule::fixed_public("Labour Day", "Hari Buruh", Rule::gregorian(5, 1))
+            .years(Some(2014), None),
+        HolidayRule::fixed_public("Ascension", "Kenaikan Isa Almasih", Rule::easter(ASCENSION)),
+        ID_WAISAK[0],
+        ID_WAISAK[1],
+        ID_WAISAK[2],
+        ID_WAISAK[3],
+        HolidayRule::fixed_public(
+            "Pancasila Day",
+            "Hari Lahir Pancasila",
+            Rule::gregorian(6, 1),
+        )
+        .years(Some(2017), None),
+        ID_FITR_1[0],
+        ID_FITR_1[1],
+        ID_FITR_1[2],
+        ID_FITR_1[3],
+        ID_FITR_2[0],
+        ID_FITR_2[1],
+        ID_FITR_2[2],
+        ID_FITR_2[3],
+        ID_ADHA[0],
+        ID_ADHA[1],
+        ID_ADHA[2],
+        ID_ADHA[3],
+        ID_MUHARRAM[0],
+        ID_MUHARRAM[1],
+        ID_MUHARRAM[2],
+        ID_MUHARRAM[3],
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Hari Kemerdekaan",
+            Rule::gregorian(8, 17),
+        )
+        .years(Some(1945), None),
+        ID_MAWLID[0],
+        ID_MAWLID[1],
+        ID_MAWLID[2],
+        ID_MAWLID[3],
+        HolidayRule::fixed_public("Christmas Day", "Hari Raya Natal", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Indonesia.
 ///
@@ -1993,10 +2030,11 @@ static ID_RULES: &[HolidayRule] = &[
 /// The days it dates by a calendar or a sighting — the Islamic ones,
 /// Vesak and Nyepi — are the SKBs' dates for 2020 to 2026, and for 2027
 /// the dates of the SKB issued in September 2026, which are
-/// announcements and flagged approximate; outside those years the Islamic
+/// announcements and flagged approximate; after 2027 the Islamic
 /// days are the tabular prediction and Vesak the full moon of the fourth
 /// Chinese month, both approximate, and Nyepi, whose calendar the crate
-/// does not carry, a gap. The cuti bersama, the collective leave days
+/// does not carry, a gap. Every year before 2020, the first SKB read, is a
+/// gap (ADR 0013). The cuti bersama, the collective leave days
 /// the SKBs add, are not days off by statute and are not carried.
 pub static INDONESIA: RuleSet = RuleSet {
     code: "ID",
@@ -2078,36 +2116,39 @@ const SG_VESAK: [HolidayRule; 4] = listed(
     SEA_LISTED_ANNOUNCED,
 );
 
-static SG_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public(
-        "Chinese New Year",
-        "农历新年",
-        Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
-    ),
-    HolidayRule::public(
-        "Chinese New Year",
-        "农历新年",
-        Rule::in_calendar(CalendarSystem::CHINESE, 1, 2),
-    ),
-    HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    SG_PUASA[0],
-    SG_PUASA[1],
-    SG_PUASA[2],
-    SG_PUASA[3],
-    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
-    SG_VESAK[0],
-    SG_VESAK[1],
-    SG_VESAK[2],
-    SG_VESAK[3],
-    SG_HAJI[0],
-    SG_HAJI[1],
-    SG_HAJI[2],
-    SG_HAJI[3],
-    HolidayRule::public("National Day", "", Rule::gregorian(8, 9)).years(Some(1965), None),
-    HolidayRule::public("Deepavali", "", NARAKA_CHATURDASHI).approximate(),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-];
+static SG_RULES: &[HolidayRule] = &read_all(
+    2020,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public(
+            "Chinese New Year",
+            "农历新年",
+            Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
+        ),
+        HolidayRule::public(
+            "Chinese New Year",
+            "农历新年",
+            Rule::in_calendar(CalendarSystem::CHINESE, 1, 2),
+        ),
+        HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        SG_PUASA[0],
+        SG_PUASA[1],
+        SG_PUASA[2],
+        SG_PUASA[3],
+        HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
+        SG_VESAK[0],
+        SG_VESAK[1],
+        SG_VESAK[2],
+        SG_VESAK[3],
+        SG_HAJI[0],
+        SG_HAJI[1],
+        SG_HAJI[2],
+        SG_HAJI[3],
+        HolidayRule::public("National Day", "", Rule::gregorian(8, 9)).years(Some(1965), None),
+        HolidayRule::public("Deepavali", "", NARAKA_CHATURDASHI).approximate(),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Singapore substitutes only for a Sunday: a Saturday public holiday is
 /// simply lost.
@@ -2122,7 +2163,9 @@ static SG_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-/// Singapore.
+/// Singapore. The table answers from 2020, the first of the Ministry of
+/// Manpower's public-holiday releases read; a year before it is a gap
+/// (ADR 0013), and from 2028 the Hijri days and Vesak Day are predictions.
 pub static SINGAPORE: RuleSet = RuleSet {
     code: "SG",
     english_name: "Singapore",
@@ -2137,7 +2180,7 @@ pub static SINGAPORE: RuleSet = RuleSet {
               press-releases/, `mom-public-holidays`) and its revisions of 21 October \
               2021 and 29 September 2022, retrieved 2026-09-26, for Hari Raya Puasa, \
               Hari Raya Haji and Vesak Day in those years, the 2027 ones as announced \
-              and outside them the tabular Hijri computation and the Chinese calendar's \
+              and after them the tabular Hijri computation and the Chinese calendar's \
               full moon, approximate; for Deepavali, the Tamil convention, Naraka \
               Caturdaśī (`hindu::NARAKA_CHATURDASHI`), which gives the Ministry's day \
               in every year read: the consolidated list of 2020 to 2027 on data.gov.sg \
@@ -2222,62 +2265,65 @@ const MY_MAWLID: [HolidayRule; 4] = my_listed(
     MY_LISTED.named("mawlid"),
 );
 
-static MY_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Tahun Baru", Rule::gregorian(1, 1)),
-    HolidayRule::public(
-        "Chinese New Year",
-        "Tahun Baru Cina",
-        Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
-    ),
-    HolidayRule::public(
-        "Chinese New Year",
-        "Tahun Baru Cina",
-        Rule::in_calendar(CalendarSystem::CHINESE, 1, 2),
-    ),
-    MY_FITR_1[0],
-    MY_FITR_1[1],
-    MY_FITR_1[2],
-    MY_FITR_1[3],
-    MY_FITR_2[0],
-    MY_FITR_2[1],
-    MY_FITR_2[2],
-    MY_FITR_2[3],
-    HolidayRule::public(
-        "Additional Hari Raya Aidilfitri holiday",
-        "Cuti tambahan Hari Raya Aidilfitri",
-        Rule::listed(MY_LISTED.named("fitr-added"), 2026, 2026),
-    )
-    .years(Some(2026), Some(2026)),
-    HolidayRule::public("Labour Day", "Hari Pekerja", Rule::gregorian(5, 1)),
-    MY_WESAK[0],
-    MY_WESAK[1],
-    MY_WESAK[2],
-    MY_WESAK[3],
-    HolidayRule::public(
-        "Agong's Birthday",
-        "Hari Keputeraan Agong",
-        Rule::nth(6, 1, Weekday::Monday),
-    )
-    .years(Some(2017), None),
-    MY_ADHA[0],
-    MY_ADHA[1],
-    MY_ADHA[2],
-    MY_ADHA[3],
-    MY_MUHARRAM[0],
-    MY_MUHARRAM[1],
-    MY_MUHARRAM[2],
-    MY_MUHARRAM[3],
-    HolidayRule::public("National Day", "Hari Kebangsaan", Rule::gregorian(8, 31))
-        .years(Some(1957), None),
-    HolidayRule::public("Malaysia Day", "Hari Malaysia", Rule::gregorian(9, 16))
-        .years(Some(2010), None),
-    MY_MAWLID[0],
-    MY_MAWLID[1],
-    MY_MAWLID[2],
-    MY_MAWLID[3],
-    HolidayRule::public("Deepavali", "Hari Deepavali", NARAKA_CHATURDASHI).approximate(),
-    HolidayRule::public("Christmas Day", "Hari Krismas", Rule::gregorian(12, 25)),
-];
+static MY_RULES: &[HolidayRule] = &read_all(
+    2020,
+    [
+        HolidayRule::public("New Year's Day", "Tahun Baru", Rule::gregorian(1, 1)),
+        HolidayRule::public(
+            "Chinese New Year",
+            "Tahun Baru Cina",
+            Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
+        ),
+        HolidayRule::public(
+            "Chinese New Year",
+            "Tahun Baru Cina",
+            Rule::in_calendar(CalendarSystem::CHINESE, 1, 2),
+        ),
+        MY_FITR_1[0],
+        MY_FITR_1[1],
+        MY_FITR_1[2],
+        MY_FITR_1[3],
+        MY_FITR_2[0],
+        MY_FITR_2[1],
+        MY_FITR_2[2],
+        MY_FITR_2[3],
+        HolidayRule::public(
+            "Additional Hari Raya Aidilfitri holiday",
+            "Cuti tambahan Hari Raya Aidilfitri",
+            Rule::listed(MY_LISTED.named("fitr-added"), 2026, 2026),
+        )
+        .years(Some(2026), Some(2026)),
+        HolidayRule::public("Labour Day", "Hari Pekerja", Rule::gregorian(5, 1)),
+        MY_WESAK[0],
+        MY_WESAK[1],
+        MY_WESAK[2],
+        MY_WESAK[3],
+        HolidayRule::public(
+            "Agong's Birthday",
+            "Hari Keputeraan Agong",
+            Rule::nth(6, 1, Weekday::Monday),
+        )
+        .years(Some(2017), None),
+        MY_ADHA[0],
+        MY_ADHA[1],
+        MY_ADHA[2],
+        MY_ADHA[3],
+        MY_MUHARRAM[0],
+        MY_MUHARRAM[1],
+        MY_MUHARRAM[2],
+        MY_MUHARRAM[3],
+        HolidayRule::public("National Day", "Hari Kebangsaan", Rule::gregorian(8, 31))
+            .years(Some(1957), None),
+        HolidayRule::public("Malaysia Day", "Hari Malaysia", Rule::gregorian(9, 16))
+            .years(Some(2010), None),
+        MY_MAWLID[0],
+        MY_MAWLID[1],
+        MY_MAWLID[2],
+        MY_MAWLID[3],
+        HolidayRule::public("Deepavali", "Hari Deepavali", NARAKA_CHATURDASHI).approximate(),
+        HolidayRule::public("Christmas Day", "Hari Krismas", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// The weekend of the states whose own law differs, over the years the
 /// sources reach (ADR 0015).
@@ -2417,7 +2463,10 @@ static MY_SUBSTITUTION: &[SubstitutionPolicy] = &[
 
 /// Malaysia, federal holidays only: the states' own days, which the same
 /// yearly lists give, are not yet carried. The weekend of the states that
-/// keep Friday is: see `MY_WEEKEND`.
+/// keep Friday is: see `MY_WEEKEND`. The table answers from 2020, the first
+/// of the Prime Minister's Department's lists read; a year before it is a
+/// gap (ADR 0013), and from 2028 the Hijri days and Wesak Day are
+/// predictions.
 pub static MALAYSIA: RuleSet = RuleSet {
     code: "MY",
     english_name: "Malaysia",
@@ -2432,7 +2481,7 @@ pub static MALAYSIA: RuleSet = RuleSet {
               bkpp/pdf/hari_kelepasan_am/hka_2020.pdf to hka_2025.pdf, storage/2025/08/\
               HKA-2026.pdf and storage/2026/08/HKA_2027.pdf), through web.archive.org, \
               retrieved 2026-09-26, for the Hijri-dated days and Wesak Day, the 2027 \
-              ones as announced, and outside those years the tabular Hijri \
+              ones as announced, and after those years the tabular Hijri \
               computation and the Chinese calendar's full moon, approximate; RTM \
               (berita.rtm.gov.my) on the Prime Minister's added day of 15 March 2026 \
               and the Keeper of the Rulers' Seal's announcement of 19 March 2026, \
@@ -2649,146 +2698,153 @@ const PH_NINOY: [HolidayRule; 3] = {
     ]
 };
 
-static PH_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Bagong Taon", Rule::gregorian(1, 1)),
-    // Chinese New Year and Black Saturday: the proclamations' in the
-    // years read, and predicted after them, approximate. Before them
-    // Black Saturday is predicted too, and Chinese New Year, first
-    // proclaimed for 2012, is not a day off.
-    ph_proclaimed("Chinese New Year", "", PH_PROCLAIMED.named("cny")),
-    HolidayRule::public(
-        "Chinese New Year",
-        "",
-        Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
-    )
-    .of_kind(Kind::Bank)
-    .approximate()
-    .years(Some(PH_PROCLAIMED_LAST + 1), None),
-    ph_proclaimed(
-        "EDSA People Power Revolution Anniversary",
-        "",
-        PH_PROCLAIMED.named("edsa"),
-    ),
-    ph_proclaimed(
-        "EDSA People Power Revolution Anniversary",
-        "",
-        PH_PROCLAIMED.named("edsa-schools"),
-    )
-    .of_kind(Kind::School),
-    HolidayRule::fixed_public(
-        "Maundy Thursday",
-        "Huwebes Santo",
-        Rule::easter(MAUNDY_THURSDAY),
-    ),
-    HolidayRule::fixed_public("Good Friday", "Biyernes Santo", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Black Saturday", "Sabado de Gloria", Rule::easter(-1))
-        .of_kind(Kind::Bank)
-        .approximate()
-        .years(None, Some(PH_PROCLAIMED_FIRST - 1)),
-    ph_proclaimed(
-        "Black Saturday",
-        "Sabado de Gloria",
-        PH_PROCLAIMED.named("black-saturday"),
-    ),
-    HolidayRule::public("Black Saturday", "Sabado de Gloria", Rule::easter(-1))
+static PH_RULES: &[HolidayRule] = &read_all(
+    2012,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Bagong Taon", Rule::gregorian(1, 1)),
+        // Chinese New Year and Black Saturday: the proclamations' in the
+        // years read, and predicted after them, approximate. Before them
+        // Black Saturday is predicted too, and Chinese New Year, first
+        // proclaimed for 2012, is not a day off.
+        ph_proclaimed("Chinese New Year", "", PH_PROCLAIMED.named("cny")),
+        HolidayRule::public(
+            "Chinese New Year",
+            "",
+            Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
+        )
         .of_kind(Kind::Bank)
         .approximate()
         .years(Some(PH_PROCLAIMED_LAST + 1), None),
-    PH_KAGITINGAN[0],
-    PH_KAGITINGAN[1],
-    PH_KAGITINGAN[2],
-    HolidayRule::fixed_public("Labor Day", "Araw ng mga Manggagawa", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Araw ng Kalayaan",
-        Rule::gregorian(6, 12),
-    ),
-    PH_FITR[0],
-    PH_FITR[1],
-    PH_FITR[2],
-    PH_FITR[3],
-    PH_ADHA[0],
-    PH_ADHA[1],
-    PH_ADHA[2],
-    PH_ADHA[3],
-    PH_NINOY[0],
-    PH_NINOY[1],
-    PH_NINOY[2],
-    HolidayRule::fixed_public(
-        "National Heroes Day",
-        "Araw ng mga Bayani",
-        Rule::last(8, Weekday::Monday),
-    )
-    .years(Some(2007), None),
-    HolidayRule::public(
-        "All Saints' Day",
-        "Araw ng mga Patay",
-        Rule::gregorian(11, 1),
-    )
-    .of_kind(Kind::Bank),
-    PH_BONIFACIO[0],
-    PH_BONIFACIO[1],
-    PH_BONIFACIO[2],
-    // Republic Act 10966, approved 28 December 2017: "December 8 of every
-    // year".
-    HolidayRule::public("Immaculate Conception", "", Rule::gregorian(12, 8))
+        ph_proclaimed(
+            "EDSA People Power Revolution Anniversary",
+            "",
+            PH_PROCLAIMED.named("edsa"),
+        ),
+        ph_proclaimed(
+            "EDSA People Power Revolution Anniversary",
+            "",
+            PH_PROCLAIMED.named("edsa-schools"),
+        )
+        .of_kind(Kind::School),
+        HolidayRule::fixed_public(
+            "Maundy Thursday",
+            "Huwebes Santo",
+            Rule::easter(MAUNDY_THURSDAY),
+        ),
+        HolidayRule::fixed_public("Good Friday", "Biyernes Santo", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::public("Black Saturday", "Sabado de Gloria", Rule::easter(-1))
+            .of_kind(Kind::Bank)
+            .approximate()
+            .years(None, Some(PH_PROCLAIMED_FIRST - 1)),
+        ph_proclaimed(
+            "Black Saturday",
+            "Sabado de Gloria",
+            PH_PROCLAIMED.named("black-saturday"),
+        ),
+        HolidayRule::public("Black Saturday", "Sabado de Gloria", Rule::easter(-1))
+            .of_kind(Kind::Bank)
+            .approximate()
+            .years(Some(PH_PROCLAIMED_LAST + 1), None),
+        PH_KAGITINGAN[0],
+        PH_KAGITINGAN[1],
+        PH_KAGITINGAN[2],
+        HolidayRule::fixed_public("Labor Day", "Araw ng mga Manggagawa", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Araw ng Kalayaan",
+            Rule::gregorian(6, 12),
+        ),
+        PH_FITR[0],
+        PH_FITR[1],
+        PH_FITR[2],
+        PH_FITR[3],
+        PH_ADHA[0],
+        PH_ADHA[1],
+        PH_ADHA[2],
+        PH_ADHA[3],
+        PH_NINOY[0],
+        PH_NINOY[1],
+        PH_NINOY[2],
+        HolidayRule::fixed_public(
+            "National Heroes Day",
+            "Araw ng mga Bayani",
+            Rule::last(8, Weekday::Monday),
+        )
+        .years(Some(2007), None),
+        HolidayRule::public(
+            "All Saints' Day",
+            "Araw ng mga Patay",
+            Rule::gregorian(11, 1),
+        )
+        .of_kind(Kind::Bank),
+        PH_BONIFACIO[0],
+        PH_BONIFACIO[1],
+        PH_BONIFACIO[2],
+        // Republic Act 10966, approved 28 December 2017: "December 8 of every
+        // year".
+        HolidayRule::public("Immaculate Conception", "", Rule::gregorian(12, 8))
+            .of_kind(Kind::Bank)
+            .years(Some(2018), None),
+        HolidayRule::fixed_public("Christmas Day", "Pasko", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public("Rizal Day", "Araw ni Rizal", Rule::gregorian(12, 30)),
+        // A special working day in 2021 and 2022.
+        HolidayRule::public("Last Day of the Year", "", Rule::gregorian(12, 31))
+            .of_kind(Kind::Bank)
+            .years(None, Some(2020)),
+        HolidayRule::public("Last Day of the Year", "", Rule::gregorian(12, 31))
+            .of_kind(Kind::Bank)
+            .years(Some(2023), None),
+        // The days the proclamations read add, and before and after them a
+        // gap: a year's are not known without its proclamation.
+        ph_proclaimed("All Souls' Day", "", PH_PROCLAIMED.named("all-souls")),
+        ph_proclaimed("Christmas Eve", "", PH_PROCLAIMED.named("christmas-eve")),
+        ph_proclaimed(
+            "All Saints' Day Eve",
+            "",
+            PH_PROCLAIMED.named("all-saints-eve"),
+        ),
+        ph_proclaimed(
+            "Additional special day",
+            "",
+            PH_PROCLAIMED.named("additional"),
+        ),
+        ph_proclaimed(
+            "National and Local Elections",
+            "",
+            PH_PROCLAIMED.named("elections"),
+        ),
+        ph_proclaimed(
+            "Barangay and Sangguniang Kabataan Elections",
+            "",
+            PH_PROCLAIMED.named("barangay-elections"),
+        ),
+        ph_proclaimed(
+            "Iglesia ni Cristo Founding Anniversary",
+            "",
+            PH_PROCLAIMED.named("inc"),
+        ),
+        HolidayRule::public(
+            "Proclaimed special days",
+            "",
+            Rule::unlisted(PH_PROCLAIMED_FIRST as i64, PH_PROCLAIMED_LAST as i64),
+        )
         .of_kind(Kind::Bank)
-        .years(Some(2018), None),
-    HolidayRule::fixed_public("Christmas Day", "Pasko", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public("Rizal Day", "Araw ni Rizal", Rule::gregorian(12, 30)),
-    // A special working day in 2021 and 2022.
-    HolidayRule::public("Last Day of the Year", "", Rule::gregorian(12, 31))
+        .years(Some(PH_PROCLAIMED_LAST + 1), None),
+        HolidayRule::public(
+            "Proclaimed special days",
+            "",
+            Rule::unlisted(PH_PROCLAIMED_FIRST as i64, PH_PROCLAIMED_LAST as i64),
+        )
         .of_kind(Kind::Bank)
-        .years(None, Some(2020)),
-    HolidayRule::public("Last Day of the Year", "", Rule::gregorian(12, 31))
-        .of_kind(Kind::Bank)
-        .years(Some(2023), None),
-    // The days the proclamations read add, and before and after them a
-    // gap: a year's are not known without its proclamation.
-    ph_proclaimed("All Souls' Day", "", PH_PROCLAIMED.named("all-souls")),
-    ph_proclaimed("Christmas Eve", "", PH_PROCLAIMED.named("christmas-eve")),
-    ph_proclaimed(
-        "All Saints' Day Eve",
-        "",
-        PH_PROCLAIMED.named("all-saints-eve"),
-    ),
-    ph_proclaimed(
-        "Additional special day",
-        "",
-        PH_PROCLAIMED.named("additional"),
-    ),
-    ph_proclaimed(
-        "National and Local Elections",
-        "",
-        PH_PROCLAIMED.named("elections"),
-    ),
-    ph_proclaimed(
-        "Barangay and Sangguniang Kabataan Elections",
-        "",
-        PH_PROCLAIMED.named("barangay-elections"),
-    ),
-    ph_proclaimed(
-        "Iglesia ni Cristo Founding Anniversary",
-        "",
-        PH_PROCLAIMED.named("inc"),
-    ),
-    HolidayRule::public(
-        "Proclaimed special days",
-        "",
-        Rule::unlisted(PH_PROCLAIMED_FIRST as i64, PH_PROCLAIMED_LAST as i64),
-    )
-    .of_kind(Kind::Bank)
-    .years(Some(PH_PROCLAIMED_LAST + 1), None),
-    HolidayRule::public(
-        "Proclaimed special days",
-        "",
-        Rule::unlisted(PH_PROCLAIMED_FIRST as i64, PH_PROCLAIMED_LAST as i64),
-    )
-    .of_kind(Kind::Bank)
-    .years(None, Some(PH_PROCLAIMED_FIRST - 1)),
-];
+        .years(None, Some(PH_PROCLAIMED_FIRST - 1)),
+    ],
+);
 
-/// The Philippines.
+/// The Philippines. The table answers from 2012, the year of the first
+/// annual proclamation read (No. 295); a year before it is a gap, the days
+/// of the Administrative Code among them, whose text as amended by
+/// Republic Act 9849 of 2009 would give 2010 and 2011 but was not read as
+/// the proclamations' own lists are (ADR 0013).
 pub static PHILIPPINES: RuleSet = RuleSet {
     code: "PH",
     english_name: "Philippines",
@@ -2823,15 +2879,16 @@ pub static PHILIPPINES: RuleSet = RuleSet {
               \"Special Holiday (for all schools)\" of 2012 to 2015 as a school \
               holiday. The days only a proclamation makes — Chinese New Year, the \
               EDSA anniversary, Black Saturday, All Souls' Day, Christmas Eve and the \
-              rest — are the proclamations' for 2012 to 2027; before 2012 and after \
-              2027 Black Saturday is predicted, approximate, Chinese New Year after \
-              2027 too, and the rest are a gap. The two Islamic days are the \
+              rest — are the proclamations' for 2012 to 2027; after 2027 Black \
+              Saturday is predicted, approximate, Chinese New Year too, and the rest \
+              are a gap; before 2012, the first proclamation read, every day of the \
+              table is a gap, the Administrative Code's among them. The two Islamic days are the \
               proclaimed dates for 2012 to 2026: for 2012 to 2019 Proclamations 455, \
               488, 629, 658, 826, 875, 1070, 1128, 6, 56, 235, 297, 514, 556, 729 \
               and 789 as LawPhil reproduces them, retrieved 2026-09-28, and for 2020 \
               to 2026 from the Official Gazette (officialgazette.gov.ph, through \
               web.archive.org), the Presidential Communications Office and the \
-              Philippine News Agency (pna.gov.ph), retrieved 2026-09-26; outside \
+              Philippine News Agency (pna.gov.ph), retrieved 2026-09-26; after \
               them the tabular computation, approximate",
     subdivisions: Subdivisions::Read(&[]),
 };
@@ -2930,107 +2987,130 @@ const fn np_festival(name: &'static str, local: &'static str, rule: Rule) -> Hol
     HolidayRule::fixed_public(name, local, rule).approximate()
 }
 
+/// The first Gregorian year of the first notice read, 2080 BS, which began
+/// on 14 April 2023: the notice's days are read from then, and a day it
+/// dates before that in the year is the notice of 2079 BS's, not read.
+const NP_FIRST_NOTICE_YEAR: i32 = 2023;
+/// The first Gregorian year wholly under the notices read, 2024: the days
+/// from January to the middle of April, Māgha and Phālguna's, are in 2080 BS
+/// from 2024 on.
+const NP_FIRST_FULL_YEAR: i32 = 2024;
+
 /// The days the Ministry of Home Affairs' notice gives every office in the
 /// country, and which fall on a fixed date: in the Bikram Sambat for the
 /// national days and the two that open a month, in the Gregorian calendar
 /// for the three the notice dates that way — it prints "(मे १)", "(मार्च
 /// ८)" and "(डिसेम्बर २५)" beside them. Local names are the notice's.
-pub(super) static NP_RULES: &[HolidayRule] = &[
-    np_bs("Nepali New Year", "नव वर्ष", 1, 1),
-    HolidayRule::fixed_public("Labour Day", "विश्व मजदुर दिवस", Rule::gregorian(5, 1)),
-    np_bs("Republic Day", "गणतन्त्र दिवस", 2, 15),
-    np_bs("Constitution Day", "संविधान दिवस", 6, 3),
-    HolidayRule::fixed_public("Christmas Day", "क्रिसमस डे", Rule::gregorian(12, 25)),
-    np_bs("Prithvi Jayanti", "पृथ्वी जयन्ती", 9, 27),
-    np_bs("Maghe Sankranti", "माघे सङ्क्रान्ति", 10, 1),
-    // Martyrs' Day, Māgha 16: a day off in the notices for 2081 to 2083
-    // BS (section 6.1), but in the notice for 2080 BS a day kept with the
-    // offices open (section 8), so 30 January 2024 is an observance.
-    np_bs("Martyrs' Day", "सहिद दिवस", 10, 16).years(None, Some(2023)),
-    HolidayRule::observance(
-        "Martyrs' Day",
-        "सहिद दिवस",
-        Rule::in_calendar(CalendarSystem::BIKRAM_SAMBAT, 10, 16),
-    )
-    .years(Some(2024), Some(2024))
-    .cited("गृह मन्त्रालय, २०८० सालको सार्वजनिक बिदा, 8: कार्यालय खुल्ने प्रकृतिका दिवस"),
-    np_bs("Martyrs' Day", "सहिद दिवस", 10, 16).years(Some(2025), None),
-    np_bs("National Democracy Day", "राष्ट्रिय प्रजातन्त्र दिवस", 11, 7),
-    HolidayRule::fixed_public(
-        "International Women's Day",
-        "अन्तर्राष्ट्रिय महिला दिवस",
-        Rule::gregorian(3, 8),
-    ),
-    // Tamu Lhosar, the Gurung new year, is "पुस १५" in both notices.
-    np_bs("Tamu Lhosar", "तमू ल्होछार", 9, 15),
-    // The festivals, from the same sections: a tithi each, or the span
-    // between two, or the Tibetan new year.
-    np_festival(
-        "Buddha Jayanti",
-        "बुद्ध जयन्ती",
-        np_tithi(2, 15, Prevalence::Midday, WhenTwice::Earlier),
-    ),
-    np_festival(
-        "Janai Purnima",
-        "रक्षाबन्धन",
-        np_tithi(5, 15, Prevalence::Sunrise, WhenTwice::Earlier),
-    ),
-    // In the evening: the Indian rule, the eighth tithi at midnight, gives
-    // 15 August 2025 where the notice has the 16th, and sunrise gives
-    // 7 September 2023 where it has the 6th.
-    np_festival(
-        "Krishna Janmashtami",
-        "श्रीकृष्ण जन्माष्टमी",
-        np_tithi(5, 23, Prevalence::Evening, WhenTwice::Earlier),
-    ),
-    np_festival(
-        "Ghatasthapana",
-        "घटस्थापना",
-        np_tithi(7, 1, Prevalence::Sunrise, WhenTwice::Earlier),
-    ),
-    np_festival(
-        "Dashain",
-        "दशैं",
-        Rule::span(&NP_PHULPATI, &NP_DASHAIN_DWADASHI),
-    ),
-    np_festival("Tihar", "तिहार", Rule::span(&NP_LAXMI_PUJA, &NP_TIHAR_LAST)),
-    // Chhath, Kārtika śukla 6, is left out: no one part of the day puts
-    // it where all four notices do. Sunrise gives 28 October 2025 for the
-    // notice's 27th, and every later part of the day 18 November 2023 for
-    // its 19th.
-    np_festival(
-        "Dhanya Purnima",
-        "धान्य पूर्णिमा",
-        np_tithi(9, 15, Prevalence::Sunrise, WhenTwice::Earlier),
-    ),
-    np_festival(
-        "Sonam Lhosar",
-        "सोनम ल्होछार",
-        np_tithi(11, 1, Prevalence::Sunrise, WhenTwice::Earlier),
-    ),
-    np_festival(
-        "Maha Shivaratri",
-        "महाशिवरात्री",
-        np_tithi(11, 29, Prevalence::Midnight, WhenTwice::Earlier),
-    ),
-    // Gyalpo Lhosar is the Tibetan New Year, but not the Phugpa
-    // reckoning's: its Losar is 18 February 2026, the notice's day, and
-    // 7 February 2027, a month before the notice's 9 March, because it
-    // intercalates a month that Nepal's reckoning does not. Phālguna śukla
-    // 1 at Kathmandu gives both of the notices' days.
-    np_festival(
-        "Gyalpo Lhosar",
-        "ग्याल्पो ल्होसार",
-        np_tithi(12, 1, Prevalence::Sunrise, WhenTwice::Earlier),
-    ),
-    // The notices give these without a date — "ईद (ईद उल फित्र) का दिन",
-    // the day of Eid — and the tabular Hijri calendar is a prediction of it.
-    np_festival("Eid al-Fitr", "ईद", EID_AL_FITR),
-    np_festival("Eid al-Adha", "बकर ईद", EID_AL_ADHA),
-];
+pub(super) static NP_RULES: &[HolidayRule] = &read_all(
+    NP_FIRST_NOTICE_YEAR,
+    [
+        np_bs("Nepali New Year", "नव वर्ष", 1, 1),
+        HolidayRule::fixed_public("Labour Day", "विश्व मजदुर दिवस", Rule::gregorian(5, 1)),
+        np_bs("Republic Day", "गणतन्त्र दिवस", 2, 15),
+        np_bs("Constitution Day", "संविधान दिवस", 6, 3),
+        HolidayRule::fixed_public("Christmas Day", "क्रिसमस डे", Rule::gregorian(12, 25)),
+        np_bs("Prithvi Jayanti", "पृथ्वी जयन्ती", 9, 27).read_from(NP_FIRST_FULL_YEAR),
+        np_bs("Maghe Sankranti", "माघे सङ्क्रान्ति", 10, 1).read_from(NP_FIRST_FULL_YEAR),
+        // Martyrs' Day, Māgha 16: a day off in the notices for 2081 to 2083
+        // BS (section 6.1), but in the notice for 2080 BS a day kept with the
+        // offices open (section 8), so 30 January 2024 is an observance.
+        np_bs("Martyrs' Day", "सहिद दिवस", 10, 16)
+            .years(None, Some(2023))
+            .read_from(NP_FIRST_FULL_YEAR),
+        HolidayRule::observance(
+            "Martyrs' Day",
+            "सहिद दिवस",
+            Rule::in_calendar(CalendarSystem::BIKRAM_SAMBAT, 10, 16),
+        )
+        .years(Some(2024), Some(2024))
+        .cited("गृह मन्त्रालय, २०८० सालको सार्वजनिक बिदा, 8: कार्यालय खुल्ने प्रकृतिका दिवस"),
+        np_bs("Martyrs' Day", "सहिद दिवस", 10, 16).years(Some(2025), None),
+        np_bs("National Democracy Day", "राष्ट्रिय प्रजातन्त्र दिवस", 11, 7)
+            .read_from(NP_FIRST_FULL_YEAR),
+        HolidayRule::fixed_public(
+            "International Women's Day",
+            "अन्तर्राष्ट्रिय महिला दिवस",
+            Rule::gregorian(3, 8),
+        )
+        .read_from(NP_FIRST_FULL_YEAR),
+        // Tamu Lhosar, the Gurung new year, is "पुस १५" in both notices.
+        np_bs("Tamu Lhosar", "तमू ल्होछार", 9, 15),
+        // The festivals, from the same sections: a tithi each, or the span
+        // between two, or the Tibetan new year.
+        np_festival(
+            "Buddha Jayanti",
+            "बुद्ध जयन्ती",
+            np_tithi(2, 15, Prevalence::Midday, WhenTwice::Earlier),
+        ),
+        np_festival(
+            "Janai Purnima",
+            "रक्षाबन्धन",
+            np_tithi(5, 15, Prevalence::Sunrise, WhenTwice::Earlier),
+        ),
+        // In the evening: the Indian rule, the eighth tithi at midnight, gives
+        // 15 August 2025 where the notice has the 16th, and sunrise gives
+        // 7 September 2023 where it has the 6th.
+        np_festival(
+            "Krishna Janmashtami",
+            "श्रीकृष्ण जन्माष्टमी",
+            np_tithi(5, 23, Prevalence::Evening, WhenTwice::Earlier),
+        ),
+        np_festival(
+            "Ghatasthapana",
+            "घटस्थापना",
+            np_tithi(7, 1, Prevalence::Sunrise, WhenTwice::Earlier),
+        ),
+        np_festival(
+            "Dashain",
+            "दशैं",
+            Rule::span(&NP_PHULPATI, &NP_DASHAIN_DWADASHI),
+        ),
+        np_festival("Tihar", "तिहार", Rule::span(&NP_LAXMI_PUJA, &NP_TIHAR_LAST)),
+        // Chhath, Kārtika śukla 6, is left out: no one part of the day puts
+        // it where all four notices do. Sunrise gives 28 October 2025 for the
+        // notice's 27th, and every later part of the day 18 November 2023 for
+        // its 19th.
+        np_festival(
+            "Dhanya Purnima",
+            "धान्य पूर्णिमा",
+            np_tithi(9, 15, Prevalence::Sunrise, WhenTwice::Earlier),
+        ),
+        np_festival(
+            "Sonam Lhosar",
+            "सोनम ल्होछार",
+            np_tithi(11, 1, Prevalence::Sunrise, WhenTwice::Earlier),
+        )
+        .read_from(NP_FIRST_FULL_YEAR),
+        np_festival(
+            "Maha Shivaratri",
+            "महाशिवरात्री",
+            np_tithi(11, 29, Prevalence::Midnight, WhenTwice::Earlier),
+        )
+        .read_from(NP_FIRST_FULL_YEAR),
+        // Gyalpo Lhosar is the Tibetan New Year, but not the Phugpa
+        // reckoning's: its Losar is 18 February 2026, the notice's day, and
+        // 7 February 2027, a month before the notice's 9 March, because it
+        // intercalates a month that Nepal's reckoning does not. Phālguna śukla
+        // 1 at Kathmandu gives both of the notices' days.
+        np_festival(
+            "Gyalpo Lhosar",
+            "ग्याल्पो ल्होसार",
+            np_tithi(12, 1, Prevalence::Sunrise, WhenTwice::Earlier),
+        )
+        .read_from(NP_FIRST_FULL_YEAR),
+        // The notices give these without a date — "ईद (ईद उल फित्र) का दिन",
+        // the day of Eid — and the tabular Hijri calendar is a prediction of it.
+        np_festival("Eid al-Fitr", "ईद", EID_AL_FITR),
+        np_festival("Eid al-Adha", "बकर ईद", EID_AL_ADHA),
+    ],
+);
 
 /// Nepal — the weekend, the public holidays on a fixed date, and the
 /// festivals.
+///
+/// The table answers from the notice for 2080 BS, which began on 14 April
+/// 2023: the days of 2023 from then are read, those of January to the middle
+/// of April 2023 are a gap, and a year before 2023 is a gap (ADR 0013).
 pub static NEPAL: RuleSet = RuleSet {
     code: "NP",
     english_name: "Nepal",
@@ -3213,117 +3293,120 @@ const fn lk(name: &'static str, entry: ListedEntry) -> HolidayRule {
     HolidayRule::fixed_public(name, "", Rule::listed(entry, LK_FIRST, LK_LAST))
 }
 
-static LK_RULES: &[HolidayRule] = &[
-    lk(
-        "Duruthu Full Moon Poya Day",
-        LK_GAZETTED.named("Duruthu Full Moon Poya Day"),
-    ),
-    lk(
-        "Tamil Thai Pongal Day",
-        LK_GAZETTED.named("Tamil Thai Pongal Day"),
-    ),
-    HolidayRule::fixed_public("Independence Day", "", Rule::gregorian(2, 4)),
-    lk(
-        "Navam Full Moon Poya Day",
-        LK_GAZETTED.named("Navam Full Moon Poya Day"),
-    ),
-    lk(
-        "Maha Shivarathri Day",
-        LK_GAZETTED.named("Maha Shivarathri Day"),
-    ),
-    lk(
-        "Medin Full Moon Poya Day",
-        LK_GAZETTED.named("Medin Full Moon Poya Day"),
-    ),
-    lk(
-        "Id-Ul-Fitr (Ramazan Festival Day)",
-        LK_GAZETTED.named("Id-Ul-Fitr (Ramazan Festival Day)"),
-    ),
-    lk(
-        "Bak Full Moon Poya Day",
-        LK_GAZETTED.named("Bak Full Moon Poya Day"),
-    ),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    lk(
-        "Day Prior to Sinhala & Tamil New Year Day",
-        LK_GAZETTED.named("Day Prior to Sinhala & Tamil New Year Day"),
-    ),
-    lk(
-        "Sinhala & Tamil New Year Day",
-        LK_GAZETTED.named("Sinhala & Tamil New Year Day"),
-    ),
-    HolidayRule::fixed_public(
-        "May Day (International Workers' Day)",
-        "",
-        Rule::gregorian(5, 1),
-    ),
-    lk(
-        "Full Moon Poya Day",
-        LK_GAZETTED.named("Full Moon Poya Day"),
-    ),
-    lk(
-        "Vesak Full Moon Poya Day",
-        LK_GAZETTED.named("Vesak Full Moon Poya Day"),
-    ),
-    lk(
-        "Day Following Vesak Full Moon Poya Day",
-        LK_GAZETTED.named("Day Following Vesak Full Moon Poya Day"),
-    ),
-    lk(
-        "Id-Ul-Adha (Hadji Festival Day)",
-        LK_GAZETTED.named("Id-Ul-Adha (Hadji Festival Day)"),
-    ),
-    lk(
-        "Poson Full Moon Poya Day",
-        LK_GAZETTED.named("Poson Full Moon Poya Day"),
-    ),
-    lk(
-        "Adhi Esala Full Moon Poya Day",
-        LK_GAZETTED.named("Adhi Esala Full Moon Poya Day"),
-    ),
-    lk(
-        "Esala Full Moon Poya Day",
-        LK_GAZETTED.named("Esala Full Moon Poya Day"),
-    ),
-    lk(
-        "Nikini Full Moon Poya Day",
-        LK_GAZETTED.named("Nikini Full Moon Poya Day"),
-    ),
-    lk(
-        "Milad-Un-Nabi (Holy Prophet's Birthday)",
-        LK_GAZETTED.named("Milad-Un-Nabi (Holy Prophet's Birthday)"),
-    ),
-    lk(
-        "Binara Full Moon Poya Day",
-        LK_GAZETTED.named("Binara Full Moon Poya Day"),
-    ),
-    lk(
-        "Vap Full Moon Poya Day",
-        LK_GAZETTED.named("Vap Full Moon Poya Day"),
-    ),
-    lk(
-        "Deepavali Festival Day",
-        LK_GAZETTED.named("Deepavali Festival Day"),
-    ),
-    lk(
-        "Il Full Moon Poya Day",
-        LK_GAZETTED.named("Il Full Moon Poya Day"),
-    ),
-    lk(
-        "Unduvap Full Moon Poya Day",
-        LK_GAZETTED.named("Unduvap Full Moon Poya Day"),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "", Rule::gregorian(12, 25)),
-    // A day a section 10 order declares: 23 September 2024.
-    lk("Public Holiday", LK_GAZETTED.named("Public Holiday")),
-    // Marked for the banks alone: 16 January and 30 June 2023 and 15 April
-    // 2025.
-    lk(
-        "Special Bank Holiday",
-        LK_GAZETTED.named("Special Bank Holiday"),
-    )
-    .of_kind(Kind::Bank),
-];
+static LK_RULES: &[HolidayRule] = &read_all(
+    2023,
+    [
+        lk(
+            "Duruthu Full Moon Poya Day",
+            LK_GAZETTED.named("Duruthu Full Moon Poya Day"),
+        ),
+        lk(
+            "Tamil Thai Pongal Day",
+            LK_GAZETTED.named("Tamil Thai Pongal Day"),
+        ),
+        HolidayRule::fixed_public("Independence Day", "", Rule::gregorian(2, 4)),
+        lk(
+            "Navam Full Moon Poya Day",
+            LK_GAZETTED.named("Navam Full Moon Poya Day"),
+        ),
+        lk(
+            "Maha Shivarathri Day",
+            LK_GAZETTED.named("Maha Shivarathri Day"),
+        ),
+        lk(
+            "Medin Full Moon Poya Day",
+            LK_GAZETTED.named("Medin Full Moon Poya Day"),
+        ),
+        lk(
+            "Id-Ul-Fitr (Ramazan Festival Day)",
+            LK_GAZETTED.named("Id-Ul-Fitr (Ramazan Festival Day)"),
+        ),
+        lk(
+            "Bak Full Moon Poya Day",
+            LK_GAZETTED.named("Bak Full Moon Poya Day"),
+        ),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        lk(
+            "Day Prior to Sinhala & Tamil New Year Day",
+            LK_GAZETTED.named("Day Prior to Sinhala & Tamil New Year Day"),
+        ),
+        lk(
+            "Sinhala & Tamil New Year Day",
+            LK_GAZETTED.named("Sinhala & Tamil New Year Day"),
+        ),
+        HolidayRule::fixed_public(
+            "May Day (International Workers' Day)",
+            "",
+            Rule::gregorian(5, 1),
+        ),
+        lk(
+            "Full Moon Poya Day",
+            LK_GAZETTED.named("Full Moon Poya Day"),
+        ),
+        lk(
+            "Vesak Full Moon Poya Day",
+            LK_GAZETTED.named("Vesak Full Moon Poya Day"),
+        ),
+        lk(
+            "Day Following Vesak Full Moon Poya Day",
+            LK_GAZETTED.named("Day Following Vesak Full Moon Poya Day"),
+        ),
+        lk(
+            "Id-Ul-Adha (Hadji Festival Day)",
+            LK_GAZETTED.named("Id-Ul-Adha (Hadji Festival Day)"),
+        ),
+        lk(
+            "Poson Full Moon Poya Day",
+            LK_GAZETTED.named("Poson Full Moon Poya Day"),
+        ),
+        lk(
+            "Adhi Esala Full Moon Poya Day",
+            LK_GAZETTED.named("Adhi Esala Full Moon Poya Day"),
+        ),
+        lk(
+            "Esala Full Moon Poya Day",
+            LK_GAZETTED.named("Esala Full Moon Poya Day"),
+        ),
+        lk(
+            "Nikini Full Moon Poya Day",
+            LK_GAZETTED.named("Nikini Full Moon Poya Day"),
+        ),
+        lk(
+            "Milad-Un-Nabi (Holy Prophet's Birthday)",
+            LK_GAZETTED.named("Milad-Un-Nabi (Holy Prophet's Birthday)"),
+        ),
+        lk(
+            "Binara Full Moon Poya Day",
+            LK_GAZETTED.named("Binara Full Moon Poya Day"),
+        ),
+        lk(
+            "Vap Full Moon Poya Day",
+            LK_GAZETTED.named("Vap Full Moon Poya Day"),
+        ),
+        lk(
+            "Deepavali Festival Day",
+            LK_GAZETTED.named("Deepavali Festival Day"),
+        ),
+        lk(
+            "Il Full Moon Poya Day",
+            LK_GAZETTED.named("Il Full Moon Poya Day"),
+        ),
+        lk(
+            "Unduvap Full Moon Poya Day",
+            LK_GAZETTED.named("Unduvap Full Moon Poya Day"),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "", Rule::gregorian(12, 25)),
+        // A day a section 10 order declares: 23 September 2024.
+        lk("Public Holiday", LK_GAZETTED.named("Public Holiday")),
+        // Marked for the banks alone: 16 January and 30 June 2023 and 15 April
+        // 2025.
+        lk(
+            "Special Bank Holiday",
+            LK_GAZETTED.named("Special Bank Holiday"),
+        )
+        .of_kind(Kind::Bank),
+    ],
+);
 
 /// Sri Lanka — the public and bank holidays the Minister of Public
 /// Administration orders under the Holidays Act, No. 29 of 1971: a section
@@ -3335,7 +3418,9 @@ static LK_RULES: &[HolidayRule] = &[
 /// Poya days, Thai Pongal, Maha Shivarathri, the Sinhala and Tamil New
 /// Year, the three Muslim days, Deepavali and the declared days — is taken
 /// from the orders for 2023 to 2027, and a year outside them reports those
-/// days as a gap.
+/// days as a gap. The table answers from 2023, the first order read: a year
+/// before it is a gap, the fixed days and Good Friday among them, for no
+/// order or text of the Act before 2023 was read (ADR 0013).
 ///
 /// # Vesak in 2026
 ///
@@ -3409,27 +3494,30 @@ const fn pk_hijri(name: &'static str, local: &'static str, month: u8, day: u8) -
     .approximate()
 }
 
-static PK_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("Kashmir Day", "یومِ یکجہتیِ کشمیر", Rule::gregorian(2, 5)),
-    HolidayRule::fixed_public("Pakistan Day", "یومِ پاکستان", Rule::gregorian(3, 23)),
-    HolidayRule::fixed_public("Labour Day", "یومِ مزدور", Rule::gregorian(5, 1)),
-    // In the source's table of state holidays; first gazetted as a day
-    // off for 2024, a year the author knows and the source does not state.
-    HolidayRule::fixed_public("Youm-e-Takbeer", "یومِ تکبیر", Rule::gregorian(5, 28))
-        .years(Some(2024), None),
-    HolidayRule::fixed_public("Independence Day", "یومِ آزادی", Rule::gregorian(8, 14)),
-    // Withdrawn in 2015 and restored in 2022.
-    HolidayRule::fixed_public("Iqbal Day", "یومِ اقبال", Rule::gregorian(11, 9))
-        .years(None, Some(2014)),
-    HolidayRule::fixed_public("Iqbal Day", "یومِ اقبال", Rule::gregorian(11, 9))
-        .years(Some(2022), None),
-    HolidayRule::fixed_public("Quaid-e-Azam Day", "یومِ قائدِاعظم", Rule::gregorian(12, 25)),
-    pk_hijri("Ashura", "عاشورہ", 1, 9),
-    pk_hijri("Ashura", "عاشورہ", 1, 10),
-    pk_hijri("Eid Milad-un-Nabi", "عید میلاد النبی", 3, 12),
-    pk_hijri("Eid-ul-Fitr", "عيد الفطر", 10, 1),
-    pk_hijri("Eid-ul-Adha", "عید الاضحٰی", 12, 10),
-];
+static PK_RULES: &[HolidayRule] = &read_all(
+    2026,
+    [
+        HolidayRule::fixed_public("Kashmir Day", "یومِ یکجہتیِ کشمیر", Rule::gregorian(2, 5)),
+        HolidayRule::fixed_public("Pakistan Day", "یومِ پاکستان", Rule::gregorian(3, 23)),
+        HolidayRule::fixed_public("Labour Day", "یومِ مزدور", Rule::gregorian(5, 1)),
+        // In the source's table of state holidays; first gazetted as a day
+        // off for 2024, a year the author knows and the source does not state.
+        HolidayRule::fixed_public("Youm-e-Takbeer", "یومِ تکبیر", Rule::gregorian(5, 28))
+            .years(Some(2024), None),
+        HolidayRule::fixed_public("Independence Day", "یومِ آزادی", Rule::gregorian(8, 14)),
+        // Withdrawn in 2015 and restored in 2022.
+        HolidayRule::fixed_public("Iqbal Day", "یومِ اقبال", Rule::gregorian(11, 9))
+            .years(None, Some(2014)),
+        HolidayRule::fixed_public("Iqbal Day", "یومِ اقبال", Rule::gregorian(11, 9))
+            .years(Some(2022), None),
+        HolidayRule::fixed_public("Quaid-e-Azam Day", "یومِ قائدِاعظم", Rule::gregorian(12, 25)),
+        pk_hijri("Ashura", "عاشورہ", 1, 9),
+        pk_hijri("Ashura", "عاشورہ", 1, 10),
+        pk_hijri("Eid Milad-un-Nabi", "عید میلاد النبی", 3, 12),
+        pk_hijri("Eid-ul-Fitr", "عيد الفطر", 10, 1),
+        pk_hijri("Eid-ul-Adha", "عید الاضحٰی", 12, 10),
+    ],
+);
 
 /// Pakistan.
 ///
@@ -3437,7 +3525,10 @@ static PK_RULES: &[HolidayRule] = &[
 /// Gregorian calendar and the religious ones on the Hijri, the latter kept
 /// on the Ruet-e-Hilal Committee's sighting and so approximate. Iqbal Day
 /// is carried to 2014 and from 2022, the years its holiday status was
-/// withdrawn and restored. The extra days the annual notification adds to
+/// withdrawn and restored. The table answers from 2026, the year of the
+/// Cabinet Division's list read, and a year before it is a gap (ADR 0013),
+/// Iqbal Day's years of 2014 and 2022 to 2025 among them; the years from
+/// 2015 to 2021 stay without it, as the source of the withdrawal says. The extra days the annual notification adds to
 /// the two Eids, and the optional holidays of the religious minorities, are
 /// not carried; the source says nothing of a holiday on the weekend, and
 /// nothing is done with one.
@@ -3498,6 +3589,45 @@ static BD_NOTIFIED: Listing = Listing::Named(&[
     (2026, 10, 21, "Durga Puja (Bijoya Dashami)"),
 ]);
 
+/// The Hijri days as the notifications date them, for 2025 and 2026, which
+/// the tabular calendar parts from by a day or more (Shab-e-Barat and
+/// Shab-e-Qadr of 2025, every Hijri day of 2026). The names are this
+/// table's own keys. 2025: the notification of 21 October 2024, as the
+/// notification's holiday list on bdpublicnews.com reproduces it
+/// (secondary); 2026: the list The Daily Star printed on the notification
+/// of 9 November 2025, confirmed by bdpublicnews.com (both secondary;
+/// `bd-holidays-2026-daily-star`). 15 February and 28 March 2025 were
+/// read in the notification itself before.
+#[rustfmt::skip]
+static BD_HIJRI_NOTIFIED: Listing = Listing::Named(&[
+    (2025, 2, 15, "barat"), (2025, 3, 28, "qadr"), (2025, 3, 28, "bida"),
+    (2025, 3, 29, "fitr-2"), (2025, 3, 30, "fitr-1"), (2025, 3, 31, "fitr"),
+    (2025, 4, 1, "fitr+1"), (2025, 4, 2, "fitr+2"),
+    (2025, 6, 5, "azha-2"), (2025, 6, 6, "azha-1"), (2025, 6, 7, "azha"),
+    (2025, 6, 8, "azha+1"), (2025, 6, 9, "azha+2"), (2025, 6, 10, "azha+3"),
+    (2025, 7, 6, "ashura"), (2025, 9, 5, "milad"),
+    (2026, 2, 4, "barat"), (2026, 3, 17, "qadr"), (2026, 3, 20, "bida"),
+    (2026, 3, 19, "fitr-2"), (2026, 3, 20, "fitr-1"), (2026, 3, 21, "fitr"),
+    (2026, 3, 22, "fitr+1"), (2026, 3, 23, "fitr+2"),
+    (2026, 5, 26, "azha-2"), (2026, 5, 27, "azha-1"), (2026, 5, 28, "azha"),
+    (2026, 5, 29, "azha+1"), (2026, 5, 30, "azha+2"), (2026, 5, 31, "azha+3"),
+    (2026, 6, 26, "ashura"), (2026, 8, 26, "milad"),
+]);
+
+/// A Hijri day of the notifications: the notifications' date in 2025 and
+/// 2026, as the notification states it, and the tabular `base`, approximate,
+/// after them. Before them it is a gap, which the listing reports.
+const fn bd_hijri_notified(base: HolidayRule, entry: ListedEntry) -> [HolidayRule; 2] {
+    [
+        HolidayRule {
+            rule: Rule::listed(entry, BD_FIRST, BD_LAST),
+            ..base
+        }
+        .years(None, Some(BD_LAST as i32)),
+        base.years(Some(BD_LAST as i32 + 1), None),
+    ]
+}
+
 /// A day the notifications date, for the years read.
 const fn bd_notified(name: &'static str, local: &'static str, entry: ListedEntry) -> HolidayRule {
     HolidayRule::fixed_public(name, local, Rule::listed(entry, BD_FIRST, BD_LAST))
@@ -3541,89 +3671,177 @@ fn bd_jumatul_bida(year: i64) -> Days {
     out
 }
 
-pub(super) static BD_RULES: &[HolidayRule] = &[
-    // The general holidays (সাধারণ ছুটি) on a fixed day.
-    HolidayRule::fixed_public(
-        "Shaheed Day and International Mother Language Day",
-        "শহিদ দিবস ও আন্তর্জাতিক মাতৃভাষা দিবস",
-        Rule::gregorian(2, 21),
-    ),
-    HolidayRule::fixed_public(
-        "Independence and National Day",
-        "স্বাধীনতা ও জাতীয় দিবস",
-        Rule::gregorian(3, 26),
-    ),
-    // For the three hill districts alone — Bandarban, Khagrachhari and
-    // Rangamati — and first among the general holidays in the 2026
-    // notification; the 2025 one lists it only among the Buddhist optional
-    // days. 30 Choitro.
-    HolidayRule::fixed_public(
-        "Chaitra Sankranti",
-        "চৈত্র সংক্রান্তি",
-        Rule::in_calendar(CalendarSystem::BANGLADESHI, 12, 30),
-    )
-    .in_regions(&["BD-01", "BD-29", "BD-56"])
-    .years(Some(2026), None),
-    HolidayRule::fixed_public("May Day", "মে দিবস", Rule::gregorian(5, 1)),
-    // Declared by the Cabinet Division's notification of 2 July 2025, to be
-    // kept every year; the 2025 holiday list, issued before it, lacks it.
-    HolidayRule::fixed_public(
-        "July Mass Uprising Day",
-        "জুলাই গণঅভ্যুত্থান দিবস",
-        Rule::gregorian(8, 5),
-    )
-    .years(Some(2025), None),
-    HolidayRule::fixed_public("Victory Day", "বিজয় দিবস", Rule::gregorian(12, 16)),
-    HolidayRule::fixed_public(
-        "Christmas Day",
-        "যিশু খ্রিষ্টের জন্মদিন (বড়দিন)",
-        Rule::gregorian(12, 25),
-    ),
-    // The general holidays on the Hijri calendar.
+const BD_BIDA: [HolidayRule; 2] = bd_hijri_notified(
     HolidayRule::fixed_public("Jumatul Bida", "জুমাতুল বিদা", Rule::Computed(bd_jumatul_bida))
         .approximate(),
+    BD_HIJRI_NOTIFIED.named("bida"),
+);
+const BD_FITR: [HolidayRule; 2] = bd_hijri_notified(
     bd_hijri("Eid-ul-Fitr", "ঈদ-উল-ফিতর", 10, 1),
+    BD_HIJRI_NOTIFIED.named("fitr"),
+);
+const BD_AZHA: [HolidayRule; 2] = bd_hijri_notified(
     bd_hijri("Eid-ul-Azha", "ঈদ-উল-আজহা", 12, 10),
+    BD_HIJRI_NOTIFIED.named("azha"),
+);
+const BD_MILAD: [HolidayRule; 2] = bd_hijri_notified(
     bd_hijri("Eid-e-Miladunnabi", "ঈদ-ই-মিলাদুন্নবী (সা.)", 3, 12),
-    // The general holidays the notifications date each year.
-    bd_notified(
-        "Buddha Purnima",
-        "বুদ্ধ পূর্ণিমা (বৈশাখী পূর্ণিমা)",
-        BD_NOTIFIED.named("Buddha Purnima"),
-    )
-    .approximate(),
-    bd_notified("Janmashtami", "জন্মাষ্টমী", BD_NOTIFIED.named("Janmashtami")),
-    bd_notified(
-        "Durga Puja (Bijoya Dashami)",
-        "দুর্গাপূজা (বিজয়া দশমী)",
-        BD_NOTIFIED.named("Durga Puja (Bijoya Dashami)"),
-    ),
-    // The executive-order holidays (নির্বাহী আদেশে সরকারি ছুটি).
-    HolidayRule::fixed_public(
-        "Pohela Boishakh",
-        "নববর্ষ",
-        Rule::in_calendar(CalendarSystem::BANGLADESHI, 1, 1),
-    ),
-    // The night of mid-Sha'ban and the night of power, each a holiday on
-    // the day that follows the night: 15 Sha'ban and 27 Ramadan.
+    BD_HIJRI_NOTIFIED.named("milad"),
+);
+const BD_BARAT: [HolidayRule; 2] = bd_hijri_notified(
     bd_hijri("Shab-e-Barat", "শব-ই-বরাত", 8, 15),
+    BD_HIJRI_NOTIFIED.named("barat"),
+);
+const BD_QADR: [HolidayRule; 2] = bd_hijri_notified(
     bd_hijri("Shab-e-Qadr", "শব-ই-কদর", 9, 27),
-    bd_around("Eid-ul-Fitr", "ঈদ-উল-ফিতর", &BD_EID_AL_FITR, -2),
-    bd_around("Eid-ul-Fitr", "ঈদ-উল-ফিতর", &BD_EID_AL_FITR, -1),
-    bd_around("Eid-ul-Fitr", "ঈদ-উল-ফিতর", &BD_EID_AL_FITR, 1),
-    bd_around("Eid-ul-Fitr", "ঈদ-উল-ফিতর", &BD_EID_AL_FITR, 2),
-    bd_around("Eid-ul-Azha", "ঈদ-উল-আজহা", &BD_EID_AL_ADHA, -2),
-    bd_around("Eid-ul-Azha", "ঈদ-উল-আজহা", &BD_EID_AL_ADHA, -1),
-    bd_around("Eid-ul-Azha", "ঈদ-উল-আজহা", &BD_EID_AL_ADHA, 1),
-    bd_around("Eid-ul-Azha", "ঈদ-উল-আজহা", &BD_EID_AL_ADHA, 2),
-    bd_around("Eid-ul-Azha", "ঈদ-উল-আজহা", &BD_EID_AL_ADHA, 3),
+    BD_HIJRI_NOTIFIED.named("qadr"),
+);
+const BD_ASHURA: [HolidayRule; 2] = bd_hijri_notified(
     bd_hijri("Ashura", "আশুরা", 1, 10),
-    bd_notified(
-        "Durga Puja (Navami)",
-        "দুর্গাপূজা (নবমী)",
-        BD_NOTIFIED.named("Durga Puja (Navami)"),
+    BD_HIJRI_NOTIFIED.named("ashura"),
+);
+const BD_FITR_AROUND: [[HolidayRule; 2]; 4] = [
+    bd_hijri_notified(
+        bd_around("Eid-ul-Fitr", "ঈদ-উল-ফিতর", &BD_EID_AL_FITR, -2),
+        BD_HIJRI_NOTIFIED.named("fitr-2"),
+    ),
+    bd_hijri_notified(
+        bd_around("Eid-ul-Fitr", "ঈদ-উল-ফিতর", &BD_EID_AL_FITR, -1),
+        BD_HIJRI_NOTIFIED.named("fitr-1"),
+    ),
+    bd_hijri_notified(
+        bd_around("Eid-ul-Fitr", "ঈদ-উল-ফিতর", &BD_EID_AL_FITR, 1),
+        BD_HIJRI_NOTIFIED.named("fitr+1"),
+    ),
+    bd_hijri_notified(
+        bd_around("Eid-ul-Fitr", "ঈদ-উল-ফিতর", &BD_EID_AL_FITR, 2),
+        BD_HIJRI_NOTIFIED.named("fitr+2"),
     ),
 ];
+const BD_AZHA_AROUND: [[HolidayRule; 2]; 5] = [
+    bd_hijri_notified(
+        bd_around("Eid-ul-Azha", "ঈদ-উল-আজহা", &BD_EID_AL_ADHA, -2),
+        BD_HIJRI_NOTIFIED.named("azha-2"),
+    ),
+    bd_hijri_notified(
+        bd_around("Eid-ul-Azha", "ঈদ-উল-আজহা", &BD_EID_AL_ADHA, -1),
+        BD_HIJRI_NOTIFIED.named("azha-1"),
+    ),
+    bd_hijri_notified(
+        bd_around("Eid-ul-Azha", "ঈদ-উল-আজহা", &BD_EID_AL_ADHA, 1),
+        BD_HIJRI_NOTIFIED.named("azha+1"),
+    ),
+    bd_hijri_notified(
+        bd_around("Eid-ul-Azha", "ঈদ-উল-আজহা", &BD_EID_AL_ADHA, 2),
+        BD_HIJRI_NOTIFIED.named("azha+2"),
+    ),
+    bd_hijri_notified(
+        bd_around("Eid-ul-Azha", "ঈদ-উল-আজহা", &BD_EID_AL_ADHA, 3),
+        BD_HIJRI_NOTIFIED.named("azha+3"),
+    ),
+];
+
+pub(super) static BD_RULES: &[HolidayRule] = &read_all(
+    2025,
+    [
+        // The general holidays (সাধারণ ছুটি) on a fixed day.
+        HolidayRule::fixed_public(
+            "Shaheed Day and International Mother Language Day",
+            "শহিদ দিবস ও আন্তর্জাতিক মাতৃভাষা দিবস",
+            Rule::gregorian(2, 21),
+        ),
+        HolidayRule::fixed_public(
+            "Independence and National Day",
+            "স্বাধীনতা ও জাতীয় দিবস",
+            Rule::gregorian(3, 26),
+        ),
+        // For the three hill districts alone — Bandarban, Khagrachhari and
+        // Rangamati — and first among the general holidays in the 2026
+        // notification; the 2025 one lists it only among the Buddhist optional
+        // days. 30 Choitro.
+        HolidayRule::fixed_public(
+            "Chaitra Sankranti",
+            "চৈত্র সংক্রান্তি",
+            Rule::in_calendar(CalendarSystem::BANGLADESHI, 12, 30),
+        )
+        .in_regions(&["BD-01", "BD-29", "BD-56"])
+        .years(Some(2026), None),
+        HolidayRule::fixed_public("May Day", "মে দিবস", Rule::gregorian(5, 1)),
+        // Declared by the Cabinet Division's notification of 2 July 2025, to be
+        // kept every year; the 2025 holiday list, issued before it, lacks it.
+        HolidayRule::fixed_public(
+            "July Mass Uprising Day",
+            "জুলাই গণঅভ্যুত্থান দিবস",
+            Rule::gregorian(8, 5),
+        )
+        .years(Some(2025), None),
+        HolidayRule::fixed_public("Victory Day", "বিজয় দিবস", Rule::gregorian(12, 16)),
+        HolidayRule::fixed_public(
+            "Christmas Day",
+            "যিশু খ্রিষ্টের জন্মদিন (বড়দিন)",
+            Rule::gregorian(12, 25),
+        ),
+        // The general holidays on the Hijri calendar.
+        BD_BIDA[0],
+        BD_BIDA[1],
+        BD_FITR[0],
+        BD_FITR[1],
+        BD_AZHA[0],
+        BD_AZHA[1],
+        BD_MILAD[0],
+        BD_MILAD[1],
+        // The general holidays the notifications date each year.
+        bd_notified(
+            "Buddha Purnima",
+            "বুদ্ধ পূর্ণিমা (বৈশাখী পূর্ণিমা)",
+            BD_NOTIFIED.named("Buddha Purnima"),
+        )
+        .approximate(),
+        bd_notified("Janmashtami", "জন্মাষ্টমী", BD_NOTIFIED.named("Janmashtami")),
+        bd_notified(
+            "Durga Puja (Bijoya Dashami)",
+            "দুর্গাপূজা (বিজয়া দশমী)",
+            BD_NOTIFIED.named("Durga Puja (Bijoya Dashami)"),
+        ),
+        // The executive-order holidays (নির্বাহী আদেশে সরকারি ছুটি).
+        HolidayRule::fixed_public(
+            "Pohela Boishakh",
+            "নববর্ষ",
+            Rule::in_calendar(CalendarSystem::BANGLADESHI, 1, 1),
+        ),
+        // The night of mid-Sha'ban and the night of power, each a holiday on
+        // the day that follows the night: 15 Sha'ban and 27 Ramadan.
+        BD_BARAT[0],
+        BD_BARAT[1],
+        BD_QADR[0],
+        BD_QADR[1],
+        BD_FITR_AROUND[0][0],
+        BD_FITR_AROUND[0][1],
+        BD_FITR_AROUND[1][0],
+        BD_FITR_AROUND[1][1],
+        BD_FITR_AROUND[2][0],
+        BD_FITR_AROUND[2][1],
+        BD_FITR_AROUND[3][0],
+        BD_FITR_AROUND[3][1],
+        BD_AZHA_AROUND[0][0],
+        BD_AZHA_AROUND[0][1],
+        BD_AZHA_AROUND[1][0],
+        BD_AZHA_AROUND[1][1],
+        BD_AZHA_AROUND[2][0],
+        BD_AZHA_AROUND[2][1],
+        BD_AZHA_AROUND[3][0],
+        BD_AZHA_AROUND[3][1],
+        BD_AZHA_AROUND[4][0],
+        BD_AZHA_AROUND[4][1],
+        BD_ASHURA[0],
+        BD_ASHURA[1],
+        bd_notified(
+            "Durga Puja (Navami)",
+            "দুর্গাপূজা (নবমী)",
+            BD_NOTIFIED.named("Durga Puja (Navami)"),
+        ),
+    ],
+);
 
 /// Bangladesh — the general holidays and the executive-order holidays the
 /// Ministry of Public Administration's annual notification gives every
@@ -3635,13 +3853,19 @@ pub(super) static BD_RULES: &[HolidayRule] = &[
 /// Pohela Boishakh, 1 Boishakh, and Chaitra Sankranti, 30 Choitro, are
 /// dated in that calendar, and are exact. The Hijri days — the two Eids
 /// with the days the executive order adds around them, Eid-e-Miladunnabi,
-/// Ashura, Shab-e-Barat, Shab-e-Qadr, and Jumatul Bida as the last Friday
-/// before 1 Shawwal — are on the tabular calendar and approximate, as the
-/// notifications themselves say they depend on the moon. The Hindu and
+/// Ashura, Shab-e-Barat, Shab-e-Qadr, and Jumatul Bida, which the 2025 and
+/// 2026 notifications place on the last Friday before Eid — are the
+/// notifications' own dates for 2025 and 2026, approximate, as the
+/// notifications themselves say they depend on the moon, and from 2027 the
+/// tabular calendar's. The tabular calendar parts from the notifications by
+/// a day or more — Shab-e-Barat and Shab-e-Qadr of 2025, every Hijri day
+/// of 2026 — which is why the notifications' dates are listed. The Hindu and
 /// Buddhist days — Janmashtami, the Navami and Bijoya Dashami of the Durga
 /// Puja, and Buddha Purnima, which the notifications also star — are the
 /// notifications' dates for 2025 and 2026, and a year outside them
-/// reports those days as a gap. The executive order's days around the two
+/// reports those days as a gap. The table answers from 2025, the first
+/// notification read, and a year before it is a gap (ADR 0013). The
+/// executive order's days around the two
 /// Eids, two before and two after Eid-ul-Fitr and two before and three
 /// after Eid-ul-Azha, are the pattern both notifications give; another
 /// year's order may give others.
@@ -3660,7 +3884,7 @@ pub static BANGLADESH: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: BD_WEEKEND,
-    sources_checked: SourceDate::new(2026, 9, 23),
+    sources_checked: SourceDate::new(2026, 10, 3),
     sources: "Government of the People's Republic of Bangladesh, Ministry of Public \
               Administration, the notifications (প্রজ্ঞাপন) of the holiday lists for 2025 \
               (21 October 2024) and 2026 (9 November 2025), sections (ক) general holidays \
@@ -3668,8 +3892,13 @@ pub static BANGLADESH: RuleSet = RuleSet {
               for the days, their dates, their Bengali names and the weekly-holiday \
               counts; the Cabinet Division's notification of 2 July 2025 declaring \
               5 August July Mass Uprising Day with a general holiday, as Prothom Alo \
-              reported it the same day, retrieved 2026-09-23; ISO 3166-2:BD for the \
-              three hill districts; for the optional holidays (ঐচ্ছিক ছুটি), the same \
+              reported it the same day, retrieved 2026-09-23; for the Hijri days of \
+              2025 and 2026, The Daily Star's \"Govt announces official list of public \
+              holidays for 2026\" and bdpublicnews.com's lists for 2025 and 2026, \
+              retrieved 2026-10-03, which reproduce the notifications (secondary; \
+              `bd-holidays-2026-daily-star`, `bd-holidays-2025-bdpublicnews`, \
+              `bd-holidays-2026-bdpublicnews`); ISO 3166-2:BD for the three hill \
+              districts; for the optional holidays (ঐচ্ছিক ছুটি), the same \
               notifications as the daily newspapers reproduce their lists, read as HTML \
               because the PDFs on mopa.gov.bd were not opened: bdnews24.com (21 \
               October 2024), Prothom Alo, Dainik Bangla and BVNews24 for 2025, Ajker \
@@ -3719,7 +3948,8 @@ const MM_DEEPAVALI: [HolidayRule; 3] = {
             ),
             ..base
         }
-        .years(Some(MM_DEEPAVALI_FIRST), Some(MM_DEEPAVALI_LAST)),
+        .years(Some(MM_DEEPAVALI_FIRST), Some(MM_DEEPAVALI_LAST))
+        .read_from(MM_DEEPAVALI_FIRST),
         base.approximate().years(None, Some(MM_DEEPAVALI_FIRST - 1)),
         base.approximate().years(Some(MM_DEEPAVALI_LAST + 1), None),
     ]
@@ -3767,71 +3997,81 @@ fn myanmar_new_year(year: i64) -> Days {
     Days::one(hc_calendars_regional::burmese::thingyan(mm_year_of_thingyan(year)).new_year)
 }
 
-static MM_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Independence Day", "လွတ်လပ်ရေးနေ့", Rule::gregorian(1, 4)),
-    HolidayRule::fixed_public(
-        "Chinese New Year",
-        "",
-        Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
-    ),
-    HolidayRule::fixed_public("Union Day", "ပြည်ထောင်စုနေ့", Rule::gregorian(2, 12)),
-    HolidayRule::fixed_public("Peasants' Day", "တောင်သူလယ်သမားနေ့", Rule::gregorian(3, 2)),
-    mm_burmese("Full Moon Day of Tabaung", "တပေါင်းလပြည့်နေ့", 12, 15),
-    HolidayRule::fixed_public("Armed Forces Day", "တပ်မတော်နေ့", Rule::gregorian(3, 27)),
-    // Thingyan: the eve, the first day, the one or two days between, the
-    // day the old year ends, and the New Year's day, from the calendar's
-    // own moments.
-    HolidayRule::fixed_public("Thingyan Eve", "သင်္ကြန်အကြိုနေ့", Rule::Computed(thingyan_akyo)),
-    HolidayRule::fixed_public(
-        "Thingyan Akya Day",
-        "သင်္ကြန်အကျနေ့",
-        Rule::Computed(thingyan_akya),
-    ),
-    HolidayRule::fixed_public(
-        "Thingyan Akyat Day",
-        "သင်္ကြန်အကြတ်နေ့",
-        Rule::Computed(thingyan_akyat),
-    ),
-    HolidayRule::fixed_public(
-        "Thingyan Atat Day",
-        "သင်္ကြန်အတက်နေ့",
-        Rule::Computed(thingyan_atat),
-    ),
-    HolidayRule::fixed_public(
-        "Myanmar New Year's Day",
-        "နှစ်ဆန်းတစ်ရက်နေ့",
-        Rule::Computed(myanmar_new_year),
-    ),
-    HolidayRule::fixed_public("Labour Day", "အလုပ်သမားနေ့", Rule::gregorian(5, 1)),
-    mm_burmese("Full Moon Day of Kason", "ကဆုန်လပြည့်နေ့", 2, 15),
-    HolidayRule::fixed_public("Martyrs' Day", "အာဇာနည်နေ့", Rule::gregorian(7, 19)),
-    mm_burmese("Full Moon Day of Waso", "ဝါဆိုလပြည့်နေ့", 4, 15),
-    mm_burmese("Thadingyut Holiday", "သီတင်းကျွတ်", 7, 14),
-    mm_burmese("Full Moon Day of Thadingyut", "သီတင်းကျွတ်လပြည့်နေ့", 7, 15),
-    mm_burmese("Thadingyut Holiday", "သီတင်းကျွတ်", 7, 16),
-    mm_burmese("Tazaungdaing Holiday", "တန်ဆောင်တိုင်", 8, 14),
-    mm_burmese("Full Moon Day of Tazaungmon", "တန်ဆောင်မုန်းလပြည့်နေ့", 8, 15),
-    // The tenth waning day of Tazaungmon.
-    mm_burmese("National Day", "အမျိုးသားနေ့", 8, 25),
-    HolidayRule::fixed_public("Christmas Day", "ခရစ္စမတ်နေ့", Rule::gregorian(12, 25)),
-    // The first waxing day of Pyatho.
-    mm_burmese("Kayin New Year", "ကရင်နှစ်သစ်ကူး", 10, 1),
-    HolidayRule::fixed_public("Eid al-Adha", "", EID_AL_ADHA).approximate(),
-    MM_DEEPAVALI[0],
-    MM_DEEPAVALI[1],
-    MM_DEEPAVALI[2],
-    HolidayRule::fixed_public(
-        "Deepavali holiday, substituted",
-        "ဒီပါဝလီ",
-        Rule::listed(
-            MM_DEEPAVALI_NOTIFIED.named("substituted"),
-            MM_DEEPAVALI_FIRST as i64,
-            MM_DEEPAVALI_LAST as i64,
+/// The first year of the list read, the one Wikipedia's "Public holidays in
+/// Myanmar" gave on the day it was retrieved, 2026-09-22: the list is
+/// undated and secondary, and no earlier year's list was read. The
+/// Deepavali notices of 2020 to 2025 are each rule's own years.
+const MM_FIRST: i32 = 2026;
+
+static MM_RULES: &[HolidayRule] = &read_all(
+    MM_FIRST,
+    [
+        HolidayRule::fixed_public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("Independence Day", "လွတ်လပ်ရေးနေ့", Rule::gregorian(1, 4)),
+        HolidayRule::fixed_public(
+            "Chinese New Year",
+            "",
+            Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
         ),
-    )
-    .years(Some(MM_DEEPAVALI_FIRST), Some(MM_DEEPAVALI_LAST)),
-];
+        HolidayRule::fixed_public("Union Day", "ပြည်ထောင်စုနေ့", Rule::gregorian(2, 12)),
+        HolidayRule::fixed_public("Peasants' Day", "တောင်သူလယ်သမားနေ့", Rule::gregorian(3, 2)),
+        mm_burmese("Full Moon Day of Tabaung", "တပေါင်းလပြည့်နေ့", 12, 15),
+        HolidayRule::fixed_public("Armed Forces Day", "တပ်မတော်နေ့", Rule::gregorian(3, 27)),
+        // Thingyan: the eve, the first day, the one or two days between, the
+        // day the old year ends, and the New Year's day, from the calendar's
+        // own moments.
+        HolidayRule::fixed_public("Thingyan Eve", "သင်္ကြန်အကြိုနေ့", Rule::Computed(thingyan_akyo)),
+        HolidayRule::fixed_public(
+            "Thingyan Akya Day",
+            "သင်္ကြန်အကျနေ့",
+            Rule::Computed(thingyan_akya),
+        ),
+        HolidayRule::fixed_public(
+            "Thingyan Akyat Day",
+            "သင်္ကြန်အကြတ်နေ့",
+            Rule::Computed(thingyan_akyat),
+        ),
+        HolidayRule::fixed_public(
+            "Thingyan Atat Day",
+            "သင်္ကြန်အတက်နေ့",
+            Rule::Computed(thingyan_atat),
+        ),
+        HolidayRule::fixed_public(
+            "Myanmar New Year's Day",
+            "နှစ်ဆန်းတစ်ရက်နေ့",
+            Rule::Computed(myanmar_new_year),
+        ),
+        HolidayRule::fixed_public("Labour Day", "အလုပ်သမားနေ့", Rule::gregorian(5, 1)),
+        mm_burmese("Full Moon Day of Kason", "ကဆုန်လပြည့်နေ့", 2, 15),
+        HolidayRule::fixed_public("Martyrs' Day", "အာဇာနည်နေ့", Rule::gregorian(7, 19)),
+        mm_burmese("Full Moon Day of Waso", "ဝါဆိုလပြည့်နေ့", 4, 15),
+        mm_burmese("Thadingyut Holiday", "သီတင်းကျွတ်", 7, 14),
+        mm_burmese("Full Moon Day of Thadingyut", "သီတင်းကျွတ်လပြည့်နေ့", 7, 15),
+        mm_burmese("Thadingyut Holiday", "သီတင်းကျွတ်", 7, 16),
+        mm_burmese("Tazaungdaing Holiday", "တန်ဆောင်တိုင်", 8, 14),
+        mm_burmese("Full Moon Day of Tazaungmon", "တန်ဆောင်မုန်းလပြည့်နေ့", 8, 15),
+        // The tenth waning day of Tazaungmon.
+        mm_burmese("National Day", "အမျိုးသားနေ့", 8, 25),
+        HolidayRule::fixed_public("Christmas Day", "ခရစ္စမတ်နေ့", Rule::gregorian(12, 25)),
+        // The first waxing day of Pyatho.
+        mm_burmese("Kayin New Year", "ကရင်နှစ်သစ်ကူး", 10, 1),
+        HolidayRule::fixed_public("Eid al-Adha", "", EID_AL_ADHA).approximate(),
+        MM_DEEPAVALI[0],
+        MM_DEEPAVALI[1],
+        MM_DEEPAVALI[2],
+        HolidayRule::fixed_public(
+            "Deepavali holiday, substituted",
+            "ဒီပါဝလီ",
+            Rule::listed(
+                MM_DEEPAVALI_NOTIFIED.named("substituted"),
+                MM_DEEPAVALI_FIRST as i64,
+                MM_DEEPAVALI_LAST as i64,
+            ),
+        )
+        .years(Some(MM_DEEPAVALI_FIRST), Some(MM_DEEPAVALI_LAST))
+        .read_from(MM_DEEPAVALI_FIRST),
+    ],
+);
 
 /// Myanmar.
 ///
@@ -3846,6 +4086,11 @@ static MM_RULES: &[HolidayRule] = &[
 /// gazette extends several of these — nine days for Thadingyut in recent
 /// years, a longer Thingyan block — and the extensions are annual and not
 /// carried. Eid al-Adha is on the tabular Hijri calendar and approximate.
+///
+/// The table answers from 2026, the year of the list read, Wikipedia's "Public
+/// holidays in Myanmar" as of 2026-09-22, which is secondary and undated; a
+/// year before it is a gap (ADR 0013), except Deepavali, whose Government
+/// notices for 2020 to 2025 are answered in their own years.
 pub static MYANMAR: RuleSet = RuleSet {
     code: "MM",
     english_name: "Myanmar",
@@ -3925,7 +4170,9 @@ fn hk_mid_autumn_day(year: i64) -> Days {
     }
 }
 
-static HK_RULES: &[HolidayRule] = &[
+static HK_RULES: &[HolidayRule] = &read_all(
+    1998,
+    [
     HolidayRule::public("The first day of January", "一月一日", Rule::gregorian(1, 1)),
     // Lunar New Year: made up after the third day, except from 1983 to
     // 2011, when the eve stood in.
@@ -4059,7 +4306,8 @@ static HK_RULES: &[HolidayRule] = &[
             meridian: hc_seasons::Meridian::CHINA,
         },
     ),
-];
+    ]
+);
 
 /// Hong Kong.
 ///
@@ -4079,14 +4327,17 @@ static HK_RULES: &[HolidayRule] = &[
 /// their eves instead, and the two computed rules carry that. Saturdays
 /// move nothing.
 ///
-/// The table is complete from the Special Administrative Region's first
-/// day, 1 July 1997, with that year's 2 July, the two years of the Victory
-/// Day and the day following National Day, and the one-off 3 September
-/// 2015. The holidays that predate 1997 carry their real years — the Ching
-/// Ming, Tuen Ng and Chung Yeung Festivals and the third Lunar New Year
-/// day from 1968 — but the colonial holidays they sat beside, the Queen's
-/// Birthday and Liberation Day among them, are not carried, so a year
-/// before 1997 is answered incompletely. The Chinese Winter Solstice
+/// The table answers from 1998, the first year of the Ordinance's versions
+/// read — the Schedule in force from 18 September 1998 — with the two years
+/// of the Victory Day and the day following National Day, 1997 and 1998, and
+/// the one-off 3 September 2015. The Special Administrative Region's first
+/// year, 1997, with its 2 July, rests on the Chinese Wikipedia alone and is
+/// a gap, as is every year before it: the holidays that predate 1997 carry
+/// their real years — the Ching Ming, Tuen Ng and Chung Yeung Festivals and
+/// the third Lunar New Year day from 1968 — but the colonial holidays they
+/// sat beside, the Queen's Birthday and Liberation Day among them, are not
+/// carried, and no version of the Schedule before 1998 was read (ADR 0013).
+/// The Chinese Winter Solstice
 /// Festival is an observance because an employer may give it in place of
 /// Christmas Day. The two ordinances and their substitution rules are
 /// written up in `docs/systems/hong-kong-holidays.md`.
@@ -4136,111 +4387,116 @@ static MO_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 
 static MO_LUNAR_NEW_YEAR: Rule = Rule::in_calendar(CalendarSystem::CHINESE, 1, 1);
 
-static MO_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "元旦", Rule::gregorian(1, 1)),
-    HolidayRule::public(
-        "Lunar New Year's Day",
-        "農曆正月初一",
-        Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
-    ),
-    HolidayRule::public(
-        "The second day of Lunar New Year",
-        "農曆正月初二",
-        Rule::in_calendar(CalendarSystem::CHINESE, 1, 2),
-    ),
-    HolidayRule::public(
-        "The third day of Lunar New Year",
-        "農曆正月初三",
-        Rule::in_calendar(CalendarSystem::CHINESE, 1, 3),
-    ),
-    HolidayRule::public(
-        "Cheng Ming Festival",
-        "清明節",
-        Rule::SolarTerm {
-            term: QINGMING,
-            meridian: hc_seasons::Meridian::CHINA,
-        },
-    ),
-    HolidayRule::public("Good Friday", "耶穌受難日", Rule::easter(GOOD_FRIDAY)).of_kind(Kind::Bank),
-    HolidayRule::public(
-        "The day before Easter",
-        "復活節前日",
-        Rule::easter(HOLY_SATURDAY),
-    )
-    .of_kind(Kind::Bank),
-    HolidayRule::public("Labour Day", "勞動節", Rule::gregorian(5, 1)),
-    HolidayRule::public(
-        "The Buddha's Birthday",
-        "佛誕節",
-        Rule::in_calendar(CalendarSystem::CHINESE, 4, 8),
-    )
-    .years(Some(2000), None)
-    .of_kind(Kind::Bank),
-    HolidayRule::public(
-        "Tung Ng Festival",
-        "端午節",
-        Rule::in_calendar(CalendarSystem::CHINESE, 5, 5),
-    )
-    .of_kind(Kind::Bank),
-    HolidayRule::public(
-        "The day following Mid-Autumn Festival",
-        "中秋節翌日",
-        Rule::in_calendar(CalendarSystem::CHINESE, 8, 16),
-    ),
-    HolidayRule::public(
-        "National Day of the People's Republic of China",
-        "中華人民共和國國慶日",
-        Rule::gregorian(10, 1),
-    ),
-    HolidayRule::public(
-        "The day following National Day",
-        "中華人民共和國國慶日翌日",
-        Rule::gregorian(10, 2),
-    )
-    .years(Some(2000), None)
-    .of_kind(Kind::Bank),
-    HolidayRule::public(
-        "Chong Yeung Festival",
-        "重陽節",
-        Rule::in_calendar(CalendarSystem::CHINESE, 9, 9),
-    ),
-    HolidayRule::public("All Souls' Day", "追思節", Rule::gregorian(11, 2)).of_kind(Kind::Bank),
-    HolidayRule::public(
-        "Feast of the Immaculate Conception",
-        "聖母無原罪瞻禮",
-        Rule::gregorian(12, 8),
-    )
-    .of_kind(Kind::Bank),
-    HolidayRule::public(
-        "Macao Special Administrative Region Establishment Day",
-        "澳門特別行政區成立紀念日",
-        Rule::gregorian(12, 20),
-    )
-    .years(Some(1999), None),
-    HolidayRule::public(
-        "Winter Solstice",
-        "冬至",
-        Rule::SolarTerm {
-            term: SolarTerm::WINTER_SOLSTICE,
-            meridian: hc_seasons::Meridian::CHINA,
-        },
-    )
-    .of_kind(Kind::Bank),
-    HolidayRule::public("Christmas Eve", "聖誕節前日", Rule::gregorian(12, 24)).of_kind(Kind::Bank),
-    HolidayRule::public("Christmas Day", "聖誕節", Rule::gregorian(12, 25)).of_kind(Kind::Bank),
-    // The two eves: afternoons the public administration is usually
-    // exempted from work by the Chief Executive's yearly dispatch, not
-    // public holidays.
-    HolidayRule::observance(
-        "Lunar New Year's Eve",
-        "農曆除夕",
-        Rule::Offset {
-            base: &MO_LUNAR_NEW_YEAR,
-            days: -1,
-        },
-    ),
-    HolidayRule::observance("New Year's Eve", "公曆除夕", Rule::gregorian(12, 31)),
-];
+static MO_RULES: &[HolidayRule] = &read_all(
+    2001,
+    [
+        HolidayRule::public("New Year's Day", "元旦", Rule::gregorian(1, 1)),
+        HolidayRule::public(
+            "Lunar New Year's Day",
+            "農曆正月初一",
+            Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
+        ),
+        HolidayRule::public(
+            "The second day of Lunar New Year",
+            "農曆正月初二",
+            Rule::in_calendar(CalendarSystem::CHINESE, 1, 2),
+        ),
+        HolidayRule::public(
+            "The third day of Lunar New Year",
+            "農曆正月初三",
+            Rule::in_calendar(CalendarSystem::CHINESE, 1, 3),
+        ),
+        HolidayRule::public(
+            "Cheng Ming Festival",
+            "清明節",
+            Rule::SolarTerm {
+                term: QINGMING,
+                meridian: hc_seasons::Meridian::CHINA,
+            },
+        ),
+        HolidayRule::public("Good Friday", "耶穌受難日", Rule::easter(GOOD_FRIDAY))
+            .of_kind(Kind::Bank),
+        HolidayRule::public(
+            "The day before Easter",
+            "復活節前日",
+            Rule::easter(HOLY_SATURDAY),
+        )
+        .of_kind(Kind::Bank),
+        HolidayRule::public("Labour Day", "勞動節", Rule::gregorian(5, 1)),
+        HolidayRule::public(
+            "The Buddha's Birthday",
+            "佛誕節",
+            Rule::in_calendar(CalendarSystem::CHINESE, 4, 8),
+        )
+        .years(Some(2000), None)
+        .of_kind(Kind::Bank),
+        HolidayRule::public(
+            "Tung Ng Festival",
+            "端午節",
+            Rule::in_calendar(CalendarSystem::CHINESE, 5, 5),
+        )
+        .of_kind(Kind::Bank),
+        HolidayRule::public(
+            "The day following Mid-Autumn Festival",
+            "中秋節翌日",
+            Rule::in_calendar(CalendarSystem::CHINESE, 8, 16),
+        ),
+        HolidayRule::public(
+            "National Day of the People's Republic of China",
+            "中華人民共和國國慶日",
+            Rule::gregorian(10, 1),
+        ),
+        HolidayRule::public(
+            "The day following National Day",
+            "中華人民共和國國慶日翌日",
+            Rule::gregorian(10, 2),
+        )
+        .years(Some(2000), None)
+        .of_kind(Kind::Bank),
+        HolidayRule::public(
+            "Chong Yeung Festival",
+            "重陽節",
+            Rule::in_calendar(CalendarSystem::CHINESE, 9, 9),
+        ),
+        HolidayRule::public("All Souls' Day", "追思節", Rule::gregorian(11, 2)).of_kind(Kind::Bank),
+        HolidayRule::public(
+            "Feast of the Immaculate Conception",
+            "聖母無原罪瞻禮",
+            Rule::gregorian(12, 8),
+        )
+        .of_kind(Kind::Bank),
+        HolidayRule::public(
+            "Macao Special Administrative Region Establishment Day",
+            "澳門特別行政區成立紀念日",
+            Rule::gregorian(12, 20),
+        )
+        .years(Some(1999), None),
+        HolidayRule::public(
+            "Winter Solstice",
+            "冬至",
+            Rule::SolarTerm {
+                term: SolarTerm::WINTER_SOLSTICE,
+                meridian: hc_seasons::Meridian::CHINA,
+            },
+        )
+        .of_kind(Kind::Bank),
+        HolidayRule::public("Christmas Eve", "聖誕節前日", Rule::gregorian(12, 24))
+            .of_kind(Kind::Bank),
+        HolidayRule::public("Christmas Day", "聖誕節", Rule::gregorian(12, 25)).of_kind(Kind::Bank),
+        // The two eves: afternoons the public administration is usually
+        // exempted from work by the Chief Executive's yearly dispatch, not
+        // public holidays.
+        HolidayRule::observance(
+            "Lunar New Year's Eve",
+            "農曆除夕",
+            Rule::Offset {
+                base: &MO_LUNAR_NEW_YEAR,
+                days: -1,
+            },
+        ),
+        HolidayRule::observance("New Year's Eve", "公曆除夕", Rule::gregorian(12, 31)),
+    ],
+);
 
 /// Macau.
 ///
@@ -4250,8 +4506,10 @@ static MO_RULES: &[HolidayRule] = &[
 /// must give: those ten are [`Kind::Public`] and the rest [`Kind::Bank`],
 /// a split that follows the 2008 law and is not carried further back. The
 /// Buddha's Birthday and the day following National Day date from the
-/// 2000 order, Establishment Day from 1999; the rest predate the order,
-/// and a year before 2000 is answered with the order's list alone. From
+/// 2000 order, Establishment Day from 1999; the rest predate the order.
+/// The table answers from 2001, the first year wholly under the order,
+/// which the Boletim Oficial No. 40/2000, of October 2000, published; a
+/// year before is a gap, the days of 1999 and 2000 included (ADR 0013). From
 /// 2019 a holiday on a Saturday, a Sunday or another holiday gives the
 /// public administration the next working day as a compensatory rest day,
 /// which is how the day before Easter, always a Saturday, yields the
@@ -4266,14 +4524,18 @@ pub static MACAU: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
+    sources_checked: SourceDate::new(2026, 10, 3),
     sources: "Government of the Macao SAR, \"Public holidays\", \"2026\" and \"2027\", \
               gov.mo, retrieved 2026-09-22, for Executive Order 60/2000, the \
               obligatory holidays of art. 44 of Law 7/2008, the compensatory \
               rest days of art. 79(4) of the Public Administration Staff Statute \
               and the dates; the Chinese Wikipedia, \"澳門政府假期\", retrieved the \
               same day, for the 1999 and 2000 additions, the 2019 start of the \
-              compensatory days and the eves",
+              compensatory days and the eves; Wikipedia, \"Public holidays in \
+              Macau\", retrieved 2026-10-03, which cites Executive Order 60/2000 \
+              as published in the Boletim Oficial No. 40/2000 (the Bulletin's own \
+              page was not reachable, so the order's date is not read: it was \
+              published in October 2000) (`wikipedia-public-holidays-macau`)",
     subdivisions: Subdivisions::Read(&[]),
 };
 
@@ -4295,137 +4557,140 @@ fn am_citizens_day(year: i64) -> Days {
     }
 }
 
-static AM_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Eve", "Ամանոր", Rule::gregorian(12, 31)),
-    HolidayRule::fixed_public("New Year's Day", "Ամանոր", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("New Year's Day", "Ամանոր", Rule::gregorian(1, 2)),
-    HolidayRule::fixed_public(
-        "Christmas and Epiphany",
-        "Սուրբ Ծնունդ և Հայտնություն",
-        Rule::gregorian(1, 6),
-    ),
-    HolidayRule::observance(
-        "Memorial Day after Christmas",
-        "Մեռելոց",
-        Rule::gregorian(1, 7),
-    ),
-    HolidayRule::fixed_public(
-        "Day of Remembrance and Reverence",
-        "Հիշատակի և խոնարհումի օր",
-        Rule::gregorian(1, 27),
-    )
-    .years(Some(2026), None),
-    HolidayRule::fixed_public("Army Day", "Բանակի օր", Rule::gregorian(1, 28)),
-    HolidayRule::fixed_public("Women's Day", "Կանանց միջազգային օր", Rule::gregorian(3, 8)),
-    HolidayRule::fixed_public(
-        "Armenian Genocide Remembrance Day",
-        "Հայոց ցեղասպանության զոհերի հիշատակի օր",
-        Rule::gregorian(4, 24),
-    ),
-    HolidayRule::fixed_public("Labour Day", "Աշխատանքի օր", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public(
-        "Victory and Peace Day",
-        "Հաղթանակի և խաղաղության տոն",
-        Rule::gregorian(5, 9),
-    ),
-    HolidayRule::fixed_public("Republic Day", "Հանրապետության տոն", Rule::gregorian(5, 28)),
-    HolidayRule::fixed_public(
-        "Constitution Day",
-        "Սահմանադրության օր, պետական խորհրդանիշների օր",
-        Rule::gregorian(7, 5),
-    ),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Անկախության տոն",
-        Rule::gregorian(9, 21),
-    ),
-    // The holidays and remembrance days the law keeps as working days.
-    HolidayRule::observance(
-        "Book Giving Day",
-        "Գիրք նվիրելու օր",
-        Rule::gregorian(2, 19),
-    ),
-    HolidayRule::observance(
-        "Mother Language Day",
-        "Մայրենի լեզվի օր",
-        Rule::gregorian(2, 21),
-    ),
-    HolidayRule::observance(
-        "Day of Remembrance of the Victims of the Massacres in the Azerbaijan SSR",
-        "Ադրբեջանական ԽՍՀ-ում կազմակերպված ջարդերի զոհերի հիշատակի օր",
-        Rule::gregorian(2, 28),
-    ),
-    HolidayRule::observance(
-        "Motherhood and Beauty Day",
-        "Մայրության և գեղեցկության տոն",
-        Rule::gregorian(4, 7),
-    ),
-    HolidayRule::observance(
-        "Day of Armenian Cinema",
-        "Հայ կինոյի օր",
-        Rule::gregorian(4, 16),
-    ),
-    HolidayRule::observance(
-        "Day of the Citizen",
-        "Հայաստանի քաղաքացու օր",
-        Rule::Computed(am_citizens_day),
-    ),
-    HolidayRule::observance("Yerkrapah Day", "Երկրապահի օր", Rule::gregorian(5, 8)),
-    HolidayRule::observance("Family Day", "Ընտանիքի օր", Rule::gregorian(5, 15)),
-    HolidayRule::observance(
-        "Students' and Youth Day",
-        "Ուսանողների և երիտասարդների օր",
-        Rule::gregorian(5, 16),
-    ),
-    HolidayRule::observance(
-        "Children's Rights Protection Day",
-        "Երեխաների իրավունքների պաշտպանության օր",
-        Rule::gregorian(6, 1),
-    ),
-    HolidayRule::observance(
-        "Day of Remembrance of the Repressed",
-        "Բռնադատվածների հիշատակի օր",
-        Rule::gregorian(6, 14),
-    ),
-    HolidayRule::observance(
-        "Knowledge and School Day",
-        "Գիտելիքի և դպրության օր",
-        Rule::gregorian(9, 1),
-    ),
-    HolidayRule::observance("Sparapet Day", "Սպարապետի օր", Rule::gregorian(9, 12)),
-    HolidayRule::observance("Teachers' Day", "Ուսուցչի օր", Rule::gregorian(10, 5)),
-    HolidayRule::observance(
-        "Holy Translators' Day",
-        "Թարգմանչաց տոն",
-        Rule::nth(10, 2, Weekday::Saturday),
-    ),
-    HolidayRule::observance(
-        "Local Self-Government Day",
-        "Տեղական ինքնակառավարման օր",
-        Rule::gregorian(11, 10),
-    ),
-    HolidayRule::observance(
-        "Day of Remembrance of the Earthquake Victims",
-        "Երկրաշարժի զոհերի հիշատակի և աղետների դիմակայունության օր",
-        Rule::gregorian(12, 7),
-    ),
-    HolidayRule::observance(
-        "Day of Condemnation and Prevention of Genocides",
-        "Ցեղասպանությունների դատապարտման և կանխարգելման օր",
-        Rule::gregorian(12, 9),
-    ),
-    // The Thursday eight weeks before Easter, and the Sunday nine weeks after.
-    HolidayRule::observance(
-        "Saint Vardanants Day",
-        "Սուրբ Վարդանանց տոն",
-        Rule::easter(-59),
-    ),
-    HolidayRule::observance(
-        "Feast of Holy Etchmiadzin",
-        "Սուրբ Էջմիածնի տոն",
-        Rule::easter(63),
-    ),
-];
+static AM_RULES: &[HolidayRule] = &read_all(
+    2022,
+    [
+        HolidayRule::fixed_public("New Year's Eve", "Ամանոր", Rule::gregorian(12, 31)),
+        HolidayRule::fixed_public("New Year's Day", "Ամանոր", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("New Year's Day", "Ամանոր", Rule::gregorian(1, 2)),
+        HolidayRule::fixed_public(
+            "Christmas and Epiphany",
+            "Սուրբ Ծնունդ և Հայտնություն",
+            Rule::gregorian(1, 6),
+        ),
+        HolidayRule::observance(
+            "Memorial Day after Christmas",
+            "Մեռելոց",
+            Rule::gregorian(1, 7),
+        ),
+        HolidayRule::fixed_public(
+            "Day of Remembrance and Reverence",
+            "Հիշատակի և խոնարհումի օր",
+            Rule::gregorian(1, 27),
+        )
+        .years(Some(2026), None),
+        HolidayRule::fixed_public("Army Day", "Բանակի օր", Rule::gregorian(1, 28)),
+        HolidayRule::fixed_public("Women's Day", "Կանանց միջազգային օր", Rule::gregorian(3, 8)),
+        HolidayRule::fixed_public(
+            "Armenian Genocide Remembrance Day",
+            "Հայոց ցեղասպանության զոհերի հիշատակի օր",
+            Rule::gregorian(4, 24),
+        ),
+        HolidayRule::fixed_public("Labour Day", "Աշխատանքի օր", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public(
+            "Victory and Peace Day",
+            "Հաղթանակի և խաղաղության տոն",
+            Rule::gregorian(5, 9),
+        ),
+        HolidayRule::fixed_public("Republic Day", "Հանրապետության տոն", Rule::gregorian(5, 28)),
+        HolidayRule::fixed_public(
+            "Constitution Day",
+            "Սահմանադրության օր, պետական խորհրդանիշների օր",
+            Rule::gregorian(7, 5),
+        ),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Անկախության տոն",
+            Rule::gregorian(9, 21),
+        ),
+        // The holidays and remembrance days the law keeps as working days.
+        HolidayRule::observance(
+            "Book Giving Day",
+            "Գիրք նվիրելու օր",
+            Rule::gregorian(2, 19),
+        ),
+        HolidayRule::observance(
+            "Mother Language Day",
+            "Մայրենի լեզվի օր",
+            Rule::gregorian(2, 21),
+        ),
+        HolidayRule::observance(
+            "Day of Remembrance of the Victims of the Massacres in the Azerbaijan SSR",
+            "Ադրբեջանական ԽՍՀ-ում կազմակերպված ջարդերի զոհերի հիշատակի օր",
+            Rule::gregorian(2, 28),
+        ),
+        HolidayRule::observance(
+            "Motherhood and Beauty Day",
+            "Մայրության և գեղեցկության տոն",
+            Rule::gregorian(4, 7),
+        ),
+        HolidayRule::observance(
+            "Day of Armenian Cinema",
+            "Հայ կինոյի օր",
+            Rule::gregorian(4, 16),
+        ),
+        HolidayRule::observance(
+            "Day of the Citizen",
+            "Հայաստանի քաղաքացու օր",
+            Rule::Computed(am_citizens_day),
+        ),
+        HolidayRule::observance("Yerkrapah Day", "Երկրապահի օր", Rule::gregorian(5, 8)),
+        HolidayRule::observance("Family Day", "Ընտանիքի օր", Rule::gregorian(5, 15)),
+        HolidayRule::observance(
+            "Students' and Youth Day",
+            "Ուսանողների և երիտասարդների օր",
+            Rule::gregorian(5, 16),
+        ),
+        HolidayRule::observance(
+            "Children's Rights Protection Day",
+            "Երեխաների իրավունքների պաշտպանության օր",
+            Rule::gregorian(6, 1),
+        ),
+        HolidayRule::observance(
+            "Day of Remembrance of the Repressed",
+            "Բռնադատվածների հիշատակի օր",
+            Rule::gregorian(6, 14),
+        ),
+        HolidayRule::observance(
+            "Knowledge and School Day",
+            "Գիտելիքի և դպրության օր",
+            Rule::gregorian(9, 1),
+        ),
+        HolidayRule::observance("Sparapet Day", "Սպարապետի օր", Rule::gregorian(9, 12)),
+        HolidayRule::observance("Teachers' Day", "Ուսուցչի օր", Rule::gregorian(10, 5)),
+        HolidayRule::observance(
+            "Holy Translators' Day",
+            "Թարգմանչաց տոն",
+            Rule::nth(10, 2, Weekday::Saturday),
+        ),
+        HolidayRule::observance(
+            "Local Self-Government Day",
+            "Տեղական ինքնակառավարման օր",
+            Rule::gregorian(11, 10),
+        ),
+        HolidayRule::observance(
+            "Day of Remembrance of the Earthquake Victims",
+            "Երկրաշարժի զոհերի հիշատակի և աղետների դիմակայունության օր",
+            Rule::gregorian(12, 7),
+        ),
+        HolidayRule::observance(
+            "Day of Condemnation and Prevention of Genocides",
+            "Ցեղասպանությունների դատապարտման և կանխարգելման օր",
+            Rule::gregorian(12, 9),
+        ),
+        // The Thursday eight weeks before Easter, and the Sunday nine weeks after.
+        HolidayRule::observance(
+            "Saint Vardanants Day",
+            "Սուրբ Վարդանանց տոն",
+            Rule::easter(-59),
+        ),
+        HolidayRule::observance(
+            "Feast of Holy Etchmiadzin",
+            "Սուրբ Էջմիածնի տոն",
+            Rule::easter(63),
+        ),
+    ],
+);
 
 /// Armenia.
 ///
@@ -4440,6 +4705,11 @@ static AM_RULES: &[HolidayRule] = &[
 /// declares non-working by decision rather than by law; and the
 /// Government's swapping of working days around a holiday. No
 /// substitution.
+///
+/// The table answers from 2022, the year the law as it stands is read for: the
+/// sources do not give the longer New Year break of the years before, nor the
+/// amendments of the law of 24 June 2001 between 2002 and 2021, and a year
+/// before 2022 is a gap (ADR 0013).
 pub static ARMENIA: RuleSet = RuleSet {
     code: "AM",
     english_name: "Armenia",
@@ -4478,110 +4748,118 @@ static AZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static AZ_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Yeni il bayramı", Rule::gregorian(1, 1)),
-    HolidayRule::public("New Year's Day", "Yeni il bayramı", Rule::gregorian(1, 2)),
-    HolidayRule::public(
-        "National Mourning Day",
-        "Ümumxalq Hüzn Günü",
-        Rule::gregorian(1, 20),
-    ),
-    HolidayRule::public("Women's Day", "Qadınlar günü", Rule::gregorian(3, 8)),
-    HolidayRule::public("Novruz", "Novruz bayramı", Rule::gregorian(3, 20)).years(Some(2007), None),
-    HolidayRule::public("Novruz", "Novruz bayramı", Rule::gregorian(3, 21)).years(Some(2007), None),
-    HolidayRule::public("Novruz", "Novruz bayramı", Rule::gregorian(3, 22)).years(Some(2007), None),
-    HolidayRule::public("Novruz", "Novruz bayramı", Rule::gregorian(3, 23)).years(Some(2007), None),
-    HolidayRule::public("Novruz", "Novruz bayramı", Rule::gregorian(3, 24)).years(Some(2007), None),
-    HolidayRule::public(
-        "Victory over Fascism Day",
-        "Faşizm üzərində qələbə günü",
-        Rule::gregorian(5, 9),
-    ),
-    HolidayRule::public(
-        "Independence Day",
-        "Müstəqillik Günü",
-        Rule::gregorian(5, 28),
-    ),
-    HolidayRule::public(
-        "National Salvation Day",
-        "Azərbaycan xalqının milli qurtuluş günü",
-        Rule::gregorian(6, 15),
-    )
-    .years(Some(1998), None),
-    HolidayRule::public(
-        "Armed Forces Day",
-        "Azərbaycan Respublikasının Silahlı Qüvvələri günü",
-        Rule::gregorian(6, 26),
-    )
-    .years(Some(1998), None),
-    HolidayRule::public("Victory Day", "Zəfər Günü", Rule::gregorian(11, 8))
-        .years(Some(2021), None),
-    HolidayRule::public(
-        "State Flag Day",
-        "Dövlət Bayrağı Günü",
-        Rule::gregorian(11, 9),
-    )
-    .years(Some(2010), None),
-    HolidayRule::public(
-        "Solidarity Day of World Azerbaijanis",
-        "Dünya azərbaycanlılarının həmrəyliyi günü",
-        Rule::gregorian(12, 31),
-    ),
-    // Two days each, on dates the Caucasus Muslim Board announces; the
-    // tabular calendar approximates them.
-    HolidayRule::public(
-        "Ramazan Bayramı",
-        "Ramazan bayramı",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
-    )
-    .approximate()
-    .years(Some(1993), None),
-    HolidayRule::public(
-        "Ramazan Bayramı",
-        "Ramazan bayramı",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
-    )
-    .approximate()
-    .years(Some(1993), None),
-    HolidayRule::public(
-        "Qurban Bayramı",
-        "Qurban bayramı",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
-    )
-    .approximate()
-    .years(Some(1993), None),
-    HolidayRule::public(
-        "Qurban Bayramı",
-        "Qurban bayramı",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 11),
-    )
-    .approximate()
-    .years(Some(1993), None),
-    // The holidays art. 105 keeps as working days.
-    HolidayRule::observance(
-        "State Sovereignty Day",
-        "Dövlət Suverenliyi Günü",
-        Rule::gregorian(9, 20),
-    )
-    .years(Some(2024), None),
-    HolidayRule::observance("Remembrance Day", "Anım Günü", Rule::gregorian(9, 27))
-        .years(Some(2021), None),
-    HolidayRule::observance(
-        "Restoration of Independence Day",
-        "Müstəqilliyin Bərpası Günü",
-        Rule::gregorian(10, 18),
-    ),
-    HolidayRule::observance(
-        "Constitution Day",
-        "Konstitusiya günü",
-        Rule::gregorian(11, 12),
-    ),
-    HolidayRule::observance(
-        "National Revival Day",
-        "Milli Dirçəliş günü",
-        Rule::gregorian(11, 17),
-    ),
-];
+static AZ_RULES: &[HolidayRule] = &read_all(
+    2007,
+    [
+        HolidayRule::public("New Year's Day", "Yeni il bayramı", Rule::gregorian(1, 1)),
+        HolidayRule::public("New Year's Day", "Yeni il bayramı", Rule::gregorian(1, 2)),
+        HolidayRule::public(
+            "National Mourning Day",
+            "Ümumxalq Hüzn Günü",
+            Rule::gregorian(1, 20),
+        ),
+        HolidayRule::public("Women's Day", "Qadınlar günü", Rule::gregorian(3, 8)),
+        HolidayRule::public("Novruz", "Novruz bayramı", Rule::gregorian(3, 20))
+            .years(Some(2007), None),
+        HolidayRule::public("Novruz", "Novruz bayramı", Rule::gregorian(3, 21))
+            .years(Some(2007), None),
+        HolidayRule::public("Novruz", "Novruz bayramı", Rule::gregorian(3, 22))
+            .years(Some(2007), None),
+        HolidayRule::public("Novruz", "Novruz bayramı", Rule::gregorian(3, 23))
+            .years(Some(2007), None),
+        HolidayRule::public("Novruz", "Novruz bayramı", Rule::gregorian(3, 24))
+            .years(Some(2007), None),
+        HolidayRule::public(
+            "Victory over Fascism Day",
+            "Faşizm üzərində qələbə günü",
+            Rule::gregorian(5, 9),
+        ),
+        HolidayRule::public(
+            "Independence Day",
+            "Müstəqillik Günü",
+            Rule::gregorian(5, 28),
+        ),
+        HolidayRule::public(
+            "National Salvation Day",
+            "Azərbaycan xalqının milli qurtuluş günü",
+            Rule::gregorian(6, 15),
+        )
+        .years(Some(1998), None),
+        HolidayRule::public(
+            "Armed Forces Day",
+            "Azərbaycan Respublikasının Silahlı Qüvvələri günü",
+            Rule::gregorian(6, 26),
+        )
+        .years(Some(1998), None),
+        HolidayRule::public("Victory Day", "Zəfər Günü", Rule::gregorian(11, 8))
+            .years(Some(2021), None),
+        HolidayRule::public(
+            "State Flag Day",
+            "Dövlət Bayrağı Günü",
+            Rule::gregorian(11, 9),
+        )
+        .years(Some(2010), None),
+        HolidayRule::public(
+            "Solidarity Day of World Azerbaijanis",
+            "Dünya azərbaycanlılarının həmrəyliyi günü",
+            Rule::gregorian(12, 31),
+        ),
+        // Two days each, on dates the Caucasus Muslim Board announces; the
+        // tabular calendar approximates them.
+        HolidayRule::public(
+            "Ramazan Bayramı",
+            "Ramazan bayramı",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+        )
+        .approximate()
+        .years(Some(1993), None),
+        HolidayRule::public(
+            "Ramazan Bayramı",
+            "Ramazan bayramı",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
+        )
+        .approximate()
+        .years(Some(1993), None),
+        HolidayRule::public(
+            "Qurban Bayramı",
+            "Qurban bayramı",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+        )
+        .approximate()
+        .years(Some(1993), None),
+        HolidayRule::public(
+            "Qurban Bayramı",
+            "Qurban bayramı",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 11),
+        )
+        .approximate()
+        .years(Some(1993), None),
+        // The holidays art. 105 keeps as working days.
+        HolidayRule::observance(
+            "State Sovereignty Day",
+            "Dövlət Suverenliyi Günü",
+            Rule::gregorian(9, 20),
+        )
+        .years(Some(2024), None),
+        HolidayRule::observance("Remembrance Day", "Anım Günü", Rule::gregorian(9, 27))
+            .years(Some(2021), None),
+        HolidayRule::observance(
+            "Restoration of Independence Day",
+            "Müstəqilliyin Bərpası Günü",
+            Rule::gregorian(10, 18),
+        ),
+        HolidayRule::observance(
+            "Constitution Day",
+            "Konstitusiya günü",
+            Rule::gregorian(11, 12),
+        ),
+        HolidayRule::observance(
+            "National Revival Day",
+            "Milli Dirçəliş günü",
+            Rule::gregorian(11, 17),
+        ),
+    ],
+);
 
 /// Azerbaijan.
 ///
@@ -4598,6 +4876,11 @@ static AZ_RULES: &[HolidayRule] = &[
 /// with collisions carries and 2026's March reproduces. The Ministry's
 /// swapping of working and rest days around a holiday, art. 105(7), is
 /// not carried.
+///
+/// The table answers from 2007, the first year wholly under article 105 as
+/// amended on 8 December 2006, whose five-day Novruz the table gives; a year
+/// before is a gap (ADR 0013), the days of 1993 to 1998 among them, whose
+/// years are the rules' own.
 pub static AZERBAIJAN: RuleSet = RuleSet {
     code: "AZ",
     english_name: "Azerbaijan",
@@ -4621,66 +4904,69 @@ pub static AZERBAIJAN: RuleSet = RuleSet {
 // Georgia
 // ─────────────────────────────────────────────────────────────────────────
 
-static GE_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "ახალი წელი", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("New Year's Day", "ახალი წელი", Rule::gregorian(1, 2)),
-    HolidayRule::fixed_public("Orthodox Christmas", "ქრისტეშობა", Rule::gregorian(1, 7)),
-    HolidayRule::fixed_public("Orthodox Epiphany", "ნათლისღება", Rule::gregorian(1, 19)),
-    HolidayRule::fixed_public("Mother's Day", "დედის დღე", Rule::gregorian(3, 3)),
-    HolidayRule::fixed_public(
-        "International Women's Day",
-        "ქალთა საერთაშორისო დღე",
-        Rule::gregorian(3, 8),
-    ),
-    HolidayRule::fixed_public(
-        "National Unity Day",
-        "ეროვნული ერთიანობის დღე",
-        Rule::gregorian(4, 9),
-    ),
-    HolidayRule::fixed_public(
-        "Good Friday",
-        "წითელი პარასკევი",
-        Rule::paschal(GOOD_FRIDAY),
-    ),
-    HolidayRule::fixed_public("Holy Saturday", "დიდი შაბათი", Rule::paschal(HOLY_SATURDAY)),
-    HolidayRule::fixed_public(
-        "Easter Sunday",
-        "ბრწყინვალე აღდგომა",
-        Rule::paschal(EASTER_SUNDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "აღდგომის ორშაბათი",
-        Rule::paschal(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Day of Victory over Fascism",
-        "ფაშიზმზე გამარჯვების დღე",
-        Rule::gregorian(5, 9),
-    ),
-    HolidayRule::fixed_public(
-        "Saint Andrew the First-Called Day",
-        "წმინდა ანდრია პირველწოდებულის ხსენების დღე",
-        Rule::gregorian(5, 12),
-    ),
-    HolidayRule::fixed_public(
-        "Day of Family Purity and Respect for Parents",
-        "ოჯახის სიწმინდისა და მშობლების პატივისცემის დღე",
-        Rule::gregorian(5, 17),
-    ),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "დამოუკიდებლობის დღე",
-        Rule::gregorian(5, 26),
-    ),
-    HolidayRule::fixed_public(
-        "Dormition of the Mother of God",
-        "მარიამობა",
-        Rule::gregorian(8, 28),
-    ),
-    HolidayRule::fixed_public("Svetitskhovloba", "სვეტიცხოვლობა", Rule::gregorian(10, 14)),
-    HolidayRule::fixed_public("Saint George's Day", "გიორგობა", Rule::gregorian(11, 23)),
-];
+static GE_RULES: &[HolidayRule] = &read_all(
+    2011,
+    [
+        HolidayRule::fixed_public("New Year's Day", "ახალი წელი", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("New Year's Day", "ახალი წელი", Rule::gregorian(1, 2)),
+        HolidayRule::fixed_public("Orthodox Christmas", "ქრისტეშობა", Rule::gregorian(1, 7)),
+        HolidayRule::fixed_public("Orthodox Epiphany", "ნათლისღება", Rule::gregorian(1, 19)),
+        HolidayRule::fixed_public("Mother's Day", "დედის დღე", Rule::gregorian(3, 3)),
+        HolidayRule::fixed_public(
+            "International Women's Day",
+            "ქალთა საერთაშორისო დღე",
+            Rule::gregorian(3, 8),
+        ),
+        HolidayRule::fixed_public(
+            "National Unity Day",
+            "ეროვნული ერთიანობის დღე",
+            Rule::gregorian(4, 9),
+        ),
+        HolidayRule::fixed_public(
+            "Good Friday",
+            "წითელი პარასკევი",
+            Rule::paschal(GOOD_FRIDAY),
+        ),
+        HolidayRule::fixed_public("Holy Saturday", "დიდი შაბათი", Rule::paschal(HOLY_SATURDAY)),
+        HolidayRule::fixed_public(
+            "Easter Sunday",
+            "ბრწყინვალე აღდგომა",
+            Rule::paschal(EASTER_SUNDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "აღდგომის ორშაბათი",
+            Rule::paschal(EASTER_MONDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Day of Victory over Fascism",
+            "ფაშიზმზე გამარჯვების დღე",
+            Rule::gregorian(5, 9),
+        ),
+        HolidayRule::fixed_public(
+            "Saint Andrew the First-Called Day",
+            "წმინდა ანდრია პირველწოდებულის ხსენების დღე",
+            Rule::gregorian(5, 12),
+        ),
+        HolidayRule::fixed_public(
+            "Day of Family Purity and Respect for Parents",
+            "ოჯახის სიწმინდისა და მშობლების პატივისცემის დღე",
+            Rule::gregorian(5, 17),
+        ),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "დამოუკიდებლობის დღე",
+            Rule::gregorian(5, 26),
+        ),
+        HolidayRule::fixed_public(
+            "Dormition of the Mother of God",
+            "მარიამობა",
+            Rule::gregorian(8, 28),
+        ),
+        HolidayRule::fixed_public("Svetitskhovloba", "სვეტიცხოვლობა", Rule::gregorian(10, 14)),
+        HolidayRule::fixed_public("Saint George's Day", "გიორგობა", Rule::gregorian(11, 23)),
+    ],
+);
 
 /// Georgia.
 ///
@@ -4689,6 +4975,13 @@ static GE_RULES: &[HolidayRule] = &[
 /// Julian computus. The article says nothing about a holiday on a weekend,
 /// and nothing moves. The years the days were added are not carried, the
 /// source giving none.
+///
+/// The table answers from 2011, the first year after the Labour Code was
+/// adopted on 17 December 2010 and published on 27 December 2010
+/// (matsne.gov.ge). The text read is the consolidated one of 2026, and which
+/// of the amendments of 2012 to 2026 changed article 30 was not established,
+/// so a year from 2011 to 2025 rests on the text as it stands; a year before
+/// 2011 is a gap (ADR 0013).
 pub static GEORGIA: RuleSet = RuleSet {
     code: "GE",
     english_name: "Georgia",
@@ -4697,10 +4990,12 @@ pub static GEORGIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
+    sources_checked: SourceDate::new(2026, 10, 3),
     sources: "Organic Law of Georgia, Labour Code of Georgia, art. 30, as published in \
               English by the Legislative Herald of Georgia, matsne.gov.ge, retrieved \
-              2026-09-22; Wikipedia, \"Public holidays in Georgia (country)\", \
+              2026-09-22, and its document page for the adoption on 17 December \
+              2010 and the publication on 27 December 2010, retrieved 2026-10-03 \
+              (`ge-labour-code-matsne`); Wikipedia, \"Public holidays in Georgia (country)\", \
               retrieved the same day, for the Georgian names",
     subdivisions: Subdivisions::Read(&[]),
 };
@@ -4722,87 +5017,90 @@ static KZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static KZ_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Жаңа жыл", Rule::gregorian(1, 1)),
-    HolidayRule::public("New Year's Day", "Жаңа жыл", Rule::gregorian(1, 2)),
-    // A day off under the amendment of 30 December 2005, with Kurban Ait.
-    HolidayRule::public(
-        "Orthodox Christmas",
-        "Православиелік Рождество",
-        Rule::gregorian(1, 7),
-    )
-    .years(Some(2006), None),
-    HolidayRule::public(
-        "International Women's Day",
-        "Халықаралық әйелдер күні",
-        Rule::gregorian(3, 8),
-    ),
-    // The Constitution of 15 March 2026 moved its day from 30 August by
-    // the law of 11 June 2026, in force from 1 July: 30 August 2026 was
-    // not a day off and 15 March is one from 2027.
-    HolidayRule::public(
-        "Constitution Day",
-        "Конституция күні",
-        Rule::gregorian(3, 15),
-    )
-    .years(Some(2027), None),
-    HolidayRule::public("Nauryz Meyramy", "Наурыз мейрамы", Rule::gregorian(3, 22))
-        .years(None, Some(2008)),
-    HolidayRule::public("Nauryz Meyramy", "Наурыз мейрамы", Rule::gregorian(3, 21))
-        .years(Some(2009), None),
-    HolidayRule::public("Nauryz Meyramy", "Наурыз мейрамы", Rule::gregorian(3, 22))
-        .years(Some(2009), None),
-    HolidayRule::public("Nauryz Meyramy", "Наурыз мейрамы", Rule::gregorian(3, 23))
-        .years(Some(2009), None),
-    HolidayRule::public(
-        "Kazakhstan People's Unity Day",
-        "Қазақстан халқының бірлігі мерекесі",
-        Rule::gregorian(5, 1),
-    ),
-    HolidayRule::public(
-        "Defender of the Fatherland Day",
-        "Отан қорғаушы күні",
-        Rule::gregorian(5, 7),
-    )
-    .years(Some(2013), None),
-    HolidayRule::public("Victory Day", "Жеңіс күні", Rule::gregorian(5, 9)),
-    HolidayRule::public("Capital City Day", "Астана күні", Rule::gregorian(7, 6))
-        .years(Some(2008), None),
-    HolidayRule::public(
-        "Constitution Day",
-        "Конституция күні",
-        Rule::gregorian(8, 30),
-    )
-    .years(None, Some(2025)),
-    HolidayRule::public("Republic Day", "Республика күні", Rule::gregorian(10, 25))
-        .years(Some(1995), Some(2008)),
-    HolidayRule::public("Republic Day", "Республика күні", Rule::gregorian(10, 25))
-        .years(Some(2022), None),
-    HolidayRule::public(
-        "First President Day",
-        "Қазақстан Республикасының Тұңғыш Президенті күні",
-        Rule::gregorian(12, 1),
-    )
-    .years(Some(2012), Some(2021)),
-    HolidayRule::public(
-        "Independence Day",
-        "Тәуелсіздік күні",
-        Rule::gregorian(12, 16),
-    ),
-    HolidayRule::public(
-        "Independence Day",
-        "Тәуелсіздік күні",
-        Rule::gregorian(12, 17),
-    )
-    .years(None, Some(2021)),
-    HolidayRule::public(
-        "Kurban Ait",
-        "Құрбан айт",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
-    )
-    .approximate()
-    .years(Some(2006), None),
-];
+static KZ_RULES: &[HolidayRule] = &read_all(
+    2002,
+    [
+        HolidayRule::public("New Year's Day", "Жаңа жыл", Rule::gregorian(1, 1)),
+        HolidayRule::public("New Year's Day", "Жаңа жыл", Rule::gregorian(1, 2)),
+        // A day off under the amendment of 30 December 2005, with Kurban Ait.
+        HolidayRule::public(
+            "Orthodox Christmas",
+            "Православиелік Рождество",
+            Rule::gregorian(1, 7),
+        )
+        .years(Some(2006), None),
+        HolidayRule::public(
+            "International Women's Day",
+            "Халықаралық әйелдер күні",
+            Rule::gregorian(3, 8),
+        ),
+        // The Constitution of 15 March 2026 moved its day from 30 August by
+        // the law of 11 June 2026, in force from 1 July: 30 August 2026 was
+        // not a day off and 15 March is one from 2027.
+        HolidayRule::public(
+            "Constitution Day",
+            "Конституция күні",
+            Rule::gregorian(3, 15),
+        )
+        .years(Some(2027), None),
+        HolidayRule::public("Nauryz Meyramy", "Наурыз мейрамы", Rule::gregorian(3, 22))
+            .years(None, Some(2008)),
+        HolidayRule::public("Nauryz Meyramy", "Наурыз мейрамы", Rule::gregorian(3, 21))
+            .years(Some(2009), None),
+        HolidayRule::public("Nauryz Meyramy", "Наурыз мейрамы", Rule::gregorian(3, 22))
+            .years(Some(2009), None),
+        HolidayRule::public("Nauryz Meyramy", "Наурыз мейрамы", Rule::gregorian(3, 23))
+            .years(Some(2009), None),
+        HolidayRule::public(
+            "Kazakhstan People's Unity Day",
+            "Қазақстан халқының бірлігі мерекесі",
+            Rule::gregorian(5, 1),
+        ),
+        HolidayRule::public(
+            "Defender of the Fatherland Day",
+            "Отан қорғаушы күні",
+            Rule::gregorian(5, 7),
+        )
+        .years(Some(2013), None),
+        HolidayRule::public("Victory Day", "Жеңіс күні", Rule::gregorian(5, 9)),
+        HolidayRule::public("Capital City Day", "Астана күні", Rule::gregorian(7, 6))
+            .years(Some(2008), None),
+        HolidayRule::public(
+            "Constitution Day",
+            "Конституция күні",
+            Rule::gregorian(8, 30),
+        )
+        .years(None, Some(2025)),
+        HolidayRule::public("Republic Day", "Республика күні", Rule::gregorian(10, 25))
+            .years(Some(1995), Some(2008)),
+        HolidayRule::public("Republic Day", "Республика күні", Rule::gregorian(10, 25))
+            .years(Some(2022), None),
+        HolidayRule::public(
+            "First President Day",
+            "Қазақстан Республикасының Тұңғыш Президенті күні",
+            Rule::gregorian(12, 1),
+        )
+        .years(Some(2012), Some(2021)),
+        HolidayRule::public(
+            "Independence Day",
+            "Тәуелсіздік күні",
+            Rule::gregorian(12, 16),
+        ),
+        HolidayRule::public(
+            "Independence Day",
+            "Тәуелсіздік күні",
+            Rule::gregorian(12, 17),
+        )
+        .years(None, Some(2021)),
+        HolidayRule::public(
+            "Kurban Ait",
+            "Құрбан айт",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+        )
+        .approximate()
+        .years(Some(2006), None),
+    ],
+);
 
 /// Kazakhstan.
 ///
@@ -4819,7 +5117,8 @@ static KZ_RULES: &[HolidayRule] = &[
 /// 2022; and Constitution Day on 30 August until 2025 and on 15 March from
 /// 2027, moved by the law of 11 June 2026 after the Constitution of
 /// 15 March 2026. Article 5 moves a holiday on a rest day to the working
-/// day after. The table is complete from the 2001 law; the Government's
+/// day after. The table answers from 2002, the first year wholly under the
+/// 2001 law, and a year before is a gap (ADR 0013); the Government's
 /// yearly bridges are not carried.
 pub static KAZAKHSTAN: RuleSet = RuleSet {
     code: "KZ",
@@ -4857,48 +5156,51 @@ static UZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static UZ_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Yangi yil", Rule::gregorian(1, 1)),
-    HolidayRule::public("Women's Day", "Xotin-qizlar kuni", Rule::gregorian(3, 8)),
-    HolidayRule::public("Navruz", "Navroʻz bayrami", Rule::gregorian(3, 21)),
-    HolidayRule::public("Victory Day", "Gʻalaba kuni", Rule::gregorian(5, 9))
-        .years(None, Some(1998)),
-    HolidayRule::public(
-        "Day of Remembrance and Honour",
-        "Xotira va qadrlash kuni",
-        Rule::gregorian(5, 9),
-    )
-    .years(Some(1999), None),
-    HolidayRule::public(
-        "Independence Day",
-        "Mustaqillik kuni",
-        Rule::gregorian(9, 1),
-    )
-    .years(Some(1991), None),
-    HolidayRule::public(
-        "Teachers' and Mentors' Day",
-        "Oʻqituvchi va murabbiylar kuni",
-        Rule::gregorian(10, 1),
-    )
-    .years(Some(1997), None),
-    HolidayRule::public(
-        "Constitution Day",
-        "Konstitutsiya kuni",
-        Rule::gregorian(12, 8),
-    ),
-    HolidayRule::public(
-        "Ruza Hayit",
-        "Roʻza hayiti",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
-    )
-    .approximate(),
-    HolidayRule::public(
-        "Kurban Hayit",
-        "Qurbon hayiti",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
-    )
-    .approximate(),
-];
+static UZ_RULES: &[HolidayRule] = &read_all(
+    2024,
+    [
+        HolidayRule::public("New Year's Day", "Yangi yil", Rule::gregorian(1, 1)),
+        HolidayRule::public("Women's Day", "Xotin-qizlar kuni", Rule::gregorian(3, 8)),
+        HolidayRule::public("Navruz", "Navroʻz bayrami", Rule::gregorian(3, 21)),
+        HolidayRule::public("Victory Day", "Gʻalaba kuni", Rule::gregorian(5, 9))
+            .years(None, Some(1998)),
+        HolidayRule::public(
+            "Day of Remembrance and Honour",
+            "Xotira va qadrlash kuni",
+            Rule::gregorian(5, 9),
+        )
+        .years(Some(1999), None),
+        HolidayRule::public(
+            "Independence Day",
+            "Mustaqillik kuni",
+            Rule::gregorian(9, 1),
+        )
+        .years(Some(1991), None),
+        HolidayRule::public(
+            "Teachers' and Mentors' Day",
+            "Oʻqituvchi va murabbiylar kuni",
+            Rule::gregorian(10, 1),
+        )
+        .years(Some(1997), None),
+        HolidayRule::public(
+            "Constitution Day",
+            "Konstitutsiya kuni",
+            Rule::gregorian(12, 8),
+        ),
+        HolidayRule::public(
+            "Ruza Hayit",
+            "Roʻza hayiti",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+        )
+        .approximate(),
+        HolidayRule::public(
+            "Kurban Hayit",
+            "Qurbon hayiti",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+        )
+        .approximate(),
+    ],
+);
 
 /// Uzbekistan.
 ///
@@ -4913,6 +5215,10 @@ static UZ_RULES: &[HolidayRule] = &[
 /// article are not carried. 9 May was Victory Day until 1998 and the Day
 /// of Remembrance and Honour from 1999; Teachers' and Mentors' Day began
 /// in 1997.
+///
+/// The table answers from 2024, the first year wholly under the Labour Code,
+/// in force from 30 April 2023; the days dated 1997 to 1999 above are a gap
+/// before it (ADR 0013).
 pub static UZBEKISTAN: RuleSet = RuleSet {
     code: "UZ",
     english_name: "Uzbekistan",
@@ -4979,89 +5285,98 @@ const KG_NOVEMBER_7: [HolidayRule; 2] =
 const KG_NOVEMBER_8: [HolidayRule; 2] =
     kg_demoted("Days of History and Commemoration of Ancestors", "", 11, 8);
 
-static KG_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Жаңы жыл", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("New Year Holidays", "", Rule::gregorian(1, 2))
-        .years(Some(2026), None),
-    HolidayRule::fixed_public("New Year Holidays", "", Rule::gregorian(1, 3))
-        .years(Some(2026), None),
-    HolidayRule::fixed_public("New Year Holidays", "", Rule::gregorian(1, 4))
-        .years(Some(2026), None),
-    HolidayRule::fixed_public("New Year Holidays", "", Rule::gregorian(1, 5))
-        .years(Some(2026), None),
-    HolidayRule::fixed_public("New Year Holidays", "", Rule::gregorian(1, 6))
-        .years(Some(2026), None),
-    HolidayRule::public(
-        "Orthodox Christmas",
-        "Төрөлүү майрамы",
-        Rule::gregorian(1, 7),
-    ),
-    KG_DEFENDER[0],
-    KG_DEFENDER[1],
-    HolidayRule::public(
-        "International Women's Day",
-        "Эл аралык аялдар күнү",
-        Rule::gregorian(3, 8),
-    ),
-    HolidayRule::public("Nooruz", "Нооруз", Rule::gregorian(3, 21)),
-    HolidayRule::public(
-        "Day of the People's April Revolution",
-        "Элдик Апрель революциясы күнү",
-        Rule::gregorian(4, 7),
-    )
-    .years(Some(2016), Some(2024)),
-    KG_APRIL_7[1],
-    HolidayRule::public("Labour Day", "Эмгек күнү", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("May Holidays", "", Rule::gregorian(5, 2)).years(Some(2025), None),
-    HolidayRule::fixed_public("May Holidays", "", Rule::gregorian(5, 3)).years(Some(2025), None),
-    HolidayRule::fixed_public("May Holidays", "", Rule::gregorian(5, 4)).years(Some(2025), None),
-    HolidayRule::public(
-        "Constitution Day",
-        "Кыргыз Республикасынын Конституция күнү",
-        Rule::gregorian(5, 5),
-    ),
-    HolidayRule::fixed_public("May Holidays", "", Rule::gregorian(5, 6)).years(Some(2025), None),
-    HolidayRule::fixed_public("May Holidays", "", Rule::gregorian(5, 7)).years(Some(2025), None),
-    HolidayRule::fixed_public("May Holidays", "", Rule::gregorian(5, 8)).years(Some(2025), None),
-    HolidayRule::public("Victory Day", "Жеңиш күнү", Rule::gregorian(5, 9)),
-    HolidayRule::public(
-        "Independence Day",
-        "Кыргыз Республикасынын Эгемендүүлүк күнү",
-        Rule::gregorian(8, 31),
-    ),
-    HolidayRule::public(
-        "Day of the Great October Socialist Revolution",
-        "",
-        Rule::gregorian(11, 7),
-    )
-    .years(None, Some(2017)),
-    HolidayRule::public(
-        "Days of History and Commemoration of Ancestors",
-        "",
-        Rule::gregorian(11, 7),
-    )
-    .years(Some(2018), Some(2024)),
-    HolidayRule::public(
-        "Days of History and Commemoration of Ancestors",
-        "",
-        Rule::gregorian(11, 8),
-    )
-    .years(Some(2018), Some(2024)),
-    KG_NOVEMBER_7[1],
-    KG_NOVEMBER_8[1],
-    HolidayRule::public(
-        "Orozo Ait",
-        "Орозо айт",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
-    )
-    .approximate(),
-    HolidayRule::public(
-        "Kurman Ait",
-        "Курман айт",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
-    )
-    .approximate(),
-];
+static KG_RULES: &[HolidayRule] = &read_all(
+    2005,
+    [
+        HolidayRule::public("New Year's Day", "Жаңы жыл", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("New Year Holidays", "", Rule::gregorian(1, 2))
+            .years(Some(2026), None),
+        HolidayRule::fixed_public("New Year Holidays", "", Rule::gregorian(1, 3))
+            .years(Some(2026), None),
+        HolidayRule::fixed_public("New Year Holidays", "", Rule::gregorian(1, 4))
+            .years(Some(2026), None),
+        HolidayRule::fixed_public("New Year Holidays", "", Rule::gregorian(1, 5))
+            .years(Some(2026), None),
+        HolidayRule::fixed_public("New Year Holidays", "", Rule::gregorian(1, 6))
+            .years(Some(2026), None),
+        HolidayRule::public(
+            "Orthodox Christmas",
+            "Төрөлүү майрамы",
+            Rule::gregorian(1, 7),
+        ),
+        KG_DEFENDER[0],
+        KG_DEFENDER[1],
+        HolidayRule::public(
+            "International Women's Day",
+            "Эл аралык аялдар күнү",
+            Rule::gregorian(3, 8),
+        ),
+        HolidayRule::public("Nooruz", "Нооруз", Rule::gregorian(3, 21)),
+        HolidayRule::public(
+            "Day of the People's April Revolution",
+            "Элдик Апрель революциясы күнү",
+            Rule::gregorian(4, 7),
+        )
+        .years(Some(2016), Some(2024)),
+        KG_APRIL_7[1],
+        HolidayRule::public("Labour Day", "Эмгек күнү", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("May Holidays", "", Rule::gregorian(5, 2))
+            .years(Some(2025), None),
+        HolidayRule::fixed_public("May Holidays", "", Rule::gregorian(5, 3))
+            .years(Some(2025), None),
+        HolidayRule::fixed_public("May Holidays", "", Rule::gregorian(5, 4))
+            .years(Some(2025), None),
+        HolidayRule::public(
+            "Constitution Day",
+            "Кыргыз Республикасынын Конституция күнү",
+            Rule::gregorian(5, 5),
+        ),
+        HolidayRule::fixed_public("May Holidays", "", Rule::gregorian(5, 6))
+            .years(Some(2025), None),
+        HolidayRule::fixed_public("May Holidays", "", Rule::gregorian(5, 7))
+            .years(Some(2025), None),
+        HolidayRule::fixed_public("May Holidays", "", Rule::gregorian(5, 8))
+            .years(Some(2025), None),
+        HolidayRule::public("Victory Day", "Жеңиш күнү", Rule::gregorian(5, 9)),
+        HolidayRule::public(
+            "Independence Day",
+            "Кыргыз Республикасынын Эгемендүүлүк күнү",
+            Rule::gregorian(8, 31),
+        ),
+        HolidayRule::public(
+            "Day of the Great October Socialist Revolution",
+            "",
+            Rule::gregorian(11, 7),
+        )
+        .years(None, Some(2017)),
+        HolidayRule::public(
+            "Days of History and Commemoration of Ancestors",
+            "",
+            Rule::gregorian(11, 7),
+        )
+        .years(Some(2018), Some(2024)),
+        HolidayRule::public(
+            "Days of History and Commemoration of Ancestors",
+            "",
+            Rule::gregorian(11, 8),
+        )
+        .years(Some(2018), Some(2024)),
+        KG_NOVEMBER_7[1],
+        KG_NOVEMBER_8[1],
+        HolidayRule::public(
+            "Orozo Ait",
+            "Орозо айт",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+        )
+        .approximate(),
+        HolidayRule::public(
+            "Kurman Ait",
+            "Курман айт",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+        )
+        .approximate(),
+    ],
+);
 
 /// Kyrgyzstan.
 ///
@@ -5084,6 +5399,9 @@ static KG_RULES: &[HolidayRule] = &[
 /// working days, and are observances from 2025; the code has no transfer
 /// rule, which the Ministry of Labour's summary calls its removal. The
 /// days the Cabinet moves each year are not carried.
+///
+/// The table answers from 2005, the first year after the Labour Code of
+/// 4 August 2004; a year before it is a gap (ADR 0013).
 pub static KYRGYZSTAN: RuleSet = RuleSet {
     code: "KG",
     english_name: "Kyrgyzstan",
@@ -5121,43 +5439,47 @@ static TJ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static TJ_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Соли нав", Rule::gregorian(1, 1)),
-    HolidayRule::public("Mother's Day", "Рӯзи модар", Rule::gregorian(3, 8)),
-    HolidayRule::public("Navruz", "Наврӯз", Rule::gregorian(3, 21)),
-    HolidayRule::public("Navruz", "Наврӯз", Rule::gregorian(3, 22)),
-    HolidayRule::public("Navruz", "Наврӯз", Rule::gregorian(3, 23)),
-    HolidayRule::public("Navruz", "Наврӯз", Rule::gregorian(3, 24)),
-    HolidayRule::public("Labour Day", "Рӯзи меҳнат", Rule::gregorian(5, 1)).years(None, Some(2016)),
-    HolidayRule::public("Victory Day", "Рӯзи Ғалаба", Rule::gregorian(5, 9)),
-    HolidayRule::public(
-        "National Unity Day",
-        "Рӯзи Ваҳдати миллӣ",
-        Rule::gregorian(6, 27),
-    ),
-    HolidayRule::public(
-        "Independence Day",
-        "Рӯзи Истиқлолияти давлатии Ҷумҳурии Тоҷикистон",
-        Rule::gregorian(9, 9),
-    ),
-    HolidayRule::public(
-        "Constitution Day",
-        "Рӯзи Конститутсияи Ҷумҳурии Тоҷикистон",
-        Rule::gregorian(11, 6),
-    ),
-    HolidayRule::public(
-        "Idi Ramazon",
-        "Иди Рамазон",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
-    )
-    .approximate(),
-    HolidayRule::public(
-        "Idi Kurbon",
-        "Иди Қурбон",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
-    )
-    .approximate(),
-];
+static TJ_RULES: &[HolidayRule] = &read_all(
+    2012,
+    [
+        HolidayRule::public("New Year's Day", "Соли нав", Rule::gregorian(1, 1)),
+        HolidayRule::public("Mother's Day", "Рӯзи модар", Rule::gregorian(3, 8)),
+        HolidayRule::public("Navruz", "Наврӯз", Rule::gregorian(3, 21)),
+        HolidayRule::public("Navruz", "Наврӯз", Rule::gregorian(3, 22)),
+        HolidayRule::public("Navruz", "Наврӯз", Rule::gregorian(3, 23)),
+        HolidayRule::public("Navruz", "Наврӯз", Rule::gregorian(3, 24)),
+        HolidayRule::public("Labour Day", "Рӯзи меҳнат", Rule::gregorian(5, 1))
+            .years(None, Some(2016)),
+        HolidayRule::public("Victory Day", "Рӯзи Ғалаба", Rule::gregorian(5, 9)),
+        HolidayRule::public(
+            "National Unity Day",
+            "Рӯзи Ваҳдати миллӣ",
+            Rule::gregorian(6, 27),
+        ),
+        HolidayRule::public(
+            "Independence Day",
+            "Рӯзи Истиқлолияти давлатии Ҷумҳурии Тоҷикистон",
+            Rule::gregorian(9, 9),
+        ),
+        HolidayRule::public(
+            "Constitution Day",
+            "Рӯзи Конститутсияи Ҷумҳурии Тоҷикистон",
+            Rule::gregorian(11, 6),
+        ),
+        HolidayRule::public(
+            "Idi Ramazon",
+            "Иди Рамазон",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+        )
+        .approximate(),
+        HolidayRule::public(
+            "Idi Kurbon",
+            "Иди Қурбон",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+        )
+        .approximate(),
+    ],
+);
 
 /// Tajikistan.
 ///
@@ -5175,6 +5497,9 @@ static TJ_RULES: &[HolidayRule] = &[
 /// days past the 24th; the transfers the Government makes under
 /// article 89(4) beyond that are not carried, nor are the working
 /// holidays of article 2, from Armed Forces Day to Flag Day.
+///
+/// The table answers from 2012, the first year after the Law on Holidays of
+/// 2 August 2011; a year before it is a gap (ADR 0013).
 pub static TAJIKISTAN: RuleSet = RuleSet {
     code: "TJ",
     english_name: "Tajikistan",
@@ -5222,61 +5547,64 @@ const fn tm_kurban(day: u8) -> HolidayRule {
     .approximate()
 }
 
-static TM_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Täze ýyl", Rule::gregorian(1, 1)),
-    HolidayRule::public(
-        "State Flag Day",
-        "Türkmenistanyň Döwlet baýdagynyň güni",
-        Rule::gregorian(2, 19),
-    )
-    .years(Some(1995), Some(2017)),
-    HolidayRule::public(
-        "International Women's Day",
-        "Halkara zenanlar güni",
-        Rule::gregorian(3, 8),
-    ),
-    HolidayRule::public("Nowruz", "Milli bahar baýramy", Rule::gregorian(3, 21)),
-    HolidayRule::public("Nowruz", "Milli bahar baýramy", Rule::gregorian(3, 22)),
-    HolidayRule::public(
-        "Constitution Day",
-        "Türkmenistanyň Konstitusiýasynyň güni",
-        Rule::gregorian(5, 18),
-    )
-    .years(None, Some(2017)),
-    HolidayRule::public(
-        "Constitution and State Flag Day",
-        "Türkmenistanyň Konstitusiýasynyň we Döwlet baýdagynyň güni",
-        Rule::gregorian(5, 18),
-    )
-    .years(Some(2018), None),
-    HolidayRule::public(
-        "Independence Day",
-        "Türkmenistanyň Garaşsyzlyk güni",
-        Rule::gregorian(10, 27),
-    )
-    .years(Some(1991), Some(2017)),
-    HolidayRule::public(
-        "Independence Day",
-        "Türkmenistanyň Garaşsyzlyk güni",
-        Rule::gregorian(9, 27),
-    )
-    .years(Some(2018), None),
-    HolidayRule::public("Day of Remembrance", "Hatyra güni", Rule::gregorian(10, 6)),
-    HolidayRule::public(
-        "Neutrality Day",
-        "Halkara Bitaraplyk güni",
-        Rule::gregorian(12, 12),
-    ),
-    HolidayRule::public(
-        "Oraza Bayram",
-        "Oraza baýramy",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
-    )
-    .approximate(),
-    tm_kurban(10),
-    tm_kurban(11),
-    tm_kurban(12),
-];
+static TM_RULES: &[HolidayRule] = &read_all(
+    2010,
+    [
+        HolidayRule::public("New Year's Day", "Täze ýyl", Rule::gregorian(1, 1)),
+        HolidayRule::public(
+            "State Flag Day",
+            "Türkmenistanyň Döwlet baýdagynyň güni",
+            Rule::gregorian(2, 19),
+        )
+        .years(Some(1995), Some(2017)),
+        HolidayRule::public(
+            "International Women's Day",
+            "Halkara zenanlar güni",
+            Rule::gregorian(3, 8),
+        ),
+        HolidayRule::public("Nowruz", "Milli bahar baýramy", Rule::gregorian(3, 21)),
+        HolidayRule::public("Nowruz", "Milli bahar baýramy", Rule::gregorian(3, 22)),
+        HolidayRule::public(
+            "Constitution Day",
+            "Türkmenistanyň Konstitusiýasynyň güni",
+            Rule::gregorian(5, 18),
+        )
+        .years(None, Some(2017)),
+        HolidayRule::public(
+            "Constitution and State Flag Day",
+            "Türkmenistanyň Konstitusiýasynyň we Döwlet baýdagynyň güni",
+            Rule::gregorian(5, 18),
+        )
+        .years(Some(2018), None),
+        HolidayRule::public(
+            "Independence Day",
+            "Türkmenistanyň Garaşsyzlyk güni",
+            Rule::gregorian(10, 27),
+        )
+        .years(Some(1991), Some(2017)),
+        HolidayRule::public(
+            "Independence Day",
+            "Türkmenistanyň Garaşsyzlyk güni",
+            Rule::gregorian(9, 27),
+        )
+        .years(Some(2018), None),
+        HolidayRule::public("Day of Remembrance", "Hatyra güni", Rule::gregorian(10, 6)),
+        HolidayRule::public(
+            "Neutrality Day",
+            "Halkara Bitaraplyk güni",
+            Rule::gregorian(12, 12),
+        ),
+        HolidayRule::public(
+            "Oraza Bayram",
+            "Oraza baýramy",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+        )
+        .approximate(),
+        tm_kurban(10),
+        tm_kurban(11),
+        tm_kurban(12),
+    ],
+);
 
 /// Turkmenistan.
 ///
@@ -5294,6 +5622,10 @@ static TM_RULES: &[HolidayRule] = &[
 /// of 9 October 2017, in force from 2018, moved Independence Day from
 /// 27 October to 27 September and merged State Flag Day, a day off on
 /// 19 February since 1995, into Constitution Day on 18 May.
+///
+/// The table answers from 2010, the first year after the Labour Code of
+/// 18 April 2009; a year before it is a gap (ADR 0013), State Flag Day's
+/// years from 1995 among them.
 pub static TURKMENISTAN: RuleSet = RuleSet {
     code: "TM",
     english_name: "Turkmenistan",
@@ -5363,73 +5695,102 @@ static MN_TSAGAAN_SAR_READ: Listing = Listing::Dates(&[
     (2026, 2, 20),
 ]);
 
-static MN_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Шинэ жил", Rule::gregorian(1, 1)),
-    // "Цагаан сар: билгийн тооллын хаврын тэргүүн сарын шинийн 1, 2, 3",
-    // article 4.1.3: the first, second and third days of the first spring
-    // month. The years read are taken as read; the others are predicted.
-    HolidayRule::fixed_public(
-        "Tsagaan Sar",
-        "Цагаан сар",
-        Rule::listed(
-            MN_TSAGAAN_SAR_READ.every(),
-            MN_READ_FIRST as i64,
-            MN_READ_LAST as i64,
+/// The first year of the Law of 18 December 2003, the first Gregorian year
+/// wholly under it.
+const MN_LAW_FIRST: i32 = 2004;
+/// The first year of the five-day Naadam of 11 to 15 July: the law's
+/// article 4.1.1 was amended on 1 July 2014, before that year's Naadam, and
+/// carries the days of 11 to 15 July until the amendment of 28 June 2022 added 10 July;
+/// the text before the 2014 amendment was not read.
+const MN_NAADAM_FIVE_DAYS: i32 = 2014;
+/// The first year of Tsagaan Sar as article 4.1.3 now gives it, after the
+/// amendment of 2013 whose content the consolidated text does not print.
+const MN_TSAGAAN_SAR_LAW: i32 = 2014;
+
+static MN_RULES: &[HolidayRule] = &read_all(
+    MN_LAW_FIRST,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Шинэ жил", Rule::gregorian(1, 1)),
+        // "Цагаан сар: билгийн тооллын хаврын тэргүүн сарын шинийн 1, 2, 3",
+        // article 4.1.3: the first, second and third days of the first spring
+        // month. The years read are taken as read; the others are predicted.
+        HolidayRule::fixed_public(
+            "Tsagaan Sar",
+            "Цагаан сар",
+            Rule::listed(
+                MN_TSAGAAN_SAR_READ.every(),
+                MN_READ_FIRST as i64,
+                MN_READ_LAST as i64,
+            ),
+        )
+        .years(Some(MN_READ_FIRST), Some(MN_READ_LAST)),
+        mn_tsagaan_sar(1)
+            .years(None, Some(MN_READ_FIRST - 1))
+            .read_from(MN_TSAGAAN_SAR_LAW),
+        mn_tsagaan_sar(2)
+            .years(None, Some(MN_READ_FIRST - 1))
+            .read_from(MN_TSAGAAN_SAR_LAW),
+        mn_tsagaan_sar(3)
+            .years(None, Some(MN_READ_FIRST - 1))
+            .read_from(MN_TSAGAAN_SAR_LAW),
+        mn_tsagaan_sar(1).years(Some(MN_READ_LAST + 1), None),
+        mn_tsagaan_sar(2).years(Some(MN_READ_LAST + 1), None),
+        mn_tsagaan_sar(3).years(Some(MN_READ_LAST + 1), None),
+        HolidayRule::fixed_public(
+            "International Women's Day",
+            "Олон улсын эмэгтэйчүүдийн өдөр",
+            Rule::gregorian(3, 8),
         ),
-    )
-    .years(Some(MN_READ_FIRST), Some(MN_READ_LAST)),
-    mn_tsagaan_sar(1).years(None, Some(MN_READ_FIRST - 1)),
-    mn_tsagaan_sar(2).years(None, Some(MN_READ_FIRST - 1)),
-    mn_tsagaan_sar(3).years(None, Some(MN_READ_FIRST - 1)),
-    mn_tsagaan_sar(1).years(Some(MN_READ_LAST + 1), None),
-    mn_tsagaan_sar(2).years(Some(MN_READ_LAST + 1), None),
-    mn_tsagaan_sar(3).years(Some(MN_READ_LAST + 1), None),
-    HolidayRule::fixed_public(
-        "International Women's Day",
-        "Олон улсын эмэгтэйчүүдийн өдөр",
-        Rule::gregorian(3, 8),
-    ),
-    // "билгийн тооллын зуны тэргүүн сарын шинийн 15", article 4.1.10: the
-    // fifteenth day of the first summer month; added by the law of
-    // 20 December 2019, after that year's.
-    mn_predicted(
-        "Buddha's Birthday",
-        "Бурхан багшийн Их дүйчин өдөр",
-        mn_lunar(TibetanMonth::Regular(4), 15),
-    )
-    .years(Some(2020), None),
-    HolidayRule::fixed_public("Children's Day", "Хүүхдийн баяр", Rule::gregorian(6, 1)),
-    HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 10)),
-    HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 11)),
-    HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 12)),
-    HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 13)),
-    HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 14)),
-    HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 15)),
-    // "Их Эзэн Чингис хаан мэндэлсэн билгийн тооллын өвлийн тэргүүн сарын
-    // шинийн 1", article 4.1.8: the first day of the first winter month;
-    // added by the law of 8 November 2012, before that year's, on
-    // 14 November.
-    mn_predicted(
-        "Chinggis Khaan Day",
-        "Их Эзэн Чингис хааны өдөр",
-        mn_lunar(TibetanMonth::Regular(10), 1),
-    )
-    .years(Some(2012), None),
-    // Added to the holidays by the law of 18 November 2016.
-    HolidayRule::fixed_public(
-        "Republic Day",
-        "Бүгд Найрамдах Улс тунхагласан өдөр",
-        Rule::gregorian(11, 26),
-    )
-    .years(Some(2016), None),
-    // Added by the law of 23 December 2011.
-    HolidayRule::fixed_public(
-        "National Freedom and Independence Day",
-        "Үндэсний эрх чөлөө, тусгаар тогтнолоо сэргээсний баярын өдөр",
-        Rule::gregorian(12, 29),
-    )
-    .years(Some(2011), None),
-];
+        // "билгийн тооллын зуны тэргүүн сарын шинийн 15", article 4.1.10: the
+        // fifteenth day of the first summer month; added by the law of
+        // 20 December 2019, after that year's.
+        mn_predicted(
+            "Buddha's Birthday",
+            "Бурхан багшийн Их дүйчин өдөр",
+            mn_lunar(TibetanMonth::Regular(4), 15),
+        )
+        .years(Some(2020), None),
+        HolidayRule::fixed_public("Children's Day", "Хүүхдийн баяр", Rule::gregorian(6, 1)),
+        // The sixth day, added by the law of 28 June 2022, in force for that
+        // year's Naadam: before it the holiday was 11 to 15 July.
+        HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 10))
+            .years(Some(2022), None),
+        HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 11))
+            .read_from(MN_NAADAM_FIVE_DAYS),
+        HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 12))
+            .read_from(MN_NAADAM_FIVE_DAYS),
+        HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 13))
+            .read_from(MN_NAADAM_FIVE_DAYS),
+        HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 14))
+            .read_from(MN_NAADAM_FIVE_DAYS),
+        HolidayRule::fixed_public("Naadam", "Үндэсний их баяр наадам", Rule::gregorian(7, 15))
+            .read_from(MN_NAADAM_FIVE_DAYS),
+        // "Их Эзэн Чингис хаан мэндэлсэн билгийн тооллын өвлийн тэргүүн сарын
+        // шинийн 1", article 4.1.8: the first day of the first winter month;
+        // added by the law of 8 November 2012, before that year's, on
+        // 14 November.
+        mn_predicted(
+            "Chinggis Khaan Day",
+            "Их Эзэн Чингис хааны өдөр",
+            mn_lunar(TibetanMonth::Regular(10), 1),
+        )
+        .years(Some(2012), None),
+        // Added to the holidays by the law of 18 November 2016.
+        HolidayRule::fixed_public(
+            "Republic Day",
+            "Бүгд Найрамдах Улс тунхагласан өдөр",
+            Rule::gregorian(11, 26),
+        )
+        .years(Some(2016), None),
+        // Added by the law of 23 December 2011.
+        HolidayRule::fixed_public(
+            "National Freedom and Independence Day",
+            "Үндэсний эрх чөлөө, тусгаар тогтнолоо сэргээсний баярын өдөр",
+            Rule::gregorian(12, 29),
+        )
+        .years(Some(2011), None),
+    ],
+);
 
 /// Mongolia — the public holidays, the days "нийтээр амарч", publicly
 /// rested, of article 4.1 of the Law on Public Holidays and Days of
@@ -5441,9 +5802,15 @@ static MN_RULES: &[HolidayRule] = &[
 /// the National Freedom and Independence Day, the last two from the years
 /// of the laws that the consolidated text says added them. Item 4.1.2,
 /// repealed in 2012, is not printed, so whether Republic Day was a holiday
-/// before is not known here and is not carried; and the amendments of 2014
-/// and 2022 to Naadam and of 2013 to Tsagaan Sar are noted without their
-/// content, so no earlier form of either is stated.
+/// before is not known here and is not carried. The sixth day of Naadam,
+/// 10 July, was added by the law of 28 June 2022, from the year's Naadam
+/// ("from five days to six", Ura.mn, 27 June 2022), and the five days of 11
+/// to 15 July stand from the amendment of 1 July 2014, whose content the
+/// text does not print: they are read from 2014, and Tsagaan Sar, amended
+/// in 2013, from 2014, a gap before. The table answers from 2004, the first
+/// year wholly under the Law of 18 December 2003 as the consolidated text
+/// reads; the consolidated text's other notes of amendment, 2011 to 2022,
+/// were not read for their content (ADR 0013).
 ///
 /// The three days of Tsagaan Sar, Buddha's Birthday and Chinggis Khaan
 /// Day are dated by the law in the lunar calendar, and are computed in
@@ -5467,7 +5834,7 @@ pub static MONGOLIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 10, 3),
     sources: "Law of Mongolia on Public Holidays and Days of Observance (Нийтээр тэмдэглэх \
               баярын болон тэмдэглэлт өдрүүдийн тухай хууль, 18 December 2003, as amended), \
               articles 3.1.1 and 4.1 with the notes of the amending laws, retrieved \
@@ -5479,7 +5846,11 @@ pub static MONGOLIA: RuleSet = RuleSet {
               Lunar New Year\" (23 January 2026), for Tsagaan Sar 2025 and 2026, and \
               iKon.mn (1 February 2022) for 2022, retrieved 2026-09-26; the months by \
               season from Janson, \"Tibetan calendar mathematics\" (arXiv:1401.6285), \
-              Appendix A.3",
+              Appendix A.3; the consolidated text's notes of amendment to article \
+              4.1.1, of 1 July 2014 and 28 June 2022, on legalinfo.mn/mn/detail/399 \
+              (`mn-law-public-holidays-amendment-notes`), and Ura.mn, 27 June 2022, \
+              for the sixth day of Naadam (`mn-naadam-six-days-ura-2022`), both \
+              retrieved 2026-10-03",
     subdivisions: Subdivisions::Read(&[]),
 };
 
@@ -5575,114 +5946,117 @@ const KH_NEW_YEAR_NAME: &str = "Khmer New Year";
 /// Its Khmer name.
 const KH_NEW_YEAR_LOCAL: &str = "ពិធីបុណ្យចូលឆ្នាំថ្មី ប្រពៃណីជាតិ";
 
-static KH_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "International New Year Day",
-        "ទិវាចូលឆ្នាំសកល",
-        Rule::gregorian(1, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Victory over Genocide Day",
-        "ទិវាជ័យជម្នះលើរបបប្រល័យពូជសាសន៍",
-        Rule::gregorian(1, 7),
-    ),
-    HolidayRule::fixed_public(
-        "International Women's Day",
-        "ទិវាអន្តរជាតិនារី",
-        Rule::gregorian(3, 8),
-    ),
-    // The years read either side of 2023, whose sub-decree was not: a
-    // gap before 2021 and in 2023 and after 2027.
-    HolidayRule::fixed_public(
-        KH_NEW_YEAR_NAME,
-        KH_NEW_YEAR_LOCAL,
-        Rule::listed(KH_NEW_YEAR.every(), 2021, 2022),
-    )
-    .years(None, Some(2022)),
-    HolidayRule::fixed_public(
-        KH_NEW_YEAR_NAME,
-        KH_NEW_YEAR_LOCAL,
-        Rule::listed(KH_NEW_YEAR.every(), 2024, 2027),
-    )
-    .years(Some(2023), None),
-    HolidayRule::fixed_public(
-        "International Labour Day",
-        "ទិវាពលកម្មអន្តរជាតិ",
-        Rule::gregorian(5, 1),
-    ),
-    KH_VISAK[0],
-    KH_VISAK[1],
-    KH_VISAK[2],
-    KH_VISAK[3],
-    KH_VISAK[4],
-    HolidayRule::fixed_public(
-        "King Norodom Sihamoni's Birthday",
-        "ព្រះរាជពិធីបុណ្យចម្រើនព្រះជន្ម ព្រះករុណាព្រះបាទសម្តេចព្រះបរមនាថ នរោត្តម សីហមុនី",
-        Rule::gregorian(5, 14),
-    ),
-    KH_PLOUGHING[0],
-    KH_PLOUGHING[1],
-    KH_PLOUGHING[2],
-    KH_PLOUGHING[3],
-    KH_PLOUGHING[4],
-    HolidayRule::fixed_public(
-        "Queen Mother Norodom Monineath Sihanouk's Birthday",
-        "ព្រះរាជពិធីបុណ្យចម្រើនព្រះជន្ម សម្តេចព្រះមហាក្សត្រី នរោត្តម មុនិនាថ សីហនុ",
-        Rule::gregorian(6, 18),
-    ),
-    HolidayRule::fixed_public("Constitution Day", "ទិវាប្រកាសរដ្ឋធម្មនុញ្ញ", Rule::gregorian(9, 24)),
-    KH_PCHUM_BEN[0][0],
-    KH_PCHUM_BEN[0][1],
-    KH_PCHUM_BEN[0][2],
-    KH_PCHUM_BEN[0][3],
-    KH_PCHUM_BEN[0][4],
-    KH_PCHUM_BEN[1][0],
-    KH_PCHUM_BEN[1][1],
-    KH_PCHUM_BEN[1][2],
-    KH_PCHUM_BEN[1][3],
-    KH_PCHUM_BEN[1][4],
-    KH_PCHUM_BEN[2][0],
-    KH_PCHUM_BEN[2][1],
-    KH_PCHUM_BEN[2][2],
-    KH_PCHUM_BEN[2][3],
-    KH_PCHUM_BEN[2][4],
-    HolidayRule::fixed_public(
-        "Commemoration Day of King Father Norodom Sihanouk",
-        "ទិវាប្រារព្ធពិធីគោរពព្រះវិញ្ញាណក្ខន្ធ ព្រះករុណាព្រះបាទសម្តេចព្រះ នរោត្តម សីហនុ",
-        Rule::gregorian(10, 15),
-    ),
-    HolidayRule::fixed_public(
-        "King Norodom Sihamoni's Coronation Day",
-        "ព្រះរាជពិធីគ្រងព្រះបរមរាជសម្បត្តិ",
-        Rule::gregorian(10, 29),
-    ),
-    HolidayRule::fixed_public("Independence Day", "ពិធីបុណ្យឯករាជ្យជាតិ", Rule::gregorian(11, 9)),
-    KH_WATER_FESTIVAL[0][0],
-    KH_WATER_FESTIVAL[0][1],
-    KH_WATER_FESTIVAL[0][2],
-    KH_WATER_FESTIVAL[0][3],
-    KH_WATER_FESTIVAL[0][4],
-    KH_WATER_FESTIVAL[1][0],
-    KH_WATER_FESTIVAL[1][1],
-    KH_WATER_FESTIVAL[1][2],
-    KH_WATER_FESTIVAL[1][3],
-    KH_WATER_FESTIVAL[1][4],
-    KH_WATER_FESTIVAL[2][0],
-    KH_WATER_FESTIVAL[2][1],
-    KH_WATER_FESTIVAL[2][2],
-    KH_WATER_FESTIVAL[2][3],
-    KH_WATER_FESTIVAL[2][4],
-    // Not in the sub-decrees for 2021 and 2022, in those for 2024 to
-    // 2027; 2023's was not read.
-    HolidayRule::fixed_public("Peace Day in Cambodia", "ទិវាសន្តិភាពនៅកម្ពុជា", Rule::UNREAD)
-        .years(Some(2023), Some(2023)),
-    HolidayRule::fixed_public(
-        "Peace Day in Cambodia",
-        "ទិវាសន្តិភាពនៅកម្ពុជា",
-        Rule::gregorian(12, 29),
-    )
-    .years(Some(2024), None),
-];
+static KH_RULES: &[HolidayRule] = &read_all(
+    2021,
+    [
+        HolidayRule::fixed_public(
+            "International New Year Day",
+            "ទិវាចូលឆ្នាំសកល",
+            Rule::gregorian(1, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Victory over Genocide Day",
+            "ទិវាជ័យជម្នះលើរបបប្រល័យពូជសាសន៍",
+            Rule::gregorian(1, 7),
+        ),
+        HolidayRule::fixed_public(
+            "International Women's Day",
+            "ទិវាអន្តរជាតិនារី",
+            Rule::gregorian(3, 8),
+        ),
+        // The years read either side of 2023, whose sub-decree was not: a
+        // gap before 2021 and in 2023 and after 2027.
+        HolidayRule::fixed_public(
+            KH_NEW_YEAR_NAME,
+            KH_NEW_YEAR_LOCAL,
+            Rule::listed(KH_NEW_YEAR.every(), 2021, 2022),
+        )
+        .years(None, Some(2022)),
+        HolidayRule::fixed_public(
+            KH_NEW_YEAR_NAME,
+            KH_NEW_YEAR_LOCAL,
+            Rule::listed(KH_NEW_YEAR.every(), 2024, 2027),
+        )
+        .years(Some(2023), None),
+        HolidayRule::fixed_public(
+            "International Labour Day",
+            "ទិវាពលកម្មអន្តរជាតិ",
+            Rule::gregorian(5, 1),
+        ),
+        KH_VISAK[0],
+        KH_VISAK[1],
+        KH_VISAK[2],
+        KH_VISAK[3],
+        KH_VISAK[4],
+        HolidayRule::fixed_public(
+            "King Norodom Sihamoni's Birthday",
+            "ព្រះរាជពិធីបុណ្យចម្រើនព្រះជន្ម ព្រះករុណាព្រះបាទសម្តេចព្រះបរមនាថ នរោត្តម សីហមុនី",
+            Rule::gregorian(5, 14),
+        ),
+        KH_PLOUGHING[0],
+        KH_PLOUGHING[1],
+        KH_PLOUGHING[2],
+        KH_PLOUGHING[3],
+        KH_PLOUGHING[4],
+        HolidayRule::fixed_public(
+            "Queen Mother Norodom Monineath Sihanouk's Birthday",
+            "ព្រះរាជពិធីបុណ្យចម្រើនព្រះជន្ម សម្តេចព្រះមហាក្សត្រី នរោត្តម មុនិនាថ សីហនុ",
+            Rule::gregorian(6, 18),
+        ),
+        HolidayRule::fixed_public("Constitution Day", "ទិវាប្រកាសរដ្ឋធម្មនុញ្ញ", Rule::gregorian(9, 24)),
+        KH_PCHUM_BEN[0][0],
+        KH_PCHUM_BEN[0][1],
+        KH_PCHUM_BEN[0][2],
+        KH_PCHUM_BEN[0][3],
+        KH_PCHUM_BEN[0][4],
+        KH_PCHUM_BEN[1][0],
+        KH_PCHUM_BEN[1][1],
+        KH_PCHUM_BEN[1][2],
+        KH_PCHUM_BEN[1][3],
+        KH_PCHUM_BEN[1][4],
+        KH_PCHUM_BEN[2][0],
+        KH_PCHUM_BEN[2][1],
+        KH_PCHUM_BEN[2][2],
+        KH_PCHUM_BEN[2][3],
+        KH_PCHUM_BEN[2][4],
+        HolidayRule::fixed_public(
+            "Commemoration Day of King Father Norodom Sihanouk",
+            "ទិវាប្រារព្ធពិធីគោរពព្រះវិញ្ញាណក្ខន្ធ ព្រះករុណាព្រះបាទសម្តេចព្រះ នរោត្តម សីហនុ",
+            Rule::gregorian(10, 15),
+        ),
+        HolidayRule::fixed_public(
+            "King Norodom Sihamoni's Coronation Day",
+            "ព្រះរាជពិធីគ្រងព្រះបរមរាជសម្បត្តិ",
+            Rule::gregorian(10, 29),
+        ),
+        HolidayRule::fixed_public("Independence Day", "ពិធីបុណ្យឯករាជ្យជាតិ", Rule::gregorian(11, 9)),
+        KH_WATER_FESTIVAL[0][0],
+        KH_WATER_FESTIVAL[0][1],
+        KH_WATER_FESTIVAL[0][2],
+        KH_WATER_FESTIVAL[0][3],
+        KH_WATER_FESTIVAL[0][4],
+        KH_WATER_FESTIVAL[1][0],
+        KH_WATER_FESTIVAL[1][1],
+        KH_WATER_FESTIVAL[1][2],
+        KH_WATER_FESTIVAL[1][3],
+        KH_WATER_FESTIVAL[1][4],
+        KH_WATER_FESTIVAL[2][0],
+        KH_WATER_FESTIVAL[2][1],
+        KH_WATER_FESTIVAL[2][2],
+        KH_WATER_FESTIVAL[2][3],
+        KH_WATER_FESTIVAL[2][4],
+        // Not in the sub-decrees for 2021 and 2022, in those for 2024 to
+        // 2027; 2023's was not read.
+        HolidayRule::fixed_public("Peace Day in Cambodia", "ទិវាសន្តិភាពនៅកម្ពុជា", Rule::UNREAD)
+            .years(Some(2023), Some(2023)),
+        HolidayRule::fixed_public(
+            "Peace Day in Cambodia",
+            "ទិវាសន្តិភាពនៅកម្ពុជា",
+            Rule::gregorian(12, 29),
+        )
+        .years(Some(2024), None),
+    ],
+);
 
 /// Cambodia — the days off the Royal Government's annual sub-decree on the
 /// holiday calendar of civil servants, employees and workers
@@ -5704,12 +6078,14 @@ static KH_RULES: &[HolidayRule] = &[
 /// Ben on 14 and 15 roaj Photrobot and 1 keit Assoch, and the Water
 /// Festival on 14 and 15 keit and 1 roaj Kadeuk, which is where the
 /// calendar puts every one of the sub-decrees' days in the six years read.
-/// Those years are exact, and every other year is the calendar's
+/// Those years are exact, and every year after 2027 is the calendar's
 /// prediction, marked approximate: the Royal Government lists the days
 /// each year, and the Ploughing Ceremony is the day the palace sets. Khmer
 /// New Year is the solar New Year's, which the crate's Khmer calendar does
 /// not compute; it is the sub-decrees' dates, and 2023 and any year outside
-/// 2021–2027 report it as a gap.
+/// 2021–2027 report it as a gap. The table answers from 2021, the first
+/// sub-decree read, and a year before it is a gap, the lunar days among
+/// them (ADR 0013).
 ///
 /// Nothing moves off the weekend. The Ministry of Labour's guideline
 /// No. 028/22 of 5 May 2022 states that, under article 162 (new) of the
@@ -5791,29 +6167,32 @@ static LA_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static LA_RULES: &[HolidayRule] = &[
-    HolidayRule::public(
-        "International New Year's Day",
-        "ວັນປີໃໝ່ສາກົນ",
-        Rule::gregorian(1, 1),
-    ),
-    HolidayRule::public(
-        "International Women's Day",
-        "ວັນແມ່ຍິງສາກົນ",
-        Rule::gregorian(3, 8),
-    ),
-    HolidayRule::public(
-        "Lao New Year",
-        "ບຸນປີໃໝ່ລາວ",
-        Rule::listed(LA_NEW_YEAR.named("Lao New Year"), LA_FIRST, LA_LAST),
-    ),
-    HolidayRule::public(
-        "International Labour Day",
-        "ວັນກຳມະກອນສາກົນ",
-        Rule::gregorian(5, 1),
-    ),
-    HolidayRule::public("National Day", "ວັນຊາດ ສປປ ລາວ", Rule::gregorian(12, 2)),
-];
+static LA_RULES: &[HolidayRule] = &read_all(
+    2018,
+    [
+        HolidayRule::public(
+            "International New Year's Day",
+            "ວັນປີໃໝ່ສາກົນ",
+            Rule::gregorian(1, 1),
+        ),
+        HolidayRule::public(
+            "International Women's Day",
+            "ວັນແມ່ຍິງສາກົນ",
+            Rule::gregorian(3, 8),
+        ),
+        HolidayRule::public(
+            "Lao New Year",
+            "ບຸນປີໃໝ່ລາວ",
+            Rule::listed(LA_NEW_YEAR.named("Lao New Year"), LA_FIRST, LA_LAST),
+        ),
+        HolidayRule::public(
+            "International Labour Day",
+            "ວັນກຳມະກອນສາກົນ",
+            Rule::gregorian(5, 1),
+        ),
+        HolidayRule::public("National Day", "ວັນຊາດ ສປປ ລາວ", Rule::gregorian(12, 2)),
+    ],
+);
 
 /// Laos — the official holidays (ວັນພັກທາງລັດຖະການ) of article 4 of the
 /// Decree on Holidays, No. 386/ລບ of 15 December 2017, for every state,
@@ -5831,6 +6210,9 @@ static LA_RULES: &[HolidayRule] = &[
 /// a day off for female civil servants and workers alone, is not a day off
 /// for the country and is not carried; nor are the other anniversaries the
 /// decree leaves to ministries and organisations to mark.
+///
+/// The table answers from 2018, the first year after Decree No. 386 of
+/// 15 December 2017; a year before it is a gap (ADR 0013).
 pub static LAOS: RuleSet = RuleSet {
     code: "LA",
     english_name: "Laos",
@@ -5897,45 +6279,48 @@ const fn bn_hijri(name: &'static str, local: &'static str, month: u8, day: u8) -
     .approximate()
 }
 
-static BN_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Awal Tahun Masihi", Rule::gregorian(1, 1)),
-    bn_hijri("Isra' and Mi'raj", "Memperingati Isra' dan Mi'raj", 7, 27),
-    HolidayRule::public(
-        "Chinese New Year",
-        "Tahun Baru Cina",
-        Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
-    ),
-    HolidayRule::public(
-        "National Day",
-        "Hari Kebangsaan Negara Brunei Darussalam",
-        Rule::gregorian(2, 23),
-    ),
-    bn_hijri("First Day of Ramadan", "Awal Ramadhan", 9, 1),
-    bn_hijri("Nuzul Al-Qur'an", "Memperingati Nuzul Al-Qur'an", 9, 17),
-    bn_hijri("Hari Raya Aidil Fitri", "", 10, 1),
-    bn_hijri("Hari Raya Aidil Fitri", "", 10, 2),
-    bn_hijri("Hari Raya Aidil Fitri", "", 10, 3),
-    HolidayRule::public(
-        "Royal Brunei Armed Forces Day",
-        "Hari Ulang Tahun Angkatan Bersenjata Diraja Brunei",
-        Rule::gregorian(5, 31),
-    ),
-    bn_hijri("Hari Raya Aidil Adha", "", 12, 10),
-    bn_hijri("Islamic New Year", "Ilal Hijrah", 1, 1),
-    HolidayRule::public(
-        "Sultan's Birthday",
-        "Hari Keputeraan Kebawah Duli Yang Maha Mulia Paduka Seri Baginda Sultan dan \
-         Yang Di-Pertuan Negara Brunei Darussalam",
-        Rule::gregorian(7, 15),
-    ),
-    bn_hijri(
-        "Prophet Muhammad's Birthday",
-        "Maulud Nabi Muhammad Shallallahu 'Alaihi Wasallam",
-        3,
-        12,
-    ),
-    HolidayRule::public("Christmas Day", "Hari Krismas", Rule::gregorian(12, 25)),
-];
+static BN_RULES: &[HolidayRule] = &read_all(
+    2023,
+    [
+        HolidayRule::public("New Year's Day", "Awal Tahun Masihi", Rule::gregorian(1, 1)),
+        bn_hijri("Isra' and Mi'raj", "Memperingati Isra' dan Mi'raj", 7, 27),
+        HolidayRule::public(
+            "Chinese New Year",
+            "Tahun Baru Cina",
+            Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
+        ),
+        HolidayRule::public(
+            "National Day",
+            "Hari Kebangsaan Negara Brunei Darussalam",
+            Rule::gregorian(2, 23),
+        ),
+        bn_hijri("First Day of Ramadan", "Awal Ramadhan", 9, 1),
+        bn_hijri("Nuzul Al-Qur'an", "Memperingati Nuzul Al-Qur'an", 9, 17),
+        bn_hijri("Hari Raya Aidil Fitri", "", 10, 1),
+        bn_hijri("Hari Raya Aidil Fitri", "", 10, 2),
+        bn_hijri("Hari Raya Aidil Fitri", "", 10, 3),
+        HolidayRule::public(
+            "Royal Brunei Armed Forces Day",
+            "Hari Ulang Tahun Angkatan Bersenjata Diraja Brunei",
+            Rule::gregorian(5, 31),
+        ),
+        bn_hijri("Hari Raya Aidil Adha", "", 12, 10),
+        bn_hijri("Islamic New Year", "Ilal Hijrah", 1, 1),
+        HolidayRule::public(
+            "Sultan's Birthday",
+            "Hari Keputeraan Kebawah Duli Yang Maha Mulia Paduka Seri Baginda Sultan dan \
+     Yang Di-Pertuan Negara Brunei Darussalam",
+            Rule::gregorian(7, 15),
+        ),
+        bn_hijri(
+            "Prophet Muhammad's Birthday",
+            "Maulud Nabi Muhammad Shallallahu 'Alaihi Wasallam",
+            3,
+            12,
+        ),
+        HolidayRule::public("Christmas Day", "Hari Krismas", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Brunei — the public holidays (hari-hari kelepasan awam) that the Prime
 /// Minister's Office's circular declares each year on the Sultan's command,
@@ -5952,8 +6337,9 @@ static BN_RULES: &[HolidayRule] = &[
 ///
 /// The weekend is Friday and Sunday, and a holiday on either is replaced by
 /// the next working day, as each circular read names it. The circulars
-/// cite no statute for the list or for the replacement, so the table claims
-/// nothing about years before 2023 except that the list is the present one.
+/// cite no statute for the list or for the replacement, so the table
+/// answers from 2023, the first circular read, and a year before it is a
+/// gap (ADR 0013).
 pub static BRUNEI: RuleSet = RuleSet {
     code: "BN",
     english_name: "Brunei",
@@ -5987,89 +6373,92 @@ static TL_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     valid_until_day: None,
 }];
 
-static TL_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Dia de Ano Novo", Rule::gregorian(1, 1)),
-    // Added by Law No. 3/2016, in force from 26 May 2016.
-    HolidayRule::fixed_public("Veterans' Day", "Dia dos Veteranos", Rule::gregorian(3, 3))
-        .years(Some(2017), None),
-    HolidayRule::fixed_public(
-        "Good Friday",
-        "Sexta-Feira Santa",
-        Rule::easter(GOOD_FRIDAY),
-    ),
-    HolidayRule::fixed_public("Idul Fitri", "", EID_AL_FITR).approximate(),
-    HolidayRule::fixed_public(
-        "World Workers' Day",
-        "Dia Mundial do Trabalhador",
-        Rule::gregorian(5, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Restoration of Independence Day",
-        "Dia da Restauração da Independência",
-        Rule::gregorian(5, 20),
-    ),
-    HolidayRule::fixed_public("Idul Adha", "", EID_AL_ADHA).approximate(),
-    HolidayRule::fixed_public(
-        "Corpus Christi",
-        "Festa do Corpo de Deus",
-        Rule::easter(CORPUS_CHRISTI),
-    ),
-    HolidayRule::fixed_public(
-        "Popular Consultation Day",
-        "Dia da Consulta Popular",
-        Rule::gregorian(8, 30),
-    ),
-    HolidayRule::fixed_public(
-        "All Saints' Day",
-        "Dia de Todos os Santos",
-        Rule::gregorian(11, 1),
-    ),
-    HolidayRule::fixed_public(
-        "All Souls' Day",
-        "Dia de Todos os Fiéis Defuntos",
-        Rule::gregorian(11, 2),
-    ),
-    // A commemorative date until Law No. 10/2023, in force from 6 April
-    // 2023, made it a holiday.
-    HolidayRule::fixed_public(
-        "National Women's Day",
-        "Dia Nacional da Mulher",
-        Rule::gregorian(11, 3),
-    )
-    .years(Some(2023), None),
-    HolidayRule::fixed_public(
-        "National Youth Day",
-        "Dia Nacional da Juventude",
-        Rule::gregorian(11, 12),
-    ),
-    HolidayRule::fixed_public(
-        "Proclamation of Independence Day",
-        "Dia da Proclamação da Independência",
-        Rule::gregorian(11, 28),
-    ),
-    // 7 December was National Heroes' Day until Law No. 3/2016 named it
-    // Memorial Day and gave the Heroes 31 December.
-    HolidayRule::fixed_public(
-        "National Heroes' Day",
-        "Dia dos Heróis Nacionais",
-        Rule::gregorian(12, 7),
-    )
-    .years(None, Some(2015)),
-    HolidayRule::fixed_public("Memorial Day", "Dia da Memória", Rule::gregorian(12, 7))
+static TL_RULES: &[HolidayRule] = &read_all(
+    2006,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Dia de Ano Novo", Rule::gregorian(1, 1)),
+        // Added by Law No. 3/2016, in force from 26 May 2016.
+        HolidayRule::fixed_public("Veterans' Day", "Dia dos Veteranos", Rule::gregorian(3, 3))
+            .years(Some(2017), None),
+        HolidayRule::fixed_public(
+            "Good Friday",
+            "Sexta-Feira Santa",
+            Rule::easter(GOOD_FRIDAY),
+        ),
+        HolidayRule::fixed_public("Idul Fitri", "", EID_AL_FITR).approximate(),
+        HolidayRule::fixed_public(
+            "World Workers' Day",
+            "Dia Mundial do Trabalhador",
+            Rule::gregorian(5, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Restoration of Independence Day",
+            "Dia da Restauração da Independência",
+            Rule::gregorian(5, 20),
+        ),
+        HolidayRule::fixed_public("Idul Adha", "", EID_AL_ADHA).approximate(),
+        HolidayRule::fixed_public(
+            "Corpus Christi",
+            "Festa do Corpo de Deus",
+            Rule::easter(CORPUS_CHRISTI),
+        ),
+        HolidayRule::fixed_public(
+            "Popular Consultation Day",
+            "Dia da Consulta Popular",
+            Rule::gregorian(8, 30),
+        ),
+        HolidayRule::fixed_public(
+            "All Saints' Day",
+            "Dia de Todos os Santos",
+            Rule::gregorian(11, 1),
+        ),
+        HolidayRule::fixed_public(
+            "All Souls' Day",
+            "Dia de Todos os Fiéis Defuntos",
+            Rule::gregorian(11, 2),
+        ),
+        // A commemorative date until Law No. 10/2023, in force from 6 April
+        // 2023, made it a holiday.
+        HolidayRule::fixed_public(
+            "National Women's Day",
+            "Dia Nacional da Mulher",
+            Rule::gregorian(11, 3),
+        )
+        .years(Some(2023), None),
+        HolidayRule::fixed_public(
+            "National Youth Day",
+            "Dia Nacional da Juventude",
+            Rule::gregorian(11, 12),
+        ),
+        HolidayRule::fixed_public(
+            "Proclamation of Independence Day",
+            "Dia da Proclamação da Independência",
+            Rule::gregorian(11, 28),
+        ),
+        // 7 December was National Heroes' Day until Law No. 3/2016 named it
+        // Memorial Day and gave the Heroes 31 December.
+        HolidayRule::fixed_public(
+            "National Heroes' Day",
+            "Dia dos Heróis Nacionais",
+            Rule::gregorian(12, 7),
+        )
+        .years(None, Some(2015)),
+        HolidayRule::fixed_public("Memorial Day", "Dia da Memória", Rule::gregorian(12, 7))
+            .years(Some(2016), None),
+        HolidayRule::fixed_public(
+            "Immaculate Conception",
+            "Dia da Nossa Senhora da Imaculada Conceição",
+            Rule::gregorian(12, 8),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "Dia de Natal", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public(
+            "National Heroes' Day",
+            "Dia dos Heróis Nacionais",
+            Rule::gregorian(12, 31),
+        )
         .years(Some(2016), None),
-    HolidayRule::fixed_public(
-        "Immaculate Conception",
-        "Dia da Nossa Senhora da Imaculada Conceição",
-        Rule::gregorian(12, 8),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "Dia de Natal", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public(
-        "National Heroes' Day",
-        "Dia dos Heróis Nacionais",
-        Rule::gregorian(12, 31),
-    )
-    .years(Some(2016), None),
-];
+    ],
+);
 
 /// Timor-Leste — the national holidays of article 2 of Law No. 10/2005 of
 /// 10 August, on holidays and official commemorative dates, as Law
@@ -6091,6 +6480,9 @@ static TL_RULES: &[HolidayRule] = &[
 /// *tolerâncias de ponto* the Government grants around them are
 /// discretionary; neither is carried. The law moves nothing off a weekend,
 /// and the weekend is Sunday, under article 30 of the Labour Code.
+///
+/// The table answers from 2006, the first year after Law No. 10/2005 of
+/// 10 August 2005; a year before it is a gap (ADR 0013).
 pub static TIMOR_LESTE: RuleSet = RuleSet {
     code: "TL",
     english_name: "Timor-Leste",
@@ -6163,10 +6555,11 @@ pub(super) const fn bt_read(name: &'static str, entry: ListedEntry) -> HolidayRu
 }
 
 /// A day the lists print as a Bhutanese date, predicted on `tibetan-bhutan`
-/// for the years before the lists (`before`) or after them: the Ministry
-/// publishes each year's list, and in 2003 its calendar put Losar a day
-/// before the arithmetic. A year in which the day is skipped or repeated
-/// is a gap; see [`Rule::TibetanDay`].
+/// after the lists, and, for the years before them (`before`), the row that
+/// reports them as a gap, the table being read from the lists' first year
+/// (ADR 0013): the Ministry publishes each year's list, and in 2003 its
+/// calendar put Losar a day before the arithmetic. A year in which the day
+/// is skipped or repeated is a gap; see [`Rule::TibetanDay`].
 pub(super) const fn bt_predicted(
     name: &'static str,
     month: TibetanMonth,
@@ -6216,86 +6609,89 @@ const BT_FIRST_SERMON: &str = "First Sermon of Lord Buddha";
 /// The Descending Day.
 const BT_DESCENDING_DAY: &str = "Descending Day of Lord Buddha";
 
-pub(super) static BT_RULES: &[HolidayRule] = &[
-    bt_read("Winter Solstice", BT_LISTED.named("Winter Solstice")),
-    super::bhutan::winter_solstice_predicted(true),
-    super::bhutan::winter_solstice_predicted(false),
-    // 1st day of the 12th month.
-    bt_read(BT_OFFERING, BT_LISTED.named("Traditional Day of Offering")),
-    bt_predicted(BT_OFFERING, BT_TWELFTH, 1, true),
-    bt_predicted(BT_OFFERING, BT_TWELFTH, 1, false),
-    HolidayRule::fixed_public(
-        "Birth Anniversary of His Majesty the King",
-        "",
-        Rule::gregorian(2, 21),
-    ),
-    HolidayRule::fixed_public(
-        "Birth Anniversary of His Majesty the King",
-        "",
-        Rule::gregorian(2, 22),
-    ),
-    HolidayRule::fixed_public(
-        "Birth Anniversary of His Majesty the King",
-        "",
-        Rule::gregorian(2, 23),
-    ),
-    // 1st and 2nd days of the 1st month.
-    bt_read(BT_LOSAR, BT_LISTED.named("Losar")),
-    bt_predicted(BT_LOSAR, BT_FIRST_MONTH, 1, true),
-    bt_predicted(BT_LOSAR, BT_FIRST_MONTH, 2, true),
-    bt_predicted(BT_LOSAR, BT_FIRST_MONTH, 1, false),
-    bt_predicted(BT_LOSAR, BT_FIRST_MONTH, 2, false),
-    HolidayRule::fixed_public(
-        "Birth Anniversary of the Third Druk Gyalpo",
-        "",
-        Rule::gregorian(5, 2),
-    ),
-    // 10th day of the 3rd month.
-    bt_read(
-        BT_ZHABDRUNG,
-        BT_LISTED.named("Death Anniversary of Zhabdrung"),
-    ),
-    bt_predicted(BT_ZHABDRUNG, BT_THIRD, 10, true),
-    bt_predicted(BT_ZHABDRUNG, BT_THIRD, 10, false),
-    // 15th day of the 4th month.
-    bt_read(BT_PARINIRVANA, BT_LISTED.named("Lord Buddha's Parinirvana")),
-    bt_predicted(BT_PARINIRVANA, BT_FOURTH, 15, true),
-    bt_predicted(BT_PARINIRVANA, BT_FOURTH, 15, false),
-    // 10th day of the 5th month.
-    bt_read(
-        BT_GURU_RINPOCHE,
-        BT_LISTED.named("Birth Anniversary of Guru Rinpoche"),
-    ),
-    bt_predicted(BT_GURU_RINPOCHE, BT_FIFTH, 10, true),
-    bt_predicted(BT_GURU_RINPOCHE, BT_FIFTH, 10, false),
-    // 4th day of the 6th month.
-    bt_read(
-        BT_FIRST_SERMON,
-        BT_LISTED.named("First Sermon of Lord Buddha"),
-    ),
-    bt_predicted(BT_FIRST_SERMON, BT_SIXTH, 4, true),
-    bt_predicted(BT_FIRST_SERMON, BT_SIXTH, 4, false),
-    bt("Blessed Rainy Day", BT_LISTED.named("Blessed Rainy Day")),
-    bt("Dassain", BT_LISTED.named("Dassain")),
-    HolidayRule::fixed_public(
-        "Coronation of His Majesty the King",
-        "",
-        Rule::gregorian(11, 1),
-    ),
-    // 22nd day of the 9th month.
-    bt_read(
-        BT_DESCENDING_DAY,
-        BT_LISTED.named("Descending Day of Lord Buddha"),
-    ),
-    bt_predicted(BT_DESCENDING_DAY, BT_NINTH, 22, true),
-    bt_predicted(BT_DESCENDING_DAY, BT_NINTH, 22, false),
-    HolidayRule::fixed_public(
-        "Birth Anniversary of the Fourth Druk Gyalpo – Constitution Day",
-        "",
-        Rule::gregorian(11, 11),
-    ),
-    HolidayRule::fixed_public("National Day", "", Rule::gregorian(12, 17)),
-];
+pub(super) static BT_RULES: &[HolidayRule] = &read_all(
+    2025,
+    [
+        bt_read("Winter Solstice", BT_LISTED.named("Winter Solstice")),
+        super::bhutan::winter_solstice_predicted(true),
+        super::bhutan::winter_solstice_predicted(false),
+        // 1st day of the 12th month.
+        bt_read(BT_OFFERING, BT_LISTED.named("Traditional Day of Offering")),
+        bt_predicted(BT_OFFERING, BT_TWELFTH, 1, true),
+        bt_predicted(BT_OFFERING, BT_TWELFTH, 1, false),
+        HolidayRule::fixed_public(
+            "Birth Anniversary of His Majesty the King",
+            "",
+            Rule::gregorian(2, 21),
+        ),
+        HolidayRule::fixed_public(
+            "Birth Anniversary of His Majesty the King",
+            "",
+            Rule::gregorian(2, 22),
+        ),
+        HolidayRule::fixed_public(
+            "Birth Anniversary of His Majesty the King",
+            "",
+            Rule::gregorian(2, 23),
+        ),
+        // 1st and 2nd days of the 1st month.
+        bt_read(BT_LOSAR, BT_LISTED.named("Losar")),
+        bt_predicted(BT_LOSAR, BT_FIRST_MONTH, 1, true),
+        bt_predicted(BT_LOSAR, BT_FIRST_MONTH, 2, true),
+        bt_predicted(BT_LOSAR, BT_FIRST_MONTH, 1, false),
+        bt_predicted(BT_LOSAR, BT_FIRST_MONTH, 2, false),
+        HolidayRule::fixed_public(
+            "Birth Anniversary of the Third Druk Gyalpo",
+            "",
+            Rule::gregorian(5, 2),
+        ),
+        // 10th day of the 3rd month.
+        bt_read(
+            BT_ZHABDRUNG,
+            BT_LISTED.named("Death Anniversary of Zhabdrung"),
+        ),
+        bt_predicted(BT_ZHABDRUNG, BT_THIRD, 10, true),
+        bt_predicted(BT_ZHABDRUNG, BT_THIRD, 10, false),
+        // 15th day of the 4th month.
+        bt_read(BT_PARINIRVANA, BT_LISTED.named("Lord Buddha's Parinirvana")),
+        bt_predicted(BT_PARINIRVANA, BT_FOURTH, 15, true),
+        bt_predicted(BT_PARINIRVANA, BT_FOURTH, 15, false),
+        // 10th day of the 5th month.
+        bt_read(
+            BT_GURU_RINPOCHE,
+            BT_LISTED.named("Birth Anniversary of Guru Rinpoche"),
+        ),
+        bt_predicted(BT_GURU_RINPOCHE, BT_FIFTH, 10, true),
+        bt_predicted(BT_GURU_RINPOCHE, BT_FIFTH, 10, false),
+        // 4th day of the 6th month.
+        bt_read(
+            BT_FIRST_SERMON,
+            BT_LISTED.named("First Sermon of Lord Buddha"),
+        ),
+        bt_predicted(BT_FIRST_SERMON, BT_SIXTH, 4, true),
+        bt_predicted(BT_FIRST_SERMON, BT_SIXTH, 4, false),
+        bt("Blessed Rainy Day", BT_LISTED.named("Blessed Rainy Day")),
+        bt("Dassain", BT_LISTED.named("Dassain")),
+        HolidayRule::fixed_public(
+            "Coronation of His Majesty the King",
+            "",
+            Rule::gregorian(11, 1),
+        ),
+        // 22nd day of the 9th month.
+        bt_read(
+            BT_DESCENDING_DAY,
+            BT_LISTED.named("Descending Day of Lord Buddha"),
+        ),
+        bt_predicted(BT_DESCENDING_DAY, BT_NINTH, 22, true),
+        bt_predicted(BT_DESCENDING_DAY, BT_NINTH, 22, false),
+        HolidayRule::fixed_public(
+            "Birth Anniversary of the Fourth Druk Gyalpo – Constitution Day",
+            "",
+            Rule::gregorian(11, 11),
+        ),
+        HolidayRule::fixed_public("National Day", "", Rule::gregorian(12, 17)),
+    ],
+);
 
 /// Bhutan — the government holidays of the Ministry of Home Affairs' lists
 /// for 2025 and 2026.
@@ -6305,10 +6701,10 @@ pub(super) static BT_RULES: &[HolidayRule] = &[
 /// Third Druk Gyalpo's on 2 May, the Coronation on 1 November, the Fourth
 /// Druk Gyalpo's birthday and Constitution Day on 11 November, and National
 /// Day on 17 December. They are the present reign's, and no years are
-/// claimed for them.
+/// claimed for them beyond the lists': the table answers from 2025.
 ///
 /// The days the lists' Dzongkha text dates on the Bhutanese calendar are
-/// taken from the lists in 2025 and 2026, and predicted in the other years
+/// taken from the lists in 2025 and 2026, and predicted after them
 /// on `tibetan-bhutan`, the calendar the Ministry prints, from the
 /// Bhutanese dates both lists give them: the Traditional Day of Offering on
 /// the 1st day of the 12th month, Losar on the 1st and 2nd of the 1st,
@@ -6317,7 +6713,8 @@ pub(super) static BT_RULES: &[HolidayRule] = &[
 /// Sermon on the 4th of the 6th and the Descending Day on the 22nd of the
 /// 9th. The predictions are approximate — the Ministry settles each year's
 /// list, and its calendar of 2003 had Losar a day before the arithmetic —
-/// and a year in which one of those days is skipped or repeated is a gap,
+/// and a year before 2025, whose lists are the first read, is a gap, not a
+/// prediction (ADR 0013). A year in which one of those days is skipped or repeated is a gap,
 /// no list read showing where the Ministry then puts it. The rule is
 /// written up in `docs/systems/tibetan-calendar-holidays.md`.
 ///
@@ -6329,7 +6726,7 @@ pub(super) static BT_RULES: &[HolidayRule] = &[
 /// (`hc_calendars_regional::tibetan_almanac::bhutanese_winter_solstice`,
 /// which reproduces the lists' 2 January and Henning's almanacs of 2001 to
 /// 2020): the lists' day in 2025 and 2026, and that computation, marked
-/// approximate, in the other years. No rule was read for the Rainy Day.
+/// approximate, after them. No rule was read for the Rainy Day.
 /// Dassain is Vijayadashami, which the crate's Indian rule puts on
 /// 20 October 2026, a day before the list. Those two are taken from the
 /// lists, and a year outside 2025–2026 reports them as a gap. The lists' Thimphu Drubchoe and Thimphu Tshechu are for Thimphu
@@ -6397,28 +6794,31 @@ const fn mv_hijri(name: &'static str, month: u8, day: u8) -> HolidayRule {
     .approximate()
 }
 
-static MV_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "", Rule::gregorian(1, 1)),
-    mv_hijri("First Day of Ramadan", 9, 1),
-    mv_hijri("Eid al-Fitr", 10, 1),
-    mv_hijri("Eid al-Fitr", 10, 2),
-    mv_hijri("Eid al-Fitr", 10, 3),
-    HolidayRule::fixed_public("Labour Day", "", Rule::gregorian(5, 1)),
-    mv_hijri("Hajj Day", 12, 9),
-    mv_hijri("Eid al-Adha", 12, 10),
-    mv_hijri("Eid al-Adha", 12, 11),
-    mv_hijri("Eid al-Adha", 12, 12),
-    // Three days in the list for 2016, four in every list from 2017.
-    mv_hijri("Eid al-Adha", 12, 13).years(Some(2017), None),
-    mv_hijri("Islamic New Year", 1, 1),
-    HolidayRule::fixed_public("Independence Day", "", Rule::gregorian(7, 26)),
-    HolidayRule::fixed_public("Independence Day", "", Rule::gregorian(7, 27)),
-    mv_hijri("National Day", 3, 1),
-    mv_hijri("Prophet Muhammad's Birthday", 3, 12),
-    mv_hijri("The Day Maldives Embraced Islam", 4, 2),
-    HolidayRule::fixed_public("Victory Day", "", Rule::gregorian(11, 3)),
-    HolidayRule::fixed_public("Republic Day", "", Rule::gregorian(11, 11)),
-];
+static MV_RULES: &[HolidayRule] = &read_all(
+    2016,
+    [
+        HolidayRule::fixed_public("New Year's Day", "", Rule::gregorian(1, 1)),
+        mv_hijri("First Day of Ramadan", 9, 1),
+        mv_hijri("Eid al-Fitr", 10, 1),
+        mv_hijri("Eid al-Fitr", 10, 2),
+        mv_hijri("Eid al-Fitr", 10, 3),
+        HolidayRule::fixed_public("Labour Day", "", Rule::gregorian(5, 1)),
+        mv_hijri("Hajj Day", 12, 9),
+        mv_hijri("Eid al-Adha", 12, 10),
+        mv_hijri("Eid al-Adha", 12, 11),
+        mv_hijri("Eid al-Adha", 12, 12),
+        // Three days in the list for 2016, four in every list from 2017.
+        mv_hijri("Eid al-Adha", 12, 13).years(Some(2017), None),
+        mv_hijri("Islamic New Year", 1, 1),
+        HolidayRule::fixed_public("Independence Day", "", Rule::gregorian(7, 26)),
+        HolidayRule::fixed_public("Independence Day", "", Rule::gregorian(7, 27)),
+        mv_hijri("National Day", 3, 1),
+        mv_hijri("Prophet Muhammad's Birthday", 3, 12),
+        mv_hijri("The Day Maldives Embraced Islam", 4, 2),
+        HolidayRule::fixed_public("Victory Day", "", Rule::gregorian(11, 3)),
+        HolidayRule::fixed_public("Republic Day", "", Rule::gregorian(11, 11)),
+    ],
+);
 
 /// The Maldives — the public holidays of section 97 of the Employment Act,
 /// dated as the Maldives Monetary Authority's holiday lists for 2016 to 2026
@@ -6443,6 +6843,9 @@ static MV_RULES: &[HolidayRule] = &[
 /// of the last ten days of Ramadan are not carried, though a list of the
 /// Authority's sometimes has one. The weekend is Friday and Saturday, and
 /// nothing is moved off it.
+///
+/// The table answers from 2016, the first of the Monetary Authority's lists
+/// read; a year before it is a gap (ADR 0013).
 pub static MALDIVES: RuleSet = RuleSet {
     code: "MV",
     english_name: "Maldives",
@@ -6478,6 +6881,12 @@ static AF_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     valid_until_day: None,
 }];
 
+/// The first year of the Emirate's calendars read: 1444 AH began on
+/// 30 July 2022, and 2023 is the first Gregorian year wholly under the
+/// Emirate's own calendars. Every earlier year is a gap, not an absence: the
+/// Republic's list was not read.
+const AF_FIRST: i32 = 2023;
+
 /// A holiday on the Solar Hijri calendar as Afghanistan keeps it, from
 /// 2023, exact: the calendar is `persian-afghan`, month 5 Asad and month 11
 /// Dalw.
@@ -6487,7 +6896,6 @@ const fn af_solar(name: &'static str, local: &'static str, month: u8, day: u8) -
         local,
         Rule::in_calendar(CalendarSystem::SOLAR_HIJRI_AFGHAN, month, day),
     )
-    .years(Some(2023), None)
 }
 
 /// A day of an Eid on the tabular Hijri calendar, approximate: the Supreme
@@ -6505,36 +6913,40 @@ const fn af_hijri(name: &'static str, local: &'static str, month: u8, day: u8) -
 /// read.
 const AF_ANNOUNCED: Rule = Rule::UNREAD;
 
-static AF_RULES: &[HolidayRule] = &[
-    af_solar(
-        "Victory Day",
-        "روز پیروزی جهاد ملت افغانستان و شکست امریکا",
-        5,
-        24,
-    ),
-    af_solar("Independence Day", "روز استرداد استقلال کشور", 5, 28),
-    af_solar(
-        "Liberation Day",
-        "سالروز خروج ارتش سرخ شوروی از کشور",
-        11,
-        26,
-    ),
-    af_hijri("Eid al-Fitr", "عید سعید فطر", 10, 1).years(Some(2023), None),
-    // How many working days follow the first is the notice's to say, and
-    // it has lengthened them in some years.
-    HolidayRule::fixed_public("Eid al-Fitr", "عید سعید فطر", AF_ANNOUNCED).years(Some(2023), None),
-    af_hijri("Day of Arafah", "روز عرفه", 12, 9).years(Some(2023), None),
-    af_hijri("Eid al-Adha", "عید سعید اضحی", 12, 10).years(Some(2023), None),
-    af_hijri("Eid al-Adha", "عید سعید اضحی", 12, 11).years(Some(2023), None),
-    af_hijri("Eid al-Adha", "عید سعید اضحی", 12, 12).years(Some(2023), None),
-    // 13 Dhu al-Hijjah: added in 1444 on 30 June 2023, and in the notices
-    // of 1446 and 1447; 1445's notice was not read.
-    af_hijri("Eid al-Adha", "عید سعید اضحی", 12, 13).years(Some(2023), Some(2023)),
-    HolidayRule::fixed_public("Eid al-Adha", "عید سعید اضحی", AF_ANNOUNCED)
-        .years(Some(2024), Some(2024)),
-    af_hijri("Eid al-Adha", "عید سعید اضحی", 12, 13).years(Some(2025), Some(2026)),
-    HolidayRule::fixed_public("Eid al-Adha", "عید سعید اضحی", AF_ANNOUNCED).years(Some(2027), None),
-];
+static AF_RULES: &[HolidayRule] = &read_all(
+    AF_FIRST,
+    [
+        af_solar(
+            "Victory Day",
+            "روز پیروزی جهاد ملت افغانستان و شکست امریکا",
+            5,
+            24,
+        ),
+        af_solar("Independence Day", "روز استرداد استقلال کشور", 5, 28),
+        af_solar(
+            "Liberation Day",
+            "سالروز خروج ارتش سرخ شوروی از کشور",
+            11,
+            26,
+        ),
+        af_hijri("Eid al-Fitr", "عید سعید فطر", 10, 1),
+        // How many working days follow the first is the notice's to say, and
+        // it has lengthened them in some years.
+        HolidayRule::fixed_public("Eid al-Fitr", "عید سعید فطر", AF_ANNOUNCED),
+        af_hijri("Day of Arafah", "روز عرفه", 12, 9),
+        af_hijri("Eid al-Adha", "عید سعید اضحی", 12, 10),
+        af_hijri("Eid al-Adha", "عید سعید اضحی", 12, 11),
+        af_hijri("Eid al-Adha", "عید سعید اضحی", 12, 12),
+        // 13 Dhu al-Hijjah: added in 1444 on 30 June 2023, and in the notices
+        // of 1446 and 1447; 1445's notice was not read.
+        af_hijri("Eid al-Adha", "عید سعید اضحی", 12, 13).years(None, Some(2023)),
+        HolidayRule::fixed_public("Eid al-Adha", "عید سعید اضحی", AF_ANNOUNCED)
+            .years(Some(2024), Some(2024)),
+        af_hijri("Eid al-Adha", "عید سعید اضحی", 12, 13).years(Some(2025), Some(2026)),
+        HolidayRule::fixed_public("Eid al-Adha", "عید سعید اضحی", AF_ANNOUNCED)
+            .years(Some(2027), None),
+    ],
+);
 
 /// Afghanistan, under the Islamic Emirate, from 2023.
 ///
@@ -6557,6 +6969,8 @@ static AF_RULES: &[HolidayRule] = &[
 /// the Prophet's Birthday among it, is not carried, nor is 31 August,
 /// which the press reports declared a holiday in 2023 but no notice read
 /// confirms. Nothing moves off the Friday weekend.
+///
+/// A year before 2023 is a gap (ADR 0013), not a year without days.
 pub static AFGHANISTAN: RuleSet = RuleSet {
     code: "AF",
     english_name: "Afghanistan",
@@ -6591,11 +7005,13 @@ static KP_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     valid_until_day: None,
 }];
 
-/// The year of the wall calendar whose days off are this table's.
+/// The year of the wall calendar whose days off are this table's, and the
+/// first year it answers for: every earlier year is a gap, the days having
+/// been kept long before but no source read dating them.
 const KP_FROM: i32 = 2020;
 
 const fn kp_fixed(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
-    HolidayRule::fixed_public(name, local, Rule::gregorian(month, day)).years(Some(KP_FROM), None)
+    HolidayRule::fixed_public(name, local, Rule::gregorian(month, day)).read_from(KP_FROM)
 }
 
 /// A folk holiday on the Korean lunar calendar: KCNA's "해마다 음력으로".
@@ -6605,7 +7021,7 @@ const fn kp_lunar(name: &'static str, local: &'static str, month: u8, day: u8) -
         local,
         Rule::in_calendar(CalendarSystem::DANGI, month, day),
     )
-    .years(Some(KP_FROM), None)
+    .read_from(KP_FROM)
 }
 
 static KP_RULES: &[HolidayRule] = &[
@@ -6674,6 +7090,9 @@ static KP_RULES: &[HolidayRule] = &[
 ///
 /// This table is written up with the other twelve whose days are
 /// announced year by year in `docs/systems/announced-holidays.md`.
+///
+/// A year before 2020 is a gap (ADR 0013), the days having been kept long
+/// before but no source read dating them.
 pub static NORTH_KOREA: RuleSet = RuleSet {
     code: "KP",
     english_name: "North Korea",

@@ -82,10 +82,13 @@ place, where from 2012 it would have been the fourth day, Wednesday
 
 ## What is carried
 
-- **The seventeen general holidays** from 1 July 1997, with that year's
-  2 July, the Sino-Japanese War Victory Day and the day following National
-  Day of 1997 and 1998, and the one-off 3 September 2015, both a general
-  and a statutory holiday.
+- **The seventeen general holidays** from 1998, the first year of the
+  Ordinance's versions read (the Schedule in force from 18 September 1998;
+  a year before is a gap, ADR 0013), with the Sino-Japanese War Victory Day
+  and the day following National Day of 1997 and 1998, and the one-off
+  3 September 2015, both a general and a statutory holiday. The Special
+  Administrative Region's first year, 1997, with its 2 July, rests on the
+  Chinese Wikipedia alone [zhwiki-hk-holidays] and is a gap.
 - **The Sunday and coincidence rule**, and the backward rule of 1983 to
   2011 for the Lunar New Year days and the day following Mid-Autumn, as
   two computed rules.
@@ -97,8 +100,8 @@ place, where from 2012 it would have been the fourth day, Wednesday
   - The colonial holidays before 1997, the Queen's Birthday and Liberation
     Day among them; the holidays that predate 1997 carry their own years —
     the Ching Ming, Tuen Ng and Chung Yeung Festivals and the third Lunar
-    New Year day from 1968 — so a year before 1997 is answered
-    incompletely.
+    New Year day from 1968 — so a year before 1998 is a gap, and the
+    years from 1968 are not answered with the rows alone.
   - Section 39(4)'s rest-day rule for statutory holidays, which turns on
     an employee's own rest day, not on the calendar.
   - The Government's typhoon and rainstorm closures, which are not

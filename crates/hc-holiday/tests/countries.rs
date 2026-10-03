@@ -1075,15 +1075,19 @@ fn india_central_government_holidays() {
         "IN",
         None,
         &[
-            (2024, 1, 26, "Republic Day"),
-            (2024, 8, 15, "Independence Day"),
-            (2024, 10, 2, "Gandhi Jayanti"),
-            (2024, 12, 25, "Christmas Day"),
             (2025, 1, 26, "Republic Day"),
             (2025, 4, 18, "Good Friday"),
-            // Before the Department of Personnel and Training's lists read,
-            // the Hindu, Jain, Buddhist and Sikh gazetted days by the rules,
-            // which reproduce the Rashtriya Panchang's festival list.
+            (2025, 3, 14, "Holi"),
+        ],
+    );
+    // The first list read is 2025's, so 2024 is a gap in the table: the
+    // national days and the Hindu, Jain, Buddhist and Sikh gazetted days
+    // answer nothing there. The rules' days still reproduce the Rashtriya
+    // Panchang's festival list, which is what is pinned.
+    expect_rule_dates(
+        "IN",
+        None,
+        &[
             (2024, 3, 25, "Holi"),
             (2024, 4, 17, "Ram Navami"),
             (2024, 4, 21, "Mahavir Jayanti"),
@@ -1092,14 +1096,16 @@ fn india_central_government_holidays() {
             (2024, 10, 12, "Dussehra"),
             (2024, 10, 31, "Diwali"),
             (2024, 11, 15, "Guru Nanak's Birthday"),
-            (2025, 3, 14, "Holi"),
         ],
     );
+    let before = HolidayCalendar::for_year(table("IN"), None, 2024);
+    assert!(before.in_year(2024).is_empty());
+    assert!(before.gaps().iter().any(|gap| gap.name == "Republic Day"));
     // India has no observed-day rule: 26 January 2025 was a Sunday.
     expect_working("IN", None, &[(2025, 1, 27)]);
     // The Department of Personnel and Training's Diwali of 2017, 2018 and
     // 2027: Lakṣmī Pūjā, a day after Naraka Caturdaśī in each.
-    expect(
+    expect_rule_dates(
         "IN",
         None,
         &[
@@ -1108,6 +1114,7 @@ fn india_central_government_holidays() {
             (2027, 10, 29, "Diwali"),
         ],
     );
+    expect("IN", None, &[(2027, 10, 29, "Diwali")]);
     expect_working("IN", None, &[(1946, 8, 15)]);
 }
 
@@ -1168,11 +1175,8 @@ fn india_keeps_the_days_of_the_central_government_lists() {
         confidence_on("IN", 2026, 3, 21, "Id-ul-Fitr"),
         Confidence::Approximate
     );
-    // Outside the lists read, the rules, approximate.
-    assert_eq!(
-        confidence_on("IN", 2024, 8, 26, "Janmashtami"),
-        Confidence::Approximate
-    );
+    // After the lists read, the rules, approximate; before them a gap.
+    assert!(!HolidayCalendar::for_year(table("IN"), None, 2024).is_holiday(ymd(2024, 8, 26)));
     assert_eq!(
         confidence_on("IN", 2028, 10, 17, "Diwali"),
         Confidence::Approximate
@@ -1621,11 +1625,8 @@ fn singapore_and_malaysia() {
             (2024, 8, 9, "National Day"),
             (2025, 1, 29, "Chinese New Year"),
             (2025, 5, 1, "Labour Day"),
-            // The Ministry of Manpower's Deepavali: the press releases for
-            // 2017 and 2018 and the consolidated list of 2020 to 2027. 2017,
-            // 2018 and 2027 are each a day before Lakṣmī Pūjā.
-            (2017, 10, 18, "Deepavali"),
-            (2018, 11, 6, "Deepavali"),
+            // The Ministry of Manpower's Deepavali: the consolidated list of
+            // 2020 to 2027. 2027 is a day before Lakṣmī Pūjā.
             (2020, 11, 14, "Deepavali"),
             (2021, 11, 4, "Deepavali"),
             (2022, 10, 24, "Deepavali"),
@@ -1636,6 +1637,15 @@ fn singapore_and_malaysia() {
             (2027, 10, 28, "Deepavali"),
         ],
     );
+    // The press releases for 2017 and 2018, as the National Archives keep
+    // them: each a day before Lakṣmī Pūjā, as the rule gives it. The table
+    // answers from 2020, and those years are gaps in it.
+    expect_rule_dates(
+        "SG",
+        None,
+        &[(2017, 10, 18, "Deepavali"), (2018, 11, 6, "Deepavali")],
+    );
+    assert!(!HolidayCalendar::for_year(table("SG"), None, 2017).is_holiday(ymd(2017, 10, 18)));
     // Singapore moves a Sunday holiday to the Monday and leaves a Saturday
     // one alone: Chinese New Year 2024 ran Saturday and Sunday; Deepavali
     // 2026 is a Sunday.
@@ -1665,7 +1675,7 @@ fn singapore_and_malaysia() {
     // 31 August 2025 was a Sunday, so 1 September was the substitute.
     expect_substitute("MY", None, 2025, (8, 31), (9, 1));
     // Lakṣmī Pūjā, the Diwali of northern India, is a working day in both.
-    expect_working("SG", None, &[(2017, 10, 19), (2018, 11, 7), (2027, 10, 29)]);
+    expect_working("SG", None, &[(2027, 10, 29)]);
     expect_working("MY", None, &[(2027, 10, 29)]);
     expect_working("MY", None, &[(2009, 9, 16)]);
 }
@@ -1837,13 +1847,11 @@ fn the_philippines_keeps_the_proclaimed_days_of_2012_to_2019() {
             "{year}"
         );
     }
-    // Before the first proclamation read: Black Saturday predicted, the
-    // other proclaimed days a gap.
+    // Before the first proclamation read, 2011 is a gap: the days of the
+    // Administrative Code too, and Black Saturday no longer predicted.
     let earlier = HolidayCalendar::for_year(table("PH"), None, 2011);
-    assert_eq!(
-        confidence_on("PH", 2011, 4, 23, "Black Saturday"),
-        Confidence::Approximate
-    );
+    assert!(earlier.in_year(2011).is_empty());
+    assert!(!earlier.is_holiday(ymd(2011, 4, 23)));
     assert!(
         earlier
             .gaps()
@@ -2317,19 +2325,20 @@ fn bangladesh_keeps_the_days_its_notifications_date() {
 }
 
 #[test]
-fn bangladesh_keeps_its_hijri_days_on_the_tabular_calendar_as_predictions() {
-    // In 2025 the tabular calendar gives the notification's own dates for
-    // the Eids, the days around them, Jumatul Bida, Eid-e-Miladunnabi and
-    // Ashura; Shab-e-Barat and Shab-e-Qadr come a day early (the
-    // notification's 15 February and 28 March). In 2026 it puts Eid-ul-Fitr
-    // on Friday 20 March, a day before the notification's, and so Jumatul
-    // Bida on 13 March — which is what approximate means.
+fn bangladesh_keeps_its_hijri_days_as_the_notifications_date_them_and_predicts_the_rest() {
+    // The notifications' own Hijri days, which the tabular calendar parts
+    // from by a day or more: 2025's Shab-e-Barat (15 February, the tabular
+    // 14th) and Shab-e-Qadr (28 March, the 27th), and 2026's every one.
+    // 2025: the notification of 21 October 2024 as bdpublicnews.com
+    // reproduces it (secondary), 15 February and 28 March also read in the
+    // notification before; 2026: The Daily Star's list of the notification
+    // of 9 November 2025, confirmed by bdpublicnews.com.
     expect(
         "BD",
         None,
         &[
-            (2025, 2, 14, "Shab-e-Barat"),
-            (2025, 3, 27, "Shab-e-Qadr"),
+            (2025, 2, 15, "Shab-e-Barat"),
+            (2025, 3, 28, "Shab-e-Qadr"),
             (2025, 3, 28, "Jumatul Bida"),
             (2025, 3, 29, "Eid-ul-Fitr"),
             (2025, 3, 30, "Eid-ul-Fitr"),
@@ -2341,13 +2350,60 @@ fn bangladesh_keeps_its_hijri_days_on_the_tabular_calendar_as_predictions() {
             (2025, 6, 10, "Eid-ul-Azha"),
             (2025, 7, 6, "Ashura"),
             (2025, 9, 5, "Eid-e-Miladunnabi"),
-            (2026, 3, 13, "Jumatul Bida"),
+            (2026, 2, 4, "Shab-e-Barat"),
+            (2026, 3, 17, "Shab-e-Qadr"),
+            (2026, 3, 19, "Eid-ul-Fitr"),
+            (2026, 3, 20, "Jumatul Bida"),
             (2026, 3, 20, "Eid-ul-Fitr"),
+            (2026, 3, 21, "Eid-ul-Fitr"),
+            (2026, 3, 22, "Eid-ul-Fitr"),
+            (2026, 3, 23, "Eid-ul-Fitr"),
+            (2026, 5, 26, "Eid-ul-Azha"),
             (2026, 5, 27, "Eid-ul-Azha"),
+            (2026, 5, 28, "Eid-ul-Azha"),
+            (2026, 5, 29, "Eid-ul-Azha"),
+            (2026, 5, 30, "Eid-ul-Azha"),
+            (2026, 5, 31, "Eid-ul-Azha"),
+            (2026, 6, 26, "Ashura"),
             (2026, 8, 26, "Eid-e-Miladunnabi"),
         ],
     );
-    expect_working("BD", None, &[(2025, 4, 3), (2025, 6, 11)]);
+    // The tabular calendar's days are not the notification's: 2026's
+    // Shab-e-Barat of 3 February, Jumatul Bida of 13 March, Eid-ul-Fitr's
+    // run of 18 March and Eid-ul-Azha's 25 May and 1 June. 2025's 14
+    // February and 27 March likewise.
+    expect_working(
+        "BD",
+        None,
+        &[
+            (2025, 2, 14),
+            (2025, 3, 27),
+            (2025, 4, 3),
+            (2025, 6, 11),
+            (2026, 2, 3),
+            (2026, 3, 13),
+            (2026, 3, 18),
+            (2026, 5, 25),
+            (2026, 6, 1),
+        ],
+    );
+    // From 2027 the days are the tabular calendar's, approximate: Eid-ul-Fitr
+    // on 1 Shawwal 1448, Wednesday 10 March, with its four days around.
+    expect(
+        "BD",
+        None,
+        &[
+            (2027, 3, 10, "Eid-ul-Fitr"),
+            (2027, 5, 17, "Eid-ul-Azha"),
+            (2027, 6, 15, "Ashura"),
+        ],
+    );
+    assert_eq!(
+        confidence_of("BD", 2027, 3, 10, "Eid-ul-Fitr"),
+        Confidence::Approximate
+    );
+    // The notified days stay approximate too: the notifications say they
+    // depend on the moon.
     let calendar = HolidayCalendar::for_year(table("BD"), None, 2025);
     for holiday in calendar.on(ymd(2025, 3, 31)) {
         assert_eq!(
@@ -2364,6 +2420,12 @@ fn bangladesh_keeps_its_hijri_days_on_the_tabular_calendar_as_predictions() {
             .iter()
             .all(|holiday| holiday.confidence == Confidence::Exact)
     );
+    // Before the notifications read, 2024 is a gap: no day, and the Hijri
+    // days among those reported.
+    let before = HolidayCalendar::for_year(table("BD"), None, 2024);
+    assert!(before.in_year(2024).is_empty());
+    assert!(before.gaps().iter().any(|gap| gap.name == "Shab-e-Barat"));
+    assert!(!before.is_holiday(ymd(2024, 12, 16)));
 }
 
 #[test]
@@ -2459,11 +2521,17 @@ fn mongolia_dates_its_lunar_holidays_in_the_mongolian_calendar() {
             (2025, 11, 21, "Chinggis Khaan Day"),
             (2026, 11, 10, "Chinggis Khaan Day"),
             (2027, 11, 29, "Chinggis Khaan Day"),
-            // 2006 begins with a leap month 1, and Tsagaan Sar with it.
-            (2006, 1, 30, "Tsagaan Sar"),
-            (2006, 2, 1, "Tsagaan Sar"),
         ],
     );
+    // 2006 begins with a leap month 1, and Tsagaan Sar with it: the rule's
+    // arithmetic, since the table answers Tsagaan Sar from 2014, the year
+    // after the amendment of 2013, and a gap before.
+    expect_rule_dates(
+        "MN",
+        None,
+        &[(2006, 1, 30, "Tsagaan Sar"), (2006, 2, 1, "Tsagaan Sar")],
+    );
+    assert!(!HolidayCalendar::for_year(table("MN"), None, 2006).is_holiday(ymd(2006, 1, 30)));
     // The bituun before Tsagaan Sar 2025 is not a holiday, nor is Monday
     // 3 March, a rest day of the resolution's transfer; Buddha's Birthday
     // and Chinggis Khaan Day before the laws that added them.
@@ -2673,7 +2741,6 @@ fn cambodia_reports_the_years_its_sub_decrees_do_not_cover_as_gaps() {
     // Khmer New Year, which the Khmer calendar does not date, before,
     // between and after the sub-decrees read; Peace Day in 2023 alone.
     for (year, expected) in [
-        (2020, &["Khmer New Year"][..]),
         (2023, &["Khmer New Year", "Peace Day in Cambodia"][..]),
         (2028, &["Khmer New Year"][..]),
     ] {
@@ -2681,6 +2748,14 @@ fn cambodia_reports_the_years_its_sub_decrees_do_not_cover_as_gaps() {
         let mut missing: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
         missing.dedup();
         assert_eq!(missing, expected, "{year}");
+    }
+    // The first sub-decree read is 2021's: every earlier year is a gap, with
+    // no day answered (ADR 0013), the 2021 sub-decree's fixed days among
+    // them.
+    for year in [2020, 1990] {
+        let calendar = HolidayCalendar::for_year(table("KH"), None, year);
+        assert!(calendar.in_year(year).is_empty(), "{year}");
+        assert!(!calendar.is_complete(), "{year}");
     }
     // Peace Day is in the sub-decrees from 2024, and not in 2021's or
     // 2022's.
@@ -2979,15 +3054,25 @@ fn bhutan_predicts_its_bhutanese_calendar_days_beyond_the_lists() {
             (2028, 2, 26, "Losar"),
             (2028, 7, 1, "Birth Anniversary of Guru Rinpoche"),
             (2028, 11, 9, "Descending Day of Lord Buddha"),
-            // Before the lists: 2024.
+        ],
+    );
+    // Before the lists, 2024 is a gap, not a prediction (ADR 0013): the
+    // rules' arithmetic is still what Losar and the Parinirvana of 2024 fall
+    // on.
+    expect_rule_dates(
+        "BT",
+        None,
+        &[
             (2024, 2, 10, "Losar"),
             (2024, 5, 23, "Lord Buddha's Parinirvana"),
         ],
     );
+    let before = HolidayCalendar::for_year(table("BT"), None, 2024);
+    assert!(!before.is_holiday(ymd(2024, 2, 10)));
+    assert!(before.gaps().iter().any(|gap| gap.name == "Losar"));
     for (year, month, day, name) in [
         (2027, 2, 7, "Losar"),
         (2028, 11, 9, "Descending Day of Lord Buddha"),
-        (2024, 2, 10, "Losar"),
     ] {
         assert_eq!(
             confidence_of("BT", year, month, day, name),
@@ -3011,13 +3096,19 @@ fn bhutan_predicts_its_bhutanese_calendar_days_beyond_the_lists() {
     // The Winter Solstice is the Bhutanese mean Sun's 250°, predicted: the
     // lists' 2 January of 2025 and 2026, and of Henning's almanacs of 2011
     // to 2019, and 3 January in 2020 as Janson says it first would be.
-    for (year, day) in [(2011, 2), (2019, 2), (2020, 3), (2027, 2)] {
-        assert_eq!(
-            confidence_of("BT", year, 1, day, "Winter Solstice"),
-            Confidence::Approximate,
-            "{year}"
-        );
-    }
+    expect_rule_dates(
+        "BT",
+        None,
+        &[
+            (2011, 1, 2, "Winter Solstice"),
+            (2019, 1, 2, "Winter Solstice"),
+            (2020, 1, 3, "Winter Solstice"),
+        ],
+    );
+    assert_eq!(
+        confidence_of("BT", 2027, 1, 2, "Winter Solstice"),
+        Confidence::Approximate
+    );
     for year in [2025, 2026] {
         assert_eq!(
             confidence_of("BT", year, 1, 2, "Winter Solstice"),
@@ -3034,19 +3125,18 @@ fn bhutan_predicts_its_bhutanese_calendar_days_beyond_the_lists() {
 /// Bhutan's Losar of 2003: Henning reports that the Government's calendar
 /// had the first day of the first month on both 3 and 4 March, where the
 /// arithmetic makes 3 March a repeated 30th of the leap 12th month of 2002
-/// (Janson, "Tibetan calendar mathematics", Appendix A.13). The table's
-/// prediction is the arithmetic's, 4 and 5 March, and is marked as one;
-/// the difference is the reason every year outside the lists is.
+/// (Janson, "Tibetan calendar mathematics", Appendix A.13). The rule's
+/// arithmetic is 4 and 5 March; the table does not answer 2003, which is
+/// before the lists, and would mark the arithmetic approximate where it did:
+/// the difference is the reason a year after the lists is.
 #[test]
 fn bhutans_losar_of_2003_is_predicted_by_the_arithmetic_a_day_after_the_governments() {
+    // The rule's arithmetic, 4 and 5 March; the table itself answers from
+    // 2025, the first year of the lists, and 2003 is a gap in it.
+    expect_rule_dates("BT", None, &[(2003, 3, 4, "Losar"), (2003, 3, 5, "Losar")]);
     let calendar = HolidayCalendar::for_year(table("BT"), None, 2003);
-    assert_eq!(calendar.name_on(ymd(2003, 3, 4)), Some("Losar"));
-    assert_eq!(calendar.name_on(ymd(2003, 3, 5)), Some("Losar"));
-    assert!(!calendar.is_holiday(ymd(2003, 3, 3)));
-    assert_eq!(
-        confidence_of("BT", 2003, 3, 4, "Losar"),
-        Confidence::Approximate
-    );
+    assert!(!calendar.is_holiday(ymd(2003, 3, 4)));
+    assert!(calendar.gaps().iter().any(|gap| gap.name == "Losar"));
 }
 
 #[test]
@@ -3542,9 +3632,24 @@ fn pakistan_carries_iqbal_day_only_in_the_years_it_was_a_holiday() {
             (2026, 8, 14, "Independence Day"),
             (2026, 11, 9, "Iqbal Day"),
             (2026, 12, 25, "Quaid-e-Azam Day"),
-            (2014, 11, 9, "Iqbal Day"),
         ],
     );
+    // The list is read for 2026: 2014 and 2022 to 2025, the years Iqbal Day
+    // was a holiday by the source of the withdrawal and restoration, are
+    // gaps, and the years between, when it was withdrawn, are absent.
+    expect_rule_dates(
+        "PK",
+        None,
+        &[(2014, 11, 9, "Iqbal Day"), (2022, 11, 9, "Iqbal Day")],
+    );
+    for year in [2014, 2022, 2025] {
+        let calendar = HolidayCalendar::for_year(table("PK"), None, year);
+        assert!(!calendar.is_holiday(ymd(year, 11, 9)), "{year}");
+        assert!(
+            calendar.gaps().iter().any(|gap| gap.name == "Iqbal Day"),
+            "{year}"
+        );
+    }
     expect_working("PK", None, &[(2018, 11, 9), (2023, 5, 28)]);
 }
 
@@ -3579,7 +3684,9 @@ fn myanmar_dates_its_full_moons_and_thingyan_on_the_burmese_calendar() {
     // 17th; the full moons of Kason, Waso, Thadingyut and Tazaungmon on
     // 22 May, 20 July, 17 October and 15 November; National Day ten days
     // after the last, 25 November.
-    expect(
+    // The list is read from 2026, so 2024 is a gap in the table; the dates
+    // are the Burmese calendar's, pinned as the rules compute them.
+    expect_rule_dates(
         "MM",
         None,
         &[
@@ -3603,7 +3710,10 @@ fn myanmar_dates_its_full_moons_and_thingyan_on_the_burmese_calendar() {
             (2024, 12, 25, "Christmas Day"),
         ],
     );
-    expect_working("MM", None, &[(2024, 4, 12), (2024, 4, 18)]);
+    // 2024 has only the Deepavali notice's day: the rest of the list is a gap.
+    let calendar = HolidayCalendar::for_year(table("MM"), None, 2024);
+    assert!(!calendar.is_holiday(ymd(2024, 1, 4)));
+    assert!(!calendar.is_complete());
 }
 
 #[test]
@@ -4453,13 +4563,13 @@ fn armenia_has_thirteen_non_working_days_and_a_citizens_day_that_dodges_24_april
     expect_working("AM", None, &[(2025, 1, 27), (2026, 1, 7), (2026, 1, 3)]);
     // Easter 2026 on 5 April: Vardanants on Thursday 5 February, Holy
     // Etchmiadzin on Sunday 7 June; the Citizen's Day on Saturday 25 April
-    // 2026 and, the last Saturday of April 2021 being the 24th, on Sunday
-    // 25 April 2021.
+    // 2026 and, the last Saturday of April 2027 being the 24th, on Sunday
+    // 25 April 2027.
     for (year, month, day, name) in [
         (2026, 2, 5, "Saint Vardanants Day"),
         (2026, 6, 7, "Feast of Holy Etchmiadzin"),
         (2026, 4, 25, "Day of the Citizen"),
-        (2021, 4, 25, "Day of the Citizen"),
+        (2027, 4, 25, "Day of the Citizen"),
         (2026, 10, 10, "Holy Translators' Day"),
     ] {
         let calendar = HolidayCalendar::for_year(table("AM"), None, year);
@@ -5770,11 +5880,23 @@ fn uzbekistan_moves_a_weekend_holiday_to_the_next_working_day() {
             (2026, 9, 1, "Independence Day"),
             (2026, 10, 1, "Teachers' and Mentors' Day"),
             (2026, 12, 8, "Constitution Day"),
+        ],
+    );
+    // The rules' years of establishment, from the sources cited: the table
+    // answers from 2024, the first year wholly under the Labour Code of
+    // 2022, and 1997 to 1999 are gaps in it.
+    expect_rule_dates(
+        "UZ",
+        None,
+        &[
             (1999, 5, 9, "Day of Remembrance and Honour"),
             (1998, 5, 9, "Victory Day"),
             (1997, 10, 1, "Teachers' and Mentors' Day"),
         ],
     );
+    let before = HolidayCalendar::for_year(table("UZ"), None, 1999);
+    assert!(before.in_year(1999).is_empty());
+    assert!(!before.is_complete());
     expect_working("UZ", None, &[(2026, 3, 24), (2026, 5, 12), (1996, 10, 1)]);
     expect_substitute("UZ", None, 2026, (3, 21), (3, 23));
     expect_substitute("UZ", None, 2026, (5, 9), (5, 11));
@@ -9590,4 +9712,29 @@ fn saudi_arabia_gives_four_days_of_eid_al_fitr_from_the_day_after_29_ramadan() {
         .filter(|holiday| holiday.name == "Eid al-Fitr")
         .count();
     assert_eq!(fitr, 4);
+}
+
+/// Assert each `(year, month, day, name)` is a day the table's rule of that
+/// name computes, whatever year its sources begin in.
+///
+/// The engine answers nothing before a table's first year read, a gap
+/// instead (ADR 0013); the arithmetic of a lunar or Hijri rule is still
+/// worth pinning against the independent source that dated it for an
+/// earlier year, and that is what this does: it asks the rule, not the
+/// table's answer.
+fn expect_rule_dates(code: &str, region: Option<&str>, days: &[(i64, u8, u8, &str)]) {
+    let country = table(code);
+    for (year, month, day, name) in days {
+        let date = ymd(*year, *month, *day);
+        let computed = country.rules.iter().any(|rule| {
+            rule.name == *name
+                && rule.applies_in(*year)
+                && rule.applies_in_region(region)
+                && rule.rule.days_in_year(*year).as_slice().contains(&date)
+        });
+        assert!(
+            computed,
+            "{code} {year}-{month:02}-{day:02}: no rule named {name} computes it"
+        );
+    }
 }

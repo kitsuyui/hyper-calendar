@@ -245,6 +245,46 @@ fn mari_el_keeps_no_day_off_of_its_own() {
     assert!(!RUSSIA.reads_region("RU-MO"));
 }
 
+/// The four republics read and found to keep no day off of their own are a
+/// gap before the first year of the law read, not "no day" for every year
+/// back to 1992 (audit 10, a4): Karelia from 1999 (Закон РК № 346-ЗРК),
+/// Khakassia from 2005 (the law of 1992 as restated), Mari El from 2023
+/// (Закон РМЭ № 21-З of 5 July 2022, in force on publication) and Udmurtia
+/// from 2020 (Закон УР № 81-РЗ).
+#[test]
+fn the_republics_that_keep_no_day_are_a_gap_before_their_law() {
+    for (region, first) in [
+        ("RU-KR", 1999),
+        ("RU-KK", 2005),
+        ("RU-ME", 2023),
+        ("RU-UD", 2020),
+    ] {
+        for year in [1995, first - 1] {
+            if year >= first {
+                continue;
+            }
+            let calendar = HolidayCalendar::for_year(&RUSSIA, Some(region), year);
+            assert!(
+                calendar.gaps().iter().any(|gap| !gap.name.is_empty()
+                    && gap.name != hc_holiday::rule::UNREAD_SUBDIVISION
+                    && gap.source.contains("Закон")),
+                "{region} {year}"
+            );
+        }
+        let calendar = HolidayCalendar::for_year(&RUSSIA, Some(region), first);
+        let nationwide = HolidayCalendar::for_year(&RUSSIA, None, first);
+        assert_eq!(calendar.all().len(), nationwide.all().len(), "{region}");
+        assert!(
+            calendar
+                .gaps()
+                .iter()
+                .all(|gap| !gap.source.contains("Закон")),
+            "{region} {first}"
+        );
+        assert!(RUSSIA.reads_region(region));
+    }
+}
+
 /// The acts of 2015 to 2023 that were read: the dates their texts, or their
 /// titles on the portal of official publication, give.
 #[test]

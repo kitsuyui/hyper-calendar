@@ -151,28 +151,27 @@ fn bhutan_keeps_thimphu_s_festivals_in_thimphu() {
 
 /// The Ministry's notification of 7 September 2021 moved Thimphu Dromche
 /// and Tshechu to dates its page gives only in an image, which was not
-/// read: 2021 is a gap for both in Thimphu, and not a prediction, while
-/// 2020 and 2022 are predicted and nothing changes outside Thimphu.
+/// read: 2021 is a gap for both in Thimphu. Every year before the lists of
+/// 2025 is a gap too (ADR 0013), the years after them are predicted, and
+/// nothing changes outside Thimphu.
 #[test]
 fn bhutan_reports_thimphu_s_moved_festivals_of_2021_as_a_gap() {
-    let calendar = HolidayCalendar::for_year(&BHUTAN, Some("BT-15"), 2021);
-    let mut gaps: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
-    gaps.sort_unstable();
-    gaps.dedup();
-    assert!(gaps.contains(&"Thimphu Drubchoe"), "{gaps:?}");
-    assert!(gaps.contains(&"Thimphu Tshechu"), "{gaps:?}");
-    assert!(own_days(&BHUTAN, "BT-15", 2021).is_empty());
-    // The years around it are predicted, a day the Bhutanese calendar
-    // skips a gap as before (2022's).
-    for year in [2020, 2022] {
-        let days = own_days(&BHUTAN, "BT-15", year);
-        assert!(days.len() >= 3, "{year} {days:?}");
-        assert!(
-            days.iter()
-                .all(|holiday| holiday.confidence == Confidence::Approximate),
-            "{year}"
-        );
+    for year in [2020, 2021, 2022] {
+        let calendar = HolidayCalendar::for_year(&BHUTAN, Some("BT-15"), year);
+        let mut gaps: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
+        gaps.sort_unstable();
+        gaps.dedup();
+        assert!(gaps.contains(&"Thimphu Drubchoe"), "{year} {gaps:?}");
+        assert!(gaps.contains(&"Thimphu Tshechu"), "{year} {gaps:?}");
+        assert!(own_days(&BHUTAN, "BT-15", year).is_empty(), "{year}");
     }
+    // After the lists the days are the Bhutanese calendar's, approximate.
+    let days = own_days(&BHUTAN, "BT-15", 2027);
+    assert!(days.len() >= 3, "{days:?}");
+    assert!(
+        days.iter()
+            .all(|holiday| holiday.confidence == Confidence::Approximate)
+    );
     let nationwide = HolidayCalendar::for_year(&BHUTAN, None, 2021);
     assert!(
         !nationwide

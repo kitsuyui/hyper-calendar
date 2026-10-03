@@ -74,6 +74,14 @@ of 2084 BS are the next notice's. Dura Mhaipru Nakuma, first listed for
 2083 BS, is absent from 2023 to 2025, whose notices were read and do not
 list it, and a gap before.
 
+The festivals and fixed days of section 2.1 and 7.1 are read from the same
+notice. Its year, 2080 BS, began on 14 April 2023, so a day of them that
+falls in the Gregorian year before that date — Prithvi Jayanti, Maghe
+Sankranti, Martyrs' Day, National Democracy Day, International Women's Day,
+Sonam Lhosar, Maha Shivaratri and Gyalpo Lhosar of January to April — is
+read from 2024, and the others from 2023; a year before 2023 is a gap
+(ADR 0013).
+
 ## What is carried
 
 Every item of every section outside 2.1, 6.1 and 7.1, with the dates the
