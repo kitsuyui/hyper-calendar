@@ -93,6 +93,9 @@ worked [tw-dgpa-office-calendars].
   and the other holidays from 2015.
 - **The swaps of 2017 to 2025**, from the calendars, as `Rule::Listed`
   rules; a year before 2017 is a gap.
+- **The first year.** The table answers from 2012, the earliest 辦法 text
+  (of 25 September 2012) and DGPA calendar read; a year before it is a gap
+  (ADR 0013), whatever lists the Republic kept before.
 - **The services' days and the indigenous ceremonies, as gaps.** The
   條例's article 6 paragraph 1 gives, besides the days off for everyone,
   items for one group each

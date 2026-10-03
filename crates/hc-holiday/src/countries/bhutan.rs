@@ -6,15 +6,15 @@
 //! the national days have theirs: Thimphu Drubchoe on the 6th day of the
 //! 8th month, and Thimphu Tshechu on the 10th to the 12th. They are taken
 //! from the lists in 2025 and 2026 — 28 September and 2–4 October 2025,
-//! 17 September and 21–23 September 2026 — and predicted in the other
-//! years on `tibetan-bhutan`, marked approximate, as the lists' national
-//! days are ([`super::asia`]'s Bhutan table): the Ministry settles each
-//! year. Its notification of 7 September 2021, "Change of dates for
-//! Thimphu Dromche and Tshechu" (`moha-bt-notification-2021`), moved these
-//! two, and its page gives the new dates only in
-//! an image, which was not read; so 2021 is a gap for both, not a
-//! prediction. A year in which one of the days is skipped or repeated is
-//! a gap too.
+//! 17 September and 21–23 September 2026 — and predicted after them on
+//! `tibetan-bhutan`, marked approximate, as the lists' national days are
+//! ([`super::asia`]'s Bhutan table): the Ministry settles each year. A year
+//! before 2025, the first list read, is a gap, as in that table (ADR 0013).
+//! Its notification of 7 September 2021, "Change of dates for Thimphu
+//! Dromche and Tshechu" (`moha-bt-notification-2021`), moved these two, and
+//! its page gives the new dates only in an image, which was not read, so
+//! 2021 is a gap for both, as are the years around it. A year in which one
+//! of the days is skipped or repeated is a gap too.
 //!
 //! The other districts' tshechus are not carried: the lists say only that
 //! their days are "confirmed by the respective Dzongkhag Administration",
@@ -27,6 +27,7 @@ use hc_calendars_regional::tibetan_almanac::bhutanese_winter_solstice;
 use crate::rule::{Days, HolidayRule, Listing, Rule, TibetanMonth};
 
 use super::asia::{BT_RULES, bt_predicted, bt_read};
+use super::read_all;
 use crate::rule::joined;
 
 /// The Bhutanese Winter Solstice of `year`: the day the mean Sun of the
@@ -43,9 +44,10 @@ fn winter_solstice(year: i64) -> Days {
     )
 }
 
-/// The Winter Solstice predicted by [`winter_solstice`] before the lists'
-/// years (`before`) or after them, over the years the Bhutanese calendar
-/// converts. The Ministry prints the day each year, so a prediction is
+/// The Winter Solstice predicted by [`winter_solstice`] after the lists'
+/// years, over the years the Bhutanese calendar converts; before them
+/// (`before`) it is the row that reports a year as a gap, the table being
+/// read from the lists' first year (ADR 0013). The Ministry prints the day each year, so a prediction is
 /// approximate, as the lists' lunar days are.
 pub(super) const fn winter_solstice_predicted(before: bool) -> HolidayRule {
     let rule = HolidayRule::fixed_public(
@@ -111,26 +113,29 @@ const fn thimphu_moved(name: &'static str) -> HolidayRule {
 }
 
 /// The days for Thimphu alone: the lists' days in their years, the
-/// predictions on `tibetan-bhutan` before and after, and a gap in the
-/// year the Ministry moved them.
-pub static THIMPHU_DAYS: &[HolidayRule] = &[
-    bt_read(DRUBCHOE, LISTED.named(DRUBCHOE)).in_regions(THIMPHU),
-    thimphu_before(DRUBCHOE, 6, true),
-    thimphu_before(DRUBCHOE, 6, false),
-    thimphu_moved(DRUBCHOE),
-    bt_predicted(DRUBCHOE, EIGHTH, 6, false).in_regions(THIMPHU),
-    bt_read(TSHECHU, LISTED.named(TSHECHU)).in_regions(THIMPHU),
-    thimphu_before(TSHECHU, 10, true),
-    thimphu_before(TSHECHU, 11, true),
-    thimphu_before(TSHECHU, 12, true),
-    thimphu_before(TSHECHU, 10, false),
-    thimphu_before(TSHECHU, 11, false),
-    thimphu_before(TSHECHU, 12, false),
-    thimphu_moved(TSHECHU),
-    bt_predicted(TSHECHU, EIGHTH, 10, false).in_regions(THIMPHU),
-    bt_predicted(TSHECHU, EIGHTH, 11, false).in_regions(THIMPHU),
-    bt_predicted(TSHECHU, EIGHTH, 12, false).in_regions(THIMPHU),
-];
+/// predictions on `tibetan-bhutan` after them, and a gap before them,
+/// the year the Ministry moved them among the years.
+pub static THIMPHU_DAYS: &[HolidayRule] = &read_all(
+    super::asia::BT_FIRST as i32,
+    [
+        bt_read(DRUBCHOE, LISTED.named(DRUBCHOE)).in_regions(THIMPHU),
+        thimphu_before(DRUBCHOE, 6, true),
+        thimphu_before(DRUBCHOE, 6, false),
+        thimphu_moved(DRUBCHOE),
+        bt_predicted(DRUBCHOE, EIGHTH, 6, false).in_regions(THIMPHU),
+        bt_read(TSHECHU, LISTED.named(TSHECHU)).in_regions(THIMPHU),
+        thimphu_before(TSHECHU, 10, true),
+        thimphu_before(TSHECHU, 11, true),
+        thimphu_before(TSHECHU, 12, true),
+        thimphu_before(TSHECHU, 10, false),
+        thimphu_before(TSHECHU, 11, false),
+        thimphu_before(TSHECHU, 12, false),
+        thimphu_moved(TSHECHU),
+        bt_predicted(TSHECHU, EIGHTH, 10, false).in_regions(THIMPHU),
+        bt_predicted(TSHECHU, EIGHTH, 11, false).in_regions(THIMPHU),
+        bt_predicted(TSHECHU, EIGHTH, 12, false).in_regions(THIMPHU),
+    ],
+);
 
 /// Bhutan's nationwide rules and Thimphu's days, the table
 /// [`super::BHUTAN`] evaluates.

@@ -40,10 +40,28 @@ essential, declare the holidays themselves.
 
 A general or executive-order holiday is a rule of `BANGLADESH` for
 everyone: the civil days on their Gregorian dates, Pohela Boishakh and
-Chaitra Sankranti on the Bangladeshi calendar, the Hijri days on the
-tabular calendar as predictions (the notifications themselves star them as
-depending on the moon), and the Hindu and Buddhist days as the notification
-dates them for the two years.
+Chaitra Sankranti on the Bangladeshi calendar, the Hijri days as the
+notifications date them for 2025 and 2026 and on the tabular calendar as
+predictions from 2027 (the notifications themselves star them as depending
+on the moon), and the Hindu and Buddhist days as the notification dates
+them for the two years. The table answers from 2025; a year before is a gap
+(ADR 0013).
+
+The tabular calendar is not the notifications' for the Hijri days: it puts
+2025's Shab-e-Barat on 14 February and Shab-e-Qadr on 27 March where the
+notification has the 15th and 28 March, and every Hijri day of 2026 a day
+or more from it (Shab-e-Barat 3 February against the 4th, Jumatul Bida
+13 March against the 20th, Shab-e-Qadr 16 March against the 17th, Eid-ul-Fitr
+20 March against the 21st). So the dates are listed (`BD_HIJRI_NOTIFIED`),
+for 2025 as bdpublicnews.com reproduces the notification
+[bd-holidays-2025-bdpublicnews] and for 2026 as The Daily Star's list does
+[bd-holidays-2026-daily-star], checked against bdpublicnews.com
+[bd-holidays-2026-bdpublicnews], which differs on the day of Eid-ul-Azha
+2026 (27 May "expected" against The Daily Star's 28 May; the list's 26–27 and
+29–31 May around it agree with the 28th). All are secondary: the
+notifications' PDFs were not opened. The Consulate General in Dubai's page
+for 2025 (Shab-e-Barat 14 February) disagrees with the newspapers and is not
+followed.
 
 An optional holiday is the same kind of rule given to the group of its
 section, as Nepal's days for a faith are
@@ -171,6 +189,7 @@ secondary source for the dates, and the table's `sources` string says so.
 | [dainikbangla-holidays-2025], [bvnews24-holidays-2025] | The 2025 lists, with Shab-e-Meraj on 28 January | Yes, 2026-10-03 |
 | [ajkerpatrika-holidays-2026] | The 2026 lists and the sentences on the three days | Yes, 2026-10-03 |
 | [ekhon-holidays-2026] | The 2026 lists with weekdays | Yes, 2026-10-03 |
+| [bd-holidays-2026-daily-star], [bd-holidays-2026-bdpublicnews], [bd-holidays-2025-bdpublicnews] | The Hijri days of 2025 and 2026 | Yes, 2026-10-03; secondary |
 | [nayadiganta-holidays-2026] | The 2026 optional totals and the three days | Yes, 2026-10-03 |
 | The notifications of 2025 and 2026 themselves, on mopa.gov.bd | The general and executive-order days, as the table's `sources` string cites them, retrieved 2026-09-23 | Not read for the optional holidays |
 | The Cabinet Division's notification of 2 July 2025 and Prothom Alo's report of it | July Mass Uprising Day | As the table's `sources` string records; not a reference of this document |

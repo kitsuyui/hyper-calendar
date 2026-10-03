@@ -15,10 +15,9 @@
 //!   sources support**, with historical `valid_from` / `valid_until` years
 //!   wherever a change is named in the source. Before that year the engine
 //!   reports a gap, never an answer (ADR 0013): `read_from`, which the
-//!   tables of the Americas, Europe, Africa, the Middle East and Oceania set
-//!   for the whole table through `read_all`, and the reasons for each
-//!   table's first year are in `docs/systems/holiday-first-years.md`. The
-//!   tables of Asia carry their own.
+//!   tables of the Americas, Europe, Africa, the Middle East, Oceania and Asia
+//!   set for the whole table through `read_all`, and the reasons for each
+//!   table's first year are in `docs/systems/holiday-first-years.md`.
 //! * Every **Hijri-dated** entry is flagged
 //!   [`Confidence::Approximate`](crate::rule::Confidence::Approximate),
 //!   because the observed date is a decision made on a crescent sighting,

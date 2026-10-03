@@ -313,8 +313,10 @@ French suspension of 8 May, Italy's 1977–2000 Republic Day, Portugal's
 Korea's successive extensions of the 대체공휴일, and so on. None of them
 claims to be complete back to its own founding: each is read from the first
 year its sources support, and the years before are gaps, not answers (ADR
-0013). The first year of each table of the Americas, Europe, Africa, the Middle East
-and Oceania, and why, is in [`docs/systems/holiday-first-years.md`](../../docs/systems/holiday-first-years.md).
+0013). The first year of each table of the Americas, Europe, Africa, the Middle East,
+Oceania and Asia, and why, is in [`docs/systems/holiday-first-years.md`](../../docs/systems/holiday-first-years.md)
+(Asia's: Korea 1949, Thailand 1992, Hong Kong 1998, Macau 2001, and the rest);
+`tests/asia_first_years.rs` pins each of Asia's.
 
 ## Exchange calendars
 
@@ -543,12 +545,12 @@ texts before it were not read: Ontario's Remembrance Day is a gap before
 
 | Entry | Why |
 | --- | --- |
-| Every Hijri-dated holiday, in seventy-one countries and the Islamic and Yazidi tradition tables | the observed date is a sighting decision, per country. Indonesia's, Singapore's and Malaysia's are the published lists' for 2020–2026 and exact, and for 2027 the lists' announcements; the Philippines' the proclamations' for 2012–2026 |
-| Vesak in Indonesia, Singapore and Malaysia outside 2020–2027 | the full moon of the fourth Chinese month, which is Singapore's date in every year of 2020–2027 and misses the others' in some: Malaysia's Wesak Day 2023 was 4 May, a month before it, and Indonesia's Waisak a day or two after it in 2022–2024. Inside those years it is the lists' date. Thailand's four Buddhist days, and the `buddhist-thai` table's, are exact on `thai-lunar` for 1992–2027 and gaps outside |
+| Every Hijri-dated holiday, in seventy-one countries and the Islamic and Yazidi tradition tables | the observed date is a sighting decision, per country. Indonesia's, Singapore's and Malaysia's are the published lists' for 2020–2026 and exact, and for 2027 the lists' announcements, and a prediction only after 2027; the Philippines' the proclamations' for 2012–2026, a prediction after; Bangladesh's the notifications' for 2025 and 2026, and a prediction from 2027 |
+| Vesak in Indonesia, Singapore and Malaysia after 2027 | the full moon of the fourth Chinese month, which is Singapore's date in every year of 2020–2027 and misses the others' in some: Malaysia's Wesak Day 2023 was 4 May, a month before it, and Indonesia's Waisak a day or two after it in 2022–2024. Inside those years it is the lists' date. Thailand's four Buddhist days, and the `buddhist-thai` table's, are exact on `thai-lunar` for 1992–2027 and gaps outside; every table above is a gap before the first year its sources are read for |
 | Nepal's festivals — Buddha Jayanti, Dashain, Tihar and the rest | each is a tithi read at Kathmandu, and the part of the day it must hold is fitted to the notices of 2080–2083 BS, which it reproduces, rather than quoted from the almanac |
 | Bangladesh's Buddha Purnima | the notifications' own dates for 2025 and 2026, which they star as depending on the moon |
-| Mongolia's Tsagaan Sar, Buddha's Birthday and Chinggis Khaan Day; Bhutan's Losar, Buddhist days, Traditional Day of Offering and Winter Solstice, and Thimphu's Drubchoe and Tshechu | the day the law or the Ministry's list states on the Tibetan calendar, `mongolian` or `tibetan-bhutan`, outside the years read (Tsagaan Sar 2025–2026, Bhutan's lists 2025–2026); the Government or the Ministry settles each year, and Bhutan's calendar of 2003 had Losar a day before the arithmetic |
-| Cambodia's Visak Bochea, Royal Ploughing Ceremony, Pchum Ben and Water Festival | the day the sub-decrees give on `khmer`, outside the years read (2021, 2022, 2024–2027); the Royal Government lists them each year, and the palace sets the Ploughing Ceremony |
+| Mongolia's Tsagaan Sar, Buddha's Birthday and Chinggis Khaan Day; Bhutan's Losar, Buddhist days, Traditional Day of Offering and Winter Solstice, and Thimphu's Drubchoe and Tshechu | the day the law or the Ministry's list states on the Tibetan calendar, `mongolian` or `tibetan-bhutan`, outside the years read (Tsagaan Sar 2025–2026, Bhutan's lists 2025–2026) and after the table's first year (Mongolia's 2014 for Tsagaan Sar, Bhutan's 2025); the Government or the Ministry settles each year, and Bhutan's calendar of 2003 had Losar a day before the arithmetic |
+| Cambodia's Visak Bochea, Royal Ploughing Ceremony, Pchum Ben and Water Festival | the day the sub-decrees give on `khmer`, after 2027 (2021, 2022 and 2024–2027 are read, 2023 is not, and a year before 2021 is a gap); the Royal Government lists them each year, and the palace sets the Ploughing Ceremony |
 
 ## Not yet carried
 
@@ -597,6 +599,11 @@ texts before it were not read: Ontario's Remembrance Day is a gap before
   Puja's Navami and Bijoya Dashami, and Buddha Purnima are those
   notifications' dates for 2025 and 2026 — the Indian rules miss each by a
   day in one of the two years — and a later year reports them as gaps. The
+  Hijri days — Shab-e-Barat, Shab-e-Qadr, Jumatul Bida, the two Eids with the
+  days around them, Ashura and Eid-e-Miladunnabi — are the notifications' own
+  dates in those two years, which the tabular calendar parts from by a day or
+  more (15 February and 28 March 2025, and every Hijri day of 2026), and the
+  tabular calendar's from 2027, approximate; a year before 2025 is a gap. The
   optional holidays (ঐচ্ছিক ছুটি), which an employee may take on
   application, at most three of the days of their own religion, are rules
   given to the groups `muslims`, `hindus`, `christians`, `buddhists` and
@@ -623,8 +630,8 @@ texts before it were not read: Ontario's Remembrance Day is a gap before
 * **Cambodia** carries the days off of the Royal Government's sub-decrees
   for 2021, 2022 and 2024 to 2027. Visak Bochea, the Royal Ploughing
   Ceremony, Pchum Ben and the Water Festival are rules on the Khmer
-  calendar, `khmer`, exact in those years and approximate in the others,
-  whose sub-decrees were not read. Khmer New Year is the solar New Year's,
+  calendar, `khmer`, exact in those years and approximate after 2027, a year
+  before 2021 being a gap and 2023, whose sub-decree was not read, too. Khmer New Year is the solar New Year's,
   which `khmer` does not compute: it is the sub-decrees' dates, and 2023 and
   any year outside 2021–2027 report it as a gap.
 * **Laos** carries the official holidays of its Decree on Holidays. Lao New

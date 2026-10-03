@@ -1924,9 +1924,10 @@ pub static RUSSIA: RuleSet = RuleSet {
               the regions' non-working days, read 2026-09-29, for the \
               republics' own days; Buryatia's decrees and Mari El's law of \
               2022, on Garant, read 2026-10-03",
-    // Read, and found to give no day off of their own: Karelia, Khakassia,
-    // Mari El and Udmurtia (see docs/systems/russia-transfers.md).
-    subdivisions: Subdivisions::Read(&["RU-KK", "RU-KR", "RU-ME", "RU-UD"]),
+    // Karelia, Khakassia, Mari El and Udmurtia were read and give no day off
+    // of their own: each is a rule scoped to it, from the first year of the
+    // law read (see docs/systems/russia-transfers.md).
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────

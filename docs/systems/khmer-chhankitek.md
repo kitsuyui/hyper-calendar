@@ -272,7 +272,8 @@ leap day: Jesth 2025 has 30 days, and the year 355.
   [pressocm-kh-holidays-2021, pressocm-kh-holidays-2022,
   pressocm-kh-holidays-2024, ibc-kh-holidays-2024-2025,
   andersen-kh-holidays-2026], and the calendar's prediction, approximate,
-  in any other: the Royal Government lists the days each year. Khmer New
+  after 2027; a year before 2021, and 2023, are gaps (ADR 0013): the Royal
+  Government lists the days each year. Khmer New
   Year, the solar New Year's, is the sub-decrees' dates alone, for the
   reason below.
 - **Not carried:**

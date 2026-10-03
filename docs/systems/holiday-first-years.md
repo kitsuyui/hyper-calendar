@@ -1,9 +1,8 @@
-# Where each national table of the Americas, Europe, Africa, the Middle East and Oceania begins
+# Where each national table of the Americas, Europe, Africa, the Middle East, Oceania and Asia begins
 
 Each national table of `hc-holiday` answers from one year and reports every
 year before it as a gap. This document says which year that is for the
-tables of the Americas and Europe and of the Middle East, Africa and
-Oceania, and why. The tables of Asia are written up where they are.
+tables of the Americas, Europe, Africa, the Middle East, Oceania and Asia, and why.
 
 ## What it is
 
@@ -241,6 +240,59 @@ each canton from its own law; Canada's provincial days from 2026, the year
 of the texts read. Canada's federal list, which the audit's task set aside,
 still answers every year and is a follow-up.
 
+### Asia
+
+The tables of `asia.rs`, and Bhutan's Thimphu days in `bhutan.rs`, each
+wrapped in `read_all` with these first years. A year before
+them answers no day and reports a gap; `tests/asia_first_years.rs` checks
+the first year and the one before for every row.
+
+| Code | Table | First year | Why |
+| --- | --- | --- | --- |
+| AF | Afghanistan | 2023 | The first Gregorian year wholly under the Islamic Emirate's calendars; the Republic's list was not read |
+| AM | Armenia | 2022 | The Law on Holidays and Remembrance Days as it stands, read through Wikipedia's reproductions; the longer New Year break before 2022 and the amendments of 2002 to 2021 are not given by the sources |
+| AZ | Azerbaijan | 2007 | Labour Code art. 105 as amended on 8 December 2006, whose five-day Novruz is the first form read; National Salvation Day and Armed Forces Day (1998), State Flag Day (2010) and Victory Day (2021) keep their own years |
+| BD | Bangladesh | 2025 | The Ministry of Public Administration's notification of 21 October 2024; the Hijri days of 2025 and 2026 are the notifications' own dates, and the tabular calendar answers from 2027 |
+| BN | Brunei | 2023 | The Prime Minister's Office's circular for 2023, the earliest read |
+| BT | Bhutan | 2025 | The Ministry of Home Affairs' list for 2025, the earliest read; Thimphu's festivals in `BT-15` likewise, with 2021 a gap in any case |
+| CN | China | 1999 and 2008 | The statutory days from the 1999 revision of the 放假办法, which was not read, so 1998 and before are a gap; the State Council's arrangements from 2008. The table was already bounded before audit 10 |
+| GE | Georgia | 2011 | The Labour Code adopted on 17 December 2010 (matsne.gov.ge); which of its 29 amendments of 2012 to 2026 changed art. 30 was not established |
+| HK | Hong Kong | 1998 | The Schedule to Cap. 149 in force from 18 September 1998, the earliest version read; 1997 rests on the Chinese Wikipedia alone |
+| ID | Indonesia | 2020 | The SKB for 2020, the earliest read |
+| IN | India | 2025 | The DoPT's Office Memorandum of 9 July 2024 for 2025; the 2017 and 2018 memoranda were read only as GConnect reproduces them. The states' days keep their own first years (2019 or 2023) |
+| KG | Kyrgyzstan | 2005 | The Labour Code of 4 August 2004, from its first whole year |
+| KH | Cambodia | 2021 | The sub-decree for 2021, the earliest read; 2023's was not read and is a gap |
+| KP | North Korea | 2020 | The wall calendar of 2020 as the Institute for Peace and Unification Studies transcribes it |
+| KR | South Korea | 1949 | The 1949 decree (제124호); the rules carry their own dates as well |
+| KZ | Kazakhstan | 2002 | The Law of 13 December 2001, from its first whole year |
+| LA | Laos | 2018 | Decree No. 386 of 15 December 2017, from its first whole year |
+| LK | Sri Lanka | 2023 | The Gazette order for 2023 (No. 2287/4), the earliest read; the Act of 1971 and the orders before 2023 were not read |
+| MM | Myanmar | 2026 | The list read, Wikipedia's "Public holidays in Myanmar" as of 2026-09-22, secondary and undated; Deepavali's notices of 2020 to 2025 answer in their own years |
+| MN | Mongolia | 2004 | The Law of 18 December 2003, from its first whole year; the five days of Naadam and Tsagaan Sar from 2014 (the amendments of 2014 and 2013 are noted in the consolidated text without their content), 10 July from the law of 28 June 2022 |
+| MO | Macau | 2001 | Executive Order 60/2000 (Boletim Oficial No. 40/2000, October 2000), from its first whole year; the Bulletin's own page was not reachable |
+| MV | Maldives | 2016 | The Monetary Authority's list for 2016, the earliest read |
+| MY | Malaysia | 2020 | The Prime Minister's Department's list for 2020, the earliest read; the weekend law of the states keeps its own years |
+| NP | Nepal | 2023 | The Home Ministry's notice for 2080 BS, which began on 14 April 2023; the days of January to April fall in 2024, which is their first year |
+| PH | Philippines | 2012 | Proclamation No. 295 for 2012, the first of the annual proclamations read; the Administrative Code as amended by Republic Act 9849 (2009) was not read for 2010 and 2011 |
+| PK | Pakistan | 2026 | The Cabinet Division's list for 2026 as Business Recorder reports it; Iqbal Day's years of 2014 and 2022 to 2025 are gaps with it |
+| SG | Singapore | 2020 | The Ministry of Manpower's public-holiday release for 2020, the earliest read; the releases of 2017 and 2018 (Deepavali) are pinned as the rule's days only |
+| TH | Thailand | 1992 | The Bank of Thailand's list for 1992, the earliest read |
+| TJ | Tajikistan | 2012 | The Law on Holidays of 2 August 2011, from its first whole year |
+| TL | Timor-Leste | 2006 | Law No. 10/2005 of 10 August 2005, from its first whole year |
+| TM | Turkmenistan | 2010 | The Labour Code of 18 April 2009, from its first whole year |
+| TW | Taiwan | 2012 | The 紀念日及節日實施辦法 as of 25 September 2012 and the DGPA calendars of 2012 to 2014; the swaps begin in 2017 |
+| UZ | Uzbekistan | 2024 | The Labour Code of 28 October 2022, in force from 30 April 2023, from its first whole year; 1997 to 1999 are the rules' own dates, pinned as the rules' |
+| VN | Vietnam | 2021 | The Labour Code 45/2019, in force from 1 January 2021; the Hùng Kings' Festival, a holiday from 2007 under the Code of 2012 that was not read, is a gap from 2007 to 2020 |
+
+### The Russian republics that keep no day
+
+Karelia (1999), Khakassia (2005), Mari El (2023) and Udmurtia (2020), whose
+laws were read and give no day off, are each a rule scoped to the republic
+with no day and `read_from` the year given, so that every earlier year is a
+gap naming the republic; see `docs/systems/russia-transfers.md`. The test is
+`the_republics_that_keep_no_day_are_a_gap_before_their_law` in
+`tests/russia_republics.rs`.
+
 ### Bolivia, 2026
 
 Decreto Supremo 5521 of 13 January 2026, read as pixilegal.com and
@@ -268,6 +320,12 @@ trio and the English name stands.
 
 ## Accuracy
 
+`tests/first_years.rs` checks for every row of the first table above that the first year has
+days, that the years before it (one, ten and a hundred before, and 1500)
+have none, and that the year just before is a gap. It pins Bolivia's 2026
+from the decree, the 2017 and Güemes gaps of Argentina, Saint Vincent's 2020,
+Venezuela's 1972, San Marino's two first years, and the cantons' names.
+
 `tests/first_years_mea_oceania.rs` does the same for the 80 tables of the
 Middle East, Africa and Oceania (first year answers a day, the year before
 is a gap and not a complete answer, 1700 has no day, and every rule names
@@ -276,13 +334,6 @@ days that began before their table's first year. The existing country tests
 that asserted a year before a table's first moved to later years, laid out
 the same way where the weekday mattered (2033 and 2039 for 2022, 2030 for
 2024), or dropped the anchor.
-
-
-`tests/first_years.rs` checks for every row above that the first year has
-days, that the years before it (one, ten and a hundred before, and 1500)
-have none, and that the year just before is a gap. It pins Bolivia's 2026
-from the decree, the 2017 and Güemes gaps of Argentina, Saint Vincent's 2020,
-Venezuela's 1972, San Marino's two first years, and the cantons' names.
 
 The first years are judgements about what the sources support, and they are
 conservative: a table's days of earlier years may well be what the table
@@ -326,5 +377,5 @@ a `*_READ_FROM` constant passed to `read_all`; their tests are
 
 `crates/hc-holiday/src/countries/mod.rs` has `read_all`; each table's
 `rules` static is wrapped in it in `americas.rs`, `europe.rs`, `andorra.rs`,
-`bolivia.rs` and `mexico.rs`. The tests are `tests/first_years.rs`, and the
+`bolivia.rs`, `mexico.rs`, `asia.rs` and `bhutan.rs`. The tests are `tests/first_years.rs`, and the
 dated years each table encodes are pinned in `tests/countries.rs`.

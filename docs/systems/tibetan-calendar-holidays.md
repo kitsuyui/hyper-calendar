@@ -132,33 +132,39 @@ year 2024. A Gregorian year is answered from the Tibetan years numbered one
 less and the same.
 
 **Taken as read, or predicted.** The days of the years whose dates were
-read are carried as read and marked exact. Every other year is the
-calendar's prediction, marked `Confidence::Approximate`: the days are
-settled each year by the Government or the Ministry, and the Bhutanese
-Government's calendar of 2003 disagreed with the arithmetic (below).
+read are carried as read and marked exact. A year after the last read, or
+between them from a table's first year, is the calendar's prediction,
+marked `Confidence::Approximate`: the days are settled each year by the
+Government or the Ministry, and the Bhutanese Government's calendar of 2003
+disagreed with the arithmetic (below). A year before a table's first year
+is a gap, not a prediction (ADR 0013): Mongolia's table answers from 2004,
+the first year wholly under the Law of 18 December 2003, Tsagaan Sar from
+2014, after the amendment of 2013 whose content the consolidated text does
+not print; Bhutan's from 2025, the first list read.
 
 ## What is carried
 
 | Holiday | Date | Read, exact | Predicted |
 | --- | --- | --- | --- |
-| Tsagaan Sar, three days | days 1–3 of the first month, `mongolian` | 2025 (two days), 2026 | every other year |
+| Tsagaan Sar, three days | days 1–3 of the first month, `mongolian` | 2025 (two days), 2026 | 2014–2024 and every year after 2026, a gap before 2014 |
 | Buddha's Birthday | 15th of month 4 | — | from 2020 |
 | Chinggis Khaan Day | 1st of month 10 | — | from 2012 |
-| Traditional Day of Offering | 1st of month 12, `tibetan-bhutan` | 2025, 2026 | every other year |
-| Losar, two days | days 1 and 2 of the first month | 2025, 2026 | every other year |
-| Death Anniversary of Zhabdrung | 10th of month 3 | 2025, 2026 | every other year |
-| Lord Buddha's Parinirvana | 15th of month 4 | 2025, 2026 | every other year |
-| Birth Anniversary of Guru Rinpoche | 10th of month 5 | 2025, 2026 | every other year |
-| First Sermon of Lord Buddha | 4th of month 6 | 2025, 2026 | every other year |
-| Descending Day of Lord Buddha | 22nd of month 9 | 2025, 2026 | every other year |
-| Thimphu Drubchoe, in `BT-15` | 6th of month 8 | 2025, 2026 | every other year but 2021, a gap |
-| Thimphu Tshechu, three days, in `BT-15` | 10th to 12th of month 8 | 2025, 2026 | every other year but 2021, a gap |
-| Winter Solstice | the day the Bhutanese mean Sun reaches 250° | 2025, 2026 | every other year, by `bhutanese_winter_solstice` |
+| Traditional Day of Offering | 1st of month 12, `tibetan-bhutan` | 2025, 2026 | every year after 2026; a gap before 2025 |
+| Losar, two days | days 1 and 2 of the first month | 2025, 2026 | every year after 2026; a gap before 2025 |
+| Death Anniversary of Zhabdrung | 10th of month 3 | 2025, 2026 | every year after 2026; a gap before 2025 |
+| Lord Buddha's Parinirvana | 15th of month 4 | 2025, 2026 | every year after 2026; a gap before 2025 |
+| Birth Anniversary of Guru Rinpoche | 10th of month 5 | 2025, 2026 | every year after 2026; a gap before 2025 |
+| First Sermon of Lord Buddha | 4th of month 6 | 2025, 2026 | every year after 2026; a gap before 2025 |
+| Descending Day of Lord Buddha | 22nd of month 9 | 2025, 2026 | every year after 2026; a gap before 2025 |
+| Thimphu Drubchoe, in `BT-15` | 6th of month 8 | 2025, 2026 | every year after 2026; a gap before 2025, 2021 among them |
+| Thimphu Tshechu, three days, in `BT-15` | 10th to 12th of month 8 | 2025, 2026 | every year after 2026; a gap before 2025, 2021 among them |
+| Winter Solstice | the day the Bhutanese mean Sun reaches 250° | 2025, 2026 | every year after 2026, by `bhutanese_winter_solstice`; a gap before 2025 |
 
 The Mongolian years are those of the laws that added the days. Chinggis
 Khaan Day's law of 8 November 2012 came before that year's day, which
 the calendar puts on 14 November. The Bhutanese days are the present lists' and no years are
-claimed for them, as for the table's Gregorian days.
+claimed for them beyond the lists', as for the table's Gregorian days: the
+table answers from 2025.
 
 Not carried:
 
@@ -175,7 +181,10 @@ Not carried:
   2 January; it is `hc-calendars-regional`'s
   `tibetan_almanac::bhutanese_winter_solstice`
   ([tibetan-almanac.md](tibetan-almanac.md)), and the table predicts the
-  day with it outside the lists' years, marked approximate;
+  day with it after the lists' years, marked approximate, and a gap before
+  them; the rule's own days, 2 January of 2011 to 2019 and 3 January 2020,
+  are still pinned against Henning's almanacs and Janson, as the rule's days
+  and not as the table's answers;
 - Dassain, Vijaya Dashami. The crate's Indian rule, Āśvina śukla 10 in the
   afternoon, puts it on 20 October 2026, a day before the list. A sunrise
   or midday tithi at Kathmandu or at the Indian station gives both lists'
@@ -191,11 +200,12 @@ dates as the national days have theirs: Thimphu Drubchoe on 28 September
 2–4 October 2025 and 21–23 September 2026, the 10th to the 12th
 [moha-bt-calendar-2025; moha-bt-calendar-2026]. They are carried in the
 Thimphu district, `BT-15`, as the national lunar days are: the lists' days
-in their years, and elsewhere the prediction on `tibetan-bhutan`, marked
-approximate. The Ministry changed the dates of both in 2021 by a
+in their years, the prediction on `tibetan-bhutan`, marked approximate,
+after them, and a gap before them. The Ministry changed the dates of both in 2021 by a
 notification whose page gives the new dates only in an image, which was
-not read [moha-bt-notification-2021]: 2021 is a gap for both, not a
-prediction, and the change is why a prediction in any year is only that. Of the other districts' tshechus the
+not read [moha-bt-notification-2021]: 2021 is a gap for both, as are the
+years around it, and the change is why a prediction in any year is only
+that. Of the other districts' tshechus the
 lists say that their days are "confirmed by the respective Dzongkhag
 Administration".
 
@@ -205,7 +215,7 @@ Administration".
 | BT-12 | Chukha | as Paro | | not carried |
 | BT-13 | Haa | as Paro | | not carried |
 | BT-14 | Samtse | as Paro | | not carried |
-| BT-15 | Thimphu | Thimphu Drubchoe, 6th of month 8; Thimphu Tshechu, 10th–12th of month 8 | the Ministry's lists for 2025 and 2026 | 2025 read; predicted before and after, 2021 a gap |
+| BT-15 | Thimphu | Thimphu Drubchoe, 6th of month 8; Thimphu Tshechu, 10th–12th of month 8 | the Ministry's lists for 2025 and 2026 | 2025 read; predicted after 2026, a gap before 2025, 2021 among them |
 | BT-21 | Tsirang | as Paro | | not carried |
 | BT-22 | Dagana | as Paro | | not carried |
 | BT-23 | Punakha | as Paro | | not carried |
@@ -241,14 +251,15 @@ dates read from the Dzongkha lists are the ones the rule states.
 Henning reports that the Government's calendar had the first day of the
 first month on both 3 and 4 March 2003, where the arithmetic makes 3 March
 a repeated 30th of the leap 12th month and Losar 4 March; Janson has "no
-explanation for this discrepancy" [janson2014, Appendix A.13]. The table
-predicts Losar 2003 on 4 and 5 March, marked approximate. The Government's
-holidays of that year were not read.
+explanation for this discrepancy" [janson2014, Appendix A.13]. The rule
+gives Losar 2003 on 4 and 5 March, which the test pins as the rule's days;
+the table does not answer 2003, a year before its lists, and reports a gap.
+The Government's holidays of that year were not read.
 
 **Mongolia** (`mongolia_dates_its_lunar_holidays_in_the_mongolian_calendar`).
 The rule gives the days read for 2025 and 2026, and those MONTSAME reported
 for 2020, 24–26 February, and 2021, 12–14 February, which are predicted
-years [montsame-tsagaan-sar-2020; montsame-tsagaan-sar-2021;
+years, answered since the table reads from 2004 [montsame-tsagaan-sar-2020; montsame-tsagaan-sar-2021;
 montsame-tsagaan-sar-2026]. The New Year of the calendar is Janson's for
 every year 2000–2030 ([tibetan-variants.md](tibetan-variants.md)). No
 official date of Buddha's Birthday or of Chinggis Khaan Day was read; they
