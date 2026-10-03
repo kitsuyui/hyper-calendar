@@ -544,31 +544,38 @@ impl Locale {
     /// `docs/systems/locale-fallback.md` works the chain through.
     #[must_use]
     pub fn parent(&self) -> Option<Self> {
+        self.parent_step().map(|(parent, _)| parent)
+    }
+
+    /// [`Locale::parent`] and the rule that gave it: why the chain goes
+    /// from this locale to that one.
+    #[must_use]
+    pub fn parent_step(&self) -> Option<(Self, ParentRule)> {
         if self.has_extensions() {
-            return Some(self.without_extensions());
+            return Some((self.without_extensions(), ParentRule::Extensions));
         }
         let mut next = *self;
         if next.variant.is_some() {
             next.variant = None;
-            return Some(next);
+            return Some((next, ParentRule::Variant));
         }
         if next.language.as_str() != "und"
             && let Some(parent) = next.cldr_parent()
         {
-            return Some(parent);
+            return Some((parent, ParentRule::ParentLocales));
         }
         if next.region.is_some() {
             next.region = None;
-            return Some(next);
+            return Some((next, ParentRule::Region));
         }
         if next.script.is_some() {
             next.script = None;
-            return Some(next);
+            return Some((next, ParentRule::Script));
         }
         if next.language.as_str() == "und" {
             return None;
         }
-        Some(Self::ROOT)
+        Some((Self::ROOT, ParentRule::Root))
     }
 
     /// The parent CLDR 48's `parentLocales` give this locale, if they name
@@ -755,6 +762,40 @@ impl Default for Locale {
     }
 }
 
+/// Why a locale's fallback chain goes from one step to the next.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ParentRule {
+    /// The `-u-` extension keys are dropped: `ja-JP-u-ca-japanese` to `ja-JP`.
+    Extensions,
+    /// The variant is dropped.
+    Variant,
+    /// CLDR 48's `parentLocales` name the parent: `en-GB` to `en-001`,
+    /// `es-MX` to `es-419`, `zh-Hant` to root.
+    ParentLocales,
+    /// The region is dropped, by truncation (UTS #35 Part 1).
+    Region,
+    /// The script is dropped, by truncation.
+    Script,
+    /// The language is dropped, leaving root.
+    Root,
+}
+
+impl ParentRule {
+    /// The word a caller reads the rule by: `extensions`, `variant`,
+    /// `parent-locales`, `region`, `script` or `root`.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::Extensions => "extensions",
+            Self::Variant => "variant",
+            Self::ParentLocales => "parent-locales",
+            Self::Region => "region",
+            Self::Script => "script",
+            Self::Root => "root",
+        }
+    }
+}
+
 /// The fallback chain produced by [`Locale::fallback`].
 #[derive(Debug, Clone, Copy)]
 pub struct Fallback {
@@ -898,6 +939,52 @@ mod tests {
         assert_eq!(chain("zh-Latn"), ["zh-Latn", "zh", "und"]);
         assert_eq!(chain("en"), ["en", "und"]);
         assert_eq!(chain("und"), ["und"]);
+    }
+
+    /// Each step of a chain says why it is a step: `en-AU` goes to `en-001` by
+    /// `parentLocales`, `en-001` to `en` by truncation, `ja-JP-u-ca-japanese`
+    /// sheds its extension first (`docs/systems/locale-fallback.md`).
+    #[test]
+    fn each_step_of_a_chain_names_its_rule() {
+        let rules = |tag: &str| {
+            let mut out = Vec::new();
+            let mut locale = Locale::parse(tag).unwrap();
+            while let Some((parent, rule)) = locale.parent_step() {
+                out.push(rule);
+                locale = parent;
+            }
+            out
+        };
+        assert_eq!(
+            rules("en-AU"),
+            [
+                ParentRule::ParentLocales,
+                ParentRule::Region,
+                ParentRule::Root
+            ]
+        );
+        assert_eq!(
+            rules("ja-JP-u-ca-japanese"),
+            [ParentRule::Extensions, ParentRule::Region, ParentRule::Root]
+        );
+        assert_eq!(rules("zh-Hant"), [ParentRule::ParentLocales]);
+        assert_eq!(
+            rules("ht"),
+            [
+                ParentRule::ParentLocales,
+                ParentRule::Region,
+                ParentRule::Root
+            ]
+        );
+        assert_eq!(ParentRule::ParentLocales.id(), "parent-locales");
+        assert_eq!(Locale::ROOT.parent_step(), None);
+        assert_eq!(
+            Locale::parse("en-AU").unwrap().parent(),
+            Locale::parse("en-AU")
+                .unwrap()
+                .parent_step()
+                .map(|step| step.0)
+        );
     }
 
     #[test]

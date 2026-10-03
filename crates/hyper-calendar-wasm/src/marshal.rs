@@ -28,6 +28,9 @@ use crate::{
     feature = "relativity",
     feature = "places",
     feature = "humanize",
+    feature = "natural",
+    feature = "datetime",
+    feature = "patterns",
     feature = "zone-names"
 ))]
 pub(crate) unsafe fn text<'a>(pointer: *const u8, len: usize) -> Result<&'a str, i64> {
@@ -111,6 +114,9 @@ pub(crate) unsafe fn emit(text: &str, buffer: *mut u8, capacity: usize) -> i64 {
     feature = "relativity",
     feature = "places",
     feature = "humanize",
+    feature = "natural",
+    feature = "datetime",
+    feature = "patterns",
     feature = "zone-names"
 ))]
 pub(crate) unsafe fn emit_or_measure(text: &str, buffer: *mut u8, capacity: usize) -> i64 {
@@ -156,6 +162,9 @@ pub(crate) const fn sentinel(refusal: hc::boundary::Refusal) -> i64 {
     feature = "relativity",
     feature = "places",
     feature = "humanize",
+    feature = "natural",
+    feature = "datetime",
+    feature = "patterns",
     feature = "zone-names"
 ))]
 pub(crate) unsafe fn emit_answer(
@@ -235,6 +244,9 @@ macro_rules! w_read {
     feature = "relativity",
     feature = "places",
     feature = "humanize",
+    feature = "natural",
+    feature = "datetime",
+    feature = "patterns",
     feature = "zone-names"
 ))]
 macro_rules! w_safety {

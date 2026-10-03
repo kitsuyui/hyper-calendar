@@ -185,10 +185,17 @@ out of range is `out-of-range`, never an unrecognised number.
 | a byte length | `hc_relative_time` | every `then_unix` and `now_unix` less than an `i64` of seconds apart; two further apart are `HC_ERR_OUT_OF_RANGE`, and a style not named `HC_ERR_UNKNOWN` |
 | a byte length | `hc_relative_day`, `hc_relative_day_at` | every `then_fixed` and `now_fixed` less than an `i64` of days apart, and for `hc_relative_day_at` seconds of the day below 86 400; any other is `HC_ERR_OUT_OF_RANGE`, and a style not named `HC_ERR_UNKNOWN` |
 | a byte length | `hc_duration` | every `seconds`; a style not named is `HC_ERR_UNKNOWN` |
-| a byte length | `hc_apnumber` | every `value` |
+| a byte length | `hc_apnumber`, `hc_ordinal` | every `value` |
+| a byte length | `hc_format_datetime` | every `unix_seconds` an `i64` holds whose local reading in `offset_seconds` lies in the Gregorian range, and for RFC 3339, RFC 2822 and HTTP years 0000 to 9999; any other is `HC_ERR_OUT_OF_RANGE`, and a syntax or precision not named `HC_ERR_UNKNOWN` |
+| a byte length | `hc_format_iso_date_as` | `fixed` −3 652 424 999 through 3 652 424 634, the days of `hc_gregorian_year`; any other is `HC_ERR_OUT_OF_RANGE`, and a form or style not named `HC_ERR_UNKNOWN` |
+| a byte length | `hc_format_iso_duration` | `years`, `months`, `weeks`, `days`, `hours`, `minutes` and `seconds` from 0 through an `i64`'s largest, a negative one being absent; a duration whose exact length overflows has none, and components ISO 8601 cannot spell are `HC_ERR_MALFORMED` |
+| a byte length | `hc_naturaldelta`, `hc_naturaltime`, `hc_precisedelta` | every `seconds`, with `microseconds` below 1 000 000 in magnitude; any other is `HC_ERR_OUT_OF_RANGE`, a unit or a gender not named `HC_ERR_UNKNOWN`, and a span of more than about 10²⁶ years `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_naturalday`, `hc_naturaldate` | `day` and `today` −3 652 424 999 through 3 652 424 634, the days of `hc_gregorian_year`; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_unit_choice`, `hc_approximate_duration` | every `seconds` whose count fits an `i64`; a table, rounding, policy or style not named is `HC_ERR_UNKNOWN` |
+| a byte length | `hc_relative_time_with` | every `then_unix` and `now_unix` less than an `i64` of seconds apart, as for `hc_relative_time`; a table or a rounding not named is `HC_ERR_UNKNOWN` |
 | a byte length | `hc_circad_date` | no `i64` input: the instants within 100 Julian years of J2000.0 (J1900.0, 1899-12-31T12:00 TT, to 2100-01-01T12:00 TT), as for `hc_mars_time`; any other, or one not finite, is `HC_ERR_OUT_OF_RANGE`, and a calendar not listed `HC_ERR_UNKNOWN` |
 | a mission sol, from 0 or 1 | `hc_mission_sol` | the instants from the midnight that began the mission's landing sol through 100 Julian years after J2000.0 (2100-01-01T12:00 TT); an earlier instant, or one not finite, is `HC_ERR_OUT_OF_RANGE`, a mission whose operators published no sol numbering `HC_ERR_NO_DATA`, and a mission the table does not carry `HC_ERR_UNKNOWN` |
-| a byte length | `hc_version`, `hc_calendar_list`, `hc_locales`, `hc_gregorian_adoption`, `hc_holiday_codes`, `hc_holiday_tables`, `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals`, `hc_orbit_at`, `hc_orbit_series`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_horizons`, `hc_missions`, `hc_bodies`, `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies`, `hc_ccsds_decode`, `hc_ccsds_ascii_parse`, `hc_six_hour_clock`, `hc_prayer_methods`, `hc_night_watch`, `hc_irig_formats`, `hc_french_decimal_time`, `hc_civil_from_french_decimal_time`, `hc_day_period`, `hc_fractional`, `hc_scientific`, `hc_metric`, `hc_naturalsize`, `hc_naturallist`, `hc_intword`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_holiday_groups`, `hc_irig_frame_start` | no `i64` input: text, or `f64` values whose range each export's documentation states; a length is never negative, so it never nears the floor |
+| a byte length | `hc_version`, `hc_calendar_list`, `hc_locales`, `hc_gregorian_adoption`, `hc_holiday_codes`, `hc_holiday_tables`, `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals`, `hc_orbit_at`, `hc_orbit_series`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_horizons`, `hc_missions`, `hc_bodies`, `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies`, `hc_ccsds_decode`, `hc_ccsds_ascii_parse`, `hc_six_hour_clock`, `hc_prayer_methods`, `hc_night_watch`, `hc_irig_formats`, `hc_french_decimal_time`, `hc_civil_from_french_decimal_time`, `hc_day_period`, `hc_fractional`, `hc_scientific`, `hc_metric`, `hc_naturalsize`, `hc_naturallist`, `hc_intword`, `hc_intcomma`, `hc_intcomma_float`, `hc_parse_datetime`, `hc_iso_date_parts`, `hc_iso_duration`, `hc_iso_interval`, `hc_parse_pattern`, `hc_parse_pattern_in`, `hc_locale_chain`, `hc_locale_info`, `hc_plural_category`, `hc_names`, `hc_case`, `hc_isolate`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_holiday_groups`, `hc_irig_frame_start` | no `i64` input: text, or `f64` values whose range each export's documentation states; a length is never negative, so it never nears the floor |
 
 [`crates/hyper-calendar/tests/abi.rs`](../hyper-calendar/tests/abi.rs)
 walks every `i64` export in the source and fails when one has no row
@@ -347,6 +354,14 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `locales()` | `hc_locales` | `LocaleEntry[]`, one per locale |
 | `firstDayOfWeek(locale)` | `hc_first_day_of_week` | a number, Monday = 1 through Sunday = 7 |
 | `eraTable(table)`, `olympicGames(season)` | `hc_era_table`, `hc_olympic_games` | `EraTableRow[]`; `OlympicGames[]` |
+| `parseDatetime(syntax, text)`, `formatDatetime(syntax, unixSeconds, attoseconds, offsetSeconds, precision)` | `hc_parse_datetime`, `hc_format_datetime` | a `Reading`; a `FormattedDatetime` |
+| `formatIsoDateAs(fixed, form, style)`, `isoDateParts(text)` | `hc_format_iso_date_as`, `hc_iso_date_parts` | a `FormattedIsoDate`; an `IsoDateParts` |
+| `isoDuration(text)`, `formatIsoDuration(components)`, `isoInterval(text)` | `hc_iso_duration`, `hc_format_iso_duration`, `hc_iso_interval` | an `IsoDurationParts`; a `FormattedIsoDuration`; an `IsoIntervalParts` |
+| `parsePattern(syntax, pattern, text)`, `parsePatternIn(syntax, pattern, text, locale)` | `hc_parse_pattern`, `hc_parse_pattern_in` | `PatternFields` |
+| `localeChain(locale)`, `localeInfo(locale)` | `hc_locale_chain`, `hc_locale_info` | `LocaleChainStep[]`; a `LocaleInfo` |
+| `pluralCategory(locale, number, kind)` | `hc_plural_category` | a `PluralCategoryAnswer` |
+| `names(locale, calendar, width, context)` | `hc_names` | `LocaleName[]` |
+| `caseText(locale, mode, text)`, `isolate(locale, mode, text)` | `hc_case`, `hc_isolate` | a `CasedText`; an `IsolatedText` |
 | `dayPeriod(secondsOfDay, locale)`, `formatNumber(system, value)`, `parseNumber(system, text)`, `numberingSystems()`, `calendarEras(calendar, locale)` | `hc_day_period`, `hc_format_number`, `hc_parse_number`, `hc_numbering_systems`, `hc_calendar_eras` | a `DayPeriodReading`; a string; a number; `NumberingSystemInfo[]`; `CalendarEra[]` |
 | `gregorianAdoption(region)` | `hc_gregorian_adoption` | `GregorianAdoption[]`, one per step |
 | `namingPeriodOn(calendar, fixed, locale)` | `hc_naming_period_on` | a `NamingPeriodOn` |
@@ -419,7 +434,9 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `properTime(speedMetresPerSecond, coordinateSeconds)`, `gravitationalDilation(body, radiusMetres)`, `gravitatingBodies()` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | a `ProperTime`; a `GravitationalDilation`; `GravitatingBody[]` |
 | `territories(locale)`, `subdivisions(country, locale)`, `placeName(code, locale)` | `hc_territories`, `hc_subdivisions`, `hc_place_name` | `PlaceName[]`; `PlaceName[]`; a `PlaceName` |
 | `relativeTime(thenUnix, nowUnix, style, automatic, locale)`, `relativeDay(thenFixed, nowFixed, style, automatic, locale)`, `relativeDayAt(thenFixed, nowFixed, secondsOfDay, style, automatic, locale)`, `duration(seconds, style, maxComponents, locale)` | `hc_relative_time`, `hc_relative_day`, `hc_relative_day_at`, `hc_duration` | a `RelativeTime`; a `RelativeTime`; a `RelativeDayAt`; a `HumanizedDuration` |
-| `apnumber(value)`, `fractional(value)`, `scientific(value, precision)`, `metric(value, unit, precision)`, `naturalSize(value, style, decimals)`, `naturalList(items)`, `intword(digits, decimals)` | `hc_apnumber`, `hc_fractional`, `hc_scientific`, `hc_metric`, `hc_naturalsize`, `hc_naturallist`, `hc_intword` | a `NaturalText` each |
+| `unitChoice(seconds, thresholds, rounding)`, `relativeTimeWith(thenUnix, nowUnix, style, automatic, locale, thresholds, rounding)`, `approximateDuration(seconds, style, locale, thresholds, policy)` | `hc_unit_choice`, `hc_relative_time_with`, `hc_approximate_duration` | a `UnitChoice`; a `RelativeTimeWith`; an `ApproximateDuration` |
+| `fractional(value)`, `scientific(value, precision)` | `hc_fractional`, `hc_scientific` | a `NaturalText` each |
+| `apnumber(value, locale)`, `metric(value, unit, precision, locale)`, `naturalSize(value, style, decimals, locale)`, `naturalList(items, locale)`, `intword(digits, decimals, locale)`, `naturalDelta(seconds, microseconds, months, minimumUnit, locale)`, `naturalTime(seconds, microseconds, months, minimumUnit, locale)`, `preciseDelta(seconds, microseconds, minimumUnit, suppress, decimals, locale)`, `naturalDay(day, today, pattern, locale)`, `naturalDate(day, today, locale)`, `ordinal(value, gender, locale)`, `intcomma(digits, locale)`, `intcommaFloat(value, ndigits, locale)` | `hc_apnumber`, `hc_metric`, `hc_naturalsize`, `hc_naturallist`, `hc_intword`, `hc_naturaldelta`, `hc_naturaltime`, `hc_precisedelta`, `hc_naturalday`, `hc_naturaldate`, `hc_ordinal`, `hc_intcomma`, `hc_intcomma_float` | a `LocalizedNaturalText` each |
 
 Each method does what a page would otherwise write by hand:
 
@@ -533,23 +550,26 @@ one job a layer.
 
 | Feature | Exports | Brings in | Bytes | Size |
 | --- | --- | --- | ---: | ---: |
-| `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, TAI − UTC and leap seconds | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 39,180 | 38 KiB |
-| `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_uuid_timestamp_encode`, `hc_ntp_encode`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`, `hc_tt_bipm`, `hc_dotnet_ticks_from_unix`, `hc_unix_from_dotnet_ticks`, `hc_six_hour_clock`, `hc_civil_from_six_hour_clock`, `hc_french_decimal_time`, `hc_civil_from_french_decimal_time`: POSIX time to and from TAI, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, Julian and Besselian epochs, TT(BIPM) from a caller's series, .NET ticks, and the Ethiopian and Swahili six-hour clocks | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time`, `epoch_notation`, `tt_bipm` and `dotnet`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` and `east_african_hours` | 123,090 | 120 KiB |
-| `time-codes` | `hc_ccsds_decode`, `hc_ccsds_encode`, `hc_ccsds_decode_from_epoch`, `hc_ccsds_encode_from_epoch`, `hc_ccsds_ascii_parse`, `hc_ccsds_ascii_format`, `hc_radio_decode`, `hc_radio_encode`, `hc_jjy_call_sign_decode`, `hc_jjy_call_sign_encode`, `hc_irig_decode`, `hc_irig_encode`, `hc_irig_formats`, `hc_irig_frame_start`: the CCSDS time codes, binary and ASCII, the long-wave radio time codes of JJY, DCF77 and WWVB, and the IRIG serial time codes, read and written; a layer of its own so that `timestamps` stays small | nothing beyond `civil`'s crates: `hc-core`'s `ccsds`, `hc-format`'s `ccsds`, `radio` and `irig` | 114,558 | 112 KiB |
-| `calendars` | `hc_describe_day`, `hc_day_extras`, `hc_calendar_units`, `hc_parse_date`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_day_period`, `hc_format_number`, `hc_parse_number`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_gregorian_adoption`, `hc_naming_period_on`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale, and a date written in one read back; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_at`, `hc_nakshatra_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_ioc_olympiad_on`, `hc_babylonian_regnal_year`, `hc_equinox_new_year_margin`, `hc_shmuel_tekufah`, `hc_day_name`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_chinese_age`, `hc_chinese_almanac_solar_terms`, `hc_asian_day`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_rounichi`, `hc_mansion_undertakings`, `hc_almanac_person_days`, `hc_tibetan_almanac_day`, `hc_tibetan_planets`, `hc_bhutanese_winter_solstice`, `hc_tibetan_festival_day`; `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`: the northern year's name, the choghadiya, Panchak, the Kumbh and Pushkaram conditions, the folk days and the night watches, each named in a locale; `hc_tithi_at`, `hc_tithis_of_day`, `hc_ayanamsas`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor`, `hc_era_table`, `hc_olympic_games`, `hc_kumbh_yogas`, `hc_pushkaram_rivers`: the tithi with its span, the repeated and skipped ones, the named ayanāṃśas and a value of one, the eras of three tables, the Olympic Games, and the Kumbh conditions and the Pushkaram rivers | every `hc-calendars-*` crate, `hc-astro`, `hc-almanac`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 1,437,434 | 1.37 MiB |
-| `holiday` | `hc_holiday_is_day_off`, `hc_holiday_add_business_days`, `hc_holiday_business_days_between`, `hc_holiday_is_weekend`, `hc_holiday_next`, `hc_holiday_previous`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_holiday_groups`, `hc_holidays_on_in`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_roman_1960_office_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 2,435,012 | 2.32 MiB |
+| `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, TAI − UTC and leap seconds | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 39,243 | 38 KiB |
+| `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_uuid_timestamp_encode`, `hc_ntp_encode`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`, `hc_tt_bipm`, `hc_dotnet_ticks_from_unix`, `hc_unix_from_dotnet_ticks`, `hc_six_hour_clock`, `hc_civil_from_six_hour_clock`, `hc_french_decimal_time`, `hc_civil_from_french_decimal_time`: POSIX time to and from TAI, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, Julian and Besselian epochs, TT(BIPM) from a caller's series, .NET ticks, and the Ethiopian and Swahili six-hour clocks | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time`, `epoch_notation`, `tt_bipm` and `dotnet`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` and `east_african_hours` | 125,507 | 123 KiB |
+| `time-codes` | `hc_ccsds_decode`, `hc_ccsds_encode`, `hc_ccsds_decode_from_epoch`, `hc_ccsds_encode_from_epoch`, `hc_ccsds_ascii_parse`, `hc_ccsds_ascii_format`, `hc_radio_decode`, `hc_radio_encode`, `hc_jjy_call_sign_decode`, `hc_jjy_call_sign_encode`, `hc_irig_decode`, `hc_irig_encode`, `hc_irig_formats`, `hc_irig_frame_start`: the CCSDS time codes, binary and ASCII, the long-wave radio time codes of JJY, DCF77 and WWVB, and the IRIG serial time codes, read and written; a layer of its own so that `timestamps` stays small | nothing beyond `civil`'s crates: `hc-core`'s `ccsds`, `hc-format`'s `ccsds`, `radio` and `irig` | 116,418 | 114 KiB |
+| `calendars` | `hc_describe_day`, `hc_day_extras`, `hc_calendar_units`, `hc_parse_date`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_day_period`, `hc_format_number`, `hc_parse_number`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_gregorian_adoption`, `hc_naming_period_on`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale, and a date written in one read back; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_at`, `hc_nakshatra_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_ioc_olympiad_on`, `hc_babylonian_regnal_year`, `hc_equinox_new_year_margin`, `hc_shmuel_tekufah`, `hc_day_name`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_chinese_age`, `hc_chinese_almanac_solar_terms`, `hc_asian_day`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_rounichi`, `hc_mansion_undertakings`, `hc_almanac_person_days`, `hc_tibetan_almanac_day`, `hc_tibetan_planets`, `hc_bhutanese_winter_solstice`, `hc_tibetan_festival_day`; `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`: the northern year's name, the choghadiya, Panchak, the Kumbh and Pushkaram conditions, the folk days and the night watches, each named in a locale; `hc_tithi_at`, `hc_tithis_of_day`, `hc_ayanamsas`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor`, `hc_era_table`, `hc_olympic_games`, `hc_kumbh_yogas`, `hc_pushkaram_rivers`: the tithi with its span, the repeated and skipped ones, the named ayanāṃśas and a value of one, the eras of three tables, the Olympic Games, and the Kumbh conditions and the Pushkaram rivers | every `hc-calendars-*` crate, `hc-astro`, `hc-almanac`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 1,520,268 | 1.45 MiB |
+| `holiday` | `hc_holiday_is_day_off`, `hc_holiday_add_business_days`, `hc_holiday_business_days_between`, `hc_holiday_is_weekend`, `hc_holiday_next`, `hc_holiday_previous`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_holiday_groups`, `hc_holidays_on_in`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_roman_1960_office_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 2,441,344 | 2.33 MiB |
 | `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day`, `hc_plum_rains`, `hc_pentad_traditions`, `hc_pentad_in_tradition`, `hc_zassetsu_in_year`, `hc_seasonal_days_in_year` | `hc-seasons`, `hc-astro` | 124,575 | 122 KiB |
-| `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 183,774 | 179 KiB |
-| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zone_offset`, `hc_zones`, `hc_zone_location`: the day and the offset by a zone's rules, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` or `zone-names` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 99,078 | 97 KiB |
-| `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_decan_at`, `hc_drekkana_at`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event`, `hc_horizons`, `hc_sunrise`, `hc_sunset`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_gmat_from_gmt`, `hc_gmt_from_gmat`, `hc_prayer_times`, `hc_prayer_methods`, `hc_zmanim`, `hc_temporal_hour`, `hc_edo_time`, `hc_unix_from_edo_time`, `hc_planetary_hour`, `hc_planetary_hours_of_day` | `hc-astro`, `hc-seasons`, and `hc-i18n`'s names of the horizons and the planets | 164,253 | 160 KiB |
-| `orbital` | `hc_orbit_at`, `hc_orbit_series` | `hc-orbital`, `hc-uncertainty` | 64,650 | 63 KiB |
-| `jupiter` | `hc_jupiter_at`, `hc_jupiter_ingresses`, `hc_jupiter_risings`, `hc_kumbh_by_sky`, `hc_pushkaram_by_sky`, `hc_pushkarams_in_year`, `hc_kumbhs_in_year_by_sky`, `hc_jupiter_stations`, `hc_pushkaram_rules`: where Jupiter is, tropical and sidereal; its entries into the sidereal signs, its heliacal risings and its stations; and the Kumbh Mela and Pushkaram found from them, where `hc_kumbh` and `hc_pushkaram` take Jupiter's sign from the caller | `hc-astro`'s `jupiter` and `vsop87_jupiter` (3 625 terms of VSOP87B, 55 kB of tables), `hc-seasons`, `hc-calendars-indic`, `hc-i18n` | 216,294 | 211 KiB |
-| `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`, `hc_circad_date`: Mars time, the Darian date, the surface missions' sols, the solar day and local time of every body in `hc-planetary`'s table, and the dates of the Titan, Galilean and Martiana calendars | `hc-planetary`, `hc-astro` | 96,728 | 94 KiB |
-| `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | `hc-relativity`, `hc-uncertainty` | 55,847 | 55 KiB |
-| `places` | `hc_territories`, `hc_subdivisions`, `hc_place_name`: what each carried locale calls every territory and every ISO 3166-2 subdivision CLDR 48 names | `hc-i18n`'s `place_names`: 2.8 MB of names, 2.6 MB of them the subdivisions' | 2,968,604 | 2.83 MiB |
-| `humanize` | `hc_relative_time`, `hc_relative_day`, `hc_relative_day_at`, `hc_duration`: how one instant reads from another, which calendar day a day is seen from another, with a time of day, and how long a span is, in every locale `hc-humanize` carries; `hc_apnumber`, `hc_fractional`, `hc_scientific`, `hc_metric`, `hc_naturalsize`, `hc_naturallist`, `hc_intword`: the number and list functions of Python's `humanize`, in its English | `hc-humanize`, `hc-i18n` | 735,314 | 718 KiB |
-| `zone-names` | `hc_zone_name`, `hc_format_pattern`: a zone's name at an instant in a locale, as the CLDR fields `z`, `O`, `v` and `V` write it, from CLDR 48's metazones and names in every carried locale | `hc-tz`, `hc-format`'s `patterns::zone`, `hc-i18n`'s `zone_names` and every locale's exemplar cities: about 600 kB of names | 1,651,483 | 1.57 MiB |
-| `full` | all of the above, `places` included, and nothing else: the facade's own `full`, whose extra crates no export reads, is not enabled | everything the layers above bring in | 7,959,092 | 7.59 MiB |
+| `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 186,882 | 183 KiB |
+| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zone_offset`, `hc_zones`, `hc_zone_location`: the day and the offset by a zone's rules, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` or `zone-names` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 101,054 | 99 KiB |
+| `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_decan_at`, `hc_drekkana_at`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event`, `hc_horizons`, `hc_sunrise`, `hc_sunset`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_gmat_from_gmt`, `hc_gmt_from_gmat`, `hc_prayer_times`, `hc_prayer_methods`, `hc_zmanim`, `hc_temporal_hour`, `hc_edo_time`, `hc_unix_from_edo_time`, `hc_planetary_hour`, `hc_planetary_hours_of_day` | `hc-astro`, `hc-seasons`, and `hc-i18n`'s names of the horizons and the planets | 166,881 | 163 KiB |
+| `orbital` | `hc_orbit_at`, `hc_orbit_series` | `hc-orbital`, `hc-uncertainty` | 64,674 | 63 KiB |
+| `jupiter` | `hc_jupiter_at`, `hc_jupiter_ingresses`, `hc_jupiter_risings`, `hc_kumbh_by_sky`, `hc_pushkaram_by_sky`, `hc_pushkarams_in_year`, `hc_kumbhs_in_year_by_sky`, `hc_jupiter_stations`, `hc_pushkaram_rules`: where Jupiter is, tropical and sidereal; its entries into the sidereal signs, its heliacal risings and its stations; and the Kumbh Mela and Pushkaram found from them, where `hc_kumbh` and `hc_pushkaram` take Jupiter's sign from the caller | `hc-astro`'s `jupiter` and `vsop87_jupiter` (3 625 terms of VSOP87B, 55 kB of tables), `hc-seasons`, `hc-calendars-indic`, `hc-i18n` | 225,132 | 220 KiB |
+| `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`, `hc_circad_date`: Mars time, the Darian date, the surface missions' sols, the solar day and local time of every body in `hc-planetary`'s table, and the dates of the Titan, Galilean and Martiana calendars | `hc-planetary`, `hc-astro` | 97,713 | 95 KiB |
+| `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | `hc-relativity`, `hc-uncertainty` | 55,892 | 55 KiB |
+| `places` | `hc_territories`, `hc_subdivisions`, `hc_place_name`: what each carried locale calls every territory and every ISO 3166-2 subdivision CLDR 48 names | `hc-i18n`'s `place_names`: 2.8 MB of names, 2.6 MB of them the subdivisions' | 2,968,740 | 2.83 MiB |
+| `humanize` | `hc_relative_time`, `hc_relative_day`, `hc_relative_day_at`, `hc_duration`, `hc_unit_choice`, `hc_relative_time_with`, `hc_approximate_duration`: how one instant reads from another, which calendar day a day is seen from another, with a time of day, how long a span is, which unit a span is said in and a span hedged as a round number, in every locale `hc-humanize` carries, under the conversational thresholds or a table and a rounding of the caller's | `hc-humanize`, `hc-i18n` | 663,902 | 648 KiB |
+| `natural` | `hc_apnumber`, `hc_fractional`, `hc_scientific`, `hc_metric`, `hc_naturalsize`, `hc_naturallist`, `hc_intword`, `hc_naturaldelta`, `hc_naturaltime`, `hc_precisedelta`, `hc_naturalday`, `hc_naturaldate`, `hc_ordinal`, `hc_intcomma`, `hc_intcomma_float`: the number, size, list and time functions of Python's `humanize`, in the language of the catalogue (of its 35) that serves the locale | `hc-humanize`'s `natural` and its 35 gettext catalogues | 699,209 | 683 KiB |
+| `datetime` | `hc_parse_datetime`, `hc_format_datetime`, `hc_format_iso_date_as`, `hc_iso_date_parts`, `hc_iso_duration`, `hc_format_iso_duration`, `hc_iso_interval`: ISO 8601 beyond a calendar date, date-times with a zone read as readings and written in ISO 8601, RFC 3339, RFC 2822, HTTP and Python's `isoformat`, week and ordinal dates, dates of reduced accuracy, durations, intervals and repeating intervals | `hc-format` | 103,619 | 101 KiB |
+| `patterns` | `hc_parse_pattern`, `hc_parse_pattern_in`: a text read against a POSIX `strptime`, Python `strptime` or CLDR pattern, in the C locale's names or a locale's | `hc-format`'s `patterns`, and every carried locale's names from `hc-i18n` | 441,483 | 431 KiB |
+| `zone-names` | `hc_zone_name`, `hc_format_pattern`: a zone's name at an instant in a locale, as the CLDR fields `z`, `O`, `v` and `V` write it, from CLDR 48's metazones and names in every carried locale | `hc-tz`, `hc-format`'s `patterns::zone`, `hc-i18n`'s `zone_names` and every locale's exemplar cities: about 600 kB of names | 1,653,203 | 1.58 MiB |
+| `full` | all of the above, `places` included, and nothing else: the facade's own `full`, whose extra crates no export reads, is not enabled | everything the layers above bring in | 8,223,857 | 7.84 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
@@ -562,7 +582,7 @@ scripts/wasm-layers.sh
 
 The script leaves each layer at `target/wasm-layers/hyper_calendar_wasm.<feature>.wasm`
 and prints the table; CI runs it on every pull request and uploads the
-seventeen files, the embedded module and `tzdata/` as one workflow artifact.
+twenty files, the embedded module and `tzdata/` as one workflow artifact.
 CI then runs [`scripts/wasm-size-check.sh`](../../scripts/wasm-size-check.sh),
 which fails when any layer is more than 5% larger or smaller than the table
 above: a layer that grows by accident is caught, and a change that moves a
@@ -601,7 +621,7 @@ not pass CI.
 
 ### Exports
 
-228 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+254 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -677,6 +697,12 @@ not pass CI.
 | `hc_parse_number(system: *const u8, system_len: usize, text: *const u8, text_len: usize) -> i64` | `calendars` | An integer read back out of a numbering system's notation, or an error sentinel. |
 | `hc_numbering_systems(buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Every numbering system `hc_format_number` writes, as UTF-8 lines, returning the byte length written. |
 | `hc_calendar_eras(calendar: *const u8, calendar_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The eras a calendar is described with, named in a locale, as UTF-8 lines, returning the byte length written. |
+| `hc_locale_chain(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The fallback chain of a locale, the order its data is looked up along, as UTF-8 lines, returning the byte length written. |
+| `hc_locale_info(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | What a locale is, its subtags, its week, its numbering, direction and casing and the plural rules that apply, as one UTF-8 line, returning the byte length written. |
+| `hc_plural_category(locale: *const u8, locale_len: usize, number: *const u8, number_len: usize, kind: *const u8, kind_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The plural category a number has in a locale, by CLDR 48's cardinal rules, as one UTF-8 line, returning the byte length written. |
+| `hc_names(locale: *const u8, locale_len: usize, calendar: *const u8, calendar_len: usize, width: *const u8, width_len: usize, context: *const u8, context_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The names a locale has for a calendar in a width and a context, one per line, returning the byte length written. |
+| `hc_case(locale: *const u8, locale_len: usize, mode: *const u8, mode_len: usize, text: *const u8, text_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | A text recased as a locale cases it, as one UTF-8 line, returning the byte length written. |
+| `hc_isolate(locale: *const u8, locale_len: usize, mode: *const u8, mode_len: usize, text: *const u8, text_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | A text made safe to embed in text running a locale's direction, by the Unicode bidirectional isolates, as one UTF-8 line, returning the byte length written. |
 | `hc_gregorian_adoption(region: *const u8, region_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The steps by which a country adopted the Gregorian calendar, as UTF-8 lines, returning the byte length written. |
 | `hc_naming_period_on(calendar: *const u8, calendar_len: usize, fixed: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Which month and weekday names a locale writes for a calendar on a fixed day, where a government renamed them for a period, as one UTF-8 line, returning the byte length written. |
 | `hc_panchanga_at(unix_seconds: i64, ayanamsa: *const u8, ayanamsa_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The yoga and the karaṇa in progress at a POSIX timestamp, as two UTF-8 lines, returning the byte length written. |
@@ -824,13 +850,33 @@ not pass CI.
 | `hc_relative_day(then_fixed: i64, now_fixed: i64, style: *const u8, style_len: usize, automatic: i32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | Which calendar day one fixed day is, seen from another, *yesterday* or *3 days ago*, in a locale, as one UTF-8 line, returning the byte length written. |
 | `hc_relative_day_at(then_fixed: i64, now_fixed: i64, seconds_of_day: u32, style: *const u8, style_len: usize, automatic: i32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | Which calendar day one fixed day is, seen from another, with a time of day, *yesterday at 15:05*, in a locale, as one UTF-8 line, returning the byte length written. |
 | `hc_duration(seconds: i64, style: *const u8, style_len: usize, max_components: u32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | A span of seconds phrased in days, hours, minutes and seconds, *2 hours and 30 minutes*, in a locale, as one UTF-8 line, returning the byte length written. |
-| `hc_apnumber(value: i64, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | A whole number as the Associated Press writes it, *zero* to *nine* spelled out and every other number, negatives included, as its digits, in the English of Python's `humanize` `apnumber`, as one UTF-8 line, returning the byte length written. |
-| `hc_fractional(value: f64, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | A number as a fraction, *3/10*, *1 3/10*, *-1 3/10*, by Python's `humanize` `fractional`, as one UTF-8 line, returning the byte length written. |
-| `hc_scientific(value: f64, precision: u32, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | A number in scientific notation, *3.00 x 10⁻¹*, by Python's `humanize` `scientific`, as one UTF-8 line, returning the byte length written. |
-| `hc_metric(value: f64, unit: *const u8, unit_len: usize, precision: u32, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | A number with an SI prefix and a unit, *1.50 kV*, *200 MW*, *220 μF*, by Python's `humanize` `metric`, as one UTF-8 line, returning the byte length written. |
-| `hc_naturalsize(value: f64, style: *const u8, style_len: usize, decimals: u32, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | A size in bytes, *3.0 MB*, *2.9 KiB*, *300B*, by Python's `humanize` `naturalsize`, as one UTF-8 line, returning the byte length written. |
-| `hc_naturallist(items: *const u8, items_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | Items joined as a list, *one, two and three*, with no comma before the *and*, by Python's `humanize` `natural_list`, as one UTF-8 line, returning the byte length written. |
-| `hc_intword(digits: *const u8, digits_len: usize, decimals: u32, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | An integer of any length as a count with a word, *12.4 thousand*, *1.2 billion*, *1.0 googol*, by Python's `humanize` `intword`, as one UTF-8 line, returning the byte length written. |
+| `hc_unit_choice(seconds: i64, thresholds: *const u8, thresholds_len: usize, rounding: *const u8, rounding_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | The unit a span of seconds is said in and its count, by `hc-humanize`'s `unit_choice`, as one UTF-8 line, returning the byte length written. |
+| `hc_relative_time_with(then_unix: i64, now_unix: i64, style: *const u8, style_len: usize, automatic: i32, locale: *const u8, locale_len: usize, thresholds: *const u8, thresholds_len: usize, rounding: *const u8, rounding_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | How one POSIX instant reads from another under a threshold table and a rounding of the caller's, as one UTF-8 line, returning the byte length written. |
+| `hc_approximate_duration(seconds: i64, style: *const u8, style_len: usize, locale: *const u8, locale_len: usize, thresholds: *const u8, thresholds_len: usize, policy: *const u8, policy_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | A span of seconds hedged as a round number, *about 3 hours*, *just over a week*, *nearly a year*, by `hc-humanize`'s `approximate`, as one UTF-8 line, returning the byte length written. |
+| `hc_apnumber(value: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `natural` | A whole number as the Associated Press writes it, *zero* to *nine* spelled out and every other number, negatives included, as its digits, in a locale, by Python's `humanize` `apnumber`, as one UTF-8 line, returning the byte length written. |
+| `hc_fractional(value: f64, buffer: *mut u8, capacity: usize) -> i64` | `natural` | A number as a fraction, *3/10*, *1 3/10*, *-1 3/10*, by Python's `humanize` `fractional`, as one UTF-8 line, returning the byte length written. |
+| `hc_scientific(value: f64, precision: u32, buffer: *mut u8, capacity: usize) -> i64` | `natural` | A number in scientific notation, *3.00 x 10⁻¹*, by Python's `humanize` `scientific`, as one UTF-8 line, returning the byte length written. |
+| `hc_metric(value: f64, unit: *const u8, unit_len: usize, precision: u32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `natural` | A number with an SI prefix and a unit, *1.50 kV*, *200 MW*, *220 μF*, by Python's `humanize` `metric`, as one UTF-8 line, returning the byte length written. |
+| `hc_naturalsize(value: f64, style: *const u8, style_len: usize, decimals: u32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `natural` | A size in bytes, *3.0 MB*, *2.9 KiB*, *300B*, by Python's `humanize` `naturalsize`, as one UTF-8 line, returning the byte length written. |
+| `hc_naturallist(items: *const u8, items_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `natural` | Items joined as a list, *one, two and three*, with no comma before the *and*, by Python's `humanize` `natural_list`, as one UTF-8 line, returning the byte length written. |
+| `hc_intword(digits: *const u8, digits_len: usize, decimals: u32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `natural` | An integer of any length as a count with a word, *12.4 thousand*, *1.2 billion*, *1.0 googol*, by Python's `humanize` `intword`, as one UTF-8 line, returning the byte length written. |
+| `hc_naturaldelta(seconds: i64, microseconds: i32, months: i32, minimum_unit: *const u8, minimum_unit_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `natural` | `humanize`'s `naturaldelta` of a span, *3 hours*, *a moment*, *1 year, 3 months*, without tense, as one UTF-8 line, returning the byte length written. |
+| `hc_naturaltime(seconds: i64, microseconds: i32, months: i32, minimum_unit: *const u8, minimum_unit_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `natural` | `humanize`'s `naturaltime` of a span, *3 hours ago*, *3 hours from now*, *now*, as one UTF-8 line, returning the byte length written. |
+| `hc_precisedelta(seconds: i64, microseconds: i32, minimum_unit: *const u8, minimum_unit_len: usize, suppress: *const u8, suppress_len: usize, decimals: u32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `natural` | `humanize`'s `precisedelta` of a span, *1 year, 2 months and 3 days*, as one UTF-8 line, returning the byte length written. |
+| `hc_naturalday(day: i64, today: i64, pattern: *const u8, pattern_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `natural` | `humanize`'s `naturalday` of a fixed day seen from another, *today*, *tomorrow*, *yesterday*, or the day by a `strftime` pattern, as one UTF-8 line, returning the byte length written. |
+| `hc_naturaldate(day: i64, today: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `natural` | `humanize`'s `naturaldate` of a fixed day seen from another, as `hc_naturalday` with `%b %d`, and with `%b %d %Y` once the day is 153 or more days away, five twelfths of 365 rounded up, as one UTF-8 line, returning the byte length written. |
+| `hc_ordinal(value: i64, gender: *const u8, gender_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `natural` | `humanize`'s `ordinal` of an integer, *1st*, *2nd*, *103rd*, *111th*, in a locale, as one UTF-8 line, returning the byte length written. |
+| `hc_intcomma(digits: *const u8, digits_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `natural` | `humanize`'s `intcomma` of an integer written in digits, *1,234,567*, as one UTF-8 line, returning the byte length written. |
+| `hc_intcomma_float(value: f64, ndigits: i32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `natural` | `humanize`'s `intcomma` of a float, *1,234,567.25*, as one UTF-8 line, returning the byte length written. |
+| `hc_parse_datetime(syntax: *const u8, syntax_len: usize, text: *const u8, text_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `datetime` | A date-time read in a syntax, as one UTF-8 line of eight cells, returning the byte length written. |
+| `hc_format_datetime(syntax: *const u8, syntax_len: usize, unix_seconds: i64, attoseconds: u64, offset_seconds: i32, precision: *const u8, precision_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `datetime` | An instant written as a date-time in a syntax, to a precision and in the zone of a numeric offset, as one UTF-8 line, returning the byte length written. |
+| `hc_format_iso_date_as(fixed: i64, form: *const u8, form_len: usize, style: *const u8, style_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `datetime` | A fixed day written as an ISO 8601 calendar, ordinal or week date, as one UTF-8 line, returning the byte length written. |
+| `hc_iso_date_parts(text: *const u8, text_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `datetime` | An ISO 8601 date read into its parts, including one that names no day, as one UTF-8 line, returning the byte length written. |
+| `hc_iso_duration(text: *const u8, text_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `datetime` | An ISO 8601 duration read into its components, as one UTF-8 line, returning the byte length written. |
+| `hc_format_iso_duration(negative: i32, years: i64, months: i64, weeks: i64, days: i64, hours: i64, minutes: i64, seconds: i64, fraction: *const u8, fraction_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `datetime` | A duration written in ISO 8601 from its components, as one UTF-8 line, returning the byte length written. |
+| `hc_iso_interval(text: *const u8, text_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `datetime` | An ISO 8601 interval, or a repeating one, read into its ends, as one UTF-8 line, returning the byte length written. |
+| `hc_parse_pattern(syntax: *const u8, syntax_len: usize, pattern: *const u8, pattern_len: usize, text: *const u8, text_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `patterns` | A text read against a `strptime` or CLDR pattern, as one UTF-8 line of thirty cells, returning the byte length written. |
+| `hc_parse_pattern_in(syntax: *const u8, syntax_len: usize, pattern: *const u8, pattern_len: usize, text: *const u8, text_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `patterns` | A text read against a `strptime` or CLDR pattern in the names of a locale, as one UTF-8 line, returning the byte length written. |
 | `hc_zone_name(zone: *const u8, zone_len: usize, unix_seconds: i64, locale: *const u8, locale_len: usize, field: *const u8, field_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `zone-names` | A time zone's name at a POSIX timestamp in a locale, as a CLDR pattern field writes it, as one UTF-8 line, returning the byte length written. |
 | `hc_format_pattern(zone: *const u8, zone_len: usize, unix_seconds: i64, locale: *const u8, locale_len: usize, syntax: *const u8, syntax_len: usize, pattern: *const u8, pattern_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `zone-names` | An instant formatted in a time zone and a locale by a CLDR or a `strftime` pattern, as one UTF-8 line, returning the byte length written. |
 
@@ -865,6 +911,245 @@ fails when an export has neither a twin of its name nor a row here.
 | --- | --- | --- | --- |
 | The Gregorian date of a fixed day | `hc_gregorian_year`, `hc_gregorian_month`, `hc_gregorian_day` | `hc_gregorian_from_fixed` | A WebAssembly export returns one `i64`, so the three fields are three exports; the C entry point writes all three through out-parameters in one call. |
 | A block of the module's memory | `hc_alloc`, `hc_free` | — | A page has to put text into the module's linear memory before a call can read it. A C caller owns its own memory and passes pointers to it, so the C library allocates nothing. |
+
+## Date-times, durations and intervals
+
+`hc_parse_iso_date` and `hc_format_iso_date` are the `civil` layer's, and
+read and write a calendar date. The `datetime` layer is the rest of
+`hc-format`'s ISO 8601 and the formats beside it: date-times with a zone,
+week and ordinal dates and dates of reduced accuracy, durations, intervals
+and repeating intervals, RFC 3339, RFC 2822 and HTTP dates, the profile of
+Python's `datetime.isoformat` and `fromisoformat`, and `strptime` and CLDR
+patterns. It is a layer of its own, so that `civil`, the first a page paints
+with, does not carry the grammar of every one of them. ISO 8601-1:2019 and
+its Amendment 1:2022 were not read (ISO sells them); the account of what
+they allow, and the examples of durations and intervals below, are Wikipedia's
+"ISO 8601", read 2026-10-03; RFC 3339 §5.8 and RFC 9110 §5.6.7 were read
+the same day, and RFC 5322's appendix was not (its section for the date
+below could not be confirmed).
+
+A text that is not in the syntax is `HC_ERR_MALFORMED`; a date or a time
+that does not exist, 31 February or `24:00:01`, `HC_ERR_INVALID_DATE`; a value
+the library cannot hold `HC_ERR_OUT_OF_RANGE`; a syntax, form or precision
+not named `HC_ERR_UNKNOWN`. The library will not take an unqualified local
+time for UTC: `2026-09-21T14:30:05` is a reading on somebody's wall clock,
+the same text 14 hours apart in Auckland and Honolulu, and the line that
+reads it has no offset and no instant.
+
+### Date-times
+
+`hc_parse_datetime(syntax_ptr, syntax_len, text_ptr, text_len, buffer,
+capacity)` reads a date-time and writes a *reading* in one line. `syntax` is
+`iso8601`, everything ISO 8601-1 allows of a date and a time (basic and
+extended, ordinal and week dates, `24:00`, `23:59:60`, a decimal fraction of
+the lowest component); `iso8601-full`, complete extended values with a zone
+only; `rfc3339`, the internet profile, whose lower-case `t` and `z`, space and
+`-00:00` are read; `rfc2822`, email and HTTP dates, obsolete syntax included;
+`python`, `datetime.fromisoformat` of Python 3.13, a date alone being
+midnight; and `auto`, which tells an ISO date-time from an email date by its
+letters. A date alone, or one of reduced accuracy, names no reading and is
+`HC_ERR_MALFORMED` under every syntax but `python`; `hc_iso_date_parts`
+reads those.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | local day | the local fixed day |
+| 2 | local second | the local second of the day, 0 through 86 400; `23:59:60` is the 86 400th |
+| 3 | attoseconds | the attoseconds into that second |
+| 4 | zone | `none` for no designator, `utc` for `Z`, `offset` for a numeric one, `unknown-local` for RFC 3339's `-00:00`, an instant whose local offset is not known |
+| 5 | offset | the offset in seconds east of UTC, empty where no zone was stated |
+| 6 | unix seconds | the POSIX second of the instant, floored, empty where no zone was stated; the fraction is in column 3 |
+| 7 | leap second | `1` for an inserted leap second, which POSIX counts as the second after it |
+| 8 | end of day | `1` when the text wrote the end of a day as `24:00` |
+
+Agreement with Python's `datetime`, which also supplied RFC 3339's examples'
+instants: `1996-12-19T16:39:57-08:00` is 851 042 397 and `1985-04-12T23:20:50.52Z`
+482 196 050 (RFC 3339 §5.8); `Fri, 21 Nov 1997 09:55:06 -0600` is 880 127
+706 (a date of the RFC 822 family's examples; its instant is Python's) and `Sun, 06 Nov 1994 08:49:37 GMT` 784 111
+777 (RFC 9110's IMF-fixdate); `1937-01-01T12:00:27.87+00:20` is
+−1 041 337 172.13, which Python's `int` truncates toward zero and the
+POSIX second here floors to −1 041 337 173.
+
+### Writing a date-time
+
+`hc_format_datetime(syntax_ptr, syntax_len, unix_seconds, attoseconds,
+offset_seconds, precision_ptr, precision_len, buffer, capacity)` writes an
+instant, the POSIX second and the attoseconds into it, in the zone of a
+numeric offset. `syntax` is `iso8601`, `iso8601-basic`, `iso8601-ordinal`,
+`iso8601-week`, `rfc3339`, `rfc2822`, `imf-fixdate` (HTTP's, always the UTC
+reading whatever the offset) or `python` (`+00:00` for UTC, never `Z`).
+`precision` is `auto`, the digits the instant needs, or `hours`,
+`minutes`, `seconds`, `milliseconds`, `microseconds` or `nanoseconds`, to
+which a time is truncated, never rounded; RFC 3339 has no `hours` or
+`minutes`, RFC 2822 and HTTP no sub-second digits, Python no `nanoseconds`,
+and a precision a syntax has not is `HC_ERR_UNKNOWN`. An offset beyond
+±25:59:59, attoseconds of 10¹⁸ or more and, for RFC 3339, RFC 2822 and HTTP,
+a year outside 0000 to 9999 are `HC_ERR_OUT_OF_RANGE`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | text | the date-time |
+| 2 | syntax | the syntax it is written in |
+
+### Week and ordinal dates
+
+`hc_format_iso_date_as(fixed, form_ptr, form_len, style_ptr, style_len,
+buffer, capacity)` writes a fixed day as an ISO 8601 `calendar`
+(`2026-09-21`), `ordinal` (`2026-264`) or `week` (`2026-W39-1`) date in the
+`extended` or the `basic` style, with no separators: `2026W391`. The year of a
+week date is the week-numbering year, so 2021-01-03 is `2020-W53-7`. Python's
+`isocalendar` and `%j` agree. A year outside 0000 to 9999 is written with a
+sign and six or more digits, ISO 8601's expanded form.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | text | the date |
+| 2 | form | `calendar`, `ordinal` or `week` |
+| 3 | style | `extended` or `basic` |
+
+### An ISO 8601 date, read into its parts
+
+`hc_iso_date_parts(text_ptr, text_len, buffer, capacity)` reads a date in any
+of ISO 8601's three namings and at any accuracy, `2026`, `2026-09`,
+`2026-W39`, `2026-264`, `20260921`, and says what it is, so that a date
+that names no day is not mistaken for one:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | form | `calendar`, `ordinal` or `week` |
+| 2 | year | the year; the week-numbering year of a week date |
+| 3 | month | the month, empty where the form or the text has none |
+| 4 | day | the day of the month |
+| 5 | day of year | the day of the year |
+| 6 | week | the week |
+| 7 | weekday | the weekday, 1 Monday through 7 Sunday |
+| 8 | fixed | the fixed day, empty for a date that names none |
+| 9 | style | `extended` or `basic` |
+
+### ISO 8601 durations
+
+`hc_iso_duration(text_ptr, text_len, buffer, capacity)` reads a duration:
+`P3Y6M4DT12H30M5S`, `PT36H`, `P1W`, the alternative form
+`P0001-02-03T04:05:06`, and, from ISO 8601-2, a leading minus. A day is 86
+400 seconds and a week seven days: the nominal timeline, not elapsed time
+across a leap second. A duration with years or months has no fixed length and
+is *nominal*, with no exact length.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | negative | `1` for a leading minus |
+| 2 | years | the years, empty where the text did not write them |
+| 3 | months | the months |
+| 4 | weeks | the weeks |
+| 5 | days | the days |
+| 6 | hours | the hours |
+| 7 | minutes | the minutes |
+| 8 | seconds | the seconds |
+| 9 | fraction | the digits of the decimal fraction of the lowest component, as written: `5` for `PT0,5S` |
+| 10 | form | `designators` or `alternative` |
+| 11 | text | the duration written in canonical form |
+| 12 | nominal | `1` when it has years or months |
+| 13 | exact seconds | its whole seconds, empty for a nominal one |
+| 14 | exact attoseconds | the attoseconds after them, empty for a nominal one |
+
+### A duration written
+
+`hc_format_iso_duration(negative, years, months, weeks, days, hours, minutes,
+seconds, fraction_ptr, fraction_len, buffer, capacity)` writes a duration
+from its components; a component below zero is absent, so `-1` leaves a unit
+out, and `fraction` is the digits of a fraction of the lowest component
+present, `5` for a half, empty for none. Components ISO 8601 has no spelling
+for are `HC_ERR_MALFORMED`: none at all (the zero duration is `PT0S`, and is
+written by asking for zero seconds), a week beside other units, a fraction
+on a unit that is not the lowest.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | text | the duration in the designator form |
+| 2 | nominal | `1` when it has years or months |
+| 3 | exact seconds | its whole seconds, empty for a nominal one |
+| 4 | exact attoseconds | the attoseconds after them, empty for a nominal one |
+
+### ISO 8601 intervals
+
+`hc_iso_interval(text_ptr, text_len, buffer, capacity)` reads an interval,
+`start/end`, `start/duration`, `duration/end` or a duration alone, and a
+repeating one, `R5/…` or `R/…`, whose examples are Wikipedia's, read
+2026-10-03:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | repetitions | empty for an interval that does not repeat, a count, or `inf` for `R/` |
+| 2 | shape | `start-end`, `start-duration`, `duration-end` or `duration` |
+| 3 | start | the start written back, empty where the shape has none |
+| 4 | start unix seconds | its POSIX second, empty where it states no zone or no time: a reading, not an instant |
+| 5 | end | the end written back |
+| 6 | end unix seconds | its POSIX second |
+| 7 | duration | the duration written back |
+| 8 | nominal | `1` when it has years or months |
+| 9 | exact seconds | its whole seconds, empty for a nominal one |
+| 10 | exact attoseconds | the attoseconds after them |
+
+The POSIX seconds are whole; a decimal fraction of a second is in the text.
+
+### A text read against a pattern
+
+These two exports are the `patterns` layer, not `datetime`: reading a CLDR
+pattern in a locale needs every carried locale's month, weekday and era
+names, which the rest of `datetime` does not.
+
+`hc_parse_pattern(syntax_ptr, syntax_len, pattern_ptr, pattern_len,
+text_ptr, text_len, buffer, capacity)` reads a text against a pattern and
+writes the fields the pattern read and the reading they resolve to.
+`syntax` is `strftime`, POSIX `strptime`, whose month and weekday names are
+the C locale's; `python`, CPython's `datetime.strptime`, with its
+alternatives, its backtracking and its resolution, and a date the text
+leaves out taken from 1900-01-01; or `cldr`, a pattern of UTS #35 Part 4,
+`yyyy-MM-dd'T'HH:mm:ssXXX`. A text that does not match the pattern, or a
+pattern the library does not read, is `HC_ERR_MALFORMED`, and fields that name
+a date or time that does not exist, 30 February, `HC_ERR_INVALID_DATE`.
+`hc_parse_pattern_in(syntax_ptr, syntax_len, pattern_ptr, pattern_len,
+text_ptr, text_len, locale_ptr, locale_len, buffer, capacity)` adds the names of a locale to the C locale's: `21.
+Dezember 2026` against `d. MMMM y` with `de`. CPython's `strptime` reads the
+C locale's names alone, so `python` with a locale is `HC_ERR_UNKNOWN`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | year | the year, empty in this and every cell below where the pattern did not read it |
+| 2 | century | the century |
+| 3 | year of century | the year of the century |
+| 4 | month | the month |
+| 5 | day | the day of the month |
+| 6 | day of year | the day of the year |
+| 7 | iso year | the week-numbering year |
+| 8 | iso week | the ISO week |
+| 9 | iso weekday | the ISO weekday |
+| 10 | week sunday | the `%U` week number |
+| 11 | week monday | the `%W` week number |
+| 12 | hour | the hour on a 24-hour clock |
+| 13 | hour 12 | the hour on a 12-hour clock |
+| 14 | day period | `am` or `pm` |
+| 15 | minute | the minute |
+| 16 | second | the second |
+| 17 | attoseconds | the attoseconds of the second |
+| 18 | zone | `utc`, `offset` or `unknown-local` |
+| 19 | offset | the zone's offset in seconds east of UTC |
+| 20 | unix seconds | the POSIX second a `%s` read |
+| 21 | era | `ce` or `bce` |
+| 22 | fixed | the fixed day CLDR's `g` read |
+| 23 | local day | the reading the fields resolve to, as `hc_parse_datetime` writes it; cells 23 to 30 are empty where the fields name no whole date and time: `%H:%M` names no day |
+| 24 | local second | as column 2 of a reading |
+| 25 | reading attoseconds | column 3 of a reading |
+| 26 | reading zone | column 4 of a reading |
+| 27 | reading offset | column 5 of a reading |
+| 28 | reading unix seconds | column 6 of a reading |
+| 29 | leap second | column 7 of a reading |
+| 30 | end of day | column 8 of a reading |
+
+Python's `datetime.strptime("Mon Sep 21 14:30:05 2026", "%a %b %d %H:%M:%S
+%Y")` and this agree on 2026-09-21 14:30:05; `%H:%M` against `14:30` is
+1900-01-01 14:30, RD 693 596, under `python` and no reading under
+`strftime`.
 
 ## Time scales and day counts
 
@@ -1899,6 +2184,9 @@ line per locale the module carries, in tag order.
 | 5 | weekdays | `1` when it names the weekdays |
 | 6 | gregorian eras | `1` when it names the Gregorian eras |
 | 7 | calendars | the identifiers of the calendars it has vocabulary of its own for beyond the shared Gregorian months, joined by `;` |
+| 8 | parent | its parent in the fallback chain, as `hc_locale_chain` takes it; empty for none |
+| 9 | numbering | the numbering system numbers are written in by default, a `hc_format_number` identifier: `latn`, `arab`, `deva` |
+| 10 | direction | `ltr` or `rtl`, the direction of the locale's script |
 
 ## The first day of the week
 
@@ -1912,6 +2200,139 @@ Saturday. A tag that does not parse is the root locale `und`, whose week
 begins on the world's Monday. It answers an `i64`, as every export that can
 return a sentinel does, and fails only as a text argument does:
 `HC_ERR_NULL_POINTER` or `HC_ERR_NOT_UTF8`.
+
+## How a locale resolves
+
+Six exports in the `calendars` feature show what the library does with a
+locale tag, so that a page can say why a name came out as it did. A tag
+that does not parse is the root locale for every export that only reads
+names from it; these six, which exist to say what a tag means, refuse it as
+`HC_ERR_MALFORMED`, and the empty string is the root locale `und`. All take
+`locale_ptr, locale_len` first.
+
+### The fallback chain
+
+`hc_locale_chain(locale_ptr, locale_len, buffer, capacity)` writes one line
+per step of the chain the library looks a name up along, the requested
+locale first and `und` last: `en-AU`, `en-001`, `en`, `und`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | step | the step, from 0 |
+| 2 | tag | the tag |
+| 3 | rule | the rule that led to it from the step before: `requested`; `likely-script` (a language carried per script, `zh-TW`, takes the script CLDR's likely subtags give it); `extensions` (the `-u-` keys); `variant`; `parent-locales` (a parent CLDR 48's `parentLocales` name: `en-AU` to `en-001`, `zh-Hant` to `und`); `region` and `script` (truncation, UTS #35 Part 1); `root` |
+| 4 | carried | `1` when `hc-i18n` carries an entry of data for exactly this tag (`en-001` and `en`), `0` when the step is only a stage on the way (`en-AU`, and `und`, whose vocabulary is the floor of every lookup and not an entry) |
+
+### What a locale is
+
+`hc_locale_info(locale_ptr, locale_len, buffer, capacity)` writes one line:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | tag | the tag, written canonically |
+| 2 | language | the language subtag |
+| 3 | script | the script subtag as given, empty where absent |
+| 4 | region | the region subtag as given |
+| 5 | variant | the variant subtag as given |
+| 6 | calendar key | the `-u-ca-` key, empty where absent |
+| 7 | numbering key | the `-u-nu-` key |
+| 8 | first day key | the `-u-fw-` key as an ISO weekday number |
+| 9 | hour cycle key | the `-u-hc-` key |
+| 10 | locale used | the tag of the entry of data that answers for it |
+| 11 | parent | the next step of the chain, empty for `und` |
+| 12 | parent rule | the rule that gave the parent, as column 3 of `hc_locale_chain` |
+| 13 | numbering | the numbering system numbers are written in by default: `arab` for `ar-SA`, `latn` for `ar` |
+| 14 | first day | the ISO weekday number the week begins on, as `hc_first_day_of_week` answers |
+| 15 | min days | CLDR's `minDays`: the fewest days of a year a week needs to be its first, 4 in Germany and 1 in the United States |
+| 16 | direction | `ltr` or `rtl` |
+| 17 | casing | `standard` or `turkic` |
+| 18 | capitalises month names | `1` when month and weekday names are written with a capital |
+| 19 | plural rules | the language of the cardinal plural rules that apply, `pt-PT` for Portugal, `und` where none is carried and every number is `other` |
+
+The weekend days of a locale are not here: `hc-i18n` reads CLDR's `weekData`
+`firstDay` and `minDays` and carries no `weekendStart` or `weekendEnd`.
+The weekend laws of the holiday tables, with the statutes they come from,
+are in column 14 of `hc_holiday_tables`.
+
+### A plural category
+
+`hc_plural_category(locale_ptr, locale_len, number_ptr, number_len,
+kind_ptr, kind_len, buffer, capacity)` gives the category a number has in a
+locale, by CLDR 48's cardinal rules (UTS #35 Part 3). `number` is a plain
+decimal as text, so that a written trailing zero counts: *1* is `one` in
+English and *1.0* is `other`, because the rule reads the visible fraction
+digits `v`. `kind` is `cardinal`; `ordinal` is `HC_ERR_NO_DATA`, because
+the library carries `plurals.xml`'s cardinal rules and no `ordinals.xml`,
+and the compact-notation operands `c` and `e` are not carried; another kind
+is `HC_ERR_UNKNOWN`. Text that is not a decimal is `HC_ERR_MALFORMED` and
+digits beyond a `u64` `HC_ERR_OUT_OF_RANGE`. One line:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | category | `zero`, `one`, `two`, `few`, `many` or `other` |
+| 2 | rules | the language of the rules that decided it: `ru`, `pt-PT`, or `und` where none is carried |
+| 3 | i | operand `i`, the integer digits |
+| 4 | v | operand `v`, the visible fraction digits, trailing zeros included |
+| 5 | w | operand `w`, the visible fraction digits without trailing zeros |
+| 6 | f | operand `f`, the visible fraction digits as an integer |
+| 7 | t | operand `t`, the fraction digits without trailing zeros as an integer |
+
+### The names of a calendar
+
+`hc_names(locale_ptr, locale_len, calendar_ptr, calendar_len, width_ptr,
+width_len, context_ptr, context_len, buffer, capacity)` lists every name a
+locale has for a calendar in one width and one context, one per line.
+`width` is `wide`, `abbreviated`, `short` or `narrow`, and `context`
+`format`, the form inside a date, where Russian writes *сентября*, or
+`standalone`, *сентябрь*; any other, and a calendar the registry does not
+carry, is `HC_ERR_UNKNOWN`. A position the locale and the calendar do not
+name has no line, so the months of a calendar that numbers them are not
+listed; `hc_calendar_eras` lists eras.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | kind | `month`; `month-in-leap-year` where the locale names a month differently in a year with the calendar's intercalary month (*Adar II*); `quarter`; `day-period` for `am` and `pm`; and every other cycle of the calendar by its kind, `weekday`, `stem`, `branch` |
+| 2 | position | the position from 1; the ISO number for a weekday |
+| 3 | name | the name |
+| 4 | locale used | the tag of the entry of data that answered |
+
+### Case
+
+`hc_case(locale_ptr, locale_len, mode_ptr, mode_len, text_ptr, text_len,
+buffer, capacity)` recases a text as the locale does: `lower` and `upper`
+differ from Unicode's defaults only in Turkish and Azerbaijani (`iyi` is
+`İYİ`); `capitalise-first` and `lowercase-first` change the first character
+only, because a title case of every word needs a word-break rule the library
+does not have; `sentence-start` sets a month or weekday name as it opens a
+sentence, always with a capital, and `in-sentence` inside one, with a capital
+in English and German and none in French. One line:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | text | the text recased |
+| 2 | mode | the mode |
+| 3 | casing | `standard` or `turkic` |
+| 4 | locale used | the tag of the entry of data that answered |
+
+### Isolates
+
+`hc_isolate(locale_ptr, locale_len, mode_ptr, mode_len, text_ptr,
+text_len, buffer, capacity)` makes a text safe to embed in text running the
+locale's direction, by the Unicode bidirectional isolates (UAX 9). `field`
+isolates only where the locale's direction and the text's own disagree, so
+a Latin date in Arabic prose is wrapped in U+2066 and U+2069 and Arabic in
+English prose in U+2067 and U+2069, and a field in the locale's own
+direction, or one with no strong character such as a number, is left
+alone; `first-strong` always wraps it in U+2068 and U+2069; `strip` removes
+every isolate and directional mark, for comparing or hashing. One line:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | text | the text, with the isolates where the mode says |
+| 2 | direction | the locale's direction, `ltr` or `rtl` |
+| 3 | text direction | the text's own, by the first-strong rule of UAX 9; empty where it has no strong character |
+| 4 | isolated | `1` when isolates were added |
+| 5 | mode | the mode |
 
 ### Day periods
 
@@ -5482,23 +5903,106 @@ nothing is *0 seconds*.
 | 2 | negative | `1` if `seconds` was negative, else `0` |
 | 3 | locale used | the tag of the `hc-humanize` data the locale resolved to |
 
-### Python humanize's numbers
+### A threshold table and a rounding of the caller's
 
-`hc_apnumber`, `hc_fractional`, `hc_scientific`, `hc_metric`,
-`hc_naturalsize`, `hc_naturallist` and `hc_intword` are the number and
-list functions of Python's `humanize` package (4.16, its documentation and
-source read 2026-10-03), in the English it ships: *five*, *1 3/10*, *3.00 x
-10⁻¹*, *1.50 kV*, *3.0 MB* or *2.9 KiB*, *one, two and three*, *12.4
-thousand* up to *1.0 googol*. They are one convention of phrasing and the
-CLDR ones above another (policy §5); this one takes no locale at the
-boundary: `hc-humanize` carries `humanize`'s 35 gettext catalogues
-(`NaturalPhrases::by_catalogue`) and no export takes one yet, so every line
-says `en`, the language of its vocabulary. Each writes one line:
+`hc_relative_time` fixes `hc-humanize`'s conversational thresholds and
+truncation. `hc_unit_choice(seconds, thresholds_ptr, thresholds_len,
+rounding_ptr, rounding_len, buffer, capacity)` names the unit a span is
+said in and its count under a table and a rounding the caller names,
+`hc_relative_time_with(then_unix, now_unix, style_ptr, style_len,
+automatic, locale_ptr, locale_len, thresholds_ptr, thresholds_len,
+rounding_ptr, rounding_len, buffer, capacity)` phrases an instant under
+them, and `hc_approximate_duration(seconds, style_ptr, style_len,
+locale_ptr, locale_len, thresholds_ptr, thresholds_len, policy_ptr,
+policy_len, buffer, capacity)` hedges a span as a round number. The tables
+are `default`, the conversational one in which 45 seconds is already a
+minute; `exact`, which moves to the next unit only once a whole one fits;
+and `with-quarters`. The roundings are `ceil`, `floor`, `nearest`,
+`truncate` and `nearest-half`, which turns 90 minutes into *an hour and a
+half*. A table of the caller's own rows is not a text argument: the library
+holds a table as a static slice, so it is not exported (a gap, not a
+choice). `hc_unit_choice` writes one line:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | unit | the unit the span is said in, CLDR's field name; `quarter` under `with-quarters` |
+| 2 | count | the signed count, its whole part |
+| 3 | half | `1` when a half is added to the count in the direction of its sign (`nearest-half` only), else `0` |
+| 4 | thresholds | the table applied |
+| 5 | rounding | the rounding applied |
+
+### A relative time under a table
+
+`hc_relative_time_with` writes `hc_relative_time`'s line with the half
+flag after the count:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | phrase | the phrase: *1 hour ago*, *2 hours ago* |
+| 2 | unit | the unit it is counted in |
+| 3 | count | the signed count, negative in the past |
+| 4 | half | `1` when a half is added to the count, else `0` |
+| 5 | locale used | the tag of the `hc-humanize` data the locale resolved to |
+
+### A hedged duration
+
+`hc_approximate_duration` says *about 3 hours*, *just over a week*,
+*nearly a year*: the unit is the table's, the whole count is kept, and the
+fraction of the unit left over chooses the hedge, under `default` below 2 %
+none, below 8 % *about*, below 35 % *just over*, below 70 % *over* and
+otherwise *nearly* the next count up; `bounded` never says *about*, for a
+phrase that has to be a true bound. The sign is dropped, a hedge describing
+a length. It writes one line:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | phrase | the phrase: *about 3 hours*, *just over a year* |
+| 2 | hedge | `exactly`, `about`, `just-over`, `over` or `nearly` |
+| 3 | unit | the unit the count is in |
+| 4 | count | the count, which *nearly* carries up to the next |
+| 5 | locale used | the tag of the `hc-humanize` data the locale resolved to |
+
+### Python humanize's words
+
+The `natural` layer is the functions of Python's `humanize` package (4.16,
+its documentation and source read 2026-10-03), with its 35 gettext
+catalogues: `hc_apnumber`, `hc_fractional`, `hc_scientific`, `hc_metric`,
+`hc_naturalsize`, `hc_naturallist`, `hc_intword`, `hc_naturaldelta`,
+`hc_naturaltime`, `hc_precisedelta`, `hc_naturalday`, `hc_naturaldate`,
+`hc_ordinal`, `hc_intcomma` and `hc_intcomma_float`: *five*, *1 3/10*, *3.00
+x 10⁻¹*, *1.50 kV*, *3.0 MB* or *2.9 KiB*, *one, two and three*, *12.4
+thousand* up to *1.0 googol*, *3 hours ago*, *1 year, 2 months and 3 days*,
+*tomorrow*, *103rd*, *1,234,567*. They are one convention of phrasing and
+the CLDR ones above another (policy §5), and a layer of its own because the
+35 catalogues are text the CLDR layer does not need.
+
+Every function with words takes a `locale`, as `hc_relative_day` does, and
+resolves it along the same fallback chain, `pt-AO` to `pt-PT` to `pt` to
+root; a step is served by a catalogue when the catalogue is for its
+language, and, where the step names one, its region (`de-AT` is `de_DE`) or
+script (`zh-Hant` is `zh_HK`, the one Traditional catalogue). A bare
+language with two catalogues, `pt`, picks neither: no region is guessed. A
+catalogue the `humanize` project has only part translated holds the English
+of the source for what it lacks, so a catalogue is passed over, for the next
+step of the chain and then English, when it does not translate the words of
+the function asked: the German catalogue has *fünf* and *Millionen* and
+*vor 3 Sekunden*, but no *Byte* or `kB`, and so `hc_naturalsize` in `de` is
+English whole, never *3.0 MB* with a German word beside it. The root locale,
+the empty one and a tag that does not parse have no catalogue and are
+English, not the root's CLDR phrases. `hc_naturallist` takes a locale but
+changes nothing: Python's `natural_list` has its `, ` and ` and ` as
+literals in `lists.py`, which no catalogue translates, and `hc_metric`'s
+prefixes are symbols; they say which catalogue's decimal mark a magnitude
+beyond the prefixes would use. Each writes one line:
 
 | # | Column | Holds |
 | --- | --- | --- |
 | 1 | text | the text |
-| 2 | language | the language of the vocabulary that wrote it, `en`, the only one carried |
+| 2 | locale used | the language of the catalogue that wrote it, `en`, `de-DE`, `ru-RU`; never a mixture of two |
+
+`hc_fractional` and `hc_scientific` write no word and take no locale; their
+line is the same two cells with the second the language of the vocabulary,
+always `en`, which `fractional` and `scientific` decode as a `NaturalText`.
 
 `hc_apnumber` spells out `zero` to `nine`. `hc_fractional` writes the
 nearest fraction with a denominator of at most 1000. `hc_scientific` takes
@@ -5512,6 +6016,25 @@ largest it names is the googol, and an integer beyond the largest double is
 *-Inf*; `NaN` as a size, which Python's `int` refuses, and text that is not
 an integer, are refused.
 
+`hc_naturaldelta(seconds, microseconds, months, minimum_unit, locale)` and
+`hc_naturaltime(...)` take a span as `seconds` plus `microseconds`, which
+may differ in sign, as a Python `timedelta`'s fields do; the sign of a
+`naturaldelta` is ignored and a positive `naturaltime` is in the past, as in
+Python. `months` uses months of 30.5 days between days and years and
+`minimum_unit` is `seconds`, `milliseconds` or `microseconds`; a larger unit
+is `HC_ERR_OUT_OF_RANGE`, Python's `ValueError`. `hc_precisedelta(seconds,
+microseconds, minimum_unit, suppress, decimals, locale)` follows 4.16.0's
+arithmetic step for step, quirks included; `suppress` is the units folded
+into the next smaller, separated by commas. `hc_naturalday(day, today,
+pattern, locale)` and `hc_naturaldate(day, today, locale)` take the two
+fixed days a page has read off its own clock; the words are the catalogue's
+and a day written with a `strftime` pattern has the C locale's month name,
+as Python's has. `hc_ordinal(value, gender, locale)` takes `male` or
+`female`. `hc_intcomma(digits, locale)` takes an integer of up to 39
+digits and `hc_intcomma_float(value, ndigits, locale)` a float, with a
+negative `ndigits` for Python's `repr`; their separators are the first
+matching catalogue's, `1.234.567` in German.
+
 ```js
 const now = Math.floor(Date.now() / 1000);
 hc.relativeTime(now - 3 * 3600, now, "long", false, "en").phrase;   // "3 hours ago"
@@ -5520,6 +6043,8 @@ hc.relativeDayAt(today - 1, today, 15 * 3600 + 5 * 60, "long", true, "en").phras
 // "yesterday at 15:05"
 hc.duration(9000, "long", 0, "de").phrase;                          // "2 Stunden und 30 Minuten"
 hc.naturalSize(3000, "binary").text;                                // "2.9 KiB"
+hc.naturalTime(3, 0, true, "seconds", "de").text;                   // "vor 3 Sekunden"
+hc.preciseDelta(2 * 86400 + 3633, 123000).text;                     // "2 days, 1 hour and 33.12 seconds"
 hc.intword(`1${"0".repeat(100)}`).text;                             // "1.0 googol"
 ```
 
@@ -5541,19 +6066,16 @@ Neither boundary exposes these parts of the workspace:
   they are not in the registry that `hc_describe_day` and
   `hc_calendar_units` walk, and a fixed day cannot be handed to them; an
   instant can, and `hc_circad_date` answers it.
-- **Most of `hc-humanize`'s `natural` module, and the rest of its other
-  formatters' options.** The `humanize` layer writes `hc-humanize`'s
-  relative times, relative days and durations in a locale, and `natural`'s
-  number and list functions in English. `natural`'s `naturaldelta`,
-  `naturaltime`, `precisedelta`, `naturalday`, `naturaldate`, `ordinal` and
-  `intcomma`, `intword` of an `i64` (`hc_intword` takes digits), `clamp`
-  (its format is a Python function or format string, which has no shape
-  here), the `approximate` formatter, and the thresholds and rounding that
-  `hc_relative_time` fixes, are not exported yet; no line format has been
-  designed for them. Python's translations of `humanize` are carried by
-  `hc-humanize` and not exported yet: a catalogue argument for the number
-  and list exports, and a vocabulary column for the time ones, are not
-  designed.
+- **Parts of `hc-humanize`.** The `humanize` layer writes its relative
+  times, relative days, durations, unit choice and hedged durations in a
+  locale, and the `natural` layer the functions of Python's `humanize` in
+  its catalogues. Not exported: `intword` of an `i64` (`hc_intword` takes
+  digits), `clamp` (its format is a Python function or format string, which
+  has no shape here), `naturaltime` of two readings (a page subtracts them
+  and passes the span), a threshold table of the caller's own rows (the
+  library holds a table as a static slice), and a locale for
+  `hc_relative_day` and `hc_relative_day_at`'s thresholds, which are the
+  conversational table and truncation.
 - **`hc-fiscal`, `hc-name-days`, `hc-attributes` and `hc-units`.** No line
   format has been designed for them yet; each would be a layer of its own. Of `hc-almanac`, 七曜 is not written, since
   it is the weekday; the meanings, glosses and 五行 of its annotations,

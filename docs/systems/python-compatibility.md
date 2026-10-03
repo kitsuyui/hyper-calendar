@@ -104,11 +104,19 @@ expression is evaluated as written (`natural::gettext`).
   more is refused as Python refuses it.
 - **`humanize`**: every function of 4.16.0's `time`, `number`, `filesize` and
   `lists` modules, with the 35 catalogues and the separators of `i18n.py`; the
-  functions in the parity table, the boundary exports for the number and list
-  ones in English. *Not carried*: the behaviour `main` changed after the
-  release (listed in the parity document), the parsing of strings into numbers,
-  and the exports of `naturaldelta`, `naturaltime`, `precisedelta`,
-  `naturalday`, `naturaldate`, `ordinal` and `intcomma` at the boundary.
+  functions in the parity table, and every function with words at the boundary
+  in the `natural` layer, in the catalogue that serves the locale. A locale
+  resolves along its fallback chain to the first catalogue that is for it and
+  translates the words of the function asked: a catalogue holds the English of
+  the source for a message it lacks, so the German catalogue, which has *fünf*
+  and *Millionen* and no *Byte*, serves `apnumber` and `intword` and not
+  `naturalsize`, and a result is never written in two languages. `natural_list`
+  is in no catalogue (its `, ` and ` and ` are literals in `lists.py`), so every
+  locale gets English for it. *Not carried*: the behaviour `main` changed after
+  the release (listed in the parity document), the parsing of strings into
+  numbers, `naturaltime` of two readings at the boundary (a caller subtracts
+  them), and a bare language with two catalogues, `pt`, which takes neither: no
+  region is guessed.
 - **`timedelta`**: `* float`, `/ float`, `/ int` and `/ timedelta` as Python
   computes them, beside the exact versions. `// int` floors at the
   attosecond, not the microsecond.
@@ -182,6 +190,14 @@ every disagreement was either fixed or is listed in the parity document.
   `crates/hyper-calendar/src/civil.rs` (`Resolution`, the `TimeDelta`
   methods) and `civil/struct_time.rs` (`StructTime` and `calendar`); tests in
   `crates/hyper-calendar/tests/python.rs` and `hc-core`'s `duration`.
-- The boundary exports `hc_apnumber`, `hc_fractional`, `hc_scientific`,
-  `hc_metric`, `hc_naturalsize`, `hc_naturallist` and `hc_intword`:
-  `crates/hyper-calendar/src/exports.rs` and `humanize_lines.rs`.
+- `NaturalPhrases::for_locale` and `NaturalWords` choose the catalogue for a
+  locale (`crates/hc-humanize/src/natural.rs`; test
+  `a_locale_is_served_by_the_first_catalogue_that_translates_the_words`).
+- The boundary's `natural` layer: `hc_apnumber`, `hc_fractional`,
+  `hc_scientific`, `hc_metric`, `hc_naturalsize`, `hc_naturallist`,
+  `hc_intword`, `hc_naturaldelta`, `hc_naturaltime`, `hc_precisedelta`,
+  `hc_naturalday`, `hc_naturaldate`, `hc_ordinal`, `hc_intcomma` and
+  `hc_intcomma_float`: `crates/hyper-calendar/src/exports.rs` and
+  `humanize_lines.rs`. `strptime` and `fromisoformat` cross the boundary as
+  `hc_parse_pattern` and `hc_parse_datetime` with the syntax `python`, and
+  `isoformat` as `hc_format_datetime` with it (`datetime_lines.rs`).

@@ -54,6 +54,37 @@ pub enum RoundingPolicy {
 }
 
 impl RoundingPolicy {
+    /// Every policy, with the identifier a caller names it by.
+    pub const ALL: [(&'static str, Self); 5] = [
+        ("ceil", Self::Ceil),
+        ("floor", Self::Floor),
+        ("nearest", Self::Nearest),
+        ("truncate", Self::Truncate),
+        ("nearest-half", Self::NearestHalf),
+    ];
+
+    /// The policy an identifier names, `ceil`, `floor`, `nearest`,
+    /// `truncate` or `nearest-half`, in any case; `None` for other text.
+    #[must_use]
+    pub fn by_id(id: &str) -> Option<Self> {
+        Self::ALL
+            .into_iter()
+            .find(|(name, _)| hc_core::catalogue::matches(id, name))
+            .map(|(_, policy)| policy)
+    }
+
+    /// The identifier [`RoundingPolicy::by_id`] reads back.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::Ceil => "ceil",
+            Self::Floor => "floor",
+            Self::Nearest => "nearest",
+            Self::Truncate => "truncate",
+            Self::NearestHalf => "nearest-half",
+        }
+    }
+
     /// Apply the policy to a signed count of units.
     ///
     /// # Errors
@@ -173,6 +204,23 @@ impl Thresholds {
 
     /// The conversational table with quarters.
     pub const WITH_QUARTERS: Self = Self { rows: QUARTER_ROWS };
+
+    /// The three tables this crate states, with the identifier a caller
+    /// names each by.
+    pub const PRESETS: [(&'static str, Self); 3] = [
+        ("default", Self::DEFAULT),
+        ("exact", Self::EXACT),
+        ("with-quarters", Self::WITH_QUARTERS),
+    ];
+
+    /// The table an identifier names, `default`, `exact` or `with-quarters`,
+    /// in any case; `None` for other text.
+    #[must_use]
+    pub fn by_id(id: &str) -> Option<(&'static str, Self)> {
+        Self::PRESETS
+            .into_iter()
+            .find(|(name, _)| hc_core::catalogue::matches(id, name))
+    }
 
     /// A table of the caller's own.
     ///

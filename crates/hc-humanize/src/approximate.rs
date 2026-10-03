@@ -70,6 +70,21 @@ pub enum Approximation {
 }
 
 impl Approximation {
+    /// The word a caller reads the hedge by: `exactly`, `about`,
+    /// `just-over`, `over`, `nearly`, `less-than` or `more-than`.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::Exactly => "exactly",
+            Self::About => "about",
+            Self::JustOver => "just-over",
+            Self::Over => "over",
+            Self::Nearly => "nearly",
+            Self::LessThan => "less-than",
+            Self::MoreThan => "more-than",
+        }
+    }
+
     /// The locale's pattern for this hedge.
     #[must_use]
     pub fn pattern(self, locale: &hc_i18n::Locale) -> &'static str {
@@ -121,6 +136,22 @@ impl ApproximatePolicy {
         just_over_within: 0.35,
         over_within: 0.70,
     };
+}
+
+impl ApproximatePolicy {
+    /// The two policies this crate states, with the identifier a caller
+    /// names each by.
+    pub const PRESETS: [(&'static str, Self); 2] =
+        [("default", Self::DEFAULT), ("bounded", Self::BOUNDED)];
+
+    /// The policy an identifier names, `default` or `bounded`, in any case;
+    /// `None` for other text.
+    #[must_use]
+    pub fn by_id(id: &str) -> Option<(&'static str, Self)> {
+        Self::PRESETS
+            .into_iter()
+            .find(|(name, _)| hc_core::catalogue::matches(id, name))
+    }
 }
 
 impl Default for ApproximatePolicy {

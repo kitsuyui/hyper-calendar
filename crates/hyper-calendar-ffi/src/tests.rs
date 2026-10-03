@@ -33,6 +33,9 @@ fn querying_the_version_works_in_both_passes() {
     feature = "relativity",
     feature = "places",
     feature = "humanize",
+    feature = "natural",
+    feature = "datetime",
+    feature = "patterns",
     feature = "zone-names"
 ))]
 fn read_lines(call: impl Fn(*mut c_char, usize, *mut usize) -> HcStatus) -> String {
@@ -74,6 +77,9 @@ fn read_lines(call: impl Fn(*mut c_char, usize, *mut usize) -> HcStatus) -> Stri
     feature = "relativity",
     feature = "places",
     feature = "humanize",
+    feature = "natural",
+    feature = "datetime",
+    feature = "patterns",
     feature = "zone-names"
 ))]
 fn measured(call: impl Fn(*mut c_char, usize, *mut usize) -> HcStatus) -> HcStatus {
@@ -137,6 +143,15 @@ mod places;
 #[cfg(feature = "humanize")]
 mod humanize;
 
+#[cfg(feature = "natural")]
+mod natural;
+
+#[cfg(feature = "datetime")]
+mod datetime;
+
+#[cfg(feature = "patterns")]
+mod patterns;
+
 #[cfg(feature = "zone-names")]
 mod zone_names;
 
@@ -148,6 +163,9 @@ mod clock_readings;
 
 #[cfg(feature = "calendars")]
 mod day_periods;
+
+#[cfg(feature = "calendars")]
+mod locale_resolution;
 
 #[cfg(feature = "holiday")]
 mod fasts;

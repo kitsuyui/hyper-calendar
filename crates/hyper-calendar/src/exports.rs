@@ -156,6 +156,321 @@ macro_rules! exports {
                     .ok_or($crate::boundary::Refusal::OutOfRange)
             };
     } };
+    ("datetime", $backend:ident) => { $backend! {
+        c {
+            /// A date-time read in a syntax, as one NUL-terminated UTF-8 line in a
+            /// caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. `syntax` is `iso8601`,
+            /// `iso8601-full`, `rfc3339`, `rfc2822`, `python` or `auto`, in any case;
+            /// another is `HC_ERROR_UNKNOWN`, and null `syntax` or `text`
+            /// `HC_ERROR_NULL_POINTER`. Text that is not in the syntax, a date or a date of
+            /// reduced accuracy where a date-time was meant, is `HC_ERROR_MALFORMED`; a
+            /// date or time that does not exist, 31 February or `24:00:01`,
+            /// `HC_ERROR_INVALID_DATE`; one this library cannot hold `HC_ERROR_OUT_OF_RANGE`.
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// A date-time read in a syntax, as one UTF-8 line of eight cells, returning
+            /// the byte length written.
+            ///
+            /// Tab-separated, a *reading*: the local fixed day; the local second of the
+            /// day, 0 through 86 400 (`23:59:60` is the 86 400th second); the attoseconds
+            /// into that second; the zone, `none` for no designator, `utc` for `Z`, `offset`
+            /// for a numeric one and `unknown-local` for RFC 3339's `-00:00`; the offset in
+            /// seconds east of UTC; the POSIX second of the instant, floored, the fraction
+            /// being in the attosecond cell; `1` for an inserted leap second, which POSIX
+            /// counts as the second after it; and `1` when the text wrote the end of a day
+            /// as `24:00`. The offset and the POSIX second are empty when the text states
+            /// no zone: `2026-09-21T14:30:05` is a reading on somebody's wall clock, never
+            /// UTC, and no instant stands for it.
+            ///
+            /// `syntax` is `iso8601`, everything ISO 8601-1 allows of a date and a time,
+            /// basic and extended, ordinal and week dates, `24:00`, `23:59:60` and a decimal
+            /// fraction of the lowest component; `iso8601-full`, complete extended values
+            /// with a zone only; `rfc3339`, the internet profile, whose lower-case `t` and
+            /// `z` and space are read; `rfc2822`, email and HTTP dates, obsolete syntax
+            /// included; `python`, `datetime.fromisoformat` of Python 3.13, which takes a
+            /// date alone as midnight; and `auto`, which tells an ISO date-time from an email
+            /// date by its letters; in any case, and another, the empty string included, is
+            /// `HC_ERR_UNKNOWN`. Text that is not in the syntax, a date alone or a date of
+            /// reduced accuracy under any syntax but `python` (`hc_iso_date_parts` reads
+            /// those), is `HC_ERR_MALFORMED`; a date or a time that does not exist is
+            /// `HC_ERR_INVALID_DATE`; one this library cannot hold `HC_ERR_OUT_OF_RANGE`. A
+            /// null `buffer` returns the length the text needs.
+        }
+        fn hc_parse_datetime(syntax: name(syntax_len), text: text(text_len)) -> line =
+            $crate::datetime_lines::parse_datetime_line;
+
+        c {
+            /// An instant written as a date-time in a syntax, as one NUL-terminated UTF-8
+            /// line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. `unix_seconds` and `attoseconds` are
+            /// the instant, `offset_seconds` the zone it is written in. `syntax` is
+            /// `iso8601`, `iso8601-basic`, `iso8601-ordinal`, `iso8601-week`, `rfc3339`,
+            /// `rfc2822`, `imf-fixdate` or `python`, and `precision` `auto`, `hours`,
+            /// `minutes`, `seconds`, `milliseconds`, `microseconds` or `nanoseconds`, in
+            /// any case; another, or one the syntax has not, is `HC_ERROR_UNKNOWN`, and null
+            /// `HC_ERROR_NULL_POINTER`. `attoseconds` of 10¹⁸ or more, an offset beyond
+            /// ±25:59:59 and a year `0000..=9999` does not hold where the syntax needs one
+            /// are `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// An instant written as a date-time in a syntax, to a precision and in the
+            /// zone of a numeric offset, as one UTF-8 line, returning the byte length
+            /// written.
+            ///
+            /// Tab-separated: the text, and the syntax. `unix_seconds` and `attoseconds`
+            /// (from 0 to 10¹⁸ − 1, the remainder of the second, never negative) are the
+            /// instant and `offset_seconds` the zone it is written in. `syntax` is
+            /// `iso8601` (`2026-09-21T14:30:05+09:00`, `Z` for a zero offset),
+            /// `iso8601-basic` (`20260921T143005+0900`), `iso8601-ordinal`
+            /// (`2026-264T14:30:05+09:00`), `iso8601-week` (`2026-W39-1T14:30:05+09:00`),
+            /// `rfc3339`, `rfc2822` (`Mon, 21 Sep 2026 14:30:05 +0900`), `imf-fixdate`
+            /// (HTTP's, `Mon, 21 Sep 2026 05:30:05 GMT`, always the UTC reading whatever the
+            /// offset) or `python` (`datetime.isoformat`: `+00:00` for UTC, never `Z`).
+            /// `precision` is `auto`, the digits the instant needs and none for a whole
+            /// second, or `hours`, `minutes`, `seconds`, `milliseconds`, `microseconds` or
+            /// `nanoseconds`; a time is truncated to it, never rounded. RFC 3339 has no
+            /// `hours` or `minutes`, RFC 2822 and HTTP no sub-second digits and Python no
+            /// `nanoseconds`. Both in any case; another, one a syntax has not, and the empty
+            /// string, is `HC_ERR_UNKNOWN`. `attoseconds` of 10¹⁸ or more, an offset beyond
+            /// ±25:59:59 and a year outside `0000..=9999` in RFC 3339, RFC 2822 or HTTP
+            /// is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text needs.
+        }
+        fn hc_format_datetime(
+            syntax: name(syntax_len),
+            unix_seconds: i64,
+            attoseconds: u64,
+            offset_seconds: int,
+            precision: name(precision_len),
+        ) -> line =
+            $crate::datetime_lines::format_datetime_line;
+
+        c {
+            /// A fixed day written as an ISO 8601 calendar, ordinal or week date, as one
+            /// NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. `form` is `calendar`, `ordinal` or
+            /// `week` and `style` `extended` or `basic`, in any case; another is
+            /// `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`. A day outside the
+            /// Gregorian range is `HC_ERROR_OUT_OF_RANGE`. Writes the required length,
+            /// including the terminator, into `written`.
+        }
+        wasm {
+            /// A fixed day written as an ISO 8601 calendar, ordinal or week date, as one
+            /// UTF-8 line, returning the byte length written.
+            ///
+            /// Tab-separated: the date, the form and the style. `form` is `calendar`
+            /// (`2026-09-21`), `ordinal` (`2026-264`) or `week` (`2026-W39-1`, whose year is
+            /// the week-numbering year: 2021-01-03 is `2020-W53-7`); `style` is `extended`
+            /// or `basic`, with no separators (`20260921`, `2026264`, `2026W391`); in any
+            /// case; another is `HC_ERR_UNKNOWN`. A year outside `0000..=9999` is written
+            /// with a sign and six or more digits, the expanded form ISO 8601 gives it.
+            /// `hc_format_iso_date` is the calendar date in the extended style, as plain
+            /// text. A day outside the Gregorian range is `HC_ERR_OUT_OF_RANGE`. A null
+            /// `buffer` returns the length the text needs.
+        }
+        fn hc_format_iso_date_as(
+            fixed: i64,
+            form: name(form_len),
+            style: name(style_len),
+        ) -> line =
+            $crate::datetime_lines::format_iso_date_line;
+
+        c {
+            /// An ISO 8601 date read into its parts, as one NUL-terminated UTF-8 line in a
+            /// caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. Text that is not an ISO 8601 date is
+            /// `HC_ERROR_MALFORMED` and a date that does not exist, week 54 or 31 February,
+            /// `HC_ERROR_INVALID_DATE`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// An ISO 8601 date read into its parts, including one that names no day,
+            /// as one UTF-8 line, returning the byte length written.
+            ///
+            /// Tab-separated: the form, `calendar`, `ordinal` or `week`; the year, the
+            /// week-numbering year for a week date; the month; the day of the month; the day
+            /// of the year; the week; the weekday, 1 Monday to 7 Sunday; the fixed day, empty
+            /// when the date names none (`2026`, `2026-09`, `2026-W39`); and `basic` or
+            /// `extended`. A part the form has none of, or the text left out, is empty.
+            /// Text that is not an ISO 8601 date is `HC_ERR_MALFORMED` and a date that does
+            /// not exist, week 54 or 31 February, `HC_ERR_INVALID_DATE`. A null `buffer`
+            /// returns the length the text needs.
+        }
+        fn hc_iso_date_parts(text: name(text_len)) -> line =
+            $crate::datetime_lines::iso_date_parts_line;
+
+        c {
+            /// An ISO 8601 duration read into its components, as one NUL-terminated UTF-8
+            /// line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. Text that is not an ISO 8601 duration
+            /// is `HC_ERROR_MALFORMED`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// An ISO 8601 duration read into its components, as one UTF-8 line,
+            /// returning the byte length written.
+            ///
+            /// Tab-separated: `1` for a leading minus, which is ISO 8601-2's; the years,
+            /// months, weeks, days, hours, minutes and seconds, each empty where the text
+            /// did not write it; the digits of the decimal fraction of the lowest component,
+            /// as written (`5` for `PT0,5S`), empty for none; the form, `designators`
+            /// (`P1Y2M3DT4H5M6S`) or `alternative` (`P0001-02-03T04:05:06`); the duration
+            /// written in canonical form; `1` when it is nominal, with years or months,
+            /// which have no fixed length; and its exact length, whole seconds and the
+            /// attoseconds after them, empty for a nominal one. A day is 86 400 seconds and
+            /// a week seven days here: this is the nominal timeline, not elapsed physical
+            /// time across a leap second. Text that is not an ISO 8601 duration is
+            /// `HC_ERR_MALFORMED`. A null `buffer` returns the length the text needs.
+        }
+        fn hc_iso_duration(text: name(text_len)) -> line =
+            $crate::datetime_lines::iso_duration_line;
+
+        c {
+            /// A duration written from its components, as one NUL-terminated UTF-8 line in
+            /// a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. A component below zero is absent.
+            /// `fraction` is read as the empty string when null. Components ISO 8601 has no
+            /// spelling for are `HC_ERROR_MALFORMED`. Writes the required length, including
+            /// the terminator, into `written`.
+        }
+        wasm {
+            /// A duration written in ISO 8601 from its components, as one UTF-8 line,
+            /// returning the byte length written.
+            ///
+            /// Tab-separated: the duration in the designator form (`P3Y6M4DT12H30M5S`), `1`
+            /// when it is nominal, and its exact whole seconds and attoseconds, empty for a
+            /// nominal one. A component below zero is absent, so `-1` leaves out a
+            /// unit. `negative` non-zero writes a leading minus. `fraction` is the digits of a
+            /// decimal fraction of the lowest component present, `5` for a half, up to 18
+            /// digits, the empty string for none. Components ISO 8601 has no spelling for
+            /// (none at all, a week beside other units, a fraction on a unit that is not
+            /// the lowest, a fraction that is not digits) are `HC_ERR_MALFORMED`. A null
+            /// `buffer` returns the length the text needs.
+        }
+        fn hc_format_iso_duration(
+            negative: flag,
+            years: i64,
+            months: i64,
+            weeks: i64,
+            days: i64,
+            hours: i64,
+            minutes: i64,
+            seconds: i64,
+            fraction: text(fraction_len),
+        ) -> line =
+            $crate::datetime_lines::format_iso_duration_line;
+
+        c {
+            /// An ISO 8601 interval, or a repeating one, read into its ends, as one
+            /// NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. Text that is not an interval is
+            /// `HC_ERROR_MALFORMED`. Writes the required length, including the terminator,
+            /// into `written`.
+        }
+        wasm {
+            /// An ISO 8601 interval, or a repeating one, read into its ends, as one UTF-8
+            /// line, returning the byte length written.
+            ///
+            /// `start/end`, `start/duration`, `duration/end`, a duration alone, and each of
+            /// them with a repetition, `R5/...` or `R/...`. Tab-separated: the repetitions,
+            /// empty for an interval that does not repeat, a count, or `inf` for `R/`; the
+            /// shape, `start-end`, `start-duration`, `duration-end` or `duration`; the start
+            /// written back and its POSIX second; the end likewise; the duration written back,
+            /// `1` when it is nominal, and its exact whole seconds and attoseconds, empty
+            /// for a nominal one. A cell the shape has no part for is empty, and so is a POSIX
+            /// second where the text states no zone or no time, since that is a reading and
+            /// not an instant; the second is whole, and a decimal fraction of it is in the
+            /// text. Text that is not an interval is `HC_ERR_MALFORMED`. A null `buffer`
+            /// returns the length the text needs.
+        }
+        fn hc_iso_interval(text: name(text_len)) -> line =
+            $crate::datetime_lines::iso_interval_line;
+
+    } };
+    ("patterns", $backend:ident) => { $backend! {
+        c {
+            /// A text read against a pattern, as one NUL-terminated UTF-8 line in a
+            /// caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. `syntax` is `strftime`, `python` or
+            /// `cldr`, in any case; another is `HC_ERROR_UNKNOWN`, and null `syntax`
+            /// `HC_ERROR_NULL_POINTER`. `pattern` and `text` are read as the empty string
+            /// when null. A text that does not match, or a pattern not read, is
+            /// `HC_ERROR_MALFORMED`; fields that name a date or time that does not exist
+            /// `HC_ERROR_INVALID_DATE`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// A text read against a `strptime` or CLDR pattern, as one UTF-8 line of
+            /// thirty cells, returning the byte length written.
+            ///
+            /// The fields the pattern read, each empty where it did not, then a reading.
+            /// Tab-separated: the year; the century; the year of the century; the month; the
+            /// day; the day of the year; the week-numbering year; the ISO week; the ISO
+            /// weekday; the `%U` and `%W` week numbers; the hour on a 24-hour clock and on a
+            /// 12-hour one; `am` or `pm`; the minute; the second; the attoseconds; the zone,
+            /// `utc`, `offset` or `unknown-local`; its offset in seconds; the POSIX second
+            /// `%s` read; `ce` or `bce`; the fixed day CLDR's `g` read; and the eight cells of a
+            /// reading, as `hc_parse_datetime` writes them, empty where the fields name no
+            /// whole date and time (`%H:%M` names no day). `syntax` is `strftime`, POSIX
+            /// `strptime`, whose month and weekday names are the C locale's; `python`,
+            /// CPython's `datetime.strptime`, with its alternatives, backtracking and
+            /// resolution and a date the text leaves out taken from 1900-01-01; or `cldr`, a
+            /// pattern of UTS #35 Part 4 such as `yyyy-MM-dd'T'HH:mm:ssXXX`; in any case, and
+            /// another is `HC_ERR_UNKNOWN`. A text that does not match the pattern, or a pattern
+            /// the library does not read, is `HC_ERR_MALFORMED`; fields that name a date or a
+            /// time that does not exist, 30 February, `HC_ERR_INVALID_DATE`.
+            /// `hc_parse_pattern_in` reads the names of a locale. A null `buffer` returns the
+            /// length the text needs.
+        }
+        fn hc_parse_pattern(
+            syntax: name(syntax_len),
+            pattern: text(pattern_len),
+            text: text(text_len),
+        ) -> line =
+            $crate::datetime_lines::parse_pattern_line;
+
+        c {
+            /// A text read against a `strptime` or CLDR pattern in the names of a locale, as
+            /// one NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is `hc_parse_pattern`'s, which the WebAssembly module's README
+            /// describes. `syntax` is `strftime` or `cldr`; `python` is
+            /// `HC_ERROR_UNKNOWN`, since CPython's `strptime` reads the C locale's names
+            /// alone. `locale` is a NUL-terminated BCP 47 tag, or null for the root locale;
+            /// one that does not parse is `HC_ERROR_MALFORMED`. The rest is as for
+            /// `hc_parse_pattern`. Writes the required length, including the terminator,
+            /// into `written`.
+        }
+        wasm {
+            /// A text read against a `strptime` or CLDR pattern in the names of a locale, as
+            /// one UTF-8 line, returning the byte length written.
+            ///
+            /// `hc_parse_pattern`'s line. The month and weekday names, the day periods and the
+            /// eras the locale writes are read besides the C locale's, which a file written
+            /// by one program and read by another rarely disagrees about; `syntax` is
+            /// `strftime` or `cldr`, and `python` is `HC_ERR_UNKNOWN`, since CPython's
+            /// `strptime` reads the C locale's names alone. A tag that does not parse is
+            /// `HC_ERR_MALFORMED`. `locale` fails as for `hc_parse_iso_date`. The rest is as
+            /// for `hc_parse_pattern`. A null `buffer` returns the length the text needs.
+        }
+        fn hc_parse_pattern_in(
+            syntax: name(syntax_len),
+            pattern: text(pattern_len),
+            text: text(text_len),
+            locale: text(locale_len),
+        ) -> line =
+            $crate::i18n_lines::parse_pattern_in_line;
+    } };
     ("timestamps", $backend:ident) => { $backend! {
         c {
             /// A TAI instant as a TAI64, TAI64N or TAI64NA label in lower-case
@@ -1352,10 +1667,11 @@ macro_rules! exports {
             /// One line per locale, in tag order, tab-separated: the BCP 47 tag, the
             /// language's name in English and in itself, whether the locale's own
             /// data names the Gregorian months, the weekdays and the Gregorian eras
-            /// as `1` or `0` each, and the identifiers of the calendars it has
+            /// as `1` or `0` each, the identifiers of the calendars it has
             /// vocabulary of its own for beyond the shared Gregorian months, joined
-            /// by `;`. Writes the required length, including the terminator, into
-            /// `written`.
+            /// by `;`, its parent in the fallback chain (empty for none), its
+            /// default numbering system and its direction, `ltr` or `rtl`. Writes
+            /// the required length, including the terminator, into `written`.
         }
         wasm {
             /// Every locale the module carries, as UTF-8 lines, returning the byte
@@ -1364,9 +1680,12 @@ macro_rules! exports {
             /// One line per locale, in tag order, tab-separated: the BCP 47 tag, the
             /// language's name in English and in itself, whether the locale's own
             /// data names the Gregorian months, the weekdays and the Gregorian eras
-            /// as `1` or `0` each, and the identifiers of the calendars it has
+            /// as `1` or `0` each, the identifiers of the calendars it has
             /// vocabulary of its own for beyond the shared Gregorian months, joined
-            /// by `;`. A null `buffer` returns the length the text needs.
+            /// by `;`, its parent in the fallback chain, as `hc_locale_chain`
+            /// takes it (empty for none), its default numbering system, a
+            /// `hc_format_number` identifier, and its direction, `ltr` or `rtl`. A
+            /// null `buffer` returns the length the text needs.
         }
         fn hc_locales() -> line = || Ok($crate::lines::locales());
 
@@ -1518,6 +1837,216 @@ macro_rules! exports {
         }
         fn hc_calendar_eras(calendar: name(calendar_len), locale: text(locale_len)) -> line =
             $crate::i18n_lines::calendar_eras_lines;
+
+        c {
+            /// The fallback chain of a locale, as NUL-terminated UTF-8 lines in a
+            /// caller-owned buffer.
+            ///
+            /// The lines are the WebAssembly module's. `locale` is a NUL-terminated BCP
+            /// 47 tag, or null for the root locale; one that does not parse is
+            /// `HC_ERROR_MALFORMED`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// The fallback chain of a locale, the order its data is looked up along, as
+            /// UTF-8 lines, returning the byte length written.
+            ///
+            /// One line per step, the requested locale first and `und` last,
+            /// tab-separated: the step from 0; its tag; the rule that led to it from the
+            /// step before, `requested`, `likely-script` (a language carried per script,
+            /// `zh-TW`, takes the script CLDR's likely subtags give it), `extensions`
+            /// (the `-u-` keys), `variant`, `parent-locales` (a parent CLDR 48's
+            /// `parentLocales` name: `en-AU` to `en-001`, `zh-Hant` to root), `region` and
+            /// `script` (truncation) or `root`; and `1` when `hc-i18n` carries an entry of
+            /// data for exactly that tag, else `0`. A tag that does not parse is
+            /// `HC_ERR_MALFORMED`, where the lines that only read from a locale take the
+            /// root locale for it; the empty string is the root locale. `locale` fails as
+            /// for `hc_parse_iso_date`. A null `buffer` returns the length the text
+            /// needs.
+        }
+        fn hc_locale_chain(locale: text(locale_len)) -> line =
+            $crate::i18n_lines::locale_chain_lines;
+
+        c {
+            /// What a locale is, as one NUL-terminated UTF-8 line in a caller-owned
+            /// buffer.
+            ///
+            /// The line is the WebAssembly module's. `locale` is as for
+            /// `hc_locale_chain`, and `HC_ERROR_MALFORMED` for one that does not parse.
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// What a locale is, its subtags, its week, its numbering, direction and
+            /// casing and the plural rules that apply, as one UTF-8 line, returning the byte
+            /// length written.
+            ///
+            /// Tab-separated: the tag written canonically; the language, script, region
+            /// and variant subtags as given, empty where absent; the `-u-` keys the tag
+            /// carries, `ca`, `nu`, `fw` as an ISO weekday number and `hc`, empty where
+            /// absent; the tag of the entry of data that answers for it; its parent, the
+            /// next step of `hc_locale_chain`, and the rule that gave it; the numbering
+            /// system numbers are written in by default; the ISO weekday number the week
+            /// begins on, as `hc_first_day_of_week` has it, and CLDR's `minDays`, the
+            /// fewest days of a year a week needs to be its first (4 in Germany, 1 in the
+            /// United States); `ltr` or `rtl`; `standard` or `turkic` casing; `1` when
+            /// month and weekday names are written with a capital; and the language of the
+            /// cardinal plural rules that apply, `pt-PT`, or `und` where none is carried
+            /// and every number is `other`. Weekend days are not here: `hc-i18n` carries
+            /// CLDR's `firstDay` and `minDays` and no weekend data; the weekend laws of the
+            /// holiday tables, with their sources, are in column 14 of
+            /// `hc_holiday_tables`. `locale` is as for `hc_locale_chain`. A null `buffer`
+            /// returns the length the text needs.
+        }
+        fn hc_locale_info(locale: text(locale_len)) -> line =
+            $crate::i18n_lines::locale_info_line;
+
+        c {
+            /// The plural category a number has in a locale, as one NUL-terminated UTF-8
+            /// line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. `number` is a plain decimal, an
+            /// optional minus sign and digits, and a point and digits where a trailing
+            /// zero is meant: *1* and *1.0* are different questions. `kind` is
+            /// `cardinal`, in any case; `ordinal` is `HC_ERROR_NO_DATA` and another
+            /// `HC_ERROR_UNKNOWN`; null `number` or `kind` is `HC_ERROR_NULL_POINTER`.
+            /// Text that is not a decimal, or a tag that does not parse, is
+            /// `HC_ERROR_MALFORMED`, and digits beyond a `uint64_t` are
+            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// The plural category a number has in a locale, by CLDR 48's cardinal rules,
+            /// as one UTF-8 line, returning the byte length written.
+            ///
+            /// Tab-separated: `zero`, `one`, `two`, `few`, `many` or `other`; the
+            /// language of the rules that decided it, `ru`, `pt-PT`, or `und` where none
+            /// is carried and everything is `other`; and the operands of UTS #35 read from
+            /// the number as written, `i`, `v`, `w`, `f` and `t`. `number` is a plain
+            /// decimal, an optional minus sign and digits, with a point and digits where a
+            /// trailing zero is meant: *1* is `one` in English and *1.0* is `other`.
+            /// `kind` is `cardinal`, in any case. `ordinal` is `HC_ERR_NO_DATA`: `hc-i18n`
+            /// carries the cardinal rules of `plurals.xml` and no ordinal rules, and no
+            /// compact-notation operands `c` and `e`. Any other kind, the empty string
+            /// included, is `HC_ERR_UNKNOWN`. Text that is not a decimal and a tag that
+            /// does not parse are `HC_ERR_MALFORMED`; digits beyond a `u64` are
+            /// `HC_ERR_OUT_OF_RANGE`. `locale` is as for `hc_locale_chain`. A null `buffer`
+            /// returns the length the text needs.
+        }
+        fn hc_plural_category(
+            locale: text(locale_len),
+            number: name(number_len),
+            kind: name(kind_len),
+        ) -> line =
+            $crate::i18n_lines::plural_category_line;
+
+        c {
+            /// The names a locale has for a calendar in a width and a context, as
+            /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+            ///
+            /// The lines are the WebAssembly module's. `calendar` is a registry
+            /// identifier; `width` is `wide`, `abbreviated`, `short` or `narrow` and
+            /// `context` `format` or `standalone`, in any case; any other, or a calendar
+            /// the registry does not carry, is `HC_ERROR_UNKNOWN`, and null
+            /// `HC_ERROR_NULL_POINTER`. A tag that does not parse is
+            /// `HC_ERROR_MALFORMED`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// The names a locale has for a calendar in a width and a context, one per
+            /// line, returning the byte length written.
+            ///
+            /// Tab-separated: the kind of name, `month`; `month-in-leap-year` where the
+            /// locale names a month differently in a year with the calendar's intercalary
+            /// month (*Adar II*); every other cycle of the calendar by its kind,
+            /// `weekday`, `stem`, `branch`; `quarter`; and `day-period` for `am` and `pm`;
+            /// the position from 1, the ISO number for a weekday; the name; and the tag of
+            /// the entry of data that answered. A position the locale and the calendar do
+            /// not name has no line, so the months of a calendar that numbers them are not
+            /// listed. `width` is `wide`, `abbreviated`, `short` or `narrow` and `context`
+            /// `format`, inside a date, where Russian writes *сентября*, or `standalone`,
+            /// *сентябрь*, in any case. A calendar the registry does not carry, a width or
+            /// a context not named is `HC_ERR_UNKNOWN`; a tag that does not parse
+            /// `HC_ERR_MALFORMED`. `locale` is as for `hc_locale_chain`. A null `buffer`
+            /// returns the length the text needs.
+        }
+        fn hc_names(
+            locale: text(locale_len),
+            calendar: name(calendar_len),
+            width: name(width_len),
+            context: name(context_len),
+        ) -> line =
+            $crate::i18n_lines::names_lines;
+
+        c {
+            /// A text recased as a locale cases it, as one NUL-terminated UTF-8 line in a
+            /// caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. `mode` is `lower`, `upper`,
+            /// `capitalise-first`, `lowercase-first`, `sentence-start` or `in-sentence`,
+            /// in any case; another is `HC_ERROR_UNKNOWN`, and null `mode`
+            /// `HC_ERROR_NULL_POINTER`; `text` is read as the empty string when null. A
+            /// tag that does not parse is `HC_ERROR_MALFORMED`. Writes the required
+            /// length, including the terminator, into `written`.
+        }
+        wasm {
+            /// A text recased as a locale cases it, as one UTF-8 line, returning the byte
+            /// length written.
+            ///
+            /// Tab-separated: the text recased; the mode; `standard` or `turkic`; and the
+            /// tag of the entry of data that answered. `lower` and `upper` differ from
+            /// Unicode's default mappings only in Turkish and Azerbaijani, where `iyi` is
+            /// `İYİ`; `capitalise-first` and `lowercase-first` recase the first character
+            /// only, since a title case of every word needs a word-break rule `hc-i18n`
+            /// does not have; `sentence-start` sets a month or weekday name as it opens a
+            /// sentence, always with a capital, and `in-sentence` inside one, with a
+            /// capital in English and German and none in French. `mode` is read in any
+            /// case; another, the empty string included, is `HC_ERR_UNKNOWN`. A tag that
+            /// does not parse is `HC_ERR_MALFORMED`. `locale` is as for
+            /// `hc_locale_chain`. A null `buffer` returns the length the text needs.
+        }
+        fn hc_case(
+            locale: text(locale_len),
+            mode: name(mode_len),
+            text: text(text_len),
+        ) -> line =
+            $crate::i18n_lines::case_line;
+
+        c {
+            /// A text made safe to embed in text running a locale's direction, as one
+            /// NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. `mode` is `field`, `first-strong` or
+            /// `strip`, in any case; another is `HC_ERROR_UNKNOWN`, and null `mode`
+            /// `HC_ERROR_NULL_POINTER`; `text` is read as the empty string when null. A
+            /// tag that does not parse is `HC_ERROR_MALFORMED`. Writes the required
+            /// length, including the terminator, into `written`.
+        }
+        wasm {
+            /// A text made safe to embed in text running a locale's direction, by the
+            /// Unicode bidirectional isolates, as one UTF-8 line, returning the byte length
+            /// written.
+            ///
+            /// Tab-separated: the text, with the isolates U+2066 to U+2069 around it where
+            /// the mode says; the locale's direction, `ltr` or `rtl`; the text's own, by the
+            /// first-strong rule of UAX 9, empty where it has no strong character, as a
+            /// date made of digits has none; `1` when isolates were added; and the mode.
+            /// `field` isolates only where the two directions disagree, so a Latin date in
+            /// Arabic prose is wrapped in an LTR isolate and Arabic in English prose in an
+            /// RTL one, and a field running the locale's own direction, or with no strong
+            /// character, is left alone; `first-strong` always wraps the text in U+2068 and
+            /// U+2069 and leaves the direction to the renderer; `strip` removes every
+            /// isolate and directional mark, for comparing or hashing. `mode` is read in any
+            /// case; another is `HC_ERR_UNKNOWN`. A tag that does not parse is
+            /// `HC_ERR_MALFORMED`. `locale` is as for `hc_locale_chain`. A null `buffer`
+            /// returns the length the text needs.
+        }
+        fn hc_isolate(
+            locale: text(locale_len),
+            mode: name(mode_len),
+            text: text(text_len),
+        ) -> line =
+            $crate::i18n_lines::isolate_line;
+
 
         c {
             /// The steps by which a country adopted the Gregorian calendar, as
@@ -6792,26 +7321,153 @@ macro_rules! exports {
             $crate::humanize_lines::duration_line;
 
         c {
+            /// The unit a span is said in and its count, as one NUL-terminated UTF-8
+            /// line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's: the unit, the signed count, a half
+            /// flag and the names of the thresholds and the rounding applied. `thresholds`
+            /// is `default`, `exact` or `with-quarters` and `rounding` `ceil`, `floor`,
+            /// `nearest`, `truncate` or `nearest-half`, in any case; another is
+            /// `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`. A count that does not
+            /// fit an `int64_t` is `HC_ERROR_OUT_OF_RANGE`. Writes the required length,
+            /// including the terminator, into `written`.
+        }
+        wasm {
+            /// The unit a span of seconds is said in and its count, by `hc-humanize`'s
+            /// `unit_choice`, as one UTF-8 line, returning the byte length written.
+            ///
+            /// Tab-separated: the unit, CLDR's field name (`second`, `minute`, `hour`,
+            /// `day`, `week`, `month`, `quarter` under `with-quarters`, or `year`); the
+            /// signed count, its whole part; `1` when a half is added to it in the direction
+            /// of the sign, which only `nearest-half` does, else `0`; and the names of the
+            /// thresholds and the rounding that were applied. `thresholds` is `default`, the
+            /// conversational table in which 45 seconds is already a minute; `exact`, which
+            /// moves to the next unit only once a whole one fits; or `with-quarters`;
+            /// `rounding` is `ceil`, `floor`, `nearest`, `truncate` or `nearest-half`; in any
+            /// case, and another, the empty string included, is `HC_ERR_UNKNOWN`. A span
+            /// promoted past the table's shortest unit is never counted as zero. A count
+            /// that does not fit an `i64` is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns
+            /// the length the text needs.
+        }
+        fn hc_unit_choice(
+            seconds: i64,
+            thresholds: name(thresholds_len),
+            rounding: name(rounding_len),
+        ) -> line =
+            $crate::humanize_lines::unit_choice_line;
+
+        c {
+            /// How one POSIX instant reads from another under a threshold table and a
+            /// rounding of the caller's, as one NUL-terminated UTF-8 line in a caller-owned
+            /// buffer.
+            ///
+            /// The line is the WebAssembly module's: the phrase, the unit, the signed
+            /// count, a half flag and the tag of the data the locale resolved to.
+            /// `thresholds` and `rounding` are as for `hc_unit_choice`; the rest is as for
+            /// `hc_relative_time`. Writes the required length, including the terminator, into
+            /// `written`.
+        }
+        wasm {
+            /// How one POSIX instant reads from another under a threshold table and a
+            /// rounding of the caller's, as one UTF-8 line, returning the byte length
+            /// written.
+            ///
+            /// `hc_relative_time` with `Thresholds::DEFAULT` and truncation, which it
+            /// fixes, made arguments. Tab-separated: the phrase; the unit; the signed count,
+            /// negative in the past; `1` when a half is added to the count (*1½ hours ago*
+            /// under `nearest-half`), else `0`; and the tag of the `hc-humanize` data the
+            /// locale resolved to. `thresholds` and `rounding` are as for `hc_unit_choice`
+            /// and another name is `HC_ERR_UNKNOWN`; the rest is as for `hc_relative_time`.
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_relative_time_with(
+            then_unix: i64,
+            now_unix: i64,
+            style: name(style_len),
+            automatic: flag,
+            locale: text(locale_len),
+            thresholds: name(thresholds_len),
+            rounding: name(rounding_len),
+        ) -> line =
+            $crate::humanize_lines::relative_time_with_line;
+
+        c {
+            /// A span hedged as a round number, *about 3 hours*, *just over a week*,
+            /// *nearly a year*, as one NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's: the phrase, the hedge, the unit, the
+            /// count and the tag of the data the locale resolved to. `style` is `long`,
+            /// `short` or `narrow`, in any case; `thresholds` is `default`, `exact` or
+            /// `with-quarters`; `policy` is `default` or `bounded`; another is
+            /// `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`. `locale` is as for
+            /// `hc_relative_time`. Writes the required length, including the terminator,
+            /// into `written`.
+        }
+        wasm {
+            /// A span of seconds hedged as a round number, *about 3 hours*, *just over a
+            /// week*, *nearly a year*, by `hc-humanize`'s `approximate`, as one UTF-8 line,
+            /// returning the byte length written.
+            ///
+            /// Tab-separated: the phrase; the hedge, `exactly`, `about`, `just-over`, `over`
+            /// or `nearly`; the unit; the count, which *nearly* carries up to the next; and
+            /// the tag of the `hc-humanize` data the locale resolved to. The unit is the
+            /// `thresholds`' (`default`, `exact` or `with-quarters`, as for `hc_unit_choice`)
+            /// and the hedge is read off the fraction of a unit left over: under `default`
+            /// less than 2 % is no hedge, under 8 % *about*, under 35 % *just over*, under
+            /// 70 % *over*, and the rest *nearly* the next count; `bounded` never says
+            /// *about*, for a phrase that has to be a true bound. The sign is dropped, a
+            /// hedge describing a length. `style` is `long`, `short` or `narrow`, in any
+            /// case; another name, the empty string included, is `HC_ERR_UNKNOWN`. `locale`
+            /// fails as for `hc_parse_iso_date`; the empty string, and a tag that does not
+            /// parse, is the root locale. A count that does not fit an `i64` is
+            /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text needs.
+        }
+        fn hc_approximate_duration(
+            seconds: i64,
+            style: name(style_len),
+            locale: text(locale_len),
+            thresholds: name(thresholds_len),
+            policy: name(policy_len),
+        ) -> line =
+            $crate::humanize_lines::approximate_duration_line;
+    } };
+    ("natural", $backend:ident) => { $backend! {
+        c {
             /// A whole number as the Associated Press writes it, *zero* to *nine*
-            /// spelled out and every other number as its digits, in the English of
-            /// Python's `humanize`, as one NUL-terminated UTF-8 line in a
-            /// caller-owned buffer.
+            /// spelled out and every other number as its digits, in a locale, by
+            /// Python's `humanize` and its catalogues, as one NUL-terminated UTF-8
+            /// line in a caller-owned buffer.
             ///
             /// The line is the WebAssembly module's: the text and the language of
-            /// the vocabulary, `en`. Writes the required length, including the
-            /// terminator, into `written`.
+            /// the catalogue that wrote it, `en`.
+            /// `locale` is a NUL-terminated BCP 47 tag, or null for the root locale,
+            /// which has no catalogue and so writes English: the first step of its
+            /// fallback chain that a `humanize` catalogue is for and that translates
+            /// the numerals serves (`pt-AO` is `pt-PT`, `zh-Hant` is `zh-HK`), a bare
+            /// language with two catalogues, `pt`, and a language with none, English;
+            /// the line's second cell is the language of the catalogue used, never a
+            /// mixture.
+            /// Writes the required length, including the terminator, into `written`.
         }
         wasm {
             /// A whole number as the Associated Press writes it, *zero* to *nine*
             /// spelled out and every other number, negatives included, as its
-            /// digits, in the English of Python's `humanize` `apnumber`, as one
-            /// UTF-8 line, returning the byte length written.
+            /// digits, in a locale, by Python's `humanize` `apnumber`, as one UTF-8
+            /// line, returning the byte length written.
             ///
-            /// Tab-separated: the text, and the language of the vocabulary that
-            /// wrote it, `en`, the only one carried. A null `buffer` returns the
-            /// length the text needs.
+            /// Tab-separated: the text, and the language of the catalogue that wrote
+            /// it, `en` or `de-DE`.
+            /// `locale` is a BCP 47 tag, the empty string or a tag that does not
+            /// parse being the root locale, which has no catalogue and so writes
+            /// English: the first step of its fallback chain that one of the 35
+            /// `humanize` catalogues is for and that translates the numerals serves
+            /// (`pt-AO` is `pt-PT`, `zh-Hant` is `zh-HK`); a bare language with two
+            /// catalogues, `pt`, picks neither and a language with none is English;
+            /// the second cell is the language of the catalogue used, `ru-RU`, `en`,
+            /// never a mixture of two. `locale` fails as for `hc_parse_iso_date`.
+            /// A null `buffer` returns the length the text needs.
         }
-        fn hc_apnumber(value: i64) -> line =
+        fn hc_apnumber(value: i64, locale: text(locale_len)) -> line =
             $crate::humanize_lines::apnumber_line;
 
         c {
@@ -6858,14 +7514,19 @@ macro_rules! exports {
             $crate::humanize_lines::scientific_line;
 
         c {
-            /// A number with an SI prefix and a unit, *1.50 kV*, *220 μF*, in the
-            /// English of Python's `humanize`, as one NUL-terminated UTF-8 line in a
+            /// A number with an SI prefix and a unit, *1.50 kV*, *220 μF*, by
+            /// Python's `humanize`, as one NUL-terminated UTF-8 line in a
             /// caller-owned buffer.
             ///
-            /// The line is the WebAssembly module's: the text and the language, `en`.
-            /// `unit` is read as the empty string when null. A `precision` above 255
-            /// is `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
-            /// terminator, into `written`.
+            /// The line is the WebAssembly module's: the text and the language of
+            /// the first catalogue for the locale. `unit` is read as the empty
+            /// string when null. A `precision` above 255 is `HC_ERROR_OUT_OF_RANGE`.
+            /// The prefixes are symbols no catalogue translates; a catalogue changes
+            /// the decimal mark of the scientific form a magnitude beyond them falls
+            /// back to. `locale` is a NUL-terminated BCP 47 tag, or null for the
+            /// root locale, whose catalogue is English's; the first step of its
+            /// fallback chain that a catalogue is for serves, as for `hc_apnumber`.
+            /// Writes the required length, including the terminator, into `written`.
         }
         wasm {
             /// A number with an SI prefix and a unit, *1.50 kV*, *200 MW*, *220 μF*,
@@ -6877,22 +7538,39 @@ macro_rules! exports {
             /// `hc_scientific` with one digit fewer, then the unit; a `precision` of
             /// 0 there, or one above 255, is `HC_ERR_OUT_OF_RANGE`. No space is
             /// written before a degree, minute or second sign, or when there is
-            /// neither prefix nor unit. Tab-separated: the text, and the language,
-            /// `en`. A null `buffer` returns the length the text needs.
+            /// neither prefix nor unit. Tab-separated: the text, and the language of
+            /// the first catalogue for the locale, which no word of `metric` is
+            /// translated by: only the decimal mark of the scientific form is, so
+            /// the catalogue is found as for `hc_apnumber`. `locale` fails as for
+            /// `hc_parse_iso_date`. A null `buffer` returns the length the text
+            /// needs.
         }
-        fn hc_metric(value: f64, unit: text(unit_len), precision: u32) -> line =
+        fn hc_metric(
+            value: f64,
+            unit: text(unit_len),
+            precision: u32,
+            locale: text(locale_len),
+        ) -> line =
             $crate::humanize_lines::metric_line;
 
         c {
-            /// A size in bytes, *3.0 MB*, *2.9 KiB*, *300B*, in the English of
-            /// Python's `humanize`, as one NUL-terminated UTF-8 line in a
-            /// caller-owned buffer.
+            /// A size in bytes, *3.0 MB*, *2.9 KiB*, *300B*, in a locale, by
+            /// Python's `humanize` and its catalogues, as one NUL-terminated UTF-8
+            /// line in a caller-owned buffer.
             ///
-            /// The line is the WebAssembly module's: the text and the language, `en`.
+            /// The line is the WebAssembly module's: the text and the language of
+            /// the catalogue that wrote it.
             /// `style` is `decimal`, `binary` or `gnu`, in any case; anything else is
             /// `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`. `NaN`, and
-            /// `decimals` above 255, are `HC_ERROR_OUT_OF_RANGE`. Writes the required
-            /// length, including the terminator, into `written`.
+            /// `decimals` above 255, are `HC_ERROR_OUT_OF_RANGE`.
+            /// `locale` is a NUL-terminated BCP 47 tag, or null for the root locale,
+            /// which has no catalogue and so writes English: the first step of its
+            /// fallback chain that a `humanize` catalogue is for and that translates
+            /// *Byte* and the suffixes serves (`pt-AO` is `pt-PT`, `zh-Hant` is `zh-HK`), a bare
+            /// language with two catalogues, `pt`, and a language with none, English;
+            /// the line's second cell is the language of the catalogue used, never a
+            /// mixture.
+            /// Writes the required length, including the terminator, into `written`.
         }
         wasm {
             /// A size in bytes, *3.0 MB*, *2.9 KiB*, *300B*, by Python's `humanize`
@@ -6904,20 +7582,36 @@ macro_rules! exports {
             /// `HC_ERR_UNKNOWN`. One byte is *1 Byte* and below the base *N Bytes*.
             /// `decimals` is Python's `format="%.{decimals}f"`, 1 by default; above
             /// 255 it is `HC_ERR_OUT_OF_RANGE`, as `NaN` is. Tab-separated: the text,
-            /// and the language, `en`. A null `buffer` returns the length the text
-            /// needs.
+            /// and the language of the catalogue that wrote it.
+            /// `locale` is a BCP 47 tag, the empty string or a tag that does not
+            /// parse being the root locale, which has no catalogue and so writes
+            /// English: the first step of its fallback chain that one of the 35
+            /// `humanize` catalogues is for and that translates *Byte* and the suffixes serves
+            /// (`pt-AO` is `pt-PT`, `zh-Hant` is `zh-HK`); a bare language with two
+            /// catalogues, `pt`, picks neither and a language with none is English;
+            /// the second cell is the language of the catalogue used, `ru-RU`, `en`,
+            /// never a mixture of two. `locale` fails as for `hc_parse_iso_date`.
+            /// A null `buffer` returns the length the text needs.
         }
-        fn hc_naturalsize(value: f64, style: name(style_len), decimals: u32) -> line =
+        fn hc_naturalsize(
+            value: f64,
+            style: name(style_len),
+            decimals: u32,
+            locale: text(locale_len),
+        ) -> line =
             $crate::humanize_lines::naturalsize_line;
 
         c {
-            /// Items joined as a list, *one, two and three*, in the English of
-            /// Python's `humanize`, as one NUL-terminated UTF-8 line in a
-            /// caller-owned buffer.
+            /// Items joined as a list, *one, two and three*, by Python's `humanize`,
+            /// as one NUL-terminated UTF-8 line in a caller-owned buffer.
             ///
-            /// The line is the WebAssembly module's: the text and the language, `en`.
-            /// `items` holds one item to a line and is read as no items when null.
-            /// Writes the required length, including the terminator, into `written`.
+            /// The line is the WebAssembly module's: the text and the language,
+            /// always `en`. `items` holds one item to a line and is read as no
+            /// items when null. `locale` is a NUL-terminated BCP 47 tag, or null,
+            /// and changes nothing: `humanize`'s `natural_list` has its `, ` and
+            /// ` and ` as literals in `lists.py`, which no catalogue translates, so
+            /// every locale gets English and the line says so. Writes the required
+            /// length, including the terminator, into `written`.
         }
         wasm {
             /// Items joined as a list, *one, two and three*, with no comma before
@@ -6926,23 +7620,35 @@ macro_rules! exports {
             ///
             /// `items` holds one item to a line, separated by a line feed; the
             /// empty string is no items and writes the empty text. Tab-separated:
-            /// the text, and the language, `en`. A null `buffer` returns the length
-            /// the text needs.
+            /// the text, and the language, always `en`: `locale` is read, and fails
+            /// as for `hc_parse_iso_date`, but changes nothing, because
+            /// `natural_list`'s `, ` and ` and ` are literals in `humanize`'s
+            /// `lists.py` and no catalogue translates them. A null `buffer` returns
+            /// the length the text needs.
         }
-        fn hc_naturallist(items: text(items_len)) -> line =
+        fn hc_naturallist(items: text(items_len), locale: text(locale_len)) -> line =
             $crate::humanize_lines::naturallist_line;
 
         c {
             /// An integer of any length as a count with a word, *12.4 thousand*,
-            /// *1.0 googol*, in the English of Python's `humanize`, as one
-            /// NUL-terminated UTF-8 line in a caller-owned buffer.
+            /// *1.0 googol*, in a locale, by Python's `humanize` and its
+            /// catalogues, as one NUL-terminated UTF-8 line in a caller-owned
+            /// buffer.
             ///
-            /// The line is the WebAssembly module's: the text and the language, `en`.
+            /// The line is the WebAssembly module's: the text and the language of
+            /// the catalogue that wrote it.
             /// `digits` is an optional sign and ASCII digits; text that is not an
             /// integer is `HC_ERROR_MALFORMED`, and an integer beyond the largest
             /// double, about 1.8 × 10³⁰⁸, or `decimals` above 255, is
-            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
-            /// terminator, into `written`.
+            /// `HC_ERROR_OUT_OF_RANGE`.
+            /// `locale` is a NUL-terminated BCP 47 tag, or null for the root locale,
+            /// which has no catalogue and so writes English: the first step of its
+            /// fallback chain that a `humanize` catalogue is for and that translates
+            /// the words of the powers serves (`pt-AO` is `pt-PT`, `zh-Hant` is `zh-HK`), a bare
+            /// language with two catalogues, `pt`, and a language with none, English;
+            /// the line's second cell is the language of the catalogue used, never a
+            /// mixture.
+            /// Writes the required length, including the terminator, into `written`.
         }
         wasm {
             /// An integer of any length as a count with a word, *12.4 thousand*,
@@ -6956,11 +7662,340 @@ macro_rules! exports {
             /// next power is written in it, *1.0 million* for 999 999. Text that is
             /// not an integer is `HC_ERR_MALFORMED`; an integer beyond the largest
             /// double, about 1.8 × 10³⁰⁸, or `decimals` above 255, is
-            /// `HC_ERR_OUT_OF_RANGE`. Tab-separated: the text, and the language,
-            /// `en`. A null `buffer` returns the length the text needs.
+            /// `HC_ERR_OUT_OF_RANGE`. Tab-separated: the text, and the language of
+            /// the catalogue that wrote it.
+            /// `locale` is a BCP 47 tag, the empty string or a tag that does not
+            /// parse being the root locale, which has no catalogue and so writes
+            /// English: the first step of its fallback chain that one of the 35
+            /// `humanize` catalogues is for and that translates the words of the powers serves
+            /// (`pt-AO` is `pt-PT`, `zh-Hant` is `zh-HK`); a bare language with two
+            /// catalogues, `pt`, picks neither and a language with none is English;
+            /// the second cell is the language of the catalogue used, `ru-RU`, `en`,
+            /// never a mixture of two. `locale` fails as for `hc_parse_iso_date`.
+            /// A null `buffer` returns the length the text needs.
         }
-        fn hc_intword(digits: name(digits_len), decimals: u32) -> line =
+        fn hc_intword(
+            digits: name(digits_len),
+            decimals: u32,
+            locale: text(locale_len),
+        ) -> line =
             $crate::humanize_lines::intword_line;
+
+        c {
+            /// `humanize`'s `naturaldelta` of a span, *3 hours*, *a moment*, *1 year, 3
+            /// months*, without tense, as one NUL-terminated UTF-8 line in a caller-owned
+            /// buffer.
+            ///
+            /// The line is the WebAssembly module's: the text and the language of the
+            /// catalogue that wrote it. The span is `seconds` plus `microseconds`, which
+            /// may differ in sign; `microseconds` from 1 000 000 in magnitude is
+            /// `HC_ERROR_OUT_OF_RANGE`. The sign of the span is ignored, as Python's
+            /// `abs` ignores it. `months` non-zero uses months of 30.5 days between days
+            /// and years. `minimum_unit` is `seconds`, `milliseconds` or `microseconds`, in
+            /// any case; another unit name is `HC_ERROR_UNKNOWN` and a unit above seconds
+            /// `HC_ERROR_OUT_OF_RANGE`, which Python raises as a `ValueError`; null is
+            /// `HC_ERROR_NULL_POINTER`. A span of more than about 10²⁶ years is
+            /// `HC_ERROR_OUT_OF_RANGE`.
+            /// `locale` is a NUL-terminated BCP 47 tag, or null for the root locale,
+            /// which has no catalogue and so writes English; the first step of its
+            /// fallback chain that a `humanize` catalogue is for and that translates
+            /// the units serves, as for `hc_apnumber`, and the line's second cell is the
+            /// language of the catalogue used.
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// `humanize`'s `naturaldelta` of a span, *3 hours*, *a moment*, *1 year, 3
+            /// months*, without tense, as one UTF-8 line, returning the byte length
+            /// written.
+            ///
+            /// Tab-separated: the text, and the language of the catalogue that wrote it.
+            /// The span is `seconds` plus `microseconds`, which may differ in sign;
+            /// `microseconds` from 1 000 000 in magnitude is `HC_ERR_OUT_OF_RANGE`. The
+            /// arithmetic is `humanize` 4.16.0's: the sign is ignored; years are 365 days,
+            /// months 30.5 days rounded half to even, and a second unit above is reached at
+            /// 60, 3 600 and 86 400 seconds rounded. `months` non-zero uses months between
+            /// days and years, zero days. `minimum_unit` is `seconds`, `milliseconds` or
+            /// `microseconds`, in any case; another unit name, the empty string included,
+            /// is `HC_ERR_UNKNOWN`, and a unit above seconds `HC_ERR_OUT_OF_RANGE`, which
+            /// Python raises as a `ValueError`. A span of more than about 10²⁶ years is
+            /// `HC_ERR_OUT_OF_RANGE`.
+            /// `locale` is read as for `hc_apnumber`: the first step of its fallback
+            /// chain that one of the 35 `humanize` catalogues is for and that
+            /// translates the units serves, a bare language with two catalogues, `pt`, and
+            /// a language with none are English, and the second cell is the language
+            /// of the catalogue used, never a mixture. It fails as for
+            /// `hc_parse_iso_date`.
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_naturaldelta(
+            seconds: i64,
+            microseconds: int,
+            months: flag,
+            minimum_unit: name(minimum_unit_len),
+            locale: text(locale_len),
+        ) -> line =
+            $crate::humanize_lines::naturaldelta_line;
+
+        c {
+            /// `humanize`'s `naturaltime` of a span, *3 hours ago*, *3 hours from now*,
+            /// *now*, as one NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's: the text and the language of the
+            /// catalogue that wrote it. The span is how long *ago*, so a positive one is in
+            /// the past and a negative one in the future, as in Python. The rest is as for
+            /// `hc_naturaldelta`. Writes the required length, including the terminator,
+            /// into `written`.
+        }
+        wasm {
+            /// `humanize`'s `naturaltime` of a span, *3 hours ago*, *3 hours from now*,
+            /// *now*, as one UTF-8 line, returning the byte length written.
+            ///
+            /// Tab-separated: the text, and the language of the catalogue that wrote it.
+            /// The span is how long *ago*, so a positive one is in the past and a negative
+            /// one in the future, as in Python's `naturaltime(timedelta)`; a span the
+            /// `hc_naturaldelta` writes as *a moment* is *now*. The rest is as for
+            /// `hc_naturaldelta`. A null `buffer` returns the length the text needs.
+        }
+        fn hc_naturaltime(
+            seconds: i64,
+            microseconds: int,
+            months: flag,
+            minimum_unit: name(minimum_unit_len),
+            locale: text(locale_len),
+        ) -> line =
+            $crate::humanize_lines::naturaltime_line;
+
+        c {
+            /// `humanize`'s `precisedelta` of a span, *1 year, 2 months and 3 days*, as
+            /// one NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's: the text and the language of the
+            /// catalogue that wrote it. `minimum_unit` is the smallest unit written,
+            /// `microseconds`, `milliseconds`, `seconds`, `minutes`, `hours`, `days`, `months`
+            /// or `years`, in any case; `suppress` is the units folded into the next
+            /// smaller, separated by commas, null or empty for none; either is
+            /// `HC_ERROR_UNKNOWN` for a name no unit has, and a minimum unit suppressed
+            /// with no larger unit left, a `microseconds` from 1 000 000 in magnitude and
+            /// `decimals` above 255 are `HC_ERROR_OUT_OF_RANGE`. Null `minimum_unit` is
+            /// `HC_ERROR_NULL_POINTER`. `decimals` is the places of the fraction of the
+            /// smallest unit, 2 in Python.
+            /// `locale` is a NUL-terminated BCP 47 tag, or null for the root locale,
+            /// which has no catalogue and so writes English; the first step of its
+            /// fallback chain that a `humanize` catalogue is for and that translates
+            /// the units serves, as for `hc_apnumber`, and the line's second cell is the
+            /// language of the catalogue used.
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// `humanize`'s `precisedelta` of a span, *1 year, 2 months and 3 days*, as
+            /// one UTF-8 line, returning the byte length written.
+            ///
+            /// Tab-separated: the text, and the language of the catalogue that wrote it.
+            /// The arithmetic is `humanize` 4.16.0's, step for step, so its quirks are
+            /// kept: a month is 30.5 days and the half day it leaves is dropped, the
+            /// smallest unit's value is rounded with the format before it is tested, and
+            /// a unit rounding pushes to the next one's size is carried. The span is
+            /// `seconds` plus `microseconds` and its sign is ignored. `minimum_unit` is
+            /// the smallest unit written, `microseconds`, `milliseconds`, `seconds`,
+            /// `minutes`, `hours`, `days`, `months` or `years`, in any case; `suppress` is
+            /// the units folded into the next smaller, separated by commas, the empty
+            /// string for none; either is `HC_ERR_UNKNOWN` for a name no unit has. A
+            /// minimum unit suppressed with no larger unit left, `microseconds` from
+            /// 1 000 000 in magnitude and `decimals` above 255 are `HC_ERR_OUT_OF_RANGE`.
+            /// `decimals` is the places of the fraction of the smallest unit, 2 in
+            /// Python.
+            /// `locale` is read as for `hc_apnumber`: the first step of its fallback
+            /// chain that one of the 35 `humanize` catalogues is for and that
+            /// translates the units serves, a bare language with two catalogues, `pt`, and
+            /// a language with none are English, and the second cell is the language
+            /// of the catalogue used, never a mixture. It fails as for
+            /// `hc_parse_iso_date`.
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_precisedelta(
+            seconds: i64,
+            microseconds: int,
+            minimum_unit: name(minimum_unit_len),
+            suppress: text(suppress_len),
+            decimals: u32,
+            locale: text(locale_len),
+        ) -> line =
+            $crate::humanize_lines::precisedelta_line;
+
+        c {
+            /// `humanize`'s `naturalday` of a fixed day seen from another, *today*,
+            /// *tomorrow*, *yesterday*, or the day by a `strftime` pattern, as one
+            /// NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's: the text and the language of the
+            /// catalogue that wrote the words. `pattern` is a POSIX `strftime` pattern in
+            /// the C locale, so the month name is always English's, as Python's is; null or
+            /// empty is Python's `%b %d`. A pattern `hc-format` does not write is
+            /// `HC_ERROR_MALFORMED`; a day outside the Gregorian range
+            /// `HC_ERROR_OUT_OF_RANGE`.
+            /// `locale` is a NUL-terminated BCP 47 tag, or null for the root locale,
+            /// which has no catalogue and so writes English; the first step of its
+            /// fallback chain that a `humanize` catalogue is for and that translates
+            /// *today*, *tomorrow* and *yesterday* serves, as for `hc_apnumber`, and the line's second cell is the
+            /// language of the catalogue used.
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// `humanize`'s `naturalday` of a fixed day seen from another, *today*,
+            /// *tomorrow*, *yesterday*, or the day by a `strftime` pattern, as one UTF-8
+            /// line, returning the byte length written.
+            ///
+            /// Tab-separated: the text, and the language of the catalogue that wrote the
+            /// words. The distance is the difference of the two day numbers. `pattern` is
+            /// a POSIX `strftime` pattern in the C locale, so the month name is always
+            /// English's, as Python's `strftime` writes it; the empty string is Python's
+            /// default `%b %d`. A pattern `hc-format` does not write is `HC_ERR_MALFORMED`;
+            /// a day outside the Gregorian range `HC_ERR_OUT_OF_RANGE`.
+            /// `locale` is read as for `hc_apnumber`: the first step of its fallback
+            /// chain that one of the 35 `humanize` catalogues is for and that
+            /// translates *today*, *tomorrow* and *yesterday* serves, a bare language with two catalogues, `pt`, and
+            /// a language with none are English, and the second cell is the language
+            /// of the catalogue used, never a mixture. It fails as for
+            /// `hc_parse_iso_date`.
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_naturalday(
+            day: i64,
+            today: i64,
+            pattern: text(pattern_len),
+            locale: text(locale_len),
+        ) -> line =
+            $crate::humanize_lines::naturalday_line;
+
+        c {
+            /// `humanize`'s `naturaldate` of a fixed day seen from another, as
+            /// `hc_naturalday` with `%b %d`, and with the year added from five twelfths of a
+            /// year away, as one NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's: the text and the language of the
+            /// catalogue that wrote the words. A day outside the Gregorian range is
+            /// `HC_ERROR_OUT_OF_RANGE`.
+            /// `locale` is a NUL-terminated BCP 47 tag, or null for the root locale,
+            /// which has no catalogue and so writes English; the first step of its
+            /// fallback chain that a `humanize` catalogue is for and that translates
+            /// *today*, *tomorrow* and *yesterday* serves, as for `hc_apnumber`, and the line's second cell is the
+            /// language of the catalogue used.
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// `humanize`'s `naturaldate` of a fixed day seen from another, as
+            /// `hc_naturalday` with `%b %d`, and with `%b %d %Y` once the day is 153 or more
+            /// days away, five twelfths of 365 rounded up, as one UTF-8 line, returning the
+            /// byte length written.
+            ///
+            /// Tab-separated: the text, and the language of the catalogue that wrote the
+            /// words. A day outside the Gregorian range is `HC_ERR_OUT_OF_RANGE`.
+            /// `locale` is read as for `hc_apnumber`: the first step of its fallback
+            /// chain that one of the 35 `humanize` catalogues is for and that
+            /// translates *today*, *tomorrow* and *yesterday* serves, a bare language with two catalogues, `pt`, and
+            /// a language with none are English, and the second cell is the language
+            /// of the catalogue used, never a mixture. It fails as for
+            /// `hc_parse_iso_date`.
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_naturaldate(day: i64, today: i64, locale: text(locale_len)) -> line =
+            $crate::humanize_lines::naturaldate_line;
+
+        c {
+            /// `humanize`'s `ordinal` of an integer, *1st*, *2nd*, *103rd*, *111th*, in a
+            /// locale, as one NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's: the text and the language of the
+            /// catalogue that wrote the suffix. `gender` is `male` or `female`, in any
+            /// case; another is `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`.
+            /// `locale` is a NUL-terminated BCP 47 tag, or null for the root locale,
+            /// which has no catalogue and so writes English; the first step of its
+            /// fallback chain that a `humanize` catalogue is for and that translates
+            /// the suffixes serves, as for `hc_apnumber`, and the line's second cell is the
+            /// language of the catalogue used.
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// `humanize`'s `ordinal` of an integer, *1st*, *2nd*, *103rd*, *111th*, in a
+            /// locale, as one UTF-8 line, returning the byte length written.
+            ///
+            /// Tab-separated: the text, and the language of the catalogue that wrote the
+            /// suffix. The suffix is the one of the last digit in the gender, and of 11, 12
+            /// and 13 that of 0, as `humanize` writes it. `gender` is `male` or `female`,
+            /// in any case; another, the empty string included, is `HC_ERR_UNKNOWN`.
+            /// `locale` is read as for `hc_apnumber`: the first step of its fallback
+            /// chain that one of the 35 `humanize` catalogues is for and that
+            /// translates the suffixes serves, a bare language with two catalogues, `pt`, and
+            /// a language with none are English, and the second cell is the language
+            /// of the catalogue used, never a mixture. It fails as for
+            /// `hc_parse_iso_date`.
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_ordinal(
+            value: i64,
+            gender: name(gender_len),
+            locale: text(locale_len),
+        ) -> line =
+            $crate::humanize_lines::ordinal_line;
+
+        c {
+            /// `humanize`'s `intcomma` of an integer written in digits, *1,234,567*, as
+            /// one NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's: the text and the language of the
+            /// catalogue whose separators wrote it, `1.234.567` for `de`. `digits` is an
+            /// optional sign and ASCII digits; text that is not an integer is
+            /// `HC_ERROR_MALFORMED` and one of more than 39 digits `HC_ERROR_OUT_OF_RANGE`.
+            /// `locale` is a NUL-terminated BCP 47 tag, or null for the root locale; the
+            /// first catalogue along its fallback chain serves, and English where none is
+            /// for it. Writes the required length, including the terminator, into
+            /// `written`.
+        }
+        wasm {
+            /// `humanize`'s `intcomma` of an integer written in digits, *1,234,567*, as
+            /// one UTF-8 line, returning the byte length written.
+            ///
+            /// Tab-separated: the text, and the language of the catalogue whose separators
+            /// wrote it: `1.234.567` for `de`, from `humanize`'s `i18n.py`. `digits` is an
+            /// optional sign and ASCII digits; text that is not an integer is
+            /// `HC_ERR_MALFORMED` and one of more than 39 digits, which an `i128` holds,
+            /// `HC_ERR_OUT_OF_RANGE`. `locale` is read as for `hc_apnumber`, except that
+            /// the first catalogue along its fallback chain serves whether or not it has
+            /// other separators than English's. It fails as for `hc_parse_iso_date`. A null
+            /// `buffer` returns the length the text needs.
+        }
+        fn hc_intcomma(digits: name(digits_len), locale: text(locale_len)) -> line =
+            $crate::humanize_lines::intcomma_line;
+
+        c {
+            /// `humanize`'s `intcomma` of a float, *1,234,567.25*, as one NUL-terminated
+            /// UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's: the text and the language of the
+            /// catalogue whose separators wrote it. `ndigits` is Python's `ndigits`, the
+            /// places after the point; negative writes the number as Python's `repr` does.
+            /// `ndigits` above 255 is `HC_ERROR_OUT_OF_RANGE`. `locale` is as for
+            /// `hc_intcomma`. Writes the required length, including the terminator, into
+            /// `written`.
+        }
+        wasm {
+            /// `humanize`'s `intcomma` of a float, *1,234,567.25*, as one UTF-8 line,
+            /// returning the byte length written.
+            ///
+            /// Tab-separated: the text, and the language of the catalogue whose separators
+            /// wrote it. `ndigits` is Python's `ndigits`, the places after the point;
+            /// negative writes the number as Python's `repr` does, the shortest digits
+            /// that read back, `.0` on a whole number and an exponent from 10¹⁶, and groups
+            /// only the digits before the point. A value that is not finite is `NaN`,
+            /// `+Inf` or `-Inf`. `ndigits` above 255 is `HC_ERR_OUT_OF_RANGE`. `locale` is
+            /// as for `hc_intcomma`. A null `buffer` returns the length the text needs.
+        }
+        fn hc_intcomma_float(
+            value: f64,
+            ndigits: int,
+            locale: text(locale_len),
+        ) -> line =
+            $crate::humanize_lines::intcomma_float_line;
     } };
     ("zone-names", $backend:ident) => { $backend! {
         c {

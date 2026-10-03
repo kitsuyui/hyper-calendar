@@ -122,7 +122,7 @@ expression, `humanize`'s arithmetic and its gettext catalogues, and
 | `combine` | `DateTime::combine` | yes | |
 | `fromisoformat` | `DateTime::from_iso_format`, `hc_format::python::parse_date_time` | yes | any one-character separator, as Python; see *fromisoformat* |
 | `fromisocalendar` | `DateTime::from_iso_calendar` | yes | |
-| `strptime` | `DateTime::strptime`, `hc_format::python::strptime` | yes | CPython's regular-expression rules; 1900-01-01 defaults; see *strptime* |
+| `strptime` | `DateTime::strptime`, `hc_format::python::strptime`, the boundary's `hc_parse_pattern` with `python` | yes | CPython's regular-expression rules; 1900-01-01 defaults; see *strptime* |
 | `min` / `max` / `resolution` | `DateTime::MIN` / `MAX` / `RESOLUTION` | yes | |
 | attributes | `date` / `time` fields | yes | |
 | `tzinfo` / `fold` | a zone beside it, `hc_tz::Disambiguation` | partial | no aware type; see above |
@@ -328,7 +328,11 @@ Differences from CPython:
 arithmetic and strings. The CLDR-phrased formatters elsewhere in
 `hc-humanize` are a separate convention (policy §5) and are not changed by
 this. English is `NaturalPhrases::ENGLISH`; a language is one more
-`NaturalPhrases`, and the 35 that `humanize` ships are carried.
+`NaturalPhrases`, and the 35 that `humanize` ships are carried. Every function
+in the table below that writes words is a boundary export of the `natural`
+layer (`hc_naturaldelta`, `hc_naturaltime`, `hc_precisedelta`, `hc_naturalday`,
+`hc_naturaldate`, `hc_ordinal`, `hc_intcomma`, `hc_intcomma_float`, `hc_apnumber`,
+`hc_intword` and the rest), in the catalogue that serves a locale.
 
 | Python | hyper-calendar | Status | Note |
 | --- | --- | --- | --- |

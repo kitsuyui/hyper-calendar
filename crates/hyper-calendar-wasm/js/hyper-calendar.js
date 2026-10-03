@@ -109,6 +109,12 @@ export const METHODS = Object.freeze([
   { method: "calendarList", export: "hc_calendar_list", feature: "calendars" },
   { method: "locales", export: "hc_locales", feature: "calendars" },
   { method: "firstDayOfWeek", export: "hc_first_day_of_week", feature: "calendars" },
+  { method: "localeChain", export: "hc_locale_chain", feature: "calendars" },
+  { method: "localeInfo", export: "hc_locale_info", feature: "calendars" },
+  { method: "pluralCategory", export: "hc_plural_category", feature: "calendars" },
+  { method: "names", export: "hc_names", feature: "calendars" },
+  { method: "caseText", export: "hc_case", feature: "calendars" },
+  { method: "isolate", export: "hc_isolate", feature: "calendars" },
   { method: "dayPeriod", export: "hc_day_period", feature: "calendars" },
   { method: "formatNumber", export: "hc_format_number", feature: "calendars" },
   { method: "parseNumber", export: "hc_parse_number", feature: "calendars" },
@@ -261,13 +267,33 @@ export const METHODS = Object.freeze([
   { method: "relativeDay", export: "hc_relative_day", feature: "humanize" },
   { method: "relativeDayAt", export: "hc_relative_day_at", feature: "humanize" },
   { method: "duration", export: "hc_duration", feature: "humanize" },
-  { method: "apnumber", export: "hc_apnumber", feature: "humanize" },
-  { method: "fractional", export: "hc_fractional", feature: "humanize" },
-  { method: "scientific", export: "hc_scientific", feature: "humanize" },
-  { method: "metric", export: "hc_metric", feature: "humanize" },
-  { method: "naturalSize", export: "hc_naturalsize", feature: "humanize" },
-  { method: "naturalList", export: "hc_naturallist", feature: "humanize" },
-  { method: "intword", export: "hc_intword", feature: "humanize" },
+  { method: "unitChoice", export: "hc_unit_choice", feature: "humanize" },
+  { method: "relativeTimeWith", export: "hc_relative_time_with", feature: "humanize" },
+  { method: "approximateDuration", export: "hc_approximate_duration", feature: "humanize" },
+  { method: "apnumber", export: "hc_apnumber", feature: "natural" },
+  { method: "fractional", export: "hc_fractional", feature: "natural" },
+  { method: "scientific", export: "hc_scientific", feature: "natural" },
+  { method: "metric", export: "hc_metric", feature: "natural" },
+  { method: "naturalSize", export: "hc_naturalsize", feature: "natural" },
+  { method: "naturalList", export: "hc_naturallist", feature: "natural" },
+  { method: "intword", export: "hc_intword", feature: "natural" },
+  { method: "naturalDelta", export: "hc_naturaldelta", feature: "natural" },
+  { method: "naturalTime", export: "hc_naturaltime", feature: "natural" },
+  { method: "preciseDelta", export: "hc_precisedelta", feature: "natural" },
+  { method: "naturalDay", export: "hc_naturalday", feature: "natural" },
+  { method: "naturalDate", export: "hc_naturaldate", feature: "natural" },
+  { method: "ordinal", export: "hc_ordinal", feature: "natural" },
+  { method: "intcomma", export: "hc_intcomma", feature: "natural" },
+  { method: "intcommaFloat", export: "hc_intcomma_float", feature: "natural" },
+  { method: "parseDatetime", export: "hc_parse_datetime", feature: "datetime" },
+  { method: "formatDatetime", export: "hc_format_datetime", feature: "datetime" },
+  { method: "formatIsoDateAs", export: "hc_format_iso_date_as", feature: "datetime" },
+  { method: "isoDateParts", export: "hc_iso_date_parts", feature: "datetime" },
+  { method: "isoDuration", export: "hc_iso_duration", feature: "datetime" },
+  { method: "formatIsoDuration", export: "hc_format_iso_duration", feature: "datetime" },
+  { method: "isoInterval", export: "hc_iso_interval", feature: "datetime" },
+  { method: "parsePattern", export: "hc_parse_pattern", feature: "patterns" },
+  { method: "parsePatternIn", export: "hc_parse_pattern_in", feature: "patterns" },
   { method: "zoneName", export: "hc_zone_name", feature: "zone-names" },
   { method: "formatPattern", export: "hc_format_pattern", feature: "zone-names" },
 ].map(Object.freeze));
@@ -312,8 +338,42 @@ export const COLUMNS = Object.freeze({
   ]),
   locales: Object.freeze([
     "tag", "english name", "native name", "gregorian months", "weekdays", "gregorian eras",
-    "calendars",
+    "calendars", "parent", "numbering", "direction",
   ]),
+  reading: Object.freeze([
+    "local day", "local second", "attoseconds", "zone", "offset", "unix seconds", "leap second", "end of day",
+  ]),
+  formattedDatetime: Object.freeze(["text", "syntax"]),
+  formattedIsoDate: Object.freeze(["text", "form", "style"]),
+  isoDateParts: Object.freeze([
+    "form", "year", "month", "day", "day of year", "week", "weekday", "fixed", "style",
+  ]),
+  isoDuration: Object.freeze([
+    "negative", "years", "months", "weeks", "days", "hours", "minutes", "seconds", "fraction", "form",
+    "text", "nominal", "exact seconds", "exact attoseconds",
+  ]),
+  formattedIsoDuration: Object.freeze(["text", "nominal", "exact seconds", "exact attoseconds"]),
+  isoInterval: Object.freeze([
+    "repetitions", "shape", "start", "start unix seconds", "end", "end unix seconds", "duration",
+    "nominal", "exact seconds", "exact attoseconds",
+  ]),
+  patternFields: Object.freeze([
+    "year", "century", "year of century", "month", "day", "day of year", "iso year", "iso week", "iso weekday",
+    "week sunday", "week monday", "hour", "hour 12", "day period", "minute", "second", "attoseconds",
+    "zone", "offset", "unix seconds", "era", "fixed",
+    "local day", "local second", "reading attoseconds", "reading zone", "reading offset",
+    "reading unix seconds", "leap second", "end of day",
+  ]),
+  localeChain: Object.freeze(["step", "tag", "rule", "carried"]),
+  localeInfo: Object.freeze([
+    "tag", "language", "script", "region", "variant", "calendar key", "numbering key", "first day key",
+    "hour cycle key", "locale used", "parent", "parent rule", "numbering", "first day", "min days",
+    "direction", "casing", "capitalises month names", "plural rules",
+  ]),
+  pluralCategory: Object.freeze(["category", "rules", "i", "v", "w", "f", "t"]),
+  names: Object.freeze(["kind", "position", "name", "locale used"]),
+  caseText: Object.freeze(["text", "mode", "casing", "locale used"]),
+  isolated: Object.freeze(["text", "direction", "text direction", "isolated", "mode"]),
   gregorianAdoption: Object.freeze([
     "last old day", "first day", "old calendar", "scope", "source", "new calendar", "polity",
   ]),
@@ -423,6 +483,10 @@ export const COLUMNS = Object.freeze({
   relativeDayAt: Object.freeze(["phrase", "unit", "count", "time", "locale used"]),
   duration: Object.freeze(["phrase", "negative", "locale used"]),
   naturalText: Object.freeze(["text", "language"]),
+  localizedNaturalText: Object.freeze(["text", "locale used"]),
+  unitChoice: Object.freeze(["unit", "count", "half", "thresholds", "rounding"]),
+  relativeTimeWith: Object.freeze(["phrase", "unit", "count", "half", "locale used"]),
+  approximateDuration: Object.freeze(["phrase", "hedge", "unit", "count", "locale used"]),
   zoneName: Object.freeze(["name", "field", "zone", "offset", "daylight"]),
   utcFromTai: Object.freeze(["unix seconds", "leap second"]),
   tai64PosixPlus10: Object.freeze(["format", "unix seconds", "attoseconds"]),
@@ -1114,7 +1178,7 @@ function calendarListEntry(cells) {
  * @returns {import("./hyper-calendar.d.ts").LocaleEntry}
  */
 function localeEntry(cells) {
-  const [tag, englishName, nativeName, gregorianMonths, weekdays, gregorianEras, calendars] = cells;
+  const [tag, englishName, nativeName, gregorianMonths, weekdays, gregorianEras, calendars, parent, numbering, direction] = cells;
   return {
     tag,
     englishName,
@@ -1123,6 +1187,249 @@ function localeEntry(cells) {
     weekdays: flag(weekdays, "weekdays"),
     gregorianEras: flag(gregorianEras, "gregorian eras"),
     calendars: list(calendars),
+    parent: optional(parent),
+    numbering,
+    direction: /** @type {import("./hyper-calendar.d.ts").TextDirection} */ (direction),
+  };
+}
+
+/**
+ * The eight cells of a reading.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").Reading}
+ */
+function reading(cells) {
+  const [localDay, localSecond, attoseconds, zone, offset, unix, leap, endOfDay] = cells;
+  return {
+    localDay: integer(localDay, "local day"),
+    localSecond: integer(localSecond, "local second"),
+    attoseconds: bigInteger(attoseconds, "attoseconds"),
+    zone: /** @type {import("./hyper-calendar.d.ts").ReadingZone} */ (zone),
+    offsetSeconds: optionalInteger(offset, "offset"),
+    unixSeconds: optionalInteger(unix, "unix seconds"),
+    leapSecond: flag(leap, "leap second"),
+    endOfDay: flag(endOfDay, "end of day"),
+  };
+}
+
+/**
+ * The line of `hc_iso_duration`, and `hc_format_iso_duration`'s from its
+ * second cell on.
+ *
+ * @param {string[]} cells text, nominal, exact seconds, exact attoseconds
+ */
+function exactLength(cells) {
+  const [text, nominal, seconds, attoseconds] = cells;
+  return {
+    text,
+    nominal: flag(nominal, "nominal"),
+    exactSeconds: seconds === "" ? null : bigInteger(seconds, "exact seconds"),
+    exactAttoseconds: attoseconds === "" ? null : bigInteger(attoseconds, "exact attoseconds"),
+  };
+}
+
+/**
+ * The line of `hc_iso_duration`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").IsoDurationParts}
+ */
+function isoDurationParts(cells) {
+  const [negative, years, months, weeks, days, hours, minutes, seconds, fraction, form, ...rest] = cells;
+  const parts = [years, months, weeks, days, hours, minutes, seconds].map((cell, index) =>
+    optionalInteger(cell, ["years", "months", "weeks", "days", "hours", "minutes", "seconds"][index]));
+  return {
+    negative: flag(negative, "negative"),
+    years: parts[0], months: parts[1], weeks: parts[2], days: parts[3],
+    hours: parts[4], minutes: parts[5], seconds: parts[6],
+    fraction: optional(fraction),
+    form: /** @type {"designators" | "alternative"} */ (form),
+    ...exactLength(rest),
+  };
+}
+
+/**
+ * The line of `hc_iso_interval`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").IsoIntervalParts}
+ */
+function isoIntervalParts(cells) {
+  const [repetitions, shape, start, startUnix, end, endUnix, ...rest] = cells;
+  return {
+    repetitions: repetitions === "" ? null : repetitions === "inf" ? "inf" : integer(repetitions, "repetitions"),
+    shape: /** @type {import("./hyper-calendar.d.ts").IntervalShape} */ (shape),
+    start: optional(start),
+    startUnixSeconds: optionalInteger(startUnix, "start unix seconds"),
+    end: optional(end),
+    endUnixSeconds: optionalInteger(endUnix, "end unix seconds"),
+    duration: rest[0] === "" ? null : exactLength(rest),
+  };
+}
+
+/**
+ * The line of `hc_iso_date_parts`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").IsoDateParts}
+ */
+function isoDateParts(cells) {
+  const [form, year, month, day, dayOfYear, week, weekday, fixed, style] = cells;
+  return {
+    form: /** @type {import("./hyper-calendar.d.ts").IsoDateForm} */ (form),
+    year: integer(year, "year"),
+    month: optionalInteger(month, "month"),
+    day: optionalInteger(day, "day"),
+    dayOfYear: optionalInteger(dayOfYear, "day of year"),
+    week: optionalInteger(week, "week"),
+    weekday: optionalInteger(weekday, "weekday"),
+    fixed: optionalInteger(fixed, "fixed"),
+    style: /** @type {import("./hyper-calendar.d.ts").IsoDateStyle} */ (style),
+  };
+}
+
+/**
+ * The line of `hc_parse_pattern`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").PatternFields}
+ */
+function patternFields(cells) {
+  const [
+    year, century, yearOfCentury, month, day, dayOfYear, isoYear, isoWeek, isoWeekday, weekSunday, weekMonday,
+    hour, hour12, dayPeriod, minute, second, attoseconds, zone, offset, unixSeconds, era, fixed,
+    ...resolved
+  ] = cells;
+  const int = (/** @type {string} */ cell, /** @type {string} */ what) => optionalInteger(cell, what);
+  return {
+    year: int(year, "year"), century: int(century, "century"), yearOfCentury: int(yearOfCentury, "year of century"),
+    month: int(month, "month"), day: int(day, "day"), dayOfYear: int(dayOfYear, "day of year"),
+    isoYear: int(isoYear, "iso year"), isoWeek: int(isoWeek, "iso week"), isoWeekday: int(isoWeekday, "iso weekday"),
+    weekSunday: int(weekSunday, "week sunday"), weekMonday: int(weekMonday, "week monday"),
+    hour: int(hour, "hour"), hour12: int(hour12, "hour 12"),
+    dayPeriod: /** @type {"am" | "pm" | null} */ (optional(dayPeriod)),
+    minute: int(minute, "minute"), second: int(second, "second"),
+    attoseconds: attoseconds === "" ? null : bigInteger(attoseconds, "attoseconds"),
+    zone: /** @type {import("./hyper-calendar.d.ts").ReadingZone | null} */ (optional(zone)),
+    offsetSeconds: int(offset, "offset"), unixSeconds: int(unixSeconds, "unix seconds"),
+    era: /** @type {"ce" | "bce" | null} */ (optional(era)), fixed: int(fixed, "fixed"),
+    reading: resolved[0] === "" ? null : reading(resolved),
+  };
+}
+
+/**
+ * One step of `hc_locale_chain`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").LocaleChainStep}
+ */
+function localeChainStep(cells) {
+  const [step, tag, rule, carried] = cells;
+  return {
+    step: integer(step, "step"),
+    tag,
+    rule: /** @type {import("./hyper-calendar.d.ts").LocaleChainRule} */ (rule),
+    carried: flag(carried, "carried"),
+  };
+}
+
+/**
+ * The line of `hc_locale_info`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").LocaleInfo}
+ */
+function localeInfo(cells) {
+  const [
+    tag, language, script, region, variant, calendarKey, numberingKey, firstDayKey, hourCycleKey,
+    localeUsed, parent, parentRule, numbering, firstDay, minDays, direction, casing, capitalises, plural,
+  ] = cells;
+  return {
+    tag,
+    language,
+    script: optional(script),
+    region: optional(region),
+    variant: optional(variant),
+    calendarKey: optional(calendarKey),
+    numberingKey: optional(numberingKey),
+    firstDayKey: optionalInteger(firstDayKey, "first day key"),
+    hourCycleKey: optional(hourCycleKey),
+    localeUsed,
+    parent: optional(parent),
+    parentRule: /** @type {import("./hyper-calendar.d.ts").LocaleChainRule | null} */ (optional(parentRule)),
+    numbering,
+    firstDay: integer(firstDay, "first day"),
+    minDays: integer(minDays, "min days"),
+    direction: /** @type {import("./hyper-calendar.d.ts").TextDirection} */ (direction),
+    casing: /** @type {import("./hyper-calendar.d.ts").CasingStyleName} */ (casing),
+    capitalisesMonthNames: flag(capitalises, "capitalises month names"),
+    pluralRules: plural,
+  };
+}
+
+/**
+ * The line of `hc_plural_category`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").PluralCategoryAnswer}
+ */
+function pluralCategoryAnswer(cells) {
+  const [category, rules, i, v, w, f, t] = cells;
+  return {
+    category: /** @type {import("./hyper-calendar.d.ts").PluralCategoryName} */ (category),
+    rules,
+    operands: {
+      i: bigInteger(i, "i"),
+      v: integer(v, "v"),
+      w: integer(w, "w"),
+      f: bigInteger(f, "f"),
+      t: bigInteger(t, "t"),
+    },
+  };
+}
+
+/**
+ * One line of `hc_names`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").LocaleName}
+ */
+function localeName(cells) {
+  const [kind, position, name, localeUsed] = cells;
+  return { kind, position: integer(position, "position"), name, localeUsed };
+}
+
+/**
+ * The line of `hc_case`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").CasedText}
+ */
+function casedText(cells) {
+  const [text, mode, casing, localeUsed] = cells;
+  return {
+    text,
+    mode: /** @type {import("./hyper-calendar.d.ts").CaseMode} */ (mode),
+    casing: /** @type {import("./hyper-calendar.d.ts").CasingStyleName} */ (casing),
+    localeUsed,
+  };
+}
+
+/**
+ * The line of `hc_isolate`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").IsolatedText}
+ */
+function isolatedText(cells) {
+  const [text, direction, textDirection, isolated, mode] = cells;
+  return {
+    text,
+    direction: /** @type {import("./hyper-calendar.d.ts").TextDirection} */ (direction),
+    textDirection: /** @type {import("./hyper-calendar.d.ts").TextDirection | null} */ (optional(textDirection)),
+    isolated: flag(isolated, "isolated"),
+    mode: /** @type {import("./hyper-calendar.d.ts").IsolateMode} */ (mode),
   };
 }
 
@@ -2385,6 +2692,63 @@ function humanizedDuration(cells) {
 function naturalText(cells) {
   const [text, language] = cells;
   return { text, language };
+}
+
+/**
+ * The line of the `humanize` functions that have words: the text and the
+ * tag of the catalogue that wrote it.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").LocalizedNaturalText}
+ */
+function localizedNaturalText(cells) {
+  const [text, localeUsed] = cells;
+  return { text, localeUsed };
+}
+
+/**
+ * The line of `hc_unit_choice`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").UnitChoice}
+ */
+function unitChoice(cells) {
+  const [unit, count, half, thresholds, rounding] = cells;
+  return {
+    unit: /** @type {import("./hyper-calendar.d.ts").HumanizeUnit} */ (unit),
+    count: integer(count, "count"),
+    half: flag(half, "half"),
+    thresholds: /** @type {import("./hyper-calendar.d.ts").ThresholdsName} */ (thresholds),
+    rounding: /** @type {import("./hyper-calendar.d.ts").RoundingName} */ (rounding),
+  };
+}
+
+/**
+ * The line of `hc_relative_time_with`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").RelativeTimeWith}
+ */
+function relativeTimeWith(cells) {
+  const [phrase, unit, count, half, localeUsed] = cells;
+  return { ...relativeTime([phrase, unit, count, localeUsed]), half: flag(half, "half") };
+}
+
+/**
+ * The line of `hc_approximate_duration`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").ApproximateDuration}
+ */
+function approximateDuration(cells) {
+  const [phrase, hedge, unit, count, localeUsed] = cells;
+  return {
+    phrase,
+    hedge: /** @type {import("./hyper-calendar.d.ts").Hedge} */ (hedge),
+    unit: /** @type {import("./hyper-calendar.d.ts").HumanizeUnit} */ (unit),
+    count: integer(count, "count"),
+    localeUsed,
+  };
 }
 
 /** The capacity a text read starts with unless `load` was told otherwise. */
@@ -3754,6 +4118,105 @@ export class HyperCalendar {
   }
 
   /**
+   * The fallback chain of a locale, the order its data is looked up
+   * along, from the tag itself to `und`: each step with the rule that
+   * led to it from the one before (`parent-locales` for a parent CLDR 48
+   * names, `region` and `script` for truncation) and whether `hc-i18n`
+   * carries an entry of data for that tag. A tag that does not parse is
+   * refused as `malformed`; the empty string is the root locale.
+   *
+   * @param {string} locale
+   * @returns {import("./hyper-calendar.d.ts").LocaleChainStep[]}
+   */
+  localeChain(locale) {
+    const text = this.#call("hc_locale_chain", [["str", "locale", locale]]);
+    return rows(text, COLUMNS.localeChain, "hc_locale_chain").map(localeChainStep);
+  }
+
+  /**
+   * What a locale is: its subtags and `-u-` keys, the entry of data that
+   * answers for it, its parent, default numbering system, week (the
+   * first day and CLDR's `minDays`), direction, casing and plural rules.
+   * A tag that does not parse is refused as `malformed`.
+   *
+   * @param {string} locale
+   * @returns {import("./hyper-calendar.d.ts").LocaleInfo}
+   */
+  localeInfo(locale) {
+    const text = this.#call("hc_locale_info", [["str", "locale", locale]]);
+    return localeInfo(this.#oneLine("hc_locale_info", text, COLUMNS.localeInfo));
+  }
+
+  /**
+   * The plural category a number has in a locale, by CLDR 48's cardinal
+   * rules, with the operands read from the number as written: `"1"` is
+   * `one` in English and `"1.0"` is `other`. `kind` is `cardinal`;
+   * `ordinal` is refused as `no-data`, since the ordinal rules are not
+   * carried.
+   *
+   * @param {string} locale
+   * @param {string} number a plain decimal, as text
+   * @param {import("./hyper-calendar.d.ts").PluralKind} [kind]
+   * @returns {import("./hyper-calendar.d.ts").PluralCategoryAnswer}
+   */
+  pluralCategory(locale, number, kind = "cardinal") {
+    const text = this.#call("hc_plural_category", [
+      ["str", "locale", locale], ["str", "number", String(number)], ["str", "kind", kind],
+    ]);
+    return pluralCategoryAnswer(this.#oneLine("hc_plural_category", text, COLUMNS.pluralCategory));
+  }
+
+  /**
+   * The names a locale has for a calendar in a width and a context:
+   * months (and the names of a leap year's months where they differ),
+   * the calendar's other cycles, quarters and the day periods.
+   *
+   * @param {string} locale
+   * @param {string} calendar
+   * @param {import("./hyper-calendar.d.ts").NameWidth} [width]
+   * @param {import("./hyper-calendar.d.ts").NameContext} [context]
+   * @returns {import("./hyper-calendar.d.ts").LocaleName[]}
+   */
+  names(locale, calendar, width = "wide", context = "format") {
+    const text = this.#call("hc_names", [
+      ["str", "locale", locale], ["str", "calendar", calendar], ["str", "width", width],
+      ["str", "context", context],
+    ]);
+    return rows(text, COLUMNS.names, "hc_names").map(localeName);
+  }
+
+  /**
+   * A text recased as a locale cases it: `lower`, `upper` (`iyi` is
+   * `İYİ` in Turkish), `capitalise-first`, `lowercase-first`,
+   * `sentence-start` or `in-sentence`.
+   *
+   * @param {string} locale
+   * @param {import("./hyper-calendar.d.ts").CaseMode} mode
+   * @param {string} text
+   * @returns {import("./hyper-calendar.d.ts").CasedText}
+   */
+  caseText(locale, mode, text) {
+    const answer = this.#call("hc_case", [["str", "locale", locale], ["str", "mode", mode], ["str", "text", text]]);
+    return casedText(this.#oneLine("hc_case", answer, COLUMNS.caseText));
+  }
+
+  /**
+   * A text made safe to embed in text running a locale's direction, by
+   * the Unicode bidirectional isolates: `field` isolates only where the
+   * two directions disagree, `first-strong` always, and `strip` removes
+   * every isolate.
+   *
+   * @param {string} locale
+   * @param {import("./hyper-calendar.d.ts").IsolateMode} mode
+   * @param {string} text
+   * @returns {import("./hyper-calendar.d.ts").IsolatedText}
+   */
+  isolate(locale, mode, text) {
+    const answer = this.#call("hc_isolate", [["str", "locale", locale], ["str", "mode", mode], ["str", "text", text]]);
+    return isolatedText(this.#oneLine("hc_isolate", answer, COLUMNS.isolated));
+  }
+
+  /**
    * The day periods of a time of the civil clock in a locale: am or pm,
    * and the flexible period, *in the afternoon*, by CLDR 48's rules.
    *
@@ -4872,6 +5335,47 @@ export class HyperCalendar {
       });
     }
     return lines[0];
+  }
+
+  /**
+   * Call an export that writes one text, from arguments of stated kinds:
+   * `i64`, `u64`, `u32`, `i32`, `f64`, `flag` (a boolean, passed as 0 or 1)
+   * and `str` (UTF-8 in linear memory, passed as a pointer and a length).
+   *
+   * @param {string} exportName
+   * @param {ReadonlyArray<readonly [string, string, unknown]>} args kind, name and value
+   * @returns {string}
+   */
+  #call(exportName, args) {
+    const fn = this.#export(exportName);
+    /** @type {Array<number | bigint | string>} */
+    const converted = args.map(([kind, name, value]) => {
+      switch (kind) {
+        case "i64": return toI64(/** @type {any} */ (value), name);
+        case "u64": return toU64(/** @type {any} */ (value), name);
+        case "u32": return toU32(/** @type {any} */ (value), name);
+        case "i32": return toI32(/** @type {any} */ (value), name);
+        case "f64": return toF64(/** @type {any} */ (value), name);
+        case "flag": return value ? 1 : 0;
+        default: return String(value);
+      }
+    });
+    /**
+     * @param {number} index
+     * @param {Array<number | bigint>} passed
+     * @returns {string}
+     */
+    const run = (index, passed) => {
+      if (index === args.length) {
+        return this.#text(exportName, (buffer, capacity) => fn(...passed, buffer, capacity), true);
+      }
+      if (args[index][0] === "str") {
+        return this.#withText(/** @type {string} */ (converted[index]), args[index][1], (pointer, len) =>
+          run(index + 1, [...passed, pointer, len]));
+      }
+      return run(index + 1, [...passed, /** @type {number | bigint} */ (converted[index])]);
+    };
+    return run(0, []);
   }
 
   /**
@@ -6503,22 +7007,23 @@ export class HyperCalendar {
   /**
    * A whole number as the Associated Press writes it, `humanize`'s
    * `apnumber`: *zero* to *nine* spelled out, every other number as its
-   * digits.
+   * digits, in the catalogue of the `locale`'s fallback chain that
+   * translates the numerals, English where none does; `localeUsed` says
+   * which.
    *
    * @param {number | bigint} value
-   * @returns {import("./hyper-calendar.d.ts").NaturalText}
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").LocalizedNaturalText}
    */
-  apnumber(value) {
-    const fn = this.#export("hc_apnumber");
-    const v = toI64(value, "value");
-    const text = this.#text("hc_apnumber", (buffer, capacity) => fn(v, buffer, capacity), true);
-    return naturalText(this.#oneLine("hc_apnumber", text, COLUMNS.naturalText));
+  apnumber(value, locale = "und") {
+    const text = this.#call("hc_apnumber", [["i64", "value", value], ["str", "locale", locale]]);
+    return localizedNaturalText(this.#oneLine("hc_apnumber", text, COLUMNS.localizedNaturalText));
   }
 
   /**
    * A number as a fraction, `humanize`'s `fractional`: `0.3` is *3/10*,
    * `1.3` is *1 3/10*, by the nearest fraction with a denominator of at
-   * most 1000.
+   * most 1000. It writes no word, so it has no locale.
    *
    * @param {number} value
    * @returns {import("./hyper-calendar.d.ts").NaturalText}
@@ -6532,7 +7037,7 @@ export class HyperCalendar {
 
   /**
    * A number in scientific notation, `humanize`'s `scientific`: *3.00 x
-   * 10⁻¹*, with `precision` digits after the point.
+   * 10⁻¹*, with `precision` digits after the point. It has no locale.
    *
    * @param {number} value
    * @param {number} [precision]
@@ -6548,73 +7053,414 @@ export class HyperCalendar {
 
   /**
    * A number with an SI prefix and a unit, `humanize`'s `metric`: *1.50
-   * kV*, *220 μF*, with `precision` significant digits.
+   * kV*, *220 μF*, with `precision` significant digits. The prefixes are
+   * symbols no catalogue translates; the `locale` chooses the catalogue
+   * whose decimal mark the scientific form of a magnitude beyond them uses.
    *
    * @param {number} value
    * @param {string} [unit]
    * @param {number} [precision]
-   * @returns {import("./hyper-calendar.d.ts").NaturalText}
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").LocalizedNaturalText}
    */
-  metric(value, unit = "", precision = 3) {
-    const fn = this.#export("hc_metric");
-    const v = toF64(value, "value");
-    const digits = toU32(precision, "precision");
-    const text = this.#withText(unit, "unit", (unitPointer, unitLen) =>
-      this.#text("hc_metric", (buffer, capacity) =>
-        fn(v, unitPointer, unitLen, digits, buffer, capacity), true));
-    return naturalText(this.#oneLine("hc_metric", text, COLUMNS.naturalText));
+  metric(value, unit = "", precision = 3, locale = "und") {
+    const text = this.#call("hc_metric", [
+      ["f64", "value", value], ["str", "unit", unit], ["u32", "precision", precision], ["str", "locale", locale],
+    ]);
+    return localizedNaturalText(this.#oneLine("hc_metric", text, COLUMNS.localizedNaturalText));
   }
 
   /**
    * A size in bytes, `humanize`'s `naturalsize`: *3.0 MB* (`decimal`),
-   * *2.9 KiB* (`binary`), *2.9K* (`gnu`).
+   * *2.9 KiB* (`binary`), *2.9K* (`gnu`), with *Byte* and the suffixes of
+   * the catalogue that translates them, English where none does.
    *
    * @param {number} value
    * @param {import("./hyper-calendar.d.ts").NaturalSizeStyle} [style]
    * @param {number} [decimals]
-   * @returns {import("./hyper-calendar.d.ts").NaturalText}
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").LocalizedNaturalText}
    */
-  naturalSize(value, style = "decimal", decimals = 1) {
-    const fn = this.#export("hc_naturalsize");
-    const v = toF64(value, "value");
-    const digits = toU32(decimals, "decimals");
-    const text = this.#withText(style, "style", (stylePointer, styleLen) =>
-      this.#text("hc_naturalsize", (buffer, capacity) =>
-        fn(v, stylePointer, styleLen, digits, buffer, capacity), true));
-    return naturalText(this.#oneLine("hc_naturalsize", text, COLUMNS.naturalText));
+  naturalSize(value, style = "decimal", decimals = 1, locale = "und") {
+    const text = this.#call("hc_naturalsize", [
+      ["f64", "value", value], ["str", "style", style], ["u32", "decimals", decimals], ["str", "locale", locale],
+    ]);
+    return localizedNaturalText(this.#oneLine("hc_naturalsize", text, COLUMNS.localizedNaturalText));
   }
 
   /**
    * Items joined as a list, `humanize`'s `natural_list`: *one, two and
-   * three*, with no comma before the *and*.
+   * three*, with no comma before the *and*. Its `, ` and ` and ` are
+   * literals in `humanize` that no catalogue translates, so every `locale`
+   * gets English and `localeUsed` is `en`.
    *
    * @param {string[]} items
-   * @returns {import("./hyper-calendar.d.ts").NaturalText}
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").LocalizedNaturalText}
    */
-  naturalList(items) {
-    const fn = this.#export("hc_naturallist");
-    const text = this.#withText(items.join("\n"), "items", (itemsPointer, itemsLen) =>
-      this.#text("hc_naturallist", (buffer, capacity) =>
-        fn(itemsPointer, itemsLen, buffer, capacity), true));
-    return naturalText(this.#oneLine("hc_naturallist", text, COLUMNS.naturalText));
+  naturalList(items, locale = "und") {
+    const text = this.#call("hc_naturallist", [["str", "items", items.join("\n")], ["str", "locale", locale]]);
+    return localizedNaturalText(this.#oneLine("hc_naturallist", text, COLUMNS.localizedNaturalText));
   }
 
   /**
    * An integer of any length as a count with a word, `humanize`'s
-   * `intword`: *12.4 thousand*, *1.2 billion*, *1.0 googol*. `digits` is
-   * an integer written in digits, or a `bigint`.
+   * `intword`: *12.4 thousand*, *1.2 billion*, *1.0 googol*, in the
+   * catalogue that translates the words. `digits` is an integer written in
+   * digits, or a `bigint`.
    *
    * @param {string | number | bigint} digits
    * @param {number} [decimals]
-   * @returns {import("./hyper-calendar.d.ts").NaturalText}
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").LocalizedNaturalText}
    */
-  intword(digits, decimals = 1) {
-    const fn = this.#export("hc_intword");
-    const places = toU32(decimals, "decimals");
-    const text = this.#withText(String(digits), "digits", (digitsPointer, digitsLen) =>
-      this.#text("hc_intword", (buffer, capacity) =>
-        fn(digitsPointer, digitsLen, places, buffer, capacity), true));
-    return naturalText(this.#oneLine("hc_intword", text, COLUMNS.naturalText));
+  intword(digits, decimals = 1, locale = "und") {
+    const text = this.#call("hc_intword", [
+      ["str", "digits", String(digits)], ["u32", "decimals", decimals], ["str", "locale", locale],
+    ]);
+    return localizedNaturalText(this.#oneLine("hc_intword", text, COLUMNS.localizedNaturalText));
+  }
+
+  /**
+   * `humanize`'s `naturaldelta` of a span of `seconds` and `microseconds`:
+   * *3 hours*, *a moment*, without tense and ignoring the sign. `months`
+   * uses months of 30.5 days between days and years; `minimumUnit` is
+   * `seconds`, `milliseconds` or `microseconds`.
+   *
+   * @param {number | bigint} seconds
+   * @param {number} [microseconds]
+   * @param {boolean} [months]
+   * @param {import("./hyper-calendar.d.ts").DeltaUnit} [minimumUnit]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").LocalizedNaturalText}
+   */
+  naturalDelta(seconds, microseconds = 0, months = true, minimumUnit = "seconds", locale = "und") {
+    const text = this.#call("hc_naturaldelta", [
+      ["i64", "seconds", seconds], ["i32", "microseconds", microseconds], ["flag", "months", months],
+      ["str", "minimumUnit", minimumUnit], ["str", "locale", locale],
+    ]);
+    return localizedNaturalText(this.#oneLine("hc_naturaldelta", text, COLUMNS.localizedNaturalText));
+  }
+
+  /**
+   * `humanize`'s `naturaltime` of a span: *3 hours ago*, *3 hours from
+   * now*, *now*. A positive span is in the past, as in Python. The rest is
+   * as for {@link naturalDelta}.
+   *
+   * @param {number | bigint} seconds
+   * @param {number} [microseconds]
+   * @param {boolean} [months]
+   * @param {import("./hyper-calendar.d.ts").DeltaUnit} [minimumUnit]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").LocalizedNaturalText}
+   */
+  naturalTime(seconds, microseconds = 0, months = true, minimumUnit = "seconds", locale = "und") {
+    const text = this.#call("hc_naturaltime", [
+      ["i64", "seconds", seconds], ["i32", "microseconds", microseconds], ["flag", "months", months],
+      ["str", "minimumUnit", minimumUnit], ["str", "locale", locale],
+    ]);
+    return localizedNaturalText(this.#oneLine("hc_naturaltime", text, COLUMNS.localizedNaturalText));
+  }
+
+  /**
+   * `humanize`'s `precisedelta` of a span, *1 year, 2 months and 3 days*,
+   * with 4.16.0's arithmetic step for step. `minimumUnit` is the smallest
+   * unit written, `suppress` the units folded into the next smaller, and
+   * `decimals` the places of the fraction of the smallest unit.
+   *
+   * @param {number | bigint} seconds
+   * @param {number} [microseconds]
+   * @param {import("./hyper-calendar.d.ts").PreciseUnitName} [minimumUnit]
+   * @param {import("./hyper-calendar.d.ts").PreciseUnitName[]} [suppress]
+   * @param {number} [decimals]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").LocalizedNaturalText}
+   */
+  preciseDelta(seconds, microseconds = 0, minimumUnit = "seconds", suppress = [], decimals = 2, locale = "und") {
+    const text = this.#call("hc_precisedelta", [
+      ["i64", "seconds", seconds], ["i32", "microseconds", microseconds], ["str", "minimumUnit", minimumUnit],
+      ["str", "suppress", suppress.join(",")], ["u32", "decimals", decimals], ["str", "locale", locale],
+    ]);
+    return localizedNaturalText(this.#oneLine("hc_precisedelta", text, COLUMNS.localizedNaturalText));
+  }
+
+  /**
+   * `humanize`'s `naturalday` of a fixed day seen from another: *today*,
+   * *tomorrow*, *yesterday*, or the day by a `strftime` pattern in the C
+   * locale, `%b %d` when `pattern` is empty.
+   *
+   * @param {number | bigint} day
+   * @param {number | bigint} today
+   * @param {string} [pattern]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").LocalizedNaturalText}
+   */
+  naturalDay(day, today, pattern = "", locale = "und") {
+    const text = this.#call("hc_naturalday", [
+      ["i64", "day", day], ["i64", "today", today], ["str", "pattern", pattern], ["str", "locale", locale],
+    ]);
+    return localizedNaturalText(this.#oneLine("hc_naturalday", text, COLUMNS.localizedNaturalText));
+  }
+
+  /**
+   * `humanize`'s `naturaldate`: {@link naturalDay} with `%b %d`, and the
+   * year added from five twelfths of a year away.
+   *
+   * @param {number | bigint} day
+   * @param {number | bigint} today
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").LocalizedNaturalText}
+   */
+  naturalDate(day, today, locale = "und") {
+    const text = this.#call("hc_naturaldate", [["i64", "day", day], ["i64", "today", today], ["str", "locale", locale]]);
+    return localizedNaturalText(this.#oneLine("hc_naturaldate", text, COLUMNS.localizedNaturalText));
+  }
+
+  /**
+   * `humanize`'s `ordinal`: *1st*, *2nd*, *103rd*, *111th*, in the
+   * suffixes of the catalogue that translates them; `gender` is `male` or
+   * `female`.
+   *
+   * @param {number | bigint} value
+   * @param {import("./hyper-calendar.d.ts").OrdinalGender} [gender]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").LocalizedNaturalText}
+   */
+  ordinal(value, gender = "male", locale = "und") {
+    const text = this.#call("hc_ordinal", [["i64", "value", value], ["str", "gender", gender], ["str", "locale", locale]]);
+    return localizedNaturalText(this.#oneLine("hc_ordinal", text, COLUMNS.localizedNaturalText));
+  }
+
+  /**
+   * `humanize`'s `intcomma` of an integer written in digits, or a
+   * `bigint`: *1,234,567*, with the separators of the first catalogue for
+   * the `locale` (*1.234.567* for `de`), up to 39 digits.
+   *
+   * @param {string | number | bigint} digits
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").LocalizedNaturalText}
+   */
+  intcomma(digits, locale = "und") {
+    const text = this.#call("hc_intcomma", [["str", "digits", String(digits)], ["str", "locale", locale]]);
+    return localizedNaturalText(this.#oneLine("hc_intcomma", text, COLUMNS.localizedNaturalText));
+  }
+
+  /**
+   * `humanize`'s `intcomma` of a float: *1,234,567.25*, to `ndigits`
+   * places, or, with `null`, as Python's `repr` writes it.
+   *
+   * @param {number} value
+   * @param {number | null} [ndigits]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").LocalizedNaturalText}
+   */
+  intcommaFloat(value, ndigits = null, locale = "und") {
+    const text = this.#call("hc_intcomma_float", [
+      ["f64", "value", value], ["i32", "ndigits", ndigits === null ? -1 : ndigits], ["str", "locale", locale],
+    ]);
+    return localizedNaturalText(this.#oneLine("hc_intcomma_float", text, COLUMNS.localizedNaturalText));
+  }
+
+  /**
+   * The unit a span of seconds is said in and its count, under a table of
+   * `thresholds` (`default`, `exact`, `with-quarters`) and a `rounding`
+   * (`ceil`, `floor`, `nearest`, `truncate`, `nearest-half`).
+   *
+   * @param {number | bigint} seconds
+   * @param {import("./hyper-calendar.d.ts").ThresholdsName} [thresholds]
+   * @param {import("./hyper-calendar.d.ts").RoundingName} [rounding]
+   * @returns {import("./hyper-calendar.d.ts").UnitChoice}
+   */
+  unitChoice(seconds, thresholds = "default", rounding = "nearest") {
+    const text = this.#call("hc_unit_choice", [
+      ["i64", "seconds", seconds], ["str", "thresholds", thresholds], ["str", "rounding", rounding],
+    ]);
+    return unitChoice(this.#oneLine("hc_unit_choice", text, COLUMNS.unitChoice));
+  }
+
+  /**
+   * {@link relativeTime} under the `thresholds` and `rounding` of the
+   * caller's, where it fixes the conversational table and truncation.
+   *
+   * @param {number | bigint} thenUnix
+   * @param {number | bigint} nowUnix
+   * @param {import("./hyper-calendar.d.ts").RelativeStyle} [style]
+   * @param {boolean} [automatic]
+   * @param {string} [locale]
+   * @param {import("./hyper-calendar.d.ts").ThresholdsName} [thresholds]
+   * @param {import("./hyper-calendar.d.ts").RoundingName} [rounding]
+   * @returns {import("./hyper-calendar.d.ts").RelativeTimeWith}
+   */
+  relativeTimeWith(thenUnix, nowUnix, style = "long", automatic = false, locale = "und", thresholds = "default", rounding = "truncate") {
+    const text = this.#call("hc_relative_time_with", [
+      ["i64", "thenUnix", thenUnix], ["i64", "nowUnix", nowUnix], ["str", "style", style],
+      ["flag", "automatic", automatic], ["str", "locale", locale], ["str", "thresholds", thresholds],
+      ["str", "rounding", rounding],
+    ]);
+    return relativeTimeWith(this.#oneLine("hc_relative_time_with", text, COLUMNS.relativeTimeWith));
+  }
+
+  /**
+   * A span of seconds hedged as a round number: *about 3 hours*, *just
+   * over a week*, *nearly a year*. The sign is dropped.
+   *
+   * @param {number | bigint} seconds
+   * @param {import("./hyper-calendar.d.ts").RelativeStyle} [style]
+   * @param {string} [locale]
+   * @param {import("./hyper-calendar.d.ts").ThresholdsName} [thresholds]
+   * @param {import("./hyper-calendar.d.ts").HedgePolicy} [policy]
+   * @returns {import("./hyper-calendar.d.ts").ApproximateDuration}
+   */
+  approximateDuration(seconds, style = "long", locale = "und", thresholds = "default", policy = "default") {
+    const text = this.#call("hc_approximate_duration", [
+      ["i64", "seconds", seconds], ["str", "style", style], ["str", "locale", locale],
+      ["str", "thresholds", thresholds], ["str", "policy", policy],
+    ]);
+    return approximateDuration(this.#oneLine("hc_approximate_duration", text, COLUMNS.approximateDuration));
+  }
+
+  /**
+   * A date-time read in a syntax: `iso8601`, `iso8601-full`, `rfc3339`,
+   * `rfc2822`, `python` or `auto`. The result is a reading, whose
+   * `offsetSeconds` and `unixSeconds` are `null` where the text states no
+   * zone: a local time is never taken for UTC.
+   *
+   * @param {import("./hyper-calendar.d.ts").DatetimeSyntax} syntax
+   * @param {string} text
+   * @returns {import("./hyper-calendar.d.ts").Reading}
+   */
+  parseDatetime(syntax, text) {
+    const answer = this.#call("hc_parse_datetime", [["str", "syntax", syntax], ["str", "text", text]]);
+    return reading(this.#oneLine("hc_parse_datetime", answer, COLUMNS.reading));
+  }
+
+  /**
+   * An instant written as a date-time, in the zone of a numeric offset,
+   * in a syntax and to a precision (truncated, never rounded).
+   *
+   * @param {import("./hyper-calendar.d.ts").DatetimeFormat} syntax
+   * @param {number | bigint} unixSeconds
+   * @param {number | bigint} [attoseconds] the remainder of the second, 0 to 10^18 - 1
+   * @param {number} [offsetSeconds]
+   * @param {import("./hyper-calendar.d.ts").DatetimePrecision} [precision]
+   * @returns {import("./hyper-calendar.d.ts").FormattedDatetime}
+   */
+  formatDatetime(syntax, unixSeconds, attoseconds = 0, offsetSeconds = 0, precision = "auto") {
+    const answer = this.#call("hc_format_datetime", [
+      ["str", "syntax", syntax], ["i64", "unixSeconds", unixSeconds], ["u64", "attoseconds", attoseconds],
+      ["i32", "offsetSeconds", offsetSeconds], ["str", "precision", precision],
+    ]);
+    const [text, written] = this.#oneLine("hc_format_datetime", answer, COLUMNS.formattedDatetime);
+    return { text, syntax: /** @type {import("./hyper-calendar.d.ts").DatetimeFormat} */ (written) };
+  }
+
+  /**
+   * A fixed day written as an ISO 8601 calendar, ordinal or week date,
+   * in the extended or the basic style.
+   *
+   * @param {number | bigint} fixed
+   * @param {import("./hyper-calendar.d.ts").IsoDateForm} [form]
+   * @param {import("./hyper-calendar.d.ts").IsoDateStyle} [style]
+   * @returns {import("./hyper-calendar.d.ts").FormattedIsoDate}
+   */
+  formatIsoDateAs(fixed, form = "calendar", style = "extended") {
+    const answer = this.#call("hc_format_iso_date_as", [
+      ["i64", "fixed", fixed], ["str", "form", form], ["str", "style", style],
+    ]);
+    const [text, writtenForm, writtenStyle] = this.#oneLine("hc_format_iso_date_as", answer, COLUMNS.formattedIsoDate);
+    return {
+      text,
+      form: /** @type {import("./hyper-calendar.d.ts").IsoDateForm} */ (writtenForm),
+      style: /** @type {import("./hyper-calendar.d.ts").IsoDateStyle} */ (writtenStyle),
+    };
+  }
+
+  /**
+   * An ISO 8601 date read into its parts, including one that names no day
+   * (`2026`, `2026-09`, `2026-W39`), whose `fixed` is `null`.
+   *
+   * @param {string} text
+   * @returns {import("./hyper-calendar.d.ts").IsoDateParts}
+   */
+  isoDateParts(text) {
+    const answer = this.#call("hc_iso_date_parts", [["str", "text", text]]);
+    return isoDateParts(this.#oneLine("hc_iso_date_parts", answer, COLUMNS.isoDateParts));
+  }
+
+  /**
+   * An ISO 8601 duration read into its components, with its exact length
+   * where it has one.
+   *
+   * @param {string} text
+   * @returns {import("./hyper-calendar.d.ts").IsoDurationParts}
+   */
+  isoDuration(text) {
+    const answer = this.#call("hc_iso_duration", [["str", "text", text]]);
+    return isoDurationParts(this.#oneLine("hc_iso_duration", answer, COLUMNS.isoDuration));
+  }
+
+  /**
+   * A duration written in ISO 8601 from its components; a component left
+   * out, or `undefined`, is absent. `fraction` is the digits of a decimal
+   * fraction of the lowest component present.
+   *
+   * @param {import("./hyper-calendar.d.ts").IsoDurationInput} components
+   * @returns {import("./hyper-calendar.d.ts").FormattedIsoDuration}
+   */
+  formatIsoDuration(components) {
+    const part = (/** @type {number | bigint | undefined} */ value) => (value === undefined ? -1 : value);
+    const answer = this.#call("hc_format_iso_duration", [
+      ["flag", "negative", components.negative ?? false],
+      ["i64", "years", part(components.years)], ["i64", "months", part(components.months)],
+      ["i64", "weeks", part(components.weeks)], ["i64", "days", part(components.days)],
+      ["i64", "hours", part(components.hours)], ["i64", "minutes", part(components.minutes)],
+      ["i64", "seconds", part(components.seconds)], ["str", "fraction", components.fraction ?? ""],
+    ]);
+    return exactLength(this.#oneLine("hc_format_iso_duration", answer, COLUMNS.formattedIsoDuration));
+  }
+
+  /**
+   * An ISO 8601 interval, or a repeating one, read into its ends and its
+   * duration.
+   *
+   * @param {string} text
+   * @returns {import("./hyper-calendar.d.ts").IsoIntervalParts}
+   */
+  isoInterval(text) {
+    const answer = this.#call("hc_iso_interval", [["str", "text", text]]);
+    return isoIntervalParts(this.#oneLine("hc_iso_interval", answer, COLUMNS.isoInterval));
+  }
+
+  /**
+   * A text read against a `strptime` or CLDR pattern, in the C locale's
+   * names: the fields the pattern read, and the reading they resolve to,
+   * `null` where they name no whole date and time.
+   *
+   * @param {import("./hyper-calendar.d.ts").PatternSyntax} syntax
+   * @param {string} pattern
+   * @param {string} text
+   * @returns {import("./hyper-calendar.d.ts").PatternFields}
+   */
+  parsePattern(syntax, pattern, text) {
+    const answer = this.#call("hc_parse_pattern", [["str", "syntax", syntax], ["str", "pattern", pattern], ["str", "text", text]]);
+    return patternFields(this.#oneLine("hc_parse_pattern", answer, COLUMNS.patternFields));
+  }
+
+  /**
+   * {@link parsePattern} with the month and weekday names, day periods and
+   * eras of a locale besides the C locale's; `python` takes no locale.
+   *
+   * @param {Exclude<import("./hyper-calendar.d.ts").PatternSyntax, "python">} syntax
+   * @param {string} pattern
+   * @param {string} text
+   * @param {string} locale
+   * @returns {import("./hyper-calendar.d.ts").PatternFields}
+   */
+  parsePatternIn(syntax, pattern, text, locale) {
+    const answer = this.#call("hc_parse_pattern_in", [
+      ["str", "syntax", syntax], ["str", "pattern", pattern], ["str", "text", text], ["str", "locale", locale],
+    ]);
+    return patternFields(this.#oneLine("hc_parse_pattern_in", answer, COLUMNS.patternFields));
   }
 
   /**

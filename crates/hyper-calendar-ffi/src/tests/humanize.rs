@@ -121,64 +121,62 @@ fn a_style_not_named_is_refused() {
     );
 }
 
-/// The examples of `humanize` 4.16's documentation of its number functions,
-/// its `naturalsize` and its `natural_list`: the module's lines.
+/// `hc-humanize`'s documentation of `unit_choice` and `approximate`: 90
+/// minutes is two hours rounded, an hour and a half by halves; 400 days is
+/// *just over a year*.
 #[test]
-fn the_number_lines_are_pythons_humanize() {
+fn the_thresholds_and_the_rounding_are_arguments() {
     let line = read_lines(|buffer, capacity, written| unsafe {
-        hc_apnumber(5, buffer, capacity, written)
+        hc_unit_choice(
+            90 * 60,
+            c"default".as_ptr(),
+            c"nearest-half".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
     });
-    assert_eq!(line, "five\ten\n");
+    assert_eq!(line, "hour\t1\t1\tdefault\tnearest-half\n");
+    let now = 1_700_000_000;
     let line = read_lines(|buffer, capacity, written| unsafe {
-        hc_fractional(1.3, buffer, capacity, written)
+        hc_relative_time_with(
+            now - 90 * 60,
+            now,
+            c"long".as_ptr(),
+            0,
+            c"en".as_ptr(),
+            c"default".as_ptr(),
+            c"truncate".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
     });
-    assert_eq!(line, "1 3/10\ten\n");
+    assert_eq!(line, "1 hour ago\thour\t-1\t0\ten\n");
     let line = read_lines(|buffer, capacity, written| unsafe {
-        hc_scientific(0.3, 2, buffer, capacity, written)
+        hc_approximate_duration(
+            400 * 86_400,
+            c"long".as_ptr(),
+            c"en".as_ptr(),
+            c"default".as_ptr(),
+            c"default".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
     });
-    assert_eq!(line, "3.00 x 10⁻¹\ten\n");
-    let line = read_lines(|buffer, capacity, written| unsafe {
-        hc_metric(1500.0, c"V".as_ptr(), 3, buffer, capacity, written)
-    });
-    assert_eq!(line, "1.50 kV\ten\n");
-    let line = read_lines(|buffer, capacity, written| unsafe {
-        hc_naturalsize(3000.0, c"binary".as_ptr(), 1, buffer, capacity, written)
-    });
-    assert_eq!(line, "2.9 KiB\ten\n");
-    let line = read_lines(|buffer, capacity, written| unsafe {
-        hc_naturallist(c"one\ntwo\nthree".as_ptr(), buffer, capacity, written)
-    });
-    assert_eq!(line, "one, two and three\ten\n");
-    let line = read_lines(|buffer, capacity, written| unsafe {
-        hc_intword(c"1234000".as_ptr(), 3, buffer, capacity, written)
-    });
-    assert_eq!(line, "1.234 million\ten\n");
-}
-
-#[test]
-fn the_number_lines_refuse_what_python_refuses() {
+    assert!(line.ends_with("\tjust-over\tyear\t1\ten\n"), "{line}");
     assert_eq!(
         measured(|buffer, capacity, written| unsafe {
-            hc_intword(c"12x".as_ptr(), 1, buffer, capacity, written)
-        }),
-        HC_ERROR_MALFORMED
-    );
-    assert_eq!(
-        measured(|buffer, capacity, written| unsafe {
-            hc_naturalsize(f64::NAN, c"decimal".as_ptr(), 1, buffer, capacity, written)
-        }),
-        HC_ERROR_OUT_OF_RANGE
-    );
-    assert_eq!(
-        measured(|buffer, capacity, written| unsafe {
-            hc_naturalsize(1.0, c"wide".as_ptr(), 1, buffer, capacity, written)
+            hc_unit_choice(
+                1,
+                c"default".as_ptr(),
+                c"up".as_ptr(),
+                buffer,
+                capacity,
+                written,
+            )
         }),
         HC_ERROR_UNKNOWN
-    );
-    assert_eq!(
-        measured(|buffer, capacity, written| unsafe {
-            hc_naturalsize(1.0, core::ptr::null(), 1, buffer, capacity, written)
-        }),
-        HC_ERROR_NULL_POINTER
     );
 }

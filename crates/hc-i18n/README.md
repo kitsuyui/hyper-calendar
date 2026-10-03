@@ -230,7 +230,8 @@ ur-IN vi yua yue-Hans yue-Hant zap zgh zh-Hans zh-Hant zh-Hant-HK`, plus the
 by `scripts/locales-cldr.py` (`--check`) into `src/data/cldr48_locales.rs`,
 with `mn`'s months of the `mongolian` calendar, which no CLDR file has,
 hand-written in `src/data.rs` from Gantumur's calendar,
-with CLDR 48's `parentLocales`, which `Locale::parent` follows, and
+with CLDR 48's `parentLocales`, which `Locale::parent` follows (`Locale::parent_step`
+also says by which `ParentRule`), and
 the default numbering systems (`data::DEFAULT_NUMBERING`): each entry's,
 and each regional file's that differs from its language's, so that `ar`
 writes Latin digits as `ar.xml` does and `ar-SA`, like `ar-EG` and

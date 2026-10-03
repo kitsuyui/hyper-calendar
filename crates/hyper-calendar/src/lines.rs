@@ -62,7 +62,7 @@ pub const CALENDARS_COLUMNS: usize = 11;
 /// How many columns [`calendar_list`] writes.
 pub const CALENDAR_LIST_COLUMNS: usize = 6;
 /// How many columns [`locales`] writes.
-pub const LOCALES_COLUMNS: usize = 7;
+pub const LOCALES_COLUMNS: usize = 10;
 /// How many columns [`gregorian_adoption`] writes.
 pub const GREGORIAN_ADOPTION_COLUMNS: usize = 7;
 /// How many columns [`naming_period_line`] writes.
@@ -630,7 +630,8 @@ fn calendar_crates() -> BTreeMap<&'static str, &'static str> {
 /// whether the locale's own data names the Gregorian months, the weekdays
 /// and the Gregorian eras (`1` or `0` each), and the identifiers of the
 /// calendars it has vocabulary of its own for beyond the shared Gregorian
-/// months, joined by `;`.
+/// months, joined by `;`, the parent the fallback chain takes from its tag
+/// (empty for none), its default numbering system, and `ltr` or `rtl`.
 #[must_use]
 pub fn locales() -> String {
     let gregory = CalendarId("gregory");
@@ -653,6 +654,13 @@ pub fn locales() -> String {
                 }
             }
         }
+        // The parent the fallback chain takes from this entry's tag: the
+        // next step of `hc_locale_chain`, empty for none.
+        let parent = Locale::parse(data.tag)
+            .ok()
+            .and_then(|locale| locale.parent())
+            .map(|parent| parent.to_tag())
+            .unwrap_or_default();
         let mut line = Line::new(&mut out);
         line.cell(data.tag)
             .cell(data.english_name)
@@ -660,7 +668,10 @@ pub fn locales() -> String {
             .flag(months)
             .flag(!data.weekdays.is_empty())
             .flag(data.eras_for(gregory).is_some())
-            .cell(&named.join(";"));
+            .cell(&named.join(";"))
+            .cell(&parent)
+            .cell(data.numbering)
+            .cell(data.direction.as_str());
         line.end();
     }
     out

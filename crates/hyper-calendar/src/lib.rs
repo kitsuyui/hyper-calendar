@@ -94,6 +94,8 @@ pub mod calendar_values;
 pub mod civil;
 #[cfg(all(feature = "alloc", feature = "lunar", feature = "astro"))]
 pub mod crescent_lines;
+#[cfg(all(feature = "alloc", feature = "format"))]
+pub mod datetime_lines;
 #[cfg(all(feature = "alloc", feature = "deep-time"))]
 pub mod deep_time_lines;
 mod exports;

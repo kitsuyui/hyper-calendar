@@ -98,7 +98,7 @@ describe("load", () => {
     assert.match(hc.version(), /^\d+\.\d+\.\d+/);
     assert.deepEqual(hc.layers(), [
       "civil", "timestamps", "time-codes", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital",
-      "jupiter", "planetary", "relativity", "places", "humanize", "zone-names",
+      "jupiter", "planetary", "relativity", "places", "humanize", "natural", "datetime", "patterns", "zone-names",
     ]);
     for (const entry of METHODS) {
       assert.ok(hc.has(entry.method), entry.method);
@@ -645,6 +645,193 @@ describe("calendars and locales", () => {
     for (const tag of ["fil", "ha", "mr", "pa-Arab", "pa-Guru", "pcm", "sw", "te", "yue-Hans", "yue-Hant"]) {
       assert.ok(rows.some((row) => row.tag === tag), tag);
     }
+  });
+});
+
+describe("date-times, durations and intervals as text", () => {
+  // RFC 3339 section 5.8, with the instants Python's datetime gives.
+  test("a date-time is a reading, and an instant only where the text states a zone", () => {
+    assert.deepEqual(hc.parseDatetime("rfc3339", "1996-12-19T16:39:57-08:00"), {
+      localDay: 729_012, localSecond: 59_997, attoseconds: 0n, zone: "offset", offsetSeconds: -28_800,
+      unixSeconds: 851_042_397, leapSecond: false, endOfDay: false,
+    });
+    const fraction = hc.parseDatetime("rfc3339", "1985-04-12T23:20:50.52Z");
+    assert.deepEqual([fraction.zone, fraction.unixSeconds, fraction.attoseconds], ["utc", 482_196_050, 520_000_000_000_000_000n]);
+    assert.equal(hc.parseDatetime("rfc3339", "1990-12-31T23:59:60Z").leapSecond, true);
+    assert.equal(hc.parseDatetime("rfc3339", "1990-12-31T23:59:60Z").unixSeconds, 662_688_000);
+    assert.equal(hc.parseDatetime("rfc3339", "2026-09-21T14:30:05-00:00").zone, "unknown-local");
+    const local = hc.parseDatetime("iso8601", "2026-09-21T14:30:05");
+    assert.deepEqual([local.zone, local.offsetSeconds, local.unixSeconds], ["none", null, null]);
+    assert.equal(hc.parseDatetime("iso8601", "2026-W39-1T14:30:05+09:00").unixSeconds, 1_789_968_605);
+    assert.equal(hc.parseDatetime("iso8601", "2026-09-21T24:00").endOfDay, true);
+    assert.equal(hc.parseDatetime("python", "2026-09-21").localSecond, 0);
+    assert.equal(hc.parseDatetime("rfc2822", "Sun, 06 Nov 1994 08:49:37 GMT").unixSeconds, 784_111_777);
+    assert.equal(hc.parseDatetime("auto", "Sun, 06 Nov 1994 08:49:37 GMT").unixSeconds, 784_111_777);
+    refused(() => hc.parseDatetime("iso8601", "2026-09-21"), "malformed");
+    refused(() => hc.parseDatetime("iso8601", "2026-02-30T00:00:00Z"), "invalid-date");
+    refused(() => hc.parseDatetime(/** @type {any} */ ("julian"), "x"), "unknown");
+  });
+
+  test("an instant is written in each syntax", () => {
+    const write = (/** @type {any} */ syntax, offset = 32_400, attos = 0, precision = "auto") =>
+      hc.formatDatetime(syntax, 1_789_968_605, attos, offset, precision).text;
+    assert.equal(write("iso8601"), "2026-09-21T14:30:05+09:00");
+    assert.equal(write("iso8601", 0), "2026-09-21T05:30:05Z");
+    assert.equal(write("iso8601-basic"), "20260921T143005+0900");
+    assert.equal(write("iso8601-week"), "2026-W39-1T14:30:05+09:00");
+    assert.equal(write("iso8601-ordinal"), "2026-264T14:30:05+09:00");
+    assert.equal(write("rfc3339", 32_400, 0, "milliseconds"), "2026-09-21T14:30:05.000+09:00");
+    assert.equal(write("rfc2822"), "Mon, 21 Sep 2026 14:30:05 +0900");
+    assert.equal(write("imf-fixdate"), "Mon, 21 Sep 2026 05:30:05 GMT");
+    assert.equal(write("python", 0, 123_456_000_000_000_000n), "2026-09-21T05:30:05.123456+00:00");
+    assert.deepEqual(hc.formatDatetime("rfc3339", 0), { text: "1970-01-01T00:00:00Z", syntax: "rfc3339" });
+    refused(() => write("rfc3339", 0, 0, "minutes"), "unknown");
+    refused(() => write("iso8601", 0, 10n ** 18n), "out-of-range");
+  });
+
+  // Python's isocalendar and %j.
+  test("a day is a week date or an ordinal date, and a reduced date has parts", () => {
+    assert.deepEqual(hc.formatIsoDateAs(739_880, "week"), { text: "2026-W39-1", form: "week", style: "extended" });
+    assert.equal(hc.formatIsoDateAs(739_880, "ordinal", "basic").text, "2026264");
+    assert.equal(hc.formatIsoDateAs(737_793, "week").text, "2020-W53-7");
+    assert.deepEqual(hc.isoDateParts("2026-W39"), {
+      form: "week", year: 2026, month: null, day: null, dayOfYear: null, week: 39, weekday: null, fixed: null,
+      style: "extended",
+    });
+    assert.equal(hc.isoDateParts("2026-264").fixed, 739_880);
+    assert.equal(hc.isoDateParts("2026-09").fixed, null);
+    refused(() => hc.isoDateParts("2026-W54-1"), "invalid-date");
+    refused(() => hc.formatIsoDateAs(0, /** @type {any} */ ("julian")), "unknown");
+  });
+
+  // Wikipedia's ISO 8601 examples, read 2026-10-03.
+  test("durations and intervals are read and written", () => {
+    const long = hc.isoDuration("P3Y6M4DT12H30M5S");
+    assert.deepEqual([long.years, long.months, long.days, long.hours, long.minutes, long.seconds, long.nominal], [3, 6, 4, 12, 30, 5, true]);
+    assert.equal(long.exactSeconds, null);
+    assert.deepEqual([hc.isoDuration("PT36H").exactSeconds, hc.isoDuration("P1W").exactSeconds], [129_600n, 604_800n]);
+    assert.equal(hc.isoDuration("PT0,5S").fraction, "5");
+    assert.equal(hc.isoDuration("-P1D").negative, true);
+    refused(() => hc.isoDuration("1 hour"), "malformed");
+    assert.equal(hc.formatIsoDuration({ years: 3, months: 6, days: 4, hours: 12, minutes: 30, seconds: 5 }).text, "P3Y6M4DT12H30M5S");
+    assert.equal(hc.formatIsoDuration({ seconds: 1, fraction: "5" }).text, "PT1.5S");
+    refused(() => hc.formatIsoDuration({}), "malformed");
+    assert.deepEqual(hc.isoInterval("2007-03-01T13:00:00Z/2008-05-11T15:30:00Z"), {
+      repetitions: null, shape: "start-end", start: "2007-03-01T13:00:00Z", startUnixSeconds: 1_172_754_000,
+      end: "2008-05-11T15:30:00Z", endUnixSeconds: 1_210_519_800, duration: null,
+    });
+    const repeating = hc.isoInterval("R5/2008-03-01T13:00:00Z/P1Y2M10DT2H30M");
+    assert.deepEqual([repeating.repetitions, repeating.shape, repeating.startUnixSeconds, repeating.duration?.nominal], [5, "start-duration", 1_204_376_400, true]);
+    assert.equal(hc.isoInterval("R/2008-03-01T13:00:00Z/PT1H").repetitions, "inf");
+    refused(() => hc.isoInterval("2008"), "malformed");
+  });
+
+  // Python's strptime fills a missing date with 1900-01-01.
+  test("a text is read against a pattern", () => {
+    const python = hc.parsePattern("python", "%H:%M", "14:30");
+    assert.deepEqual([python.year, python.hour, python.minute], [1900, 14, 30]);
+    assert.deepEqual([python.reading?.localDay, python.reading?.localSecond], [693_596, 52_200]);
+    assert.equal(hc.parsePattern("strftime", "%H:%M", "14:30").reading, null);
+    const cldr = hc.parsePattern("cldr", "yyyy-MM-dd'T'HH:mm:ssXXX", "2026-09-21T14:30:05+09:00");
+    assert.deepEqual([cldr.zone, cldr.offsetSeconds, cldr.reading?.unixSeconds], ["offset", 32_400, 1_789_968_605]);
+    assert.equal(hc.parsePattern("strftime", "%s", "1789968605").unixSeconds, 1_789_968_605);
+    const german = hc.parsePatternIn("cldr", "d. MMMM y", "21. Dezember 2026", "de");
+    assert.deepEqual([german.year, german.month, german.day], [2026, 12, 21]);
+    refused(() => hc.parsePattern("strftime", "%Y-%m-%d", "2026-02-30"), "invalid-date");
+    refused(() => hc.parsePattern(/** @type {any} */ ("regex"), "%Y", "2026"), "unknown");
+    refused(() => hc.parsePatternIn(/** @type {any} */ ("python"), "%b", "Dez", "de"), "unknown");
+  });
+});
+
+describe("how a locale resolves", () => {
+  // `docs/systems/locale-fallback.md`, from UTS #35 and CLDR 48's
+  // `parentLocales`: en-AU goes to en-001, then en, then und.
+  test("the chain follows parentLocales and truncation", () => {
+    assert.deepEqual(hc.localeChain("en-AU"), [
+      { step: 0, tag: "en-AU", rule: "requested", carried: false },
+      { step: 1, tag: "en-001", rule: "parent-locales", carried: true },
+      { step: 2, tag: "en", rule: "region", carried: true },
+      { step: 3, tag: "und", rule: "root", carried: false },
+    ]);
+    assert.deepEqual(hc.localeChain("zh-TW").map((step) => [step.tag, step.rule]), [
+      ["zh-Hant-TW", "likely-script"], ["zh-Hant", "region"], ["und", "parent-locales"],
+    ]);
+    assert.deepEqual(hc.localeChain("ja-JP-u-ca-japanese").map((step) => step.rule), [
+      "requested", "extensions", "region", "root",
+    ]);
+    assert.equal(hc.localeChain("").length, 1);
+    refused(() => hc.localeChain("not a tag"), "malformed");
+  });
+
+  test("a locale describes itself: week, numbering, direction, casing and plural rules", () => {
+    const us = hc.localeInfo("en-US");
+    assert.deepEqual([us.firstDay, us.minDays, us.direction, us.numbering], [7, 1, "ltr", "latn"]);
+    assert.deepEqual([hc.localeInfo("de-DE").firstDay, hc.localeInfo("de-DE").minDays], [1, 4]);
+    assert.equal(hc.localeInfo("ar-SA").numbering, "arab");
+    assert.equal(hc.localeInfo("ar").numbering, "latn");
+    assert.equal(hc.localeInfo("ar").direction, "rtl");
+    assert.equal(hc.localeInfo("tr").casing, "turkic");
+    assert.equal(hc.localeInfo("pt-PT").pluralRules, "pt-PT");
+    const keyed = hc.localeInfo("ja-JP-u-ca-japanese-fw-sun-hc-h11-nu-jpan");
+    assert.deepEqual(
+      [keyed.calendarKey, keyed.numberingKey, keyed.firstDayKey, keyed.hourCycleKey, keyed.parent, keyed.parentRule],
+      ["japanese", "jpan", 7, "h11", "ja-JP", "extensions"],
+    );
+    assert.equal(hc.firstDayOfWeek("en-US"), us.firstDay);
+    refused(() => hc.localeInfo("e n"), "malformed");
+  });
+
+  // CLDR 48's plurals.xml.
+  test("a number written as text has a plural category", () => {
+    assert.equal(hc.pluralCategory("ru", "2").category, "few");
+    assert.equal(hc.pluralCategory("ru", "5").category, "many");
+    assert.equal(hc.pluralCategory("ru", "1.5").category, "other");
+    assert.equal(hc.pluralCategory("ar", "0").category, "zero");
+    assert.equal(hc.pluralCategory("en", "1").category, "one");
+    assert.equal(hc.pluralCategory("en", "1.0").category, "other");
+    assert.deepEqual(hc.pluralCategory("en", "1.30"), {
+      category: "other", rules: "en", operands: { i: 1n, v: 2, w: 1, f: 30n, t: 3n },
+    });
+    refused(() => hc.pluralCategory("en", "1", "ordinal"), "no-data");
+    refused(() => hc.pluralCategory("en", "1", /** @type {any} */ ("fraction")), "unknown");
+    refused(() => hc.pluralCategory("en", "one"), "malformed");
+    refused(() => hc.pluralCategory("en", "9".repeat(25)), "out-of-range");
+  });
+
+  test("a locale names a calendar's months, weekdays and day periods", () => {
+    const de = hc.names("de", "gregory");
+    assert.equal(de.find((entry) => entry.kind === "weekday" && entry.position === 1)?.name, "Montag");
+    assert.equal(de.find((entry) => entry.kind === "month" && entry.position === 3)?.name, "März");
+    assert.equal(hc.names("ru", "gregory", "wide", "format").find((entry) => entry.kind === "month" && entry.position === 9)?.name, "сентября");
+    assert.equal(hc.names("ru", "gregory", "wide", "standalone").find((entry) => entry.kind === "month" && entry.position === 9)?.name, "сентябрь");
+    assert.ok(hc.names("en", "hebrew").some((entry) => entry.kind === "month-in-leap-year" && entry.name === "Adar II"));
+    refused(() => hc.names("de", "gregory", /** @type {any} */ ("huge")), "unknown");
+    refused(() => hc.names("de", "no-such"), "unknown");
+  });
+
+  // Unicode's SpecialCasing for Turkish; UAX 9's isolates.
+  test("a locale cases a text and isolates a field", () => {
+    assert.deepEqual(hc.caseText("tr", "upper", "iyi"), { text: "İYİ", mode: "upper", casing: "turkic", localeUsed: "tr" });
+    assert.equal(hc.caseText("en", "upper", "iyi").text, "IYI");
+    assert.equal(hc.caseText("fr", "in-sentence", "Janvier").text, "janvier");
+    assert.equal(hc.caseText("fr", "sentence-start", "janvier").text, "Janvier");
+    assert.deepEqual(hc.isolate("ar", "field", "Sep 21"), {
+      text: "\u2066Sep 21\u2069", direction: "rtl", textDirection: "ltr", isolated: true, mode: "field",
+    });
+    assert.equal(hc.isolate("en", "field", "Sep 21").text, "Sep 21");
+    assert.equal(hc.isolate("en", "field", "سبتمبر").text, "\u2067سبتمبر\u2069");
+    assert.equal(hc.isolate("en", "field", "2026").textDirection, null);
+    assert.equal(hc.isolate("en", "strip", "\u2068x\u2069").text, "x");
+    refused(() => hc.caseText("en", /** @type {any} */ ("title"), "x"), "unknown");
+    refused(() => hc.isolate("en", /** @type {any} */ ("wrap"), "x"), "unknown");
+  });
+
+  test("the locales table carries each entry's parent, numbering and direction", () => {
+    const rows = hc.locales();
+    const byTag = (/** @type {string} */ tag) => rows.find((row) => row.tag === tag);
+    assert.deepEqual([byTag("en-GB")?.parent, byTag("en-GB")?.numbering, byTag("en-GB")?.direction], ["en-001", "latn", "ltr"]);
+    assert.deepEqual([byTag("ar-EG")?.parent, byTag("ar-EG")?.numbering, byTag("ar-EG")?.direction], ["ar", "arab", "rtl"]);
+    assert.equal(byTag("ja")?.parent, "und");
   });
 });
 
@@ -3226,7 +3413,8 @@ describe("humanize", () => {
   // The examples of `humanize` 4.16's documentation (number.py, filesize.py,
   // lists.py), read 2026-10-03.
   test("the number functions are Python humanize's", () => {
-    assert.deepEqual(hc.apnumber(5), { text: "five", language: "en" });
+    assert.deepEqual(hc.apnumber(5), { text: "five", localeUsed: "en" });
+    assert.deepEqual(hc.fractional(0.3), { text: "3/10", language: "en" });
     assert.equal(hc.apnumber(10).text, "10");
     assert.equal(hc.apnumber(-1n).text, "-1");
     assert.equal(hc.fractional(1.3).text, "1 3/10");
@@ -3257,6 +3445,91 @@ describe("humanize", () => {
     refused(() => hc.intword("9".repeat(400)), "out-of-range");
     refused(() => hc.naturalSize(Number.NaN), "out-of-range");
     refused(() => hc.naturalSize(1, /** @type {any} */ ("wide")), "unknown");
+  });
+
+  // The catalogues are humanize 4.16.0's `de_DE.po`, `ru_RU.po` and `pt_PT.po`,
+  // which the crate's own tests hold to GNU gettext.
+  test("the words follow the locale's catalogue, and no result mixes two languages", () => {
+    assert.deepEqual(hc.apnumber(5, "de"), { text: "fünf", localeUsed: "de-DE" });
+    assert.equal(hc.apnumber(5, "de-AT").localeUsed, "de-DE");
+    assert.equal(hc.apnumber(5, "pt-AO").localeUsed, "pt-PT");
+    // `pt` has two catalogues and no region is guessed; a language with none is English.
+    assert.deepEqual(hc.apnumber(5, "pt"), { text: "five", localeUsed: "en" });
+    assert.deepEqual(hc.apnumber(5, "tlh-x-nothing"), { text: "five", localeUsed: "en" });
+    assert.equal(hc.intword(2_000_000, 1, "de").text, "2,0 Millionen");
+    // The German catalogue translates no word of `naturalsize`, so it is English whole.
+    assert.deepEqual(hc.naturalSize(3_000_000, "decimal", 1, "de"), { text: "3.0 MB", localeUsed: "en" });
+    // `natural_list` is in no catalogue.
+    assert.deepEqual(hc.naturalList(["a", "b", "c"], "de"), { text: "a, b and c", localeUsed: "en" });
+    assert.deepEqual(hc.metric(1500, "V", 3, "de"), { text: "1.50 kV", localeUsed: "de-DE" });
+  });
+
+  // `precisedelta`'s examples are those of humanize 4.16's documentation: a
+  // delta of two days, 3 633 seconds and 123 000 microseconds.
+  test("the time and day functions are Python humanize's", () => {
+    const seconds = 2 * 86_400 + 3_633;
+    assert.equal(hc.preciseDelta(seconds, 123_000).text, "2 days, 1 hour and 33.12 seconds");
+    assert.equal(
+      hc.preciseDelta(seconds, 123_000, "microseconds").text,
+      "2 days, 1 hour, 33 seconds and 123 milliseconds",
+    );
+    assert.equal(
+      hc.preciseDelta(seconds, 123_000, "seconds", ["days"], 4).text,
+      "49 hours and 33.1230 seconds",
+    );
+    assert.equal(hc.naturalDelta(7 * 86_400).text, "7 days");
+    assert.equal(hc.naturalTime(3).text, "3 seconds ago");
+    assert.equal(hc.naturalTime(-3).text, "3 seconds from now");
+    assert.deepEqual(hc.naturalTime(3, 0, true, "seconds", "de"), { text: "vor 3 Sekunden", localeUsed: "de-DE" });
+    const today = hc.gregorianToFixed(2026, 9, 29);
+    assert.equal(hc.naturalDay(today + 1, today).text, "tomorrow");
+    assert.deepEqual(hc.naturalDay(today + 1, today, "", "de"), { text: "morgen", localeUsed: "de-DE" });
+    assert.equal(hc.naturalDay(today + 10, today).text, "Oct 09");
+    assert.equal(hc.naturalDay(today + 10, today, "%Y-%m-%d").text, "2026-10-09");
+    assert.equal(hc.naturalDate(today + 152, today).text, "Feb 28");
+    assert.equal(hc.naturalDate(today + 153, today).text, "Mar 01 2027");
+    assert.equal(hc.ordinal(103).text, "103rd");
+    assert.equal(hc.ordinal(111, "female").text, "111th");
+    assert.deepEqual(hc.intcomma(-1_234_567n, "de"), { text: "-1.234.567", localeUsed: "de-DE" });
+    assert.equal(hc.intcomma("1234567").text, "1,234,567");
+    assert.equal(hc.intcommaFloat(12_345.6789, 2).text, "12,345.68");
+    assert.equal(hc.intcommaFloat(1_234_567.25).text, "1,234,567.25");
+    refused(() => hc.naturalDelta(1, 0, true, /** @type {any} */ ("hours")), "out-of-range");
+    refused(() => hc.naturalDelta(1, 0, true, /** @type {any} */ ("fortnights")), "unknown");
+    refused(() => hc.naturalDelta(1, 1_000_000), "out-of-range");
+    refused(() => hc.preciseDelta(1, 0, "seconds", ["seconds", "minutes", "hours", "days", "months", "years"]), "out-of-range");
+    refused(() => hc.ordinal(1, /** @type {any} */ ("neuter")), "unknown");
+    refused(() => hc.intcomma("12x"), "malformed");
+    refused(() => hc.intcomma("9".repeat(40)), "out-of-range");
+    refused(() => hc.naturalDay(2 ** 53 - 1, today), "out-of-range");
+  });
+
+  // `hc-humanize`'s documentation of its `unit_choice` and `approximate`
+  // modules: 90 minutes is two hours rounded and an hour and a half by
+  // halves; 400 days is just over a year, 350 nearly one.
+  test("the thresholds, the rounding and the hedge are arguments", () => {
+    const ninety = 90 * 60;
+    assert.deepEqual(hc.unitChoice(ninety), {
+      unit: "hour", count: 2, half: false, thresholds: "default", rounding: "nearest",
+    });
+    assert.deepEqual(hc.unitChoice(ninety, "default", "nearest-half"), {
+      unit: "hour", count: 1, half: true, thresholds: "default", rounding: "nearest-half",
+    });
+    assert.equal(hc.unitChoice(-ninety, "exact", "truncate").count, -1);
+    const now = 1_700_000_000;
+    assert.deepEqual(hc.relativeTimeWith(now - ninety, now, "long", false, "en"), {
+      phrase: "1 hour ago", unit: "hour", count: -1, half: false, localeUsed: "en",
+    });
+    assert.equal(hc.relativeTimeWith(now - ninety, now, "long", false, "en", "default", "nearest").phrase, "2 hours ago");
+    const nearly = hc.approximateDuration(350 * 86_400, "long", "en");
+    assert.equal(nearly.hedge, "nearly");
+    assert.equal(nearly.unit, "year");
+    assert.match(nearly.phrase, /^nearly /);
+    const over = hc.approximateDuration(400 * 86_400, "long", "en");
+    assert.deepEqual([over.hedge, over.unit, over.count], ["just-over", "year", 1]);
+    refused(() => hc.unitChoice(1, /** @type {any} */ ("wide")), "unknown");
+    refused(() => hc.unitChoice(1, "default", /** @type {any} */ ("up")), "unknown");
+    refused(() => hc.approximateDuration(1, "long", "en", "default", /** @type {any} */ ("sloppy")), "unknown");
   });
 });
 

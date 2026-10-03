@@ -86,6 +86,24 @@ places = ["hc/place-names"]
 # in every locale hc-humanize carries. A layer of its own, since no other
 # layer needs hc-humanize's phrases.
 humanize = ["civil", "hc/humanize"]
+# The number, size, list and time functions of Python's `humanize`, with
+# its 35 gettext catalogues: apnumber, intword, naturalsize, natural_list,
+# naturaldelta, naturaltime, precisedelta, naturalday, naturaldate, ordinal
+# and intcomma, in the locale's catalogue. A layer of its own: the
+# catalogues are text that `humanize`, which reads CLDR's relative times,
+# does not need.
+natural = ["civil", "hc/humanize"]
+# ISO 8601 beyond a calendar date: date-times with a zone, durations,
+# intervals and repeating intervals, week and ordinal dates, RFC 3339,
+# RFC 2822 and HTTP dates, Python's `isoformat`, and `strptime` and CLDR
+# patterns read in the C locale. A layer of its own, so that `civil`, the first
+# a page paints with, does not carry the grammar of every one of them.
+datetime = ["civil"]
+# `strptime` and CLDR patterns read against a text, in the C locale's names
+# or a locale's: Python's `strptime`, POSIX's, and UTS #35 Part 4's. A layer
+# of its own, since reading a CLDR pattern in a locale needs every carried
+# locale's month, weekday and era names, which `datetime` does not.
+patterns = ["civil", "hc/i18n"]
 # Time zone names: a zone's name at an instant in a locale, as the CLDR
 # pattern fields z, O, v and V write it, from CLDR 48's metazones and zone
 # names in every locale hc-i18n carries. Some 600 kB of names, so a layer
@@ -98,7 +116,7 @@ zone-names = ["tz", "hc/localized-zone-names"]
 # layer like the others and is in; a page that shows place names only on
 # demand builds the layers it paints with and loads the `places` build
 # beside them later.
-full = ["civil", "timestamps", "time-codes", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital", "jupiter", "planetary", "relativity", "places", "humanize", "zone-names"]
+full = ["civil", "timestamps", "time-codes", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital", "jupiter", "planetary", "relativity", "places", "humanize", "natural", "datetime", "patterns", "zone-names"]
 
 [dependencies]
 hc = { package = "hyper-calendar", version = "0.1.0", path = "../hyper-calendar", default-features = false, features = ["std"] }

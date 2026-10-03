@@ -108,3 +108,16 @@ Arabic-Indic digits while its names are `ar`'s.
 - `crates/hc-i18n/src/numbering.rs`: `NumberingSystem::for_locale`.
 - `crates/hc-i18n/src/day_periods.rs` and `crates/hc-i18n/src/plural.rs`:
   the lookups by language.
+- `Locale::parent_step` and `ParentRule` (`locale.rs`) name the rule of each
+  step. The boundary's `hc_locale_chain` writes the chain with that rule,
+  `hc_locale_info` what a locale is (parent, default numbering, `minDays`,
+  direction, casing, plural rules), `hc_plural_category` the cardinal
+  category of a number written as text (ordinal rules and the operands `c`
+  and `e` are not carried), `hc_names`, `hc_case` and `hc_isolate` the names,
+  casing and bidi isolates, and `hc_locales` the parent, numbering and
+  direction of every carried locale
+  (`crates/hyper-calendar/src/i18n_lines.rs`; tests
+  `a_locale_resolves_along_its_chain`, `a_locale_describes_itself`,
+  `a_number_has_a_plural_category`). CLDR's weekend days are not carried: the
+  library reads `weekData`'s `firstDay` and `minDays` only, and the weekend
+  laws of the holiday tables are in `hc_holiday_tables`.
