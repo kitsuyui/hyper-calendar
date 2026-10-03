@@ -127,8 +127,7 @@ The two churches agree in Lent and part in the other three seasons.
   `bcp-1662`'s calendar says of its own years); it answers from 1753.
   `ember-common-worship` is absent before 2000, a gap in 2000, which holds
   only the Advent *Common Worship* was launched on, and answers from 2001,
-  as `common-worship` does, on the Rules as the Church now publishes them
-  (audit 10 a2).
+  as `common-worship` does, on the Rules as the Church now publishes them.
 
 Not carried:
 

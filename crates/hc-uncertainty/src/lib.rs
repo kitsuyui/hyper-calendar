@@ -23,8 +23,9 @@
 //!
 //! and one interchange format:
 //!
-//! * [`edtf`] — ISO 8601-2 Extended Date/Time Format levels 0 to 2, the
-//!   standard vocabulary libraries and museums use for exactly this.
+//! * [`edtf`] — a subset of the ISO 8601-2 Extended Date/Time Format, the
+//!   standard vocabulary libraries and museums use for exactly this; the
+//!   module lists the forms of its levels 0 to 2 that it does not carry.
 //!
 //! # What this crate does not carry
 //!

@@ -115,16 +115,18 @@ assert!(!titan.is_standardised());                     // no standard exists
 
 Rotation, orbit, tilt and semi-major axis for the Sun, Mercury, Venus, Earth,
 Moon, Mars, Phobos, Deimos, Ceres, Jupiter, Io, Europa, Ganymede, Callisto,
-Saturn, Enceladus, Titan, Uranus, Neptune, Triton, Pluto and Charon. Satellite
-rotation rates cross-checked against the IAU WGCCRE (Archinal et al. 2018,
-*CeMDA* 130:22); Ceres from Konopliv et al. 2018, *Icarus* 299:411 and the JPL
-Small-Body Database.
+Saturn, Enceladus, Titan, Uranus, Neptune, Triton, Pluto and Charon. A
+satellite's rotation is the synchronous one, 24 times its orbit period; the IAU
+WGCCRE report (Archinal et al. 2018, *CeMDA* 130:22) is cited for Mercury's rate
+and its tables were not read. Ceres's rotation is the JPL Small-Body
+Database's; Konopliv et al. 2018, *Icarus* 299:411, which the row cites, was not
+read.
 
 Contested values, carried as they stand with the conflict in `Body::source`:
 
-- **Mercury** — the crate uses the IAU rate, 1407.5088 h. NSSDC prints 1407.6 h
-  but derives its own 4222.6 h solar day from the IAU value; using 1407.6 would
-  break the 3:2 resonance by half an hour.
+- **Mercury** — the crate uses 1407.5088 h, which the row cites to the IAU rate
+  (the IAU tables were not read). NSSDC prints 1407.6 h and a 4222.6 h solar
+  day; using 1407.6 would lengthen the derived solar day by 0.82 h (49 minutes).
 - **Venus** — −5832.5 h from the NSSDC comparison table; the Venus sheet itself
   says −5832.6 h and the IAU rate gives −5832.444 h.
 - **Neptune** — 16.11 h, the IAU 2009 System III value that NSSDC and JPL both

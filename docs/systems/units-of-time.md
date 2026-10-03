@@ -5,8 +5,10 @@ as `hyper_calendar::hc_units`, with `Quantity`, `Ratio`, `Tempo` and `Unit`
 in the prelude): `Ratio`, `Unit` and its 53 entries in `unit::ALL` with
 `unit::by_id`, `Quantity`, `Family`, `media::Rate` with `FRAME_RATES` and
 `SAMPLE_RATES`, and `tempo::Tempo`, `NoteValue`, `TimeSignature` and
-`Ppqn`. No calendar identifier is registered, and no WebAssembly or C
-export exists yet ([policy.md](../policy.md) §5, §3).
+`Ppqn`. No calendar identifier is registered. The WebAssembly module and the
+C library export it in the `units` layer: `hc_units`, `hc_unit_convert`,
+`hc_rates`, `hc_frame_period` and `hc_tempo` ([policy.md](../policy.md) §5,
+§3).
 
 ## What it is
 
@@ -259,8 +261,11 @@ signature and tempo; the caller who means a dotted beat uses
   `hc-calendars-solar`'s `DECIMAL_SECOND_ATTOS` (864 000 000 000 000 000
   attoseconds, which is the exact `Duration` of `decimal-second`).
   `hc-core` is below `hc-units`, so it cannot call it.
-- **Not exported.** The WebAssembly and C READMEs say that no line format
-  has been designed for `hc-units`.
+- **The boundary.** `hyper_calendar::units_lines` writes the lines of the
+  five exports for both the WebAssembly module and the C library: the table
+  of units with their lengths as exact ratios, a conversion of a count from
+  one unit to another, the table of frame and sample rates, the period of a
+  rate, and the length of a note at a tempo.
 
 Not carried:
 
@@ -339,18 +344,19 @@ which is wider. It holds: `ntsc_pulldown` of each of 24, 25, 30, 48, 50,
 23 543 520, 14 714 700, 14 126 112, 11 771 760, 7 847 840, 7 063 056 and
 5 885 880).
 
-**Disagreements between the code's own words and the sources.**
+**Attributions in the table that the sources read do not settle.** The
+`authority` string of a unit says where its length comes from. For these the
+source read says less or something else.
 
-- **`ke-ninety-six`.** The crate dates the change to the 時憲曆 reform of
-  1645 (README, `unit` module documentation, `authority`); the page read
-  says 1⁄96 "since 1628" [wikipedia-traditional-chinese-timekeeping].
-  The Shixian calendar page gives 1645 as its first year and does not
-  mention the 刻 [wikipedia-shixian-calendar]. Which year is right was not
-  settled from a primary source. The `authority` string also says the 96 was
-  "standard in China, Japan and Korea thereafter"; the page read names no
-  Japanese or Korean usage, and the Japanese clock page says the traditional
-  day and night were each divided into six periods of seasonal length
-  [wikipedia-japanese-clock].
+- **`ke-ninety-six`.** The `authority` string and the module documentation
+  date the change to the 時憲曆 reform of 1645; the page read says 1⁄96 "since
+  1628" [wikipedia-traditional-chinese-timekeeping]. The Shixian calendar
+  page gives 1645 as its first year and does not mention the 刻
+  [wikipedia-shixian-calendar]. Which year is right was not settled from a
+  primary source. The string also says the 96 was "standard in China, Japan
+  and Korea thereafter"; the page read names no Japanese or Korean usage, and
+  the Japanese clock page says the traditional day and night were each
+  divided into six periods of seasonal length [wikipedia-japanese-clock].
   That clause has no source read.
 - **The *Sūrya Siddhānta*'s day.** The text's sixty ghaṭikās make a
   *sidereal* day and night [sastri1861]. The crate takes the ghati as a
@@ -362,38 +368,19 @@ which is wider. It holds: `ntsc_pulldown` of each of 24, 25, 30, 48, 50,
 - **`moment`.** A moment is a fortieth of a *solar* hour, which varies with
   the season, and 90 s is its average [wikipedia-moment-time]. The crate
   carries the average as if it were a definition.
-- **`microfortnight`.** The crate's documentation says VMS measures
-  "password retries" in it. The page read says VMS's TIMEPROMPTWAIT, the
-  wait at boot for an operator to set the date and time, is in
-  microfortnights, and does not mention passwords [wikipedia-fff-system].
 - **`mean-gregorian-*`.** The `authority` is "Gregorian calendar; CLDR
   relative-time means". The year of 365.2425 days, 31 556 952 s, follows
   from the Gregorian rule [wikipedia-gregorian-calendar]. CLDR 48's
   `units.xml` defines the month as 1/12 and the quarter as 1/4 of the year
   and gives the year no length in seconds; its only year in seconds is the
-  Julian year, 31 557 600 [cldr48-units-supplemental]. The figures are
-  right and the second half of the attribution is not.
+  Julian year, 31 557 600 [cldr48-units-supplemental]. The figures follow
+  from the Gregorian rule; the attribution to CLDR is for the month and
+  quarter ratios only.
 - **`jiffy-light-centimetre`.** The length is exact, 1 cm over the defined
   c = 299 792 458 m/s [bipm-si-defining-constants], 1/29 979 245 800 s or
   33.356 409… ps; the page read gives "approximately 33.3564 picoseconds"
   [wikipedia-jiffy-time]. The `authority` says "BIPM, 1983"; the BIPM page
   read does not say when c was fixed, and Lewis's own paper was not read.
-- **Frame rates in `media`.** The comment on `FILM_24` says "the
-  sound-film rate since 1929"; the page read says sound film came in 1926
-  and 24 fps was chosen as a compromise, under a section dated 1926 to 1930
-  [wikipedia-frame-rate]. The `media` module says the colour standard
-  reduced the field rate so that the subcarrier "avoid beating against the
-  audio carrier". The sources read agree in outline: the line rate was set
-  to 1/286 of the 4.5 MHz sound subcarrier with the colour subcarrier at
-  35/44 of it [wikipedia-colorburst], and the page on frame rates gives the
-  aim as less "dot crawl" [wikipedia-frame-rate]. The crate's name
-  `ntsc_pulldown` is the 1000/1001 slowdown alone; Wikipedia keeps it
-  apart from the cadence [wikipedia-telecine].
-- **`Ppqn::CLASSIC`.** The comment says 96 PPQN is "the original MIDI File
-  Format 0 default". The specification text read has 96 only in an example
-  and names no default division; 480 and 960 are not in it
-  [midimusic-smf-spec]. The three constants are conventions the crate
-  names, not defaults the specification states.
 - **`helek`.** Its `authority` begins "Mishnah". Maimonides gives the hour
   of 1080 parts [maimonides-kiddush-hachodesh] and the moment as a
   seventy-sixth [sefaria-maimonides-kh-10]; the Mishnah was not read.
@@ -401,41 +388,49 @@ which is wider. It holds: `ntsc_pulldown` of each of 24, 25, 30, 48, 50,
   *Sūrya Siddhānta*. The Wikipedia page on the muhūrta names neither
   [wikipedia-muhurta]; the other page read gives the 48-minute muhūrta
   under the *Sūrya Siddhānta* with no verse [wikipedia-hindu-units-of-time].
-- **README.** It says SI is "quectosecond through gigasecond"; 13 of 24
-  prefixes are in the table (see "Not carried").
+- **`microfortnight`.** VMS's `TIMEPROMPTWAIT`, the wait at boot for an
+  operator to set the date and time, is in microfortnights
+  [wikipedia-fff-system].
+- **Frame rates in `media`.** Sound film came in in 1926 and 24 fps was
+  chosen as a compromise, under a section dated 1926 to 1930
+  [wikipedia-frame-rate]. The colour standard set the line rate to 1/286 of
+  the 4.5 MHz sound subcarrier with the colour subcarrier at 35/44 of it
+  [wikipedia-colorburst], and the page on frame rates gives the aim as less
+  "dot crawl" [wikipedia-frame-rate]. The crate's name `ntsc_pulldown` is
+  the 1000/1001 slowdown alone; Wikipedia keeps it apart from the cadence
+  [wikipedia-telecine].
+- **`Ppqn::CLASSIC`.** The specification text read has 96 only in an
+  example and names no default division; 480 and 960 are not in it
+  [midimusic-smf-spec]. The three constants are conventions the crate
+  names, not defaults the specification states.
+- **SI prefixes.** 13 of the 24 prefixes are in the table (see "Not
+  carried"); the crate's README says which.
 
-**Disagreements between the code's documentation and the code.** These were
-found by running the code and are not fixed here.
+**Behaviour at the edges of the arithmetic.**
 
-- `Ratio::to_duration_rounded` is documented as rounding "half away from
-  zero". It rounds the fractional part half up, toward positive infinity:
-  +0.5 as gives 1 as, −0.5 as gives 0 and −1.5 as gives −1 as, where half
-  away from zero gives −1 and −2. Away from ties it is the nearest value:
-  −1/3 s gives −333 333 333 333 333 333 as.
-- `Ratio::from_duration` says the limit of about 1.7×10²⁰ s is "five
-  thousand times the age of the universe". The limit is `i128::MAX` ÷ 10¹⁸ =
-  170 141 183 460 469 231 731 s, and the age is about 4.35×10¹⁷ s, so the
-  factor is about 390.
-- `Ord for Ratio` says the cross product of a quectosecond and a Julian
-  millennium is 3×10⁴¹. It is 10³⁰ × 31 557 600 000 = 3.16×10⁴⁰, as the
-  test's comment says. It overflows `i128` all the same (1.7×10³⁸).
-- `to_duration` documents `Overflow` only for a value too large for a
-  `Duration`. A `Ratio` of denominator 10³⁰ and a large remainder, such as
-  500 000 000 000 000 000 000 000 000 001/10³⁰ (about 0.5 s), returns
-  `Overflow` from both `to_duration` and `to_duration_rounded`, because
+- `Ratio::to_duration_rounded` rounds a tie toward positive infinity, not
+  away from zero: +0.5 as gives 1 as, −0.5 as gives 0 and −1.5 as gives
+  −1 as. Away from ties it is the nearest value: −1/3 s gives
+  −333 333 333 333 333 333 as.
+- `Ratio::from_duration` fails above `i128::MAX` ÷ 10¹⁸ =
+  170 141 183 460 469 231 731 s; the age of the universe is about 4.35×10¹⁷
+  s, so the limit is about 390 times that.
+- `Ord for Ratio` falls back to `f64` when the cross product leaves `i128`:
+  a quectosecond against a Julian millennium is 10³⁰ × 31 557 600 000 =
+  3.16×10⁴⁰, which does.
+- `to_duration` and `to_duration_rounded` return `Overflow` for a `Ratio` of
+  denominator 10³⁰ and a large remainder, such as
+  500 000 000 000 000 000 000 000 000 001/10³⁰ (about 0.5 s), because
   remainder × 10¹⁸ leaves `i128`, although the value is small. No unit in
   the table reaches this.
-- `NoteValue::fraction_of_whole` says `DivideByZero` for "a tuplet with a
-  zero on either side". A tuplet `(0, 3)` returns a fraction of 0 and no
-  error; `(2, 0)` returns `DivideByZero`. Halvings to 126 and dots to 125
-  are accepted, where it says about 120 halvings.
+- `NoteValue::fraction_of_whole` accepts halvings to 126 and dots to 125. A
+  tuplet `(0, 3)` has the length 0; `(2, 0)` is `DivideByZero`.
 - `TimeSignature::new` and `Tempo::from_bpm_ratio` return
-  `UnitError::DivideByZero` for a lower number that is not a power of two and
-  for a negative tempo. The error is not a division by zero.
-- `Quantity::to`'s documentation names a `FRAME_AT_24` that does not exist.
+  `UnitError::DivideByZero` for a lower number that is not a power of two
+  and for a negative tempo; a distinct error for those is not yet done.
 - `Tempo::to_midi_micros_per_beat` truncates: 138 BPM is 434 782.6 µs and
-  returns 434 782, where rounding gives 434 783. The specification read says
-  nothing about how a writer rounds [midimusic-smf-spec].
+  returns 434 782, where rounding gives 434 783. The specification read
+  says nothing about how a writer rounds [midimusic-smf-spec].
 
 **How the figures here were made.** By hand from the sources, then by
 running `cargo test -p hc-units` and a scratch crate that printed every

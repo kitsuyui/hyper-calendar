@@ -1,5 +1,5 @@
 //! The first year each table of the Americas and Europe answers for (ADR
-//! 0013, audit 10 a1): before it the engine reports a gap or, where the day
+//! 0013): before it the engine reports a gap or, where the day
 //! was not yet established, leaves it out, and never answers a year no
 //! source read covers.
 //!

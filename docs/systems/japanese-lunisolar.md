@@ -319,9 +319,13 @@ dated event in the Wikipedia articles is 正治2年閏2月11日 = 1200-03-27 Jul
   五紀暦 (858–862, used alongside 大衍暦). The validation table begins in
   862, the adoption dates before it are uncertain by years
   [nao-rekiwiki-history1], 元嘉暦 used 平朔 where the others used 定朔, and
-  the 進朔 limits differ from system to system. Four calendars nothing could
-  check would be worse than none. The module records their period
-  constants from the treatises: 元嘉暦's 紀法 608, 紀日 222070, 日法 752 and
+  the 進朔 limits differ from system to system. No table of the first days of
+  the months before 862 was read to hold each of the four to, so none is
+  carried; not yet done. The arithmetic of 元嘉暦 itself is carried for the
+  Chinese Southern Dynasties as `chinese-yuanjia`
+  ([chinese-historical-lunisolar.md](chinese-historical-lunisolar.md)), 445
+  to 509; what is missing here is its use in Japan from 604. The module
+  records their period constants from the treatises: 元嘉暦's 紀法 608, 紀日 222070, 日法 752 and
   通數 22207 [songshu-lulizhi]; 儀鳳暦's, which is 麟德暦, 總法 1340, 朞實
   489428 and 常朔實 39571 [xintangshu-linde]; 五紀暦's 通法 1340, 策實
   489428 and 揲法 39571 [xintangshu-wuji]; and 大衍暦's 通法 3040, 策實

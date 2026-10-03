@@ -1,10 +1,10 @@
-//! Raksha Bandhan is not done in Bhadra (audit 10 a5).
+//! Raksha Bandhan is not done in Bhadra.
 //!
 //! The full moon of Śrāvaṇa is the day, but the first half of the
 //! full-moon tithi is the karaṇa Viṣṭi, Bhadra, and the rite waits until it
-//! is over. The rule used to take the day the tithi holds in the afternoon
-//! and nothing more: 2025-08-08 and 2026-08-27, a day early, where the
-//! calendars give the 9th and the 28th.
+//! is over. The rule does not take the day the tithi holds in the afternoon
+//! and nothing more, which would give 2025-08-08 and 2026-08-27, a day
+//! early; the calendars give the 9th and the 28th, and so does the rule.
 //!
 //! The days below are Drik Panchang's pages "Raksha Bandhan date and
 //! auspicious time" for New Delhi, one per year, read 2026-10-03

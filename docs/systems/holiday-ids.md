@@ -79,7 +79,7 @@ year whose weekend law in the region was not read is `unread-weekend`
   (`source`); `hc_holidays_on`, cell 12; `hc_holidays_on_in`, cell 14 after
   the two names; `hc_common_worship_on`, cell 4. Each was the last of its
   line, or the last but one, so that a parser reading the cells it knew
-  reads what it did. Since audit 10 d3 the three lines of holidays end with
+  reads what it did. The three lines of holidays end with
   one more cell, `bridged` (`1` for an entry a bridge policy made, Japan's
   国民の休日, else `0`), after the instrument in `hc_holidays_in_year`
   (cell 12) and after the identifier in `hc_holidays_on` (cell 13) and

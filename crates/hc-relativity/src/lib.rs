@@ -23,7 +23,11 @@
 //!
 //! # Anchors
 //!
-//! Each of these is a published figure, and each is a test in this crate:
+//! Each of these is a test in this crate. The GPS split is this crate's: the
+//! ground clock rests on a sphere of the equatorial radius. Ashby's review
+//! prints the net, 38.575 µs/day with a ground clock on the rotating geoid,
+//! and not the split; the crate's net is 0.137 µs/day lower
+//! (`docs/systems/relativity.md`).
 //!
 //! | Quantity | Value |
 //! | --- | --- |

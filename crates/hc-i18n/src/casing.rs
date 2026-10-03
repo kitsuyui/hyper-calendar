@@ -17,6 +17,9 @@
 //!   capitalised wherever they stand. CLDR carries this as
 //!   `contextTransforms`; here it is one boolean per locale.
 //!
+//! `docs/systems/casing-and-bidi.md` gives the rows of `SpecialCasing.txt`
+//! this module reads and the ones it does not.
+//!
 //! Only the first character is ever recased: a "title case" that recased
 //! every word would break `2 de enero` and `tháng 1`. Word-level title
 //! casing needs a word-break implementation, which this crate does not have

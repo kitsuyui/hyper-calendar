@@ -347,7 +347,7 @@ disagree on which entry opens the festival, so each reading is its own
 | `pushkaram-final-entry` | the forward entry after which Jupiter stays until it moves on to the next sign: the second, where there are two | the Brahmaputra festival of 5 to 16 November 2019 and the Tungabhadra festival of 20 November to 1 December 2020, both of which began at the November entries, the second [sentinel-brahmaputra-2019, kurnool-tungabhadra-2020] |
 | `pushkaram-first-entry` | the first forward entry into the sign of a run of entries and returns | Wikipedia's table of the festivals, which opens the 2019 Dhanus festival on 29 March and the 2021 Sindhu festival on 6 April [wikipedia-pushkaram] |
 
-`entry_into(sign, from, until, rule, ayanamsa)` looks 800 days past either end
+`entry_into(sign, from, until, rule, ayanamsa)` looks 430 days past either end
 of the span, because whether an entry is the final one depends on where Jupiter
 goes next and whether it is the first on what came before it.
 
@@ -424,13 +424,13 @@ Not carried:
 
 - **Saturn's transit, and the other planets'.** A Saturn that turns and
   changes sign, the *Śani gocāra* almanacs print, needs the VSOP87B series for
-  Saturn, `VSOP87B.sat`, and the user's decision of 2026-10-03 allowed one
-  file to be saved, `VSOP87B.jup`: this is a limit of that decision, not a
-  choice of the design, and the Jupiter machinery here (the series file's
-  reading, `hc_seasons::zodiac::jupiter`'s ingress, station and rising
-  searches) would carry another planet's file as it carries this one. Mars,
-  Mercury and Venus are in the same case; the Sun and the Moon are carried
-  from their own series.
+  Saturn, `VSOP87B.sat`. This library carries no Saturn series: the one file
+  of the series it carries is Jupiter's, `VSOP87B.jup`, and the file for
+  Saturn was not read. The Jupiter machinery here (the series file's reading,
+  `hc_seasons::zodiac::jupiter`'s ingress, station and rising searches)
+  would carry another planet's file as it carries this one. Mars, Mercury and
+  Venus are in the same case; the Sun and the Moon are carried from their own
+  series.
 - **The true Rāhu**, which Drik Panchang prints beside the mean one (29 May
   2025 against 18 May, 17 March 2022 against 12 April): the periodic terms
   that make a node true were not read, so only the mean node is carried

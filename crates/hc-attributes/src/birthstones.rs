@@ -141,10 +141,13 @@ pub static BIRTHSTONES_US_1912: MonthTable = MonthTable::new(
 
 /// The current American list: 1912, revised 1952, 2002 and 2016.
 ///
-/// The Jewelry Industry Council of America's 1952 revision added
-/// alexandrite to June, citrine to November and pink tourmaline to October,
-/// replaced December's lapis lazuli with zircon, and swapped March's primary
-/// and alternative. The American Gem Trade Association added tanzanite to
+/// Jewelers of America's account of the revision of 1952 adds alexandrite
+/// to June, citrine to November and tourmaline to October and puts zircon
+/// in December; Wikipedia names the Jewelry Industry Council of America and
+/// adds that December's lapis lazuli was replaced and that March's primary
+/// and alternative were swapped. The table of 1912 above already has
+/// tourmaline in October, as Kunz prints it, so the two accounts of October
+/// are not reconciled here. The American Gem Trade Association added tanzanite to
 /// December in 2002 and, with Jewelers of America, spinel to August in 2016.
 /// The entries here follow the Gemological Institute of America's published
 /// chart, which is what the trade currently prints.
@@ -300,8 +303,9 @@ pub static BIRTHSTONES_JP_1958: MonthTable = MonthTable::new(
 /// kunzite (September) for their colour or for the birth month of someone
 /// associated with them.
 ///
-/// Compare with [`BIRTHSTONES_US_2016`]: the two still disagree in seven
-/// months, and a test counts them.
+/// Compare with [`BIRTHSTONES_US_2016`]: the two still disagree in eight
+/// months as ordered lists (seven as sets, August having the same stones in
+/// two orders), and a test counts them.
 pub static BIRTHSTONES_JP_2021: MonthTable = MonthTable::new(
     Authority {
         id: "birthstones-jp-2021",

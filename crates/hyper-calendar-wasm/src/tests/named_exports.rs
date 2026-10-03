@@ -1,7 +1,6 @@
-//! One call to each export no other boundary test names (audit 10 b20),
-//! with the line it writes and the refusal it gives for bad input: the
-//! values are the ones the JavaScript binding's tests pin, from the
-//! sources `docs/systems` name.
+//! One call to each export no other boundary test names, with the line it
+//! writes and the refusal it gives for bad input: the values are the ones
+//! the JavaScript binding's tests pin, from the sources `docs/systems` name.
 
 use super::super::*;
 use super::read_lines;

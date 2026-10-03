@@ -16,11 +16,13 @@
 //! the Earth's own rotation in the ground clock's frame are not modelled at
 //! all.
 //!
-//! # The canonical worked example
+//! # The GPS worked example
 //!
-//! A GPS satellite clock gains about **+45.7 µs/day** from being higher in
+//! A GPS satellite clock, against a ground clock at rest on a sphere of the
+//! equatorial radius, gains about **+45.7 µs/day** from being higher in
 //! the well and loses about **−7.2 µs/day** from moving, for a net gain of
-//! about **+38.4 µs/day**. That is roughly 10 km of positioning error a day,
+//! about **+38.4 µs/day**. The split is this crate's; Ashby (2003) gives the
+//! net, 38.575 µs/day for a ground clock on the rotating geoid. That is roughly 10 km of positioning error a day,
 //! which is why the satellites' oscillators are deliberately offset before
 //! launch. Both figures and their sum are tested here.
 
@@ -425,8 +427,8 @@ mod tests {
 
     #[test]
     fn gps_satellites_gain_thirty_eight_point_four_microseconds_a_day_net() {
-        // The canonical worked example, and the reason GPS clocks are
-        // offset in frequency before launch.
+        // The GPS worked example, and the reason GPS clocks are offset in
+        // frequency before launch.
         let offset =
             weak_field_orbit_rate_offset(GM_EARTH, GPS_ORBIT_RADIUS, EARTH_EQUATORIAL_RADIUS)
                 .unwrap();

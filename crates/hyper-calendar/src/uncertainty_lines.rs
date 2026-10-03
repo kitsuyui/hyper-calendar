@@ -285,8 +285,9 @@ pub fn edtf_lines(text: &str) -> Answer<String> {
 /// `1` or `0` for each of: the first is definitely before the second, possibly
 /// before, definitely after, possibly after, and possibly concurrent.
 ///
-/// A date known to the year is the year; `1984~` is 1983 to 1985; an open
-/// interval has no bound on its open side. Where a bound is unknown, every
+/// A date known to the year is the year; `1984~` is widened by its own length
+/// on each side, 1982-12-31 to 1986-01-02; an open interval has no bound on
+/// its open side. Where a bound is unknown, every
 /// ordering it could have is considered, so the set is what remains possible,
 /// never a guess.
 ///

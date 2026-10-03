@@ -8,7 +8,10 @@ under "What is carried"; the six gap identifiers; and the computed
 `moon_names::harvest_moon_falls_in`, `moon_names::september_moon_name` and
 `zodiac_stones::stones_on`. The crate is reached as
 `hyper_calendar::hc_attributes` under the facade's `attributes` feature. The
-WebAssembly and C surfaces export none of it. Policy §5 (competing
+WebAssembly module and the C library export it in the `attributes` layer:
+`hc_attribution_authorities`, `hc_attributions`, `hc_attributions_on` and
+`hc_harvest_moon`, whose lines `hyper_calendar::attribution_lines` writes
+once for both. Policy §5 (competing
 conventions get names) is why every list is its own table, and §10 says the
 1912 and the 2016 American birthstone lists are both real.
 
@@ -277,20 +280,16 @@ asserts only the one day. `stones_on` inherits the solar longitude of
 `hc-seasons`; its documentation says a sign boundary within about ten minutes
 of local midnight can move the answer by a day, which was not re-measured here.
 
-The code and its documentation disagree in places. `months_in_dispute` is 11
-(the test and the README say eleven), but the documentation of
-`disagreement_count` says twelve. The documentation of `BIRTHSTONES_JP_2021`
-says the 2021 and 2016 lists differ in seven months, and the test says eight:
-they differ in seven as sets, and in eight as ordered lists, since August has
-the same stones in two orders. The documentation of `BIRTHSTONES_US_2016`
-says 1952 added pink tourmaline to October, while the table of 1912, which
-agrees with Kunz, already has tourmaline in October. The table
-`moon-names-ofa-current` claims 1964 as the year it was established and has
-validity from 1964, which is the year of `moon-names-ofa-1964`; when the
-Almanac changed June, July and November is not in any source read. The
-README says the Maine almanac was read "at first hand"; the code's source
-string says it was not read. The crate-level documentation says 中秋の名月
-is `hc-seasons`'; the README and `moon_names` say `hc-almanac`'s.
+`months_in_dispute` is 11 for the six birthstone lists: no month but one is
+agreed by all of them. The 2021 Japanese and the 2016 American lists differ in
+eight months as ordered lists and in seven as sets, since August has the same
+stones in two orders; a test counts the eight. The table of 1912 has
+tourmaline in October, as Kunz prints it, while Jewelers of America's account
+of the revision of 1952 says that revision added it; the two are not
+reconciled. The table `moon-names-ofa-current` is dated from 1964, the year of
+`moon-names-ofa-1964`, and the year the Almanac changed June, July and
+November is in no source read. The Maine almanac of 1937 was not read; its
+list is carried as projectpluto.com transcribes it.
 
 ## Sources
 

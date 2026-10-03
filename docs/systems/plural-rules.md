@@ -4,8 +4,11 @@ Backs `hc-i18n`'s `plural` module: `PluralCategory`, `PluralOperands`,
 `PluralRules` and the table `plural::RULES`; and through them
 `hc-humanize`'s `PluralForms` and the phrases of the `hc_relative_time`,
 `hc_relative_day`, `hc_relative_day_at` and `hc_duration` exports. No
-calendar identifier is registered and the WebAssembly module and the C
-library export no plural function of their own.
+calendar identifier is registered. The WebAssembly module and the C library
+export the cardinal category of a number in a locale as `hc_plural_category`
+(`hyper_calendar::i18n_lines::plural_category_line`), which reads the operands
+UTS #35 takes from the number as written, so `1.0` and `1` are different
+questions; the kind `ordinal` is `HC_ERR_NO_DATA`.
 
 ## What it is
 
@@ -282,9 +285,9 @@ lists `ceb fil tl` together. `nah` is in the `n = 1` block of
   the 227 codes of the cardinal section, 171 have no row, root and the
   legacy codes `iw`, `in` and `jw` of carried languages among them. A row is
   added with a locale entry, as `hc-i18n`'s README describes.
-- Not carried: a plural function in the WebAssembly module or the C library
-  (not yet done). The rules are reachable there only through the
-  `humanize` exports.
+- Not carried: the ordinal rules of `ordinals.xml` and the compact-notation
+  operands `c` and `e`, at the boundary or anywhere else (not yet done);
+  `hc_plural_category` answers `HC_ERR_NO_DATA` for the kind `ordinal`.
 
 ## Accuracy
 

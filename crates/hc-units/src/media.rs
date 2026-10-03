@@ -84,7 +84,8 @@ const fn rate(id: &'static str, num: i128, den: i128) -> Rate {
     }
 }
 
-/// 24 fps: the sound-film rate since 1929.
+/// 24 fps: the sound-film rate, chosen as a compromise when sound film
+/// came in, from 1926.
 pub const FILM_24: Rate = rate("24", 24, 1);
 /// 25 fps: PAL and SECAM television, and EBU film transfer.
 pub const PAL_25: Rate = rate("25", 25, 1);

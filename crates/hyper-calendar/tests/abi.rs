@@ -486,7 +486,7 @@ fn names_identifier(text: &str, name: &str) -> bool {
     })
 }
 
-/// The exports no test of the boundary crate names (audit 10 b20).
+/// The exports no test of the boundary crate names.
 fn unnamed_exports(side: Side, crate_dir: &str) -> Vec<String> {
     let tests = boundary_tests(crate_dir);
     exports(side)

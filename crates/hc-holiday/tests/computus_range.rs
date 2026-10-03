@@ -3,10 +3,10 @@
 //! The Gregorian computus begins with the Easter of 1583, the first after
 //! the reform of October 1582 (*Inter gravissimas*, `computus.rs`), and the
 //! Julian one with 326, the first after Nicaea; both stop at
-//! 4099. Outside those years `Computus::easter` has no answer, and the
-//! engine used to drop the day and say nothing: `christian-western` gave 16
-//! entries and no gap in 1500, the 14 days from Ash Wednesday to Corpus
-//! Christi simply gone, and the same in 9999. Audit 10 a3.
+//! 4099. Outside those years `Computus::easter` has no answer, so the
+//! engine reports a gap for each day counted from Easter: `christian-western`
+//! gives 16 entries and 14 gaps in 1500, the 14 days from Ash Wednesday to
+//! Corpus Christi being the gaps, and the same in 9999.
 
 use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::rule::{Rule, RuleSet};

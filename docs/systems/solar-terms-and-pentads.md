@@ -319,9 +319,8 @@ longitude is 230.8°, twenty-one degrees into Vṛścika.
   for any other;
   `degrees_at`;
   `SiderealSign`, the twelve rāśi in IAST with their emblems and lords (no
-  Devanagari: the table once carried had no source, and the Hindi
-  *Rashtriya Panchang* that would supply one was not read, so it was
-  removed); `sidereal_longitude`, `ingress_after`, `ingress_moment`,
+  Devanagari: no source for it was read, and the Hindi *Rashtriya
+  Panchang* that would supply one was not read); `sidereal_longitude`, `ingress_after`, `ingress_moment`,
   `ingress_day`, `sign_period`, `sign_at_moment`, `sign_in_effect`,
   `sign_on_day`, `sign_beginning_on` and `signs_in_year`, every one taking
   the ayanāṃśa as an argument.
@@ -482,32 +481,27 @@ they were settled.
 | [biruni-wright1934] | §449, the faces and their lords in the Chaldean order, and the table; §451, the Hindu *drekkāṇa*, the rule of their lords and the table of the lords of the faces and of the *darījān* | Yes, 2026-09-27, in the Internet Archive's text of the scan; §451 and its table again 2026-09-29 |
 | [unicode-misc-symbols] | U+2648 ARIES to U+2653 PISCES | Yes, 2026-09-25 |
 
-Statements corrected on 2026-09-26, and how:
+Readings of the sources that the tables and tests rest on:
 
-- *The pentad lists.* `CHINESE` was the 宣明暦's list in Japanese
-  shinjitai under an authority naming only the 逸周書, so a reader of the
-  Chinese column for 26 September 2026 found 雷乃収声, the Japanese form,
-  where the 時訓解 has 雷始收聲. It is now the Chinese text in traditional
+- *The pentad lists.* `CHINESE` is the Chinese text in traditional
   characters: the 時訓解 for 63 entries, as the Wikisource text prints it
   with that edition's stray simplified characters (鸣, 凉风, 鸿雁来, 结,
   动, 鹊) restored and its 天氣土騰 read 天氣上騰 as its own gloss 天氣不上騰
-  requires, and the 集解 for the nine entries where the old list already
-  followed the 集解 rather than the 時訓解. Four entries that followed
-  neither text (雷乃収声, 野鶏入水為蜃, 野鶏始雊, 鷙鳥厲疾) now read as the
-  時訓解 does (雷始收聲, 雉入大水爲蜃, 雉始雊, 鷙鳥厲). `JAPANESE` was
-  labelled "本朝七十二候 of the 1874 略本暦"; 本朝七十二候 is Shibukawa's
-  Jōkyō set, and the list is the 宝暦暦 revision the 略本暦 printed. Checked
-  against the 暦Wiki's 宝暦暦以降 column it differed in one character,
-  螳螂生 for the column's 蟷螂生, which it now follows. Reading the 27
-  character pairs of `SHINJITAI` as the same, the two lists still share 21
-  names (`the_two_traditions_disagree_about_most_of_the_year`,
+  requires, and the 集解 for the nine entries where the list follows the
+  集解 rather than the 時訓解. Four entries read as the 時訓解 does (雷始收聲,
+  雉入大水爲蜃, 雉始雊, 鷙鳥厲), so the Chinese column for 26 September 2026
+  reads 雷始收聲 and not the Japanese form 雷乃収声. `JAPANESE` is the 宝暦暦
+  revision the 1874 略本暦 printed; 本朝七十二候 is Shibukawa's Jōkyō set, and
+  the list is not that. It follows the 暦Wiki's 宝暦暦以降 column in 蟷螂生,
+  where the 時訓解 has 螳螂生. Reading the 27 character pairs of `SHINJITAI`
+  as the same, the two lists share 21 names
+  (`the_two_traditions_disagree_about_most_of_the_year`,
   `the_chinese_list_is_traditional_and_the_japanese_shinjitai`).
 - *The floor formulae* for 春分の日 and 秋分の日 in
-  `tests/japanese_equinox_days.rs`, once "that Japanese references give":
-  the formula circulates on the Japanese web, usually attributed to the
-  Observatory, but no source read publishes it, and the test now calls it
-  the crate's own cross-check. What the Observatory publishes is the
-  暦要項, one year ahead; the 2024 pair was re-read.
+  `tests/japanese_equinox_days.rs` are the crate's own cross-check: the
+  formula circulates on the Japanese web, usually attributed to the
+  Observatory, but no source read publishes it. What the Observatory
+  publishes is the 暦要項, one year ahead; the 2024 pair was re-read.
 - *The change to 120°E.* The Chinese Wikipedia dates it to 民國十七年, 1928;
   Reingold and Dershowitz, whose table the crate uses, to 1929. Switching
   in either year gives the same day for every date of 1926–1930
@@ -522,16 +516,15 @@ Statements corrected on 2026-09-26, and how:
   other day differs (`the_two_readings_of_the_beijing_meridian_differ_once`).
   The crate keeps the book's figure, and that month is to be read with the
   other in mind.
-- *When the zodiacs coincided.* `tropical` said "around the second century
-  CE" and `sidereal` "around 285 CE". The year depends on the ayanāṃśa:
-  285 by Lahiri's and 389 by Raman's, the years each gave, as the Swiss
-  Ephemeris documentation quotes them [swisseph], and 221 by
-  Fagan–Bradley's as the crate computes it; both modules now say so, and
+- *When the zodiacs coincided.* The year depends on the ayanāṃśa: 285 by
+  Lahiri's and 389 by Raman's, the years each gave, as the Swiss Ephemeris
+  documentation quotes them [swisseph], and 221 by Fagan–Bradley's as the
+  crate computes it; `tropical` and `sidereal` both say so, and
   `the_two_zodiacs_coincided_in_the_third_century` checks all three.
 
-Statements in the module documentation and the crate README that no
-source read here supports, or that the sources contradict, recorded so
-that they are not mistaken for sourced:
+Statements that no source read here supports, or that the sources
+contradict, and that the module documentation and the crate README
+therefore do not make:
 
 - That pre-1685 Japanese almanacs used 平気 and later ones did not. The
   暦Wiki has 平気 through 寛政暦 and 定気 from 天保暦, 1844; 貞享暦 was

@@ -108,7 +108,7 @@ the other calls need, and they are refused for it (ADR 0013):
   day and the last before it, and refuse when a gap of a wanted kind lies in
   any year from the day's to the found entry's.
 - `hc_holidays_on` writes the substitute days of a region that has only a
-  weekend law, such as Kedah's Sunday for Awal Muharram 2025 (audit 10 d2),
+  weekend law, such as Kedah's Sunday for Awal Muharram 2025,
   with the region in column 10. It does not write the gap
   `unread-subdivision` for those regions, as it writes none for the many
   subdivisions the table does not list; the gap `unread-weekend` it does

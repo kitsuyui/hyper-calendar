@@ -6489,10 +6489,10 @@ writes one line of 7 cells: what can hold between two EDTF values placed on
 the timeline. Allen's thirteen relations between intervals are tested over
 the two supports: where a bound is unknown, every ordering it could have is
 considered, so the set is what remains possible, never a guess. A date known
-to the year is the year; `1984~` is 1983 to 1985; an open interval has no
-bound on its open side. Text that is not a supported EDTF value is
-`HC_ERR_MALFORMED`, and a year past what a fixed day can count is
-`HC_ERR_OUT_OF_RANGE`.
+to the year is the year; `1984~` is widened by its own length on each side,
+1982-12-31 to 1986-01-02; an open interval has no bound on its open side. Text
+that is not a supported EDTF value is `HC_ERR_MALFORMED`, and a year past what
+a fixed day can count is `HC_ERR_OUT_OF_RANGE`.
 
 | # | Column | Holds |
 | --- | --- | --- |
@@ -7160,11 +7160,6 @@ Neither boundary exposes these parts of the workspace:
   library holds a table as a static slice), and a locale for
   `hc_relative_day` and `hc_relative_day_at`'s thresholds, which are the
   conversational table and truncation.
-- **`hc-fiscal`, `hc-name-days`, `hc-attributes` and `hc-units`.** No line
-  format has been designed for them yet; each would be a layer of its own. Of `hc-almanac`, 七曜 is not written, since
-  it is the weekday; the meanings, glosses and 五行 of its annotations,
-  which it gives in English only, are not written either; and of 恵方 not
-  the two branches its point lies between, which the point names.
 - **Parts of `hc-almanac`, `hc-name-days` and `hc-uncertainty`.** Of
   `hc-almanac`, 七曜 is not written, since it is the weekday; the meanings,
   glosses and 五行 of its annotations, which it gives in English only, are

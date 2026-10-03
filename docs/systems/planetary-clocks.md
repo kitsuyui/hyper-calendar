@@ -498,46 +498,36 @@ longitude 67.92° against 67.9°, latitude +1.48° against +1.46° and colongitu
 the error is the libration in longitude, and the test allows 8°. The age of
 the Moon at the instant of the full moon of 25 January 2024 is 14.248 days.
 
-**Differences found between the code or its documents and the sources.**
+**The rows and the comments against the sources.**
 
-- `bodies.rs`, the Mercury row's comment, and the README: using NSSDC's
-  1 407.6 h "would stretch the derived solar day by half an hour". By the
-  crate's own formula 1 407.6 h gives 4 223.376 h against 4 222.555 h, 0.82 h,
-  49 minutes, and the ratio to the orbit is 2.0004 against 2.00002.
-- `bodies.rs`, the same comment: the IAU rate is written 6.138 5108 degrees a
-  day. 360 × 24 / 6.138 5108 = 1 407.5075 h, 4.7 s from the 1 407.5088 h the
-  row carries (which is 6.138 505 1 degrees a day). The effect on the solar
-  day is 0.012 h. The IAU report was not read, so which figure it prints is
-  not settled here.
-- `bodies.rs`, the satellite rows and the README: satellite rotation rates are
-  said to be "cross-checked against the IAU WGCCRE". Every satellite row
-  equals 24 × the NASA orbit period, so no IAU value enters, and the report's
-  tables were not read here.
-- `bodies.rs`, the Ceres row: the rotation is attributed to Konopliv et al.
-  (2018), and the JPL database lists another source for the same figure
-  (above).
-- `bodies.rs` test
-  `a_retrograde_rotators_solar_day_is_shorter_than_its_sidereal_day`: the
-  comment calls Pluto's gap "twenty-odd seconds"; the assertion beneath it,
-  and the arithmetic, give 38.9 s.
-- `bodies.rs`, the `measured_solar_day_seconds` documentation: the derivation
-  from the table is "a third of a second per sol" short for Mars, "four hours
-  over the span of the Mars Sol Date". It is 0.225 s per sol, about three
-  hours over 52 000 sols.
-- `clock.rs`, the Moon's `day_number` and `bodies.rs`'s Moon row say the day
-  number "is the Meeus lunation number". It is that only away from a new moon:
-  the clock's days begin at mean new moons and the lunations at true ones, up
-  to about fourteen hours apart (the lunar example above). The test
+- Mercury. By the crate's formula the sheet's 1 407.6 h gives a solar day of
+  4 223.376 h against the 4 222.555 h of the row's 1 407.5088 h: 0.82 h, 49
+  minutes, and the ratio of the solar day to the orbit is 2.0004 against
+  2.00002.
+- Mercury's rate. The row's 1 407.5088 h is 6.138 505 1 degrees a day; a rate
+  of 6.138 5108 degrees a day gives 1 407.5075 h, 4.7 s less, which moves the
+  solar day by 0.012 h. The IAU report was not read, so which figure it prints
+  is not settled here.
+- Satellite rotation. Every satellite row equals 24 × the NASA orbit period, so
+  no IAU value enters, and the report's tables were not read here.
+- Ceres. The rotation is the Small-Body Database's, which lists another source
+  for the figure (above); the row cites Konopliv et al. (2018), not read.
+- Pluto. A retrograde rotator's solar day is shorter than its sidereal day;
+  Pluto's gap is 38.9 s, and the test asserts it.
+- Mars. A rotation period quoted to six figures makes the derived solar day
+  0.225 s per sol short, about three hours over 52 000 sols of the Mars Sol
+  Date, which is why the measured sol is preferred.
+- The Moon's day number. The clock's days begin at mean new moons and the
+  Meeus lunations at true ones, up to about fourteen hours apart, so the day
+  number is the Meeus lunation number only away from a new moon (the lunar
+  example above). The zero-point note that `hc_bodies` writes for the Moon says
+  "the Meeus lunation number" without that limit. The test
   `the_lunar_clock_numbers_its_days_by_the_meeus_lunation` allows a difference
   of one, and checks three dates away from a new moon.
-- `moon.rs`, the test `meeus_lunation_zero_is_the_new_moon_of_january_2000`
-  says "Meeus (49.1): the new moon of 2000 January 6, at 18:14 UT". Formula
-  (49.1) gives the *mean* new moon, JDE 2451550.097 66 (14:19 UTC); 18:14 UT
-  is the true one [wikipedia-new-moon].
-- `clock.rs`, the test `a_local_hour_is_a_twenty_fourth_of_the_bodys_own_day`
-  checks `(hour − seconds) / seconds < 1e-3` with no absolute value, so it
-  cannot fail for a local hour that is too short. The `local_hour_seconds`
-  documentation prints Titan's as 57 490 s; it is 57 488.7 s.
+- Meeus's formula (49.1) gives the *mean* new moon of lunation 0, JDE
+  2451550.097 66 (14:19 UTC on 2000 January 6); 18:14 UT is the true one
+  [wikipedia-new-moon].
+- A local hour. Titan's is 57 488.7 s.
 
 ## Sources
 

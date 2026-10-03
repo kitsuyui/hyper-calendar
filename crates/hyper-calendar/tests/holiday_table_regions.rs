@@ -3,7 +3,7 @@
 //! subdivisions its rules, its weekend laws and its substitution policies
 //! are scoped to, and every export that takes a region accepts each of them
 //! and no region that has days of its own but is missing from the list
-//! (audit 10, front-end request 30; ADR 0015).
+//! (ADR 0015).
 //!
 //! Kedah, `MY-02`, keeps Friday and Saturday and has no rule of its own, so
 //! it appears in column 14 of the table and, before this definition, not in
@@ -92,7 +92,7 @@ fn column_9_lists_the_regions_the_table_answers_for() {
             "{code}"
         );
     }
-    // The weekend-only regions are listed (front-end request 30).
+    // The weekend-only regions are listed.
     let row = |code: &str| -> &Vec<String> {
         &tables
             .iter()

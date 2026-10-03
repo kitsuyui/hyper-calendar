@@ -1,5 +1,5 @@
 //! The first year each table of the Middle East, Africa and Oceania answers
-//! for (ADR 0013, audit 10 a1).
+//! for (ADR 0013).
 //!
 //! A table's rules that have no establishment of their own are carried from
 //! the earliest year its sources support: the year of the oldest dated

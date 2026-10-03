@@ -1,4 +1,4 @@
-//! ISO 8601-2 Extended Date/Time Format, levels 0 to 2.
+//! A subset of the ISO 8601-2 Extended Date/Time Format, levels 0 to 2.
 //!
 //! EDTF is the interchange format for exactly the problem this crate exists
 //! for: it is how libraries, archives and museums write down a date they do
@@ -6,7 +6,10 @@
 //! both, `1984-01-XX` names a month but not a day, `Y-170000002` is a year
 //! far outside the four-digit range, `1984/1985` is an interval,
 //! `[1667,1668,1670..1672]` is "one of these", `..1760-12-03` is "no later
-//! than", and `1760-12..` is "no earlier than".
+//! than", and `1760-12..` is "no earlier than". The text writes those two
+//! inside the set brackets, `[..1760-12-03]` and `[1760-12..]`, and writes
+//! the open ends of an interval as `1985/..` and `../1985`; this module also
+//! accepts them bare, as values of their own.
 //!
 //! Parsing produces an [`EdtfValue`]; [`EdtfValue::to_fuzzy_instant`] turns
 //! it into a [`crate::FuzzyInstant`] so that it can be reasoned about, and
@@ -20,16 +23,21 @@
 //!
 //! Not carried, and rejected rather than half-parsed (policy §4):
 //!
-//! * **Times of day.** `1985-04-12T23:20:30Z` is Level 0 EDTF; this module
-//!   reads *which day* and not yet the time within it.
+//! * **Times of day.** `1985-04-12T23:20:30Z` is Level 0 EDTF and the text
+//!   requires all of Level 0 (Library of Congress, 2019), so this module,
+//!   which reads *which day* and not yet the time within it, claims no
+//!   level.
 //! * **Seasons and sub-year divisions** (`2001-21` for spring, `2001-34` for
 //!   a quarter). Their boundaries are conventions that differ by hemisphere
 //!   and by publisher. Policy §5 would give each convention its own name, and
 //!   none has been added, so the form is refused and no boundary is guessed.
-//! * **Component-level qualification** (`2004-06~-11`, "June is approximate
-//!   but the year and day are not"). The support it implies is not an
-//!   interval, and [`crate::FuzzyInstant`] holds only intervals.
-//! * **Exponential years and significant digits** (`Y17E7S3`). Not yet done.
+//! * **Component-level qualification** (`2004-06~-11`: by the text a mark to
+//!   the right of a component qualifies it and every component to its left,
+//!   so the year and the month are approximate and the day is not). The
+//!   support it implies is not an interval, and [`crate::FuzzyInstant`] holds
+//!   only intervals.
+//! * **Exponential years and significant digits** (`Y-17E7`, `1950S2`,
+//!   `Y3388E2S3`). Not yet done.
 //!
 //! # Where the calendar arithmetic comes from
 //!
@@ -189,6 +197,9 @@ impl EdtfDate {
     }
 
     /// A year outside the four-digit range, rendered with the `Y` prefix.
+    ///
+    /// Any year is accepted, a short one too: `Y5` prints as `Y5`, though the
+    /// text allows the prefix only when the year exceeds four digits.
     ///
     /// # Errors
     ///
@@ -378,8 +389,8 @@ impl EdtfDate {
     /// The date as a fuzzy instant.
     ///
     /// An approximate qualifier widens the support by its own span on each
-    /// side, so `1984~` covers 1983 to 1985. That factor is a convention of
-    /// this crate: EDTF says a value is approximate but not by how much, and
+    /// side, so `1984~`, of 366 days, covers 1982-12-31 to 1986-01-02. That
+    /// factor is a convention of this crate: EDTF says a value is approximate but not by how much, and
     /// one unit of the stated precision is the least surprising reading.
     ///
     /// # Errors
@@ -489,7 +500,9 @@ impl FromStr for EdtfDate {
 pub enum EdtfEndpoint {
     /// A date.
     Date(EdtfDate),
-    /// `..` — the interval is open on this side: it genuinely continues.
+    /// `..` — the interval is open on this side. The text uses it "either
+    /// because there is none or for any other reason"; it is read as an
+    /// unknown bound, the same as [`EdtfEndpoint::Unknown`].
     Open,
     /// An empty component — the endpoint exists but is not recorded.
     Unknown,

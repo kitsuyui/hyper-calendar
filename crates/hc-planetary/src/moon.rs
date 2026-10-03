@@ -259,7 +259,9 @@ mod tests {
 
     #[test]
     fn meeus_lunation_zero_is_the_new_moon_of_january_2000() {
-        // Meeus (49.1): the new moon of 2000 January 6, at 18:14 UT.
+        // Meeus (49.1) gives the mean new moon of lunation 0, JDE
+        // 2451550.09766 (2000 January 6, 14:19 UTC); the true new moon of
+        // that lunation was at 18:14 UT.
         assert_eq!(lunation_meeus(at(2000, 1, 6, 20, 0, 0)), 0);
         assert_eq!(lunation_meeus(at(2000, 1, 6, 12, 0, 0)), -1);
         assert_eq!(lunation_meeus(at(2000, 2, 6, 0, 0, 0)), 1);

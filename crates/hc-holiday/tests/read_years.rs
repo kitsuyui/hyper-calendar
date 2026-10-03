@@ -111,7 +111,7 @@ fn a_subdivision_not_read_is_a_gap_and_keeps_the_nationwide_days() {
     );
 }
 
-/// The audit's unread subdivisions: each now reports its own days as a gap.
+/// A subdivision no source was read for reports its own days as a gap.
 #[test]
 fn the_subdivisions_no_source_was_read_for_are_gaps() {
     for (table, region) in [
@@ -181,8 +181,8 @@ static FROM_TABLE: RuleSet = RuleSet {
 
 #[test]
 fn a_subdivision_read_from_a_year_is_a_gap_before_it() {
-    // Audit 10 a4: Japan's prefectures whose ordinances in force now give no
-    // day of their own say nothing of the years before the 休日条例.
+    // Japan's prefectures whose ordinances in force now give no day of
+    // their own say nothing of the years before the 休日条例.
     let gaps = |region: &str, year: i64| -> Vec<&'static str> {
         gap_names(&FROM_TABLE, Some(region), year)
     };

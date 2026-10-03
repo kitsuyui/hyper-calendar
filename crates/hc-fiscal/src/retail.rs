@@ -753,11 +753,12 @@ mod tests {
 
     #[test]
     fn the_nrf_53_week_years_are_the_ones_the_federation_names() {
-        // The NRF names 2006, 2012, 2017, 2023 and 2028 as the 53-week
-        // years of this era.
-        // The window checked is the one the NRF publishes; the rule
-        // itself extends further back and produces 2000 as well, which the
-        // federation's current calendar does not reach.
+        // The NRF page names 2006, 2012, 2017 and 2023 as 53-week years;
+        // 2028 is the rule's answer (the calendars the page links to for
+        // later years were not opened). The window checked is the one the
+        // NRF publishes; the rule itself extends further back and produces
+        // 2000 as well, which the federation's current calendar does not
+        // reach.
         let named = [2006, 2012, 2017, 2023, 2028];
         let mut found = 0;
         for label in 2006..=2030 {
@@ -770,10 +771,12 @@ mod tests {
 
     #[test]
     fn the_sunday_nearest_february_first_is_the_same_boundary() {
-        // The NRF calendar is described both as ending on the Saturday
-        // nearest 31 January and as starting on the Sunday nearest
-        // 1 February. Those are one boundary seen from two sides, and
-        // neither lookup can tie, so they must agree on every year.
+        // The NRF calendar is read here as ending on the Saturday nearest
+        // 31 January (the Treasury Regulation's nearest rule; the NRF page
+        // itself states a count rule, which this rule reproduces) and as
+        // starting on the Sunday nearest 1 February. Those are one boundary
+        // seen from two sides, and neither lookup can tie, so they must agree
+        // on every year.
         let from_the_other_side = WeekYearSystem {
             anchor_weekday: Weekday::Saturday,
             anchor_month: 1,

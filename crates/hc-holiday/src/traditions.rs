@@ -45,7 +45,7 @@
 //! | Iranian festivals | the Solar Hijri calendar, `persian`: Tirgan, Mehregan, Yalda and Sadeh on their civil dates | exact to the calendar |
 //! | Armenian Apostolic | Gregorian calendar and computus (Etchmiadzin), or Julian (the Patriarchate of Jerusalem), as two tables; the feasts on the Sunday nearest a date as a moved date | exact; the saints' days are not carried |
 //! | Ember and Rogation Days | the Gregorian computus and fixed Gregorian dates, one table per church: the 1662 Prayer Book, *Common Worship*'s traditional weeks, the Roman rubrics of 1960 | exact as stated; *Common Worship*'s week before an ordination is the bishop's and not computed |
-//! | Samaritan | the `samaritan` calendar, a modern calculation of the priesthood's | exact to that calculation, which puts one Passover of 2016–2020 a day late; a reported gap outside 1900–2100 |
+//! | Samaritan | the `samaritan` calendar, a modern calculation of the priesthood's | exact to that calculation, which puts the Passovers of 2016, 2025 and 2026 a day late; a reported gap outside 1900–2100 |
 //! | Mandaean | the `mandaean` calendar of 365 days | exact: arithmetic |
 //! | Yazidi | the Eastern calendar, which is the Julian, and Serêsal by its weekday rule | exact |
 //! | Balinese Pawukon holy days | the 210-day Pawukon's concurrent weeks | exact: the cycle is arithmetic |
@@ -1030,7 +1030,7 @@ static WHEEL_OF_THE_YEAR_SOUTH_RULES: &[HolidayRule] = &dated(
 /// equinoxes' festivals, Litha, Ostara and Mabon, as Wikipedia dates it:
 /// the same article says only that "Wheel of the Year" was in use "by the
 /// mid-1960s" for a cycle of eight observances, with no year, and the
-/// earlier years are gaps (audit 10 a2).
+/// earlier years are gaps.
 pub static WHEEL_OF_THE_YEAR: RuleSet = RuleSet {
     code: "wheel-of-the-year",
     english_name: "Wheel of the Year",
@@ -2805,7 +2805,7 @@ static TENRIKYO_RULES: &[HolidayRule] = &dated(
 /// of 1838 — and the services are now kept on the same numbers of the
 /// Gregorian months. When that began was not read, so the table is read
 /// from 2017, the earliest of the services Tenrikyo Online reports (18 April
-/// 2017), and every earlier year is a gap (audit 10 a2). The
+/// 2017), and every earlier year is a gap. The
 /// Service for Germination, performed in April on a night the weather
 /// decides, the *obiya-zutome*, performed as needed, and a church's own
 /// monthly service, on a day each church sets, are not carried.
@@ -4286,8 +4286,7 @@ static MANDAEAN_RULES: &[HolidayRule] = &dated(
 /// Read from 1932, the first year of the dates Drower records that the
 /// calendar reproduces (Panja on 5 April 1932 to 1935, the new year of 1934
 /// and 1935): the record of 1854 she quotes, Petermann's, parts from it by
-/// a day, and no earlier year was read, so every year before 1932 is a gap
-/// (audit 10 a2).
+/// a day, and no earlier year was read, so every year before 1932 is a gap.
 pub static MANDAEAN: RuleSet = RuleSet {
     code: "mandaean",
     english_name: "Mandaean feasts",
@@ -4351,7 +4350,7 @@ static QUMRAN_RULES: &[HolidayRule] = &[
 /// Every entry is approximate: the weekday is the scrolls', but the
 /// Gregorian date is the convention's, and no source read says in which
 /// years the covenanters kept the calendar, so no year is a gap or absent,
-/// and none is more than a position in the convention (audit 10 a2).
+/// and none is more than a position in the convention.
 pub static QUMRAN: RuleSet = RuleSet {
     code: "qumran-festivals",
     english_name: "Qumran festivals",

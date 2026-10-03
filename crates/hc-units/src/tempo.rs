@@ -95,7 +95,9 @@ impl Tempo {
     ///
     /// MIDI's count is an integer, so most tempos do not survive: 140 BPM is
     /// 428 571.428… µs. The `bool` says whether this one did, rather than
-    /// leaving the caller to discover the drift in bar 400.
+    /// leaving the caller to discover the drift in bar 400. A count that is
+    /// not an integer is truncated, not rounded: 138 BPM is 434 782.6 µs and
+    /// stores 434 782. The specification does not say how a writer rounds.
     ///
     /// # Errors
     ///
@@ -180,8 +182,9 @@ impl NoteValue {
     ///
     /// # Errors
     ///
-    /// [`UnitError::Overflow`] beyond about 120 halvings, and
-    /// [`UnitError::DivideByZero`] for a tuplet with a zero on either side.
+    /// [`UnitError::Overflow`] beyond 126 halvings or 125 dots, or when the
+    /// product leaves `i128`, and [`UnitError::DivideByZero`] for a tuplet
+    /// with a zero count. A tuplet with a zero space has the length 0.
     pub const fn fraction_of_whole(self) -> UnitResult<Ratio> {
         if self.halvings >= 127 || self.dots >= 127 {
             return Err(UnitError::Overflow);
@@ -286,7 +289,8 @@ impl TimeSignature {
 pub struct Ppqn(pub u32);
 
 impl Ppqn {
-    /// 96 PPQN: the original MIDI File Format 0 default.
+    /// 96 PPQN: a division the MIDI file specification uses in an example;
+    /// it names no default.
     pub const CLASSIC: Self = Self(96);
     /// 480 PPQN: the common modern DAW grid.
     pub const MODERN: Self = Self(480);

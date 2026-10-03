@@ -339,9 +339,9 @@ fn day(year: i64, month: u8, day: u8) -> i64 {
     fixed
 }
 
-/// A day the table cannot answer is refused, not answered "no" (audit 10
-/// d1): Victoria Day 2025 is a gap in Newfoundland and Labrador, and
-/// Kedah's weekend law of 2012 was not read.
+/// A day the table cannot answer is refused, not answered "no": Victoria
+/// Day 2025 is a gap in Newfoundland and Labrador, and Kedah's weekend law
+/// of 2012 was not read.
 #[test]
 fn a_day_a_gap_leaves_open_is_refused_and_a_known_one_is_answered() {
     let day_off = |code: &core::ffi::CStr, region: &core::ffi::CStr, fixed: i64| {
@@ -530,9 +530,9 @@ fn the_next_and_the_previous_holiday_are_a_line_of_the_year() {
     assert_eq!(refuse(true, jp, 1 << 62), HC_ERROR_OUT_OF_RANGE);
 }
 
-/// A region that has only a weekend law has substitute days of its own
-/// (audit 10 d2): Awal Muharram 2025 was Friday 27 June, which Kedah moves
-/// to Sunday the 29th.
+/// A region that has only a weekend law has substitute days of its own:
+/// Awal Muharram 2025 was Friday 27 June, which Kedah moves to Sunday the
+/// 29th.
 #[test]
 fn a_regions_substitute_day_is_a_line_of_the_day_it_falls_on() {
     let text = read_lines(|buffer, capacity, written| unsafe {

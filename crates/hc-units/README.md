@@ -42,7 +42,7 @@ and `to_duration_rounded` rounds where a caller asked for it.
 
 | Family | Examples |
 | --- | --- |
-| SI | quectosecond through gigasecond |
+| SI | the 13 prefixed seconds from quectosecond to gigasecond (quecto, ronto, yocto, zepto, atto, femto, pico, nano, micro, milli, kilo, mega, giga); deci, centi, deca, hecto, tera, peta, exa, zetta, yotta, ronna and quetta are not yet added |
 | Civil | minute, hour, day, week, fortnight, Julian year and century, mean Gregorian year/quarter/month |
 | Horological | helek and rega (Hebrew), 刻 in both of its lengths and 時辰 (East Asian), ghati, vighati, prana, muhurta (Indian), the medieval moment |
 | Decimal | the French Republican decimal hour, minute and second; Swatch `.beat` |

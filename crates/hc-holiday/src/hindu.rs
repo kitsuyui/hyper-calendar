@@ -140,9 +140,8 @@ pub const GURU_PURNIMA: Rule = tithi(4, 15, Prevalence::Midday, WhenTwice::Earli
 /// the page in 2036 alone: Bhadra ends at 19:00 on 6 August and the tithi
 /// at 08:18 on the 7th, 2 hours 35 minutes after New Delhi's sunrise, where
 /// the page gives the 6th, and 2 hours 46 after the Central Station's, past
-/// six *ghaṭikā*s, where the rule gives the 7th. The afternoon rule this
-/// replaces parted from the page in 14 of the 76, among them 2025 to 2028,
-/// a day early. `tests/raksha_bandhan.rs` has all of them.
+/// six *ghaṭikā*s, where the rule gives the 7th. `tests/raksha_bandhan.rs`
+/// has all of them.
 ///
 /// Holikā Dahana is the other day the lists keep out of Bhadra; see
 /// [`HOLIKA_DAHAN`].
@@ -249,8 +248,7 @@ pub const THAIPUSAM: Rule = Rule::Nakshatra {
 /// Punchha, which no source read gives: the page prints it and does not
 /// define it. Nor does anything the page says tell those years from 2027
 /// and 2036, when Bhadra also ends after midnight, and it keeps the first
-/// day. The rule is left as it was until a source for Punchha is read
-/// (audit 10 a5).
+/// day. The rule stays as it is until a source for Punchha is read.
 pub static HOLIKA_DAHAN: Rule = tithi(12, 15, Prevalence::Evening, WhenTwice::Earlier);
 
 /// Holī, the day of colours: the day after Holikā Dahana.

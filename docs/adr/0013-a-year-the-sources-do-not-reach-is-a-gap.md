@@ -57,20 +57,20 @@ A rule carries both facts, and the engine reports the difference.
   it no day of its own and say nothing of the regime before the one they
   began, is a gap before that year. Japan's twenty-six prefectures and six
   cities whose 休日条例 gives them none are read from the year of it, 1989
-  to 1992 (audit 10 a4). A region a rule is scoped to and `ReadFrom` does
+  to 1992. A region a rule is scoped to and `ReadFrom` does
   not list is read in every year, and the rule's own years say which it
   answers for.
 - A rule counted from Easter is resolvable only where `Computus::easter`
   has an answer: 1583 to 4099 for the Gregorian computus, 326 to 4099 for
   the Julian. Outside them it is a gap, and so are the `Offset`, `Span`
   and `MovedByWeekday` rules built on it, as the rules of a calendar's
-  range already were (audit 10 a3).
+  range are.
 - A gap two rules of one table write, with one identifier, is written
   once a year.
 - The boundary refuses a region the table's country has no subdivision for
   (`US-ZZ`, `JP-99`, `JP garbage`, `JP-14-130-5`) as unknown, as it
   refuses a group that is no group. A subdivision that exists and was not
-  read is the gap above; a typo no longer looks like one (audit 10 b25).
+  read is the gap above, so a typo does not look like one.
   The shape of a code is `hc_holiday::rule::is_region_code`, the
   subdivisions are `hc_i18n::place_names`', and the facade joins them.
 - `Rule::NO_DAY` is a day a text read does not keep. With `read_from` and
@@ -84,18 +84,18 @@ A rule carries both facts, and the engine reports the difference.
   lies in its year, and the boundary writes `HC_ERR_NO_DATA`: a holiday the
   table could not place may be that very day, and `false` would be a guess.
   A day the table lists is answered whatever else is open; the arithmetic
-  and `hc_holiday_next` and `hc_holiday_previous` refuse in the same way
-  (audit 10 d1, d3). A weekend law not read is `HC_ERR_OUT_OF_RANGE`, as
+  and `hc_holiday_next` and `hc_holiday_previous` refuse in the same way.
+  A weekend law not read is `HC_ERR_OUT_OF_RANGE`, as
   ADR 0015 has it.
 
 ## Consequences
 
 - No module writes a gap helper of its own; a table states its years in
-  the rule, and the eleven copies are gone.
+  the rule.
 - More answers are gaps. A table whose earliest source is recent reports
   its earlier years as unknown — Switzerland's nationwide days before
   2026, whose Jura, Schwyz and Zurich laws were read only as they stand —
-  where it used to give the days of today for every year. A caller who
+  and not the days of today for every year. A caller who
   wants the modern list for an old year can still read it from a later
   year; the library does not choose that reading for them.
 - A region the table's sources were not read for is a gap, which is why
@@ -104,8 +104,8 @@ A rule carries both facts, and the engine reports the difference.
 - The unscoped Canadian answer is the federal one, and a province's answer
   may have fewer federal days than it.
 - The establishment of most older rules is the table's own reading, not a
-  separately cited instrument. Where an audit finds a rule absent before a
-  year no source sets, the fix is now one call, `read_from`, on that rule.
+  separately cited instrument. A rule that is absent before a year no source
+  sets is mended by one call, `read_from`, on that rule.
 - A table whose sources are one recent text or list does not answer for the
   years before it. The tables of the Americas, Europe, Africa, the Middle East and Oceania each carry the first
   year their sources support, set on every rule that has none of its own by

@@ -555,7 +555,7 @@ mod tests {
         (63_071_999, 9_892_241_970_000_000_000),
     ];
 
-    /// Audit 10, a11: the offset at the edges of every segment is the one the
+    /// The offset at the edges of every segment is the one the
     /// published coefficients give, to the attosecond.
     #[test]
     fn the_rate_era_offsets_at_every_segment_edge_are_exact() {
@@ -574,7 +574,7 @@ mod tests {
         );
     }
 
-    /// Audit 10, a11: every one of the 4 017 days of 1961-1971 is read with
+    /// Every one of the 4 017 days of 1961-1971 is read with
     /// the segment the published tables give for it. The expectation is
     /// written in the test from the table's own Julian Dates and
     /// `offset + (MJD − origin) × drift`, in floating point, so the day of a
@@ -620,9 +620,8 @@ mod tests {
         }
     }
 
-    /// Audit 10, a12: a TAI reading of 1961-1971 came back as UTC with the
-    /// fraction of TAI − UTC dropped, up to a second wrong. The reading
-    /// `63 072 008` is 1971-12-31 23:59:5x, where TAI − UTC is 9.892 242 s,
+    /// A TAI reading of 1961-1971 is converted to UTC with the fraction of
+    /// TAI − UTC kept. The reading `63 072 008` is 1971-12-31 23:59:5x, where TAI − UTC is 9.892 242 s,
     /// so UTC is 63 071 998.107 758 06 (exact rational arithmetic).
     #[test]
     fn utc_from_tai_keeps_the_fraction_of_the_offset() {
@@ -650,7 +649,7 @@ mod tests {
         );
     }
 
-    /// Audit 10, a12: UTC to TAI and back is the identity over the whole
+    /// UTC to TAI and back is the identity over the whole
     /// rate era, on whole seconds, on milliseconds and on arbitrary
     /// attoseconds (to the attosecond the division rounds to), at every
     /// segment edge and between.
@@ -693,7 +692,7 @@ mod tests {
         assert!(checked > 10_000, "{checked}");
     }
 
-    /// Audit 10, a12: where TAI − UTC steps down (1961-08-01 by 0.05 s,
+    /// Where TAI − UTC steps down (1961-08-01 by 0.05 s,
     /// 1968-02-01 by 0.1 s) the instants of the overlap are read with the new
     /// segment, and where it steps up (seven times by 0.1 s) the instants of
     /// the gap get the UTC reading of the step. UTC never runs backwards as

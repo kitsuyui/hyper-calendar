@@ -1381,7 +1381,7 @@ impl Rule {
             // left out as well. A saṅkrānti has no month to find, but the
             // ayanāṃśa that places it is the calendar's, whose years these
             // are: 1700 to 2299, and a year outside them is a gap, not a
-            // day (audit 10 a2).
+            // day.
             Self::Tithi { .. } | Self::TithiAfterBhadra { .. } | Self::Sankranti { .. } => {
                 (hindu_lunar::MIN_YEAR + hindu_lunar::GREGORIAN_YEAR_OFFSET + 1
                     ..hindu_lunar::MAX_YEAR + hindu_lunar::GREGORIAN_YEAR_OFFSET)
@@ -3364,7 +3364,7 @@ pub enum Subdivisions {
     /// of a subdivision read in the ordinances in force now, which give no
     /// day of its own and say nothing of the regime before the one they
     /// began: Japan's twenty-six prefectures whose 休日条例 of 1989 gives
-    /// none, each from the year of its 休日条例 (audit 10 a4).
+    /// none, each from the year of its 休日条例.
     ReadFrom(&'static [(&'static str, i32)]),
 }
 

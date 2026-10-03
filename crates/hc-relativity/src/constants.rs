@@ -79,7 +79,7 @@ pub const GM_SUN_NOMINAL_IAU_2015: f64 = 1.327_124_4e20;
 /// `3.986 004 418·10¹⁴`, the value of the IERS Conventions (2010) and of
 /// WGS 84. It is the value Ashby's review of relativity in GPS uses for the
 /// satellite-clock figures (Ashby 2003, `ashby2003`, the text after
-/// Eq. 13), which is why those figures come out right with it.
+/// Eq. 13), and the one the GPS figures of this crate are computed with.
 pub const GM_EARTH: f64 = 3.986_004_418e14;
 
 /// Standard gravitational parameter of the Moon, in m³ s⁻².

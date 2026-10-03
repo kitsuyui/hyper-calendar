@@ -292,8 +292,8 @@ attoseconds.
   `Intl.DateTimeFormat` (ICU 76.1, CLDR 46), read 2026-10-03, for the digits
   and the Buddhist and Minguo eras, and the week tests cite UTS #35's 1998
   example, with `pt-PT` and `en-US`. No ICU run covers every field.
-- **Tests.** `cargo test -p hc-format` passes: 327 unit tests, 5 in
-  `python_directives.rs`, 29 in `round_trip.rs` and 10 doctests. The
+- **Tests.** `cargo test -p hc-format` passes: the unit tests, those of
+  `python_directives.rs` and `round_trip.rs`, and the doctests. The
   round trips are 20 000 random readings between 1583 and 2400 through four
   `strftime` patterns and four CLDR patterns, each formatted and parsed
   back to the same reading.

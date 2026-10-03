@@ -1,12 +1,11 @@
 //! A church or a tradition answers for the years its sources reach and
-//! reports the rest (ADR 0013, audit 10 a2).
+//! reports the rest (ADR 0013).
 //!
-//! `roman-general` gave 215 entries for the year 1, 1500 and 1582, and 219
-//! for 1700 to 2013, with `exact` confidence and no gap, though its calendar
-//! is that of the Roman Missal of 2002 and the General Roman Calendar began
-//! in 1970. `common-worship` gave 25 entries in the year 1, and the Sankranti
-//! rules of `hindu` answered in the year -500 and in 3000. Each table below
-//! is absent before the year its instrument was established and a gap
+//! `roman-general` keeps the calendar of the Roman Missal of 2002, and the
+//! General Roman Calendar began in 1970, so it has no entry for the year 1,
+//! 1500 or 1582 and a gap for 1970 to 2001. `common-worship` has no entry
+//! in the year 1, and the Sankranti rules of `hindu` have none in the year
+//! -500 or in 3000. Each table below is absent before the year its instrument was established and a gap
 //! before the first year its sources were read for.
 
 use hc_holiday::engine::HolidayCalendar;

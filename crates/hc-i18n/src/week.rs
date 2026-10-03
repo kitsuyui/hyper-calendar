@@ -23,6 +23,9 @@
 //! for a locale; the rule is Gregorian arithmetic only, so it numbers the
 //! weeks of the Gregorian year and month.
 //!
+//! `docs/systems/week-rules.md` works a date through the rule and says how it
+//! was measured.
+//!
 //! # Days before the first week of a month
 //!
 //! A day that falls in the partial week before the first week of its month

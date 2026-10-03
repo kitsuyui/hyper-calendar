@@ -489,10 +489,9 @@ impl fmt::Display for Significant {
     /// zero after the point. When the value is large enough that plain
     /// notation would need non-significant zeros before the point — 13.8
     /// billion, whose `13800000000` claims eleven digits — or small enough
-    /// that it would need more than four leading zeros, scientific notation
-    /// is used instead. This is the convention of the SI Brochure and of
-    /// *Physical Review*'s style guide, and it is the only notation in which
-    /// "three significant figures" is unambiguous.
+    /// that its decimal exponent is below −4 (`0.000 012 3` prints as
+    /// `1.23e-5`), scientific notation is used instead. It is the notation in
+    /// which "three significant figures" is unambiguous.
     ///
     /// An exact value ([`MAX_FIGURES`]) prints the shortest numeral that
     /// reads back as the same `f64`, without padding.

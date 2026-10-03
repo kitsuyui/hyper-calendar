@@ -9635,9 +9635,10 @@ export class HyperCalendar {
    * What can hold between two EDTF values placed on the timeline: `hc_edtf_relations`. Allen's
    * thirteen relations between intervals are tested over the two supports: where a bound is
    * unknown, every ordering it could have is considered, so the set is what remains possible,
-   * never a guess. A date known to the year is the year; `1984~` is 1983 to 1985; an open
-   * interval has no bound on its open side. Text that is not a supported EDTF value is
-   * `malformed`, and a year past what a fixed day can count is `out-of-range`.
+   * never a guess. A date known to the year is the year; `1984~` is widened by its own length on
+   * each side, 1982-12-31 to 1986-01-02; an open interval has no bound on its open side. Text that
+   * is not a supported EDTF value is `malformed`, and a year past what a fixed day can count is
+   * `out-of-range`.
    *
    * @param {string} first
    * @param {string} second
