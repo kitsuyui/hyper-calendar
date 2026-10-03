@@ -33,7 +33,8 @@ use hc_calendars_solar::gregorian;
 
 use crate::computus::offsets::{ASCENSION, EASTER_SUNDAY, PALM_SUNDAY, PENTECOST};
 use crate::rule::{
-    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions, joined,
+    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions, dated,
+    joined,
 };
 use crate::traditions::CHURCH_OF_THE_EAST_RULES;
 
@@ -345,22 +346,18 @@ pub(crate) static CHURCH_OF_THE_EAST_ALL_RULES: [HolidayRule; CHURCH_OF_THE_EAST
 /// The first Sunday of Elijah when the Feast of the Cross is on `cross`
 /// September: the Sunday after seven weeks of Summer, or a week earlier
 /// when that is not before the Cross.
-fn first_sunday_of_elijah_before(year: i64, cross: u8) -> Days {
-    let (Some(easter), Ok(cross)) = (
-        crate::computus::gregorian_easter(year),
-        gregorian::to_fixed(year, 9, cross),
-    ) else {
-        return Days::new();
-    };
+fn first_sunday_of_elijah_before(year: i64, cross: u8) -> Option<Days> {
+    let easter = crate::computus::gregorian_easter(year)?;
+    let cross = gregorian::to_fixed(year, 9, cross).ok()?;
     let ideal = Rd(easter.0 + 147);
-    Days::one(if ideal < cross {
+    Some(Days::one(if ideal < cross {
         ideal
     } else {
         Rd(ideal.0 - 7)
-    })
+    }))
 }
 
-fn chaldean_first_sunday_of_elijah(year: i64) -> Days {
+fn chaldean_first_sunday_of_elijah(year: i64) -> Option<Days> {
     first_sunday_of_elijah_before(year, 14)
 }
 
@@ -377,41 +374,45 @@ const fn first_sunday_on_or_after(month: u8, day: u8) -> Rule {
     }
 }
 
-static CHALDEAN_RULES: &[HolidayRule] = &[
-    day("Rogation of the Ninevites (Ba'utha)", Rule::easter(-69)),
-    day("Rogation of the Ninevites (Ba'utha)", Rule::easter(-68)),
-    day("Rogation of the Ninevites (Ba'utha)", Rule::easter(-67)),
-    day(
-        "First Sunday of the Great Fast (Sawma Raba)",
-        Rule::easter(-49),
-    ),
-    day("Palm Sunday", Rule::easter(PALM_SUNDAY)),
-    day(
-        "Easter (the season of the Resurrection begins)",
-        Rule::easter(EASTER_SUNDAY),
-    ),
-    day("Ascension", Rule::easter(ASCENSION)),
-    day(
-        "Pentecost (the season of the Apostles begins)",
-        Rule::easter(PENTECOST),
-    ),
-    day("First Sunday of Summer (Qayta)", Rule::easter(98)),
-    day(
-        "First Sunday of Elijah",
-        Rule::Computed(chaldean_first_sunday_of_elijah),
-    ),
-    day("Feast of the Holy Cross", Rule::gregorian(9, 14)),
-    day("First Sunday of the Cross", first_sunday_on_or_after(9, 14)),
-    day(
-        "First Sunday of the Dedication of the Church (Qudesh Edta)",
-        first_sunday_on_or_after(10, 30),
-    ),
-    day(
-        "First Sunday of the Annunciation (Subara)",
-        first_sunday_on_or_after(11, 27),
-    ),
-    day("Nativity (Yelda)", Rule::gregorian(12, 25)),
-];
+static CHALDEAN_RULES: &[HolidayRule] = &dated(
+    [
+        day("Rogation of the Ninevites (Ba'utha)", Rule::easter(-69)),
+        day("Rogation of the Ninevites (Ba'utha)", Rule::easter(-68)),
+        day("Rogation of the Ninevites (Ba'utha)", Rule::easter(-67)),
+        day(
+            "First Sunday of the Great Fast (Sawma Raba)",
+            Rule::easter(-49),
+        ),
+        day("Palm Sunday", Rule::easter(PALM_SUNDAY)),
+        day(
+            "Easter (the season of the Resurrection begins)",
+            Rule::easter(EASTER_SUNDAY),
+        ),
+        day("Ascension", Rule::easter(ASCENSION)),
+        day(
+            "Pentecost (the season of the Apostles begins)",
+            Rule::easter(PENTECOST),
+        ),
+        day("First Sunday of Summer (Qayta)", Rule::easter(98)),
+        day(
+            "First Sunday of Elijah",
+            Rule::Unsettled(chaldean_first_sunday_of_elijah),
+        ),
+        day("Feast of the Holy Cross", Rule::gregorian(9, 14)),
+        day("First Sunday of the Cross", first_sunday_on_or_after(9, 14)),
+        day(
+            "First Sunday of the Dedication of the Church (Qudesh Edta)",
+            first_sunday_on_or_after(10, 30),
+        ),
+        day(
+            "First Sunday of the Annunciation (Subara)",
+            first_sunday_on_or_after(11, 27),
+        ),
+        day("Nativity (Yelda)", Rule::gregorian(12, 25)),
+    ],
+    None,
+    Some(2025),
+);
 
 /// The Chaldean Catholic Church's year, as its Diocese of St Thomas the
 /// Apostle in the United States states it: the East Syriac seasons of
@@ -431,7 +432,9 @@ static CHALDEAN_RULES: &[HolidayRule] = &[
 /// as in 2025. The Epiphany, Transfiguration and the Sundays of Moses, which
 /// the diocese's page does not date, are not carried; nor are the
 /// saints' days. The Gregorian calendar and computus are the Chaldean
-/// Catholic Church's with Rome's; when it took them up was not read.
+/// Catholic Church's with Rome's; when it took them up was not read, so the
+/// table is read from 2025, the year of the bulletins and of the report
+/// that the calendar was aligned with Rome's, and earlier years are gaps.
 pub static CHALDEAN: RuleSet = RuleSet {
     code: "chaldean",
     english_name: "Chaldean Catholic Church",
@@ -467,47 +470,51 @@ fn syro_malabar_denha(year: i64) -> Days {
     })
 }
 
-static SYRO_MALABAR_RULES: &[HolidayRule] = &[
-    day("Epiphany (Denha)", Rule::gregorian(1, 6)),
-    day(
-        "The season of Denha begins",
-        Rule::Computed(syro_malabar_denha),
-    ),
-    day("Rogation of the Ninevites", Rule::easter(-69)),
-    day("Rogation of the Ninevites", Rule::easter(-68)),
-    day("Rogation of the Ninevites", Rule::easter(-67)),
-    day("First Sunday of the Great Fast", Rule::easter(-49)),
-    day("Palm Sunday", Rule::easter(PALM_SUNDAY)),
-    day(
-        "Easter (the season of the Resurrection begins)",
-        Rule::easter(EASTER_SUNDAY),
-    ),
-    day("Ascension", Rule::easter(ASCENSION)),
-    day(
-        "Pentecost (the season of the Apostles begins)",
-        Rule::easter(PENTECOST),
-    ),
-    day("SS. Peter and Paul", Rule::gregorian(6, 29)),
-    day("Dukrana of St Thomas", Rule::gregorian(7, 3)),
-    day("First Sunday of Summer (Kaitha)", Rule::easter(98)),
-    day("Transfiguration", Rule::gregorian(8, 6)),
-    day("Assumption", Rule::gregorian(8, 15)),
-    day(
-        "First Sunday of the season of Elijah, the Cross and Moses",
-        Rule::easter(147),
-    ),
-    day("Exaltation of the Holy Cross", Rule::gregorian(9, 14)),
-    day("First Sunday of the Cross", first_sunday_on_or_after(9, 14)),
-    day(
-        "First Sunday of the Dedication of the Church",
-        first_sunday_on_or_after(10, 30),
-    ),
-    day(
-        "First Sunday of the Annunciation",
-        first_sunday_on_or_after(11, 27),
-    ),
-    day("Nativity", Rule::gregorian(12, 25)),
-];
+static SYRO_MALABAR_RULES: &[HolidayRule] = &dated(
+    [
+        day("Epiphany (Denha)", Rule::gregorian(1, 6)),
+        day(
+            "The season of Denha begins",
+            Rule::Computed(syro_malabar_denha),
+        ),
+        day("Rogation of the Ninevites", Rule::easter(-69)),
+        day("Rogation of the Ninevites", Rule::easter(-68)),
+        day("Rogation of the Ninevites", Rule::easter(-67)),
+        day("First Sunday of the Great Fast", Rule::easter(-49)),
+        day("Palm Sunday", Rule::easter(PALM_SUNDAY)),
+        day(
+            "Easter (the season of the Resurrection begins)",
+            Rule::easter(EASTER_SUNDAY),
+        ),
+        day("Ascension", Rule::easter(ASCENSION)),
+        day(
+            "Pentecost (the season of the Apostles begins)",
+            Rule::easter(PENTECOST),
+        ),
+        day("SS. Peter and Paul", Rule::gregorian(6, 29)),
+        day("Dukrana of St Thomas", Rule::gregorian(7, 3)),
+        day("First Sunday of Summer (Kaitha)", Rule::easter(98)),
+        day("Transfiguration", Rule::gregorian(8, 6)),
+        day("Assumption", Rule::gregorian(8, 15)),
+        day(
+            "First Sunday of the season of Elijah, the Cross and Moses",
+            Rule::easter(147),
+        ),
+        day("Exaltation of the Holy Cross", Rule::gregorian(9, 14)),
+        day("First Sunday of the Cross", first_sunday_on_or_after(9, 14)),
+        day(
+            "First Sunday of the Dedication of the Church",
+            first_sunday_on_or_after(10, 30),
+        ),
+        day(
+            "First Sunday of the Annunciation",
+            first_sunday_on_or_after(11, 27),
+        ),
+        day("Nativity", Rule::gregorian(12, 25)),
+    ],
+    None,
+    Some(2020),
+);
 
 /// The Syro-Malabar Catholic Church's year: the East Syriac seasons, the
 /// season of Denha from "The Sunday between January 2 and 6; otherwise
@@ -527,7 +534,8 @@ static SYRO_MALABAR_RULES: &[HolidayRule] = &[
 /// yearly calendar, the Panchangam, is a PDF and was not read; the
 /// Rogation and Annunciation are the East Syriac year's, which the account
 /// gives as the third Monday before Lent and the Sunday between
-/// 27 November and 3 December.
+/// 27 November and 3 December. Read from 2020, the year of the calendar the
+/// account cites, 2020-21; earlier years are gaps.
 pub static SYRO_MALABAR: RuleSet = RuleSet {
     code: "syro-malabar",
     english_name: "Syro-Malabar Catholic Church",

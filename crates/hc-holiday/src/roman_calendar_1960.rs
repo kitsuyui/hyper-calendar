@@ -259,19 +259,15 @@ fn first_sunday_after_epiphany(year: i64) -> Option<Rd> {
 /// The `n`-th Sunday after the Epiphany, 2 to 6, when it comes before
 /// Septuagesima; the ones it would meet are resumed after Pentecost
 /// (no. 18).
-fn sunday_after_epiphany(year: i64, n: i64) -> Days {
-    let (Some(first), Some(easter)) = (
-        first_sunday_after_epiphany(year),
-        computus::gregorian_easter(year),
-    ) else {
-        return Days::new();
-    };
+fn sunday_after_epiphany(year: i64, n: i64) -> Option<Days> {
+    let first = first_sunday_after_epiphany(year)?;
+    let easter = computus::gregorian_easter(year)?;
     let sunday = Rd(first.0 + 7 * (n - 1));
-    if sunday.0 < easter.0 + i64::from(SEPTUAGESIMA) {
+    Some(if sunday.0 < easter.0 + i64::from(SEPTUAGESIMA) {
         Days::one(sunday)
     } else {
         Days::new()
-    }
+    })
 }
 
 /// How many Sundays there are after Pentecost, Trinity Sunday the first:
@@ -286,23 +282,19 @@ fn sundays_after_pentecost(year: i64) -> Option<(Rd, i64)> {
 /// Sundays the Twenty-third is not kept, since "The Sunday which is set
 /// down as XXIV after Pentecost is always put in the last place, omitting,
 /// if need be, any others for which there happens to be no place" (no. 18).
-fn sunday_after_pentecost(year: i64, k: i64) -> Days {
-    let Some((pentecost, count)) = sundays_after_pentecost(year) else {
-        return Days::new();
-    };
-    if k < count {
+fn sunday_after_pentecost(year: i64, k: i64) -> Option<Days> {
+    let (pentecost, count) = sundays_after_pentecost(year)?;
+    Some(if k < count {
         Days::one(Rd(pentecost.0 + 7 * k))
     } else {
         Days::new()
-    }
+    })
 }
 
 /// The last Sunday after Pentecost, which is always the Twenty-fourth's
 /// (no. 18): the Sunday before Advent.
-fn last_sunday_after_pentecost(year: i64) -> Days {
-    sundays_after_pentecost(year).map_or_else(Days::new, |(pentecost, count)| {
-        Days::one(Rd(pentecost.0 + 7 * count))
-    })
+fn last_sunday_after_pentecost(year: i64) -> Option<Days> {
+    sundays_after_pentecost(year).map(|(pentecost, count)| Days::one(Rd(pentecost.0 + 7 * count)))
 }
 
 /// The `m`-th Sunday after the Epiphany, 3 to 6, resumed after the
@@ -310,22 +302,20 @@ fn last_sunday_after_pentecost(year: i64) -> Days {
 /// Pentecost the Sixth is the twenty-fourth, with 26 the Fifth and Sixth,
 /// with 27 the Fourth to Sixth, with 28 the Third to Sixth, and the last
 /// is always the Twenty-fourth after Pentecost.
-fn resumed_sunday_after_epiphany(year: i64, m: i64) -> Days {
-    let Some((pentecost, count)) = sundays_after_pentecost(year) else {
-        return Days::new();
-    };
+fn resumed_sunday_after_epiphany(year: i64, m: i64) -> Option<Days> {
+    let (pentecost, count) = sundays_after_pentecost(year)?;
     let first_resumed = 31 - count;
     if count < 25 || m < first_resumed {
-        return Days::new();
+        return Some(Days::new());
     }
     let place = 24 + (m - first_resumed);
-    Days::one(Rd(pentecost.0 + 7 * place))
+    Some(Days::one(Rd(pentecost.0 + 7 * place)))
 }
 
 /// A feria of Advent of the II class, `day` December, 17 to 23, when it is
 /// not a Sunday (no. 24) nor one of the Ember Days of Advent, which are
 /// ferias of the same class under their own title.
-fn greater_feria_of_advent(year: i64, day: u8) -> Days {
+fn greater_feria_of_advent(year: i64, day: u8) -> Option<Days> {
     match gregorian::to_fixed(year, 12, day) {
         Ok(rd)
             if Weekday::from_rd(rd) != Weekday::Sunday
@@ -333,9 +323,9 @@ fn greater_feria_of_advent(year: i64, day: u8) -> Days {
                     .iter()
                     .any(|ember| ember.days_in_year(year).as_slice().contains(&rd)) =>
         {
-            Days::one(rd)
+            Some(Days::one(rd))
         }
-        _ => Days::new(),
+        _ => Some(Days::new()),
     }
 }
 
@@ -374,10 +364,11 @@ static EMBER_DAYS_OF_ADVENT: [Rule; 3] = ember_week!(THIRD_SUNDAY_OF_ADVENT);
 static EMBER_DAYS_OF_SEPTEMBER: [Rule; 3] = ember_week!(THIRD_SUNDAY_OF_SEPTEMBER);
 
 /// The rules of the Sundays and ferias the Proper of Time adds, each a
-/// `fn(i64) -> Days` for [`Rule::Computed`].
+/// `fn(i64) -> Option<Days>` for [`Rule::Unsettled`]: none where there is
+/// no Easter to count from.
 macro_rules! computed_days {
     ($($name:ident = $function:ident($($argument:expr),*);)*) => {
-        $(fn $name(year: i64) -> Days { $function(year, $($argument),*) })*
+        $(fn $name(year: i64) -> Option<Days> { $function(year, $($argument),*) })*
     };
 }
 
@@ -803,24 +794,24 @@ calendar_1960! {
     "Second Sunday of Advent", First, advent(2);
     "Third Sunday of Advent", First, advent(3);
     "Fourth Sunday of Advent", First, advent(4);
-    "Feria of Advent, 17 December", Second, Rule::Computed(feria_17);
-    "Feria of Advent, 18 December", Second, Rule::Computed(feria_18);
-    "Feria of Advent, 19 December", Second, Rule::Computed(feria_19);
-    "Feria of Advent, 20 December", Second, Rule::Computed(feria_20);
-    "Feria of Advent, 21 December", Second, Rule::Computed(feria_21);
-    "Feria of Advent, 22 December", Second, Rule::Computed(feria_22);
-    "Feria of Advent, 23 December", Second, Rule::Computed(feria_23);
+    "Feria of Advent, 17 December", Second, Rule::Unsettled(feria_17);
+    "Feria of Advent, 18 December", Second, Rule::Unsettled(feria_18);
+    "Feria of Advent, 19 December", Second, Rule::Unsettled(feria_19);
+    "Feria of Advent, 20 December", Second, Rule::Unsettled(feria_20);
+    "Feria of Advent, 21 December", Second, Rule::Unsettled(feria_21);
+    "Feria of Advent, 22 December", Second, Rule::Unsettled(feria_22);
+    "Feria of Advent, 23 December", Second, Rule::Unsettled(feria_23);
     // The Ember Days of Advent, Lent and September, ferias of the II class;
     // those of Pentecost are days within its octave, of the I class.
     "Ember Wednesday of Advent", Second, EMBER_DAYS_OF_ADVENT[0];
     "Ember Friday of Advent", Second, EMBER_DAYS_OF_ADVENT[1];
     "Ember Saturday of Advent", Second, EMBER_DAYS_OF_ADVENT[2];
     "Sunday within the octave of Christmas", Second, Rule::Computed(sunday_within_the_octave_of_christmas);
-    "Second Sunday after Epiphany", Second, Rule::Computed(second_sunday_after_epiphany);
-    "Third Sunday after Epiphany", Second, Rule::Computed(third_sunday_after_epiphany);
-    "Fourth Sunday after Epiphany", Second, Rule::Computed(fourth_sunday_after_epiphany);
-    "Fifth Sunday after Epiphany", Second, Rule::Computed(fifth_sunday_after_epiphany);
-    "Sixth Sunday after Epiphany", Second, Rule::Computed(sixth_sunday_after_epiphany);
+    "Second Sunday after Epiphany", Second, Rule::Unsettled(second_sunday_after_epiphany);
+    "Third Sunday after Epiphany", Second, Rule::Unsettled(third_sunday_after_epiphany);
+    "Fourth Sunday after Epiphany", Second, Rule::Unsettled(fourth_sunday_after_epiphany);
+    "Fifth Sunday after Epiphany", Second, Rule::Unsettled(fifth_sunday_after_epiphany);
+    "Sixth Sunday after Epiphany", Second, Rule::Unsettled(sixth_sunday_after_epiphany);
     "Septuagesima Sunday", Second, Rule::easter(SEPTUAGESIMA);
     "Sexagesima Sunday", Second, Rule::easter(-56);
     "Quinquagesima Sunday", Second, Rule::easter(-49);
@@ -869,33 +860,33 @@ calendar_1960! {
     "Ember Wednesday of September", Second, EMBER_DAYS_OF_SEPTEMBER[0];
     "Ember Friday of September", Second, EMBER_DAYS_OF_SEPTEMBER[1];
     "Ember Saturday of September", Second, EMBER_DAYS_OF_SEPTEMBER[2];
-    "Second Sunday after Pentecost", Second, Rule::Computed(pentecost_2);
-    "Third Sunday after Pentecost", Second, Rule::Computed(pentecost_3);
-    "Fourth Sunday after Pentecost", Second, Rule::Computed(pentecost_4);
-    "Fifth Sunday after Pentecost", Second, Rule::Computed(pentecost_5);
-    "Sixth Sunday after Pentecost", Second, Rule::Computed(pentecost_6);
-    "Seventh Sunday after Pentecost", Second, Rule::Computed(pentecost_7);
-    "Eighth Sunday after Pentecost", Second, Rule::Computed(pentecost_8);
-    "Ninth Sunday after Pentecost", Second, Rule::Computed(pentecost_9);
-    "Tenth Sunday after Pentecost", Second, Rule::Computed(pentecost_10);
-    "Eleventh Sunday after Pentecost", Second, Rule::Computed(pentecost_11);
-    "Twelfth Sunday after Pentecost", Second, Rule::Computed(pentecost_12);
-    "Thirteenth Sunday after Pentecost", Second, Rule::Computed(pentecost_13);
-    "Fourteenth Sunday after Pentecost", Second, Rule::Computed(pentecost_14);
-    "Fifteenth Sunday after Pentecost", Second, Rule::Computed(pentecost_15);
-    "Sixteenth Sunday after Pentecost", Second, Rule::Computed(pentecost_16);
-    "Seventeenth Sunday after Pentecost", Second, Rule::Computed(pentecost_17);
-    "Eighteenth Sunday after Pentecost", Second, Rule::Computed(pentecost_18);
-    "Nineteenth Sunday after Pentecost", Second, Rule::Computed(pentecost_19);
-    "Twentieth Sunday after Pentecost", Second, Rule::Computed(pentecost_20);
-    "Twenty-first Sunday after Pentecost", Second, Rule::Computed(pentecost_21);
-    "Twenty-second Sunday after Pentecost", Second, Rule::Computed(pentecost_22);
-    "Twenty-third Sunday after Pentecost", Second, Rule::Computed(pentecost_23);
-    "Third Sunday after Epiphany, resumed after Pentecost", Second, Rule::Computed(third_resumed);
-    "Fourth Sunday after Epiphany, resumed after Pentecost", Second, Rule::Computed(fourth_resumed);
-    "Fifth Sunday after Epiphany, resumed after Pentecost", Second, Rule::Computed(fifth_resumed);
-    "Sixth Sunday after Epiphany, resumed after Pentecost", Second, Rule::Computed(sixth_resumed);
-    "Twenty-fourth and last Sunday after Pentecost", Second, Rule::Computed(last_sunday_after_pentecost);
+    "Second Sunday after Pentecost", Second, Rule::Unsettled(pentecost_2);
+    "Third Sunday after Pentecost", Second, Rule::Unsettled(pentecost_3);
+    "Fourth Sunday after Pentecost", Second, Rule::Unsettled(pentecost_4);
+    "Fifth Sunday after Pentecost", Second, Rule::Unsettled(pentecost_5);
+    "Sixth Sunday after Pentecost", Second, Rule::Unsettled(pentecost_6);
+    "Seventh Sunday after Pentecost", Second, Rule::Unsettled(pentecost_7);
+    "Eighth Sunday after Pentecost", Second, Rule::Unsettled(pentecost_8);
+    "Ninth Sunday after Pentecost", Second, Rule::Unsettled(pentecost_9);
+    "Tenth Sunday after Pentecost", Second, Rule::Unsettled(pentecost_10);
+    "Eleventh Sunday after Pentecost", Second, Rule::Unsettled(pentecost_11);
+    "Twelfth Sunday after Pentecost", Second, Rule::Unsettled(pentecost_12);
+    "Thirteenth Sunday after Pentecost", Second, Rule::Unsettled(pentecost_13);
+    "Fourteenth Sunday after Pentecost", Second, Rule::Unsettled(pentecost_14);
+    "Fifteenth Sunday after Pentecost", Second, Rule::Unsettled(pentecost_15);
+    "Sixteenth Sunday after Pentecost", Second, Rule::Unsettled(pentecost_16);
+    "Seventeenth Sunday after Pentecost", Second, Rule::Unsettled(pentecost_17);
+    "Eighteenth Sunday after Pentecost", Second, Rule::Unsettled(pentecost_18);
+    "Nineteenth Sunday after Pentecost", Second, Rule::Unsettled(pentecost_19);
+    "Twentieth Sunday after Pentecost", Second, Rule::Unsettled(pentecost_20);
+    "Twenty-first Sunday after Pentecost", Second, Rule::Unsettled(pentecost_21);
+    "Twenty-second Sunday after Pentecost", Second, Rule::Unsettled(pentecost_22);
+    "Twenty-third Sunday after Pentecost", Second, Rule::Unsettled(pentecost_23);
+    "Third Sunday after Epiphany, resumed after Pentecost", Second, Rule::Unsettled(third_resumed);
+    "Fourth Sunday after Epiphany, resumed after Pentecost", Second, Rule::Unsettled(fourth_resumed);
+    "Fifth Sunday after Epiphany, resumed after Pentecost", Second, Rule::Unsettled(fifth_resumed);
+    "Sixth Sunday after Epiphany, resumed after Pentecost", Second, Rule::Unsettled(sixth_resumed);
+    "Twenty-fourth and last Sunday after Pentecost", Second, Rule::Unsettled(last_sunday_after_pentecost);
 }
 
 /// The calendar of 1960 as a rule set: every day a [`Kind::Religious`]

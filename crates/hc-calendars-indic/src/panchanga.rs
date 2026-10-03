@@ -269,6 +269,46 @@ pub fn karana_span(moment: Moment) -> (Moment, Moment) {
     span_of(elongation, DEGREES_PER_KARANA, moment)
 }
 
+/// The movable karaṇa Viṣṭi, Bhadra, as [`karana_name`] numbers it: Bava is
+/// 1 and Viṣṭi 7. It is the first half of śukla 8 and 15 and of kṛṣṇa 7
+/// and 14, and the second half of śukla 4 and 11 and of kṛṣṇa 3 and 10
+/// (Sewell and Dikshit, Table VIII, `sewell1896`; Drik Panchang, "Bhadra
+/// prevails during first half of Purnima Tithi", `drik-raksha-bandhan`).
+/// A rite that is not done in Bhadra waits for the other half.
+pub const VISHTI: u8 = 7;
+
+/// The part of a tithi that Viṣṭi (Bhadra) does not cover, as the moments
+/// it begins and ends, for the tithi `tithi`, 1 to 30, of the lunar month
+/// whose first day, the first whose sunrise follows the new moon, is
+/// `month_first_day`.
+///
+/// Viṣṭi is one half of the tithi, so this is the other half, or the whole
+/// tithi where neither half is Viṣṭi: for the full-moon tithi, the second
+/// half, from the moment the Moon is 174° from the Sun to the full moon.
+/// `None` for a `tithi` outside 1 to 30.
+#[must_use]
+pub fn vishti_free_span(tithi: u8, month_first_day: Rd) -> Option<(Moment, Moment)> {
+    if !(1..=30).contains(&tithi) {
+        return None;
+    }
+    // The tithi begins about `tithi - 1` days (it runs 0.9 to 1.1 days) after
+    // the new moon, which is up to a day and a half before the month's first
+    // sunrise: three days before that estimate is before the crossing and
+    // after the one a month earlier.
+    let from = Moment(month_first_day.0 as f64 + f64::from(tithi - 1) * 0.984 - 3.0);
+    let began = f64::from(tithi - 1) * 12.0;
+    let cross = |angle: f64| next_angle_crossing(elongation, normalize_degrees(angle), from, 0.5);
+    let (first, second) = (2 * tithi - 1, 2 * tithi);
+    let is_vishti = |half: u8| karana_name(half) == Some(VISHTI);
+    if is_vishti(first) {
+        Some((cross(began + DEGREES_PER_KARANA), cross(began + 12.0)))
+    } else if is_vishti(second) {
+        Some((cross(began), cross(began + DEGREES_PER_KARANA)))
+    } else {
+        Some((cross(began), cross(began + 12.0)))
+    }
+}
+
 /// The arc of `width` degrees that `angle` is in at `moment`, as the moments
 /// it entered and leaves it. `angle` must grow steadily by more than a
 /// width in a day and less than a revolution in half a day, as the sum of
@@ -557,5 +597,98 @@ mod tests {
             assert!(entry.0 <= moment.0 && moment.0 < exit.0);
             moment = Moment(exit.0 + 1e-4);
         }
+    }
+
+    /// A moment given in Indian Standard Time on a day of a year.
+    fn ist_on(year: i64, month: u8, day: u8, hour: u8, minute: u8) -> Moment {
+        let day = gregorian::to_fixed(year, month, day).expect("a date");
+        Moment(day.0 as f64 + (f64::from(hour) + f64::from(minute) / 60.0 - 5.5) / 24.0)
+    }
+
+    /// The part of the full-moon tithi of Śrāvaṇa that Viṣṭi does not
+    /// cover, in the year Gregorian `year`.
+    fn free_half_of_shravana_purnima(year: i64) -> (Moment, Moment) {
+        let (first, _) = crate::HinduLunarCalendar::RASHTRIYA
+            .month_span(year - crate::hindu_lunar::GREGORIAN_YEAR_OFFSET, 5, false)
+            .expect("Śrāvaṇa");
+        vishti_free_span(15, first).expect("a tithi")
+    }
+
+    #[test]
+    fn bhadra_ends_when_drik_panchang_says_for_the_full_moon_of_shravana() {
+        // Drik Panchang's pages "Raksha Bandhan date and auspicious time"
+        // for New Delhi, read 2026-10-03 (`drik-raksha-bandhan`): "Raksha
+        // Bandhan Bhadra End Time" and "Purnima Tithi Ends", month, day,
+        // hour and minute IST. The pages print minutes, truncated.
+        let ends = [
+            (2015, (8, 29, 13, 50), (8, 30, 0, 5)),
+            (2017, (8, 7, 11, 5), (8, 7, 23, 41)),
+            (2020, (8, 3, 9, 28), (8, 3, 21, 28)),
+            (2021, (8, 22, 6, 15), (8, 22, 17, 31)),
+            (2022, (8, 11, 20, 51), (8, 12, 7, 5)),
+            (2023, (8, 30, 21, 1), (8, 31, 7, 5)),
+            (2024, (8, 19, 13, 30), (8, 19, 23, 55)),
+            (2029, (8, 23, 19, 4), (8, 24, 7, 20)),
+            (2031, (8, 2, 21, 9), (8, 3, 7, 14)),
+            (2033, (8, 10, 12, 57), (8, 10, 23, 37)),
+            (2034, (8, 29, 10, 59), (8, 29, 22, 18)),
+            (2035, (8, 18, 17, 49), (8, 19, 6, 29)),
+            (2037, (8, 25, 11, 33), (8, 26, 0, 38)),
+            (2038, (8, 14, 16, 31), (8, 15, 4, 25)),
+            (2043, (8, 20, 8, 52), (8, 20, 20, 33)),
+            (2044, (8, 8, 13, 46), (8, 9, 2, 43)),
+        ];
+        for (year, bhadra, purnima) in ends {
+            let (from, to) = free_half_of_shravana_purnima(year);
+            let printed_from = ist_on(year, bhadra.0, bhadra.1, bhadra.2, bhadra.3);
+            let printed_to = ist_on(year, purnima.0, purnima.1, purnima.2, purnima.3);
+            let minutes_from = (from.0 - printed_from.0) * 1440.0;
+            let minutes_to = (to.0 - printed_to.0) * 1440.0;
+            // Bhadra ends from 2.6 minutes before the page's time to 4.8 after
+            // it, and the tithi from 0.2 before to 1.7 after, over these
+            // sixteen years: the pages print whole minutes, and the Moon's
+            // position differs a little between the two ephemerides (the
+            // karaṇas of January 2025 above are within two minutes).
+            assert!(
+                (-3.0..5.0).contains(&minutes_from),
+                "{year}: Bhadra ends {minutes_from} min after the page"
+            );
+            assert!(
+                (-3.0..5.0).contains(&minutes_to),
+                "{year}: the tithi ends {minutes_to} min after the page"
+            );
+        }
+    }
+
+    #[test]
+    fn vishti_is_the_first_half_of_the_full_moon_and_the_second_half_of_the_fourth() {
+        // Sewell and Dikshit, Table VIII: Viṣṭi is the first half of śukla
+        // 8 and 15, kṛṣṇa 7 and 14 and the second half of śukla 4 and 11,
+        // kṛṣṇa 3 and 10 (halves 15, 29, 43, 57 and 8, 22, 36, 50).
+        let name = |position: u8| karana_name(position).expect("a half");
+        let vishti: alloc::vec::Vec<u8> = (1..=60).filter(|k| name(*k) == VISHTI).collect();
+        assert_eq!(vishti, [8, 15, 22, 29, 36, 43, 50, 57]);
+        let (first, _) = crate::HinduLunarCalendar::RASHTRIYA
+            .month_span(1_947, 5, false)
+            .expect("Śrāvaṇa");
+        // The full moon: the free part is the second half, 174° to 180°.
+        let (from, to) = vishti_free_span(15, first).expect("a tithi");
+        assert!(
+            (elongation(from) - 174.0).abs() < 1e-3,
+            "{}",
+            elongation(from)
+        );
+        assert!((elongation(Moment(to.0 - 1e-6)) - 180.0).abs() < 1e-3);
+        // The fourth tithi: Viṣṭi is its second half, so the free part is
+        // the first, 36° to 42°.
+        let (from, to) = vishti_free_span(4, first).expect("a tithi");
+        assert!((elongation(from) - 36.0).abs() < 1e-3);
+        assert!((elongation(Moment(to.0 - 1e-6)) - 42.0).abs() < 1e-3);
+        // A tithi with no Viṣṭi is whole: the fourteenth, 156° to 168°.
+        let (from, to) = vishti_free_span(14, first).expect("a tithi");
+        assert!((elongation(from) - 156.0).abs() < 1e-3);
+        assert!((elongation(Moment(to.0 - 1e-6)) - 168.0).abs() < 1e-3);
+        assert_eq!(vishti_free_span(0, first), None);
+        assert_eq!(vishti_free_span(31, first), None);
     }
 }

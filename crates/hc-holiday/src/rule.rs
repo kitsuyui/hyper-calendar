@@ -23,9 +23,10 @@ use crate::group::Group;
 use crate::id::HolidayId;
 use hc_calendars_equinox::persian as solar_hijri;
 use hc_calendars_indic::nakshatra::nakshatra_span;
-use hc_calendars_indic::tithi::{DEGREES_PER_TITHI, TITHIS_PER_MONTH};
+use hc_calendars_indic::panchanga::vishti_free_span;
+use hc_calendars_indic::tithi::{DEGREES_PER_TITHI, TITHIS_PER_MONTH, sunrise_of};
 #[cfg(feature = "alloc")]
-use hc_calendars_indic::tithi::{sunrise_of, sunset_of, tithi_number_at};
+use hc_calendars_indic::tithi::{sunset_of, tithi_number_at};
 use hc_calendars_indic::{
     BikramSambatCalendar, HinduLunarCalendar, HinduSolarDate, Prevalence, hindu_lunar, hindu_solar,
 };
@@ -1057,6 +1058,27 @@ pub enum Rule {
         /// The calendar — its sunrise and its ayanāṃśa — the tithi is read in.
         calendar: &'static HinduLunarCalendar,
     },
+    /// A tithi of a month of the amānta Hindu lunisolar calendar whose rite
+    /// is not done in Bhadra, the karaṇa Viṣṭi: Rakṣā Bandhana. Viṣṭi
+    /// covers the first half of the full-moon tithi, so the rite waits for
+    /// the second half, and falls on the first day whose daylight or
+    /// evening that half reaches; if the tithi still holds six *ghaṭikā*s,
+    /// 2 hours 24 minutes, after the sunrise that follows, the rite is
+    /// that day's. See [`crate::hindu::RAKSHA_BANDHAN`] for the sources and
+    /// for how far they go.
+    ///
+    /// A day is the civil day at the calendar's place, from local midnight
+    /// to local midnight: Drik Panchang writes the hours after midnight
+    /// under the next date.
+    TithiAfterBhadra {
+        /// The amānta month, 1 for Chaitra through 12 for Phālguna.
+        month: u8,
+        /// The tithi, 1 through 30.
+        tithi: u8,
+        /// The calendar — its place, and its ayanāṃśa for the month — the
+        /// tithi is read in.
+        calendar: &'static HinduLunarCalendar,
+    },
     /// The Sun's entry into a sidereal sign — a saṅkrānti — as a day at a
     /// meridian: Makara Saṅkrānti, the solar new year of Meṣa.
     Sankranti {
@@ -1356,10 +1378,15 @@ impl Rule {
             // falls within `days` of the year boundary.
             // The Hindu calendar converts a stated span of years, and a
             // festival needs the month it falls in, so the edge years are
-            // left out as well.
-            Self::Tithi { .. } => (hindu_lunar::MIN_YEAR + hindu_lunar::GREGORIAN_YEAR_OFFSET + 1
-                ..hindu_lunar::MAX_YEAR + hindu_lunar::GREGORIAN_YEAR_OFFSET)
-                .contains(&year),
+            // left out as well. A saṅkrānti has no month to find, but the
+            // ayanāṃśa that places it is the calendar's, whose years these
+            // are: 1700 to 2299, and a year outside them is a gap, not a
+            // day (audit 10 a2).
+            Self::Tithi { .. } | Self::TithiAfterBhadra { .. } | Self::Sankranti { .. } => {
+                (hindu_lunar::MIN_YEAR + hindu_lunar::GREGORIAN_YEAR_OFFSET + 1
+                    ..hindu_lunar::MAX_YEAR + hindu_lunar::GREGORIAN_YEAR_OFFSET)
+                    .contains(&year)
+            }
             // A Tibetan day is unanswerable where it is skipped or repeated,
             // as well as outside the calendar's years.
             Self::TibetanDay {
@@ -1374,11 +1401,16 @@ impl Rule {
             Self::Span { from, to } => {
                 from.is_resolvable_with(year, lookups) && to.is_resolvable_with(year, lookups)
             }
+            // A computus is defined for a stated span of years: the
+            // Gregorian one from 1583 to 4099, the Julian one from 326.
+            // Outside it `Computus::easter` has no answer, and a day
+            // counted from Easter has none either (ADR 0013).
+            Self::EasterRelative { computus, .. } => computus.easter(year).is_some(),
             // Everything else is Gregorian arithmetic, astronomy or a
             // closure, none of which has a calendar range to fall outside.
-            // The solar terms and the computus do have accuracy limits, but
-            // those are a question about confidence, not about whether an
-            // answer exists.
+            // The solar terms do have accuracy limits, but those are a
+            // question about confidence, not about whether an answer
+            // exists.
             _ => true,
         }
     }
@@ -1488,6 +1520,12 @@ impl Rule {
                 lookups,
             )
             .clamped(first, last),
+            Self::TithiAfterBhadra {
+                month,
+                tithi,
+                calendar,
+            } => tithi_after_bhadra_days(year, *month, *tithi, **calendar, window, lookups)
+                .clamped(first, last),
             Self::Sankranti {
                 sign,
                 ayanamsa,
@@ -2334,6 +2372,59 @@ fn tithi_days<L: Lookups>(
     out
 }
 
+/// Six *ghaṭikā*s of 24 minutes, as a fraction of a day: how much of a
+/// tithi must be left after a sunrise for the tithi to be that day's
+/// ([`Rule::TithiAfterBhadra`]).
+const SIX_GHATIKAS: f64 = 6.0 * 24.0 / 1_440.0;
+
+/// The days on which the rite of `tithi` of amānta `month` that Bhadra
+/// bars is done, in the ordinary month of that name: see
+/// [`Rule::TithiAfterBhadra`].
+fn tithi_after_bhadra_days<L: Lookups>(
+    year: i64,
+    month: u8,
+    tithi: u8,
+    calendar: HinduLunarCalendar,
+    window: Window,
+    lookups: &mut L,
+) -> Days {
+    let mut out = Days::new();
+    for saka in [
+        year - hindu_lunar::GREGORIAN_YEAR_OFFSET - 1,
+        year - hindu_lunar::GREGORIAN_YEAR_OFFSET,
+    ] {
+        // As `tithi_days` places the month: by the saṅkrānti that names it.
+        let Some(sign) = SiderealSign::from_index(month.wrapping_sub(1)) else {
+            continue;
+        };
+        let sankranti_year = saka + hindu_lunar::GREGORIAN_YEAR_OFFSET + i64::from(month >= 10);
+        let sankranti = lookups
+            .ingress(sankranti_year, sign, calendar.ayanamsa)
+            .day();
+        let numbered = sankranti.0 + i64::from(tithi);
+        if !window.overlaps((Rd(numbered - TITHI_REACH.0), Rd(numbered + TITHI_REACH.1))) {
+            continue;
+        }
+        let Some((first, _)) = lookups.hindu_month(calendar, saka, month) else {
+            continue;
+        };
+        let Some((from, to)) = vishti_free_span(tithi, first) else {
+            continue;
+        };
+        // The civil day at the calendar's place: local mean midnight to
+        // local mean midnight, which is Indian Standard Time at the Central
+        // Station's 82.5° E.
+        let zone = calendar.location.longitude_degrees / 360.0;
+        let mut day = Rd(floor(from.0 + zone) as i64);
+        let next = Rd(day.0 + 1);
+        if to.0 - sunrise_of(next, calendar.location).0 >= SIX_GHATIKAS {
+            day = next;
+        }
+        out.push(day);
+    }
+    out
+}
+
 /// The day of a nakṣatra in a solar month: see [`Rule::Nakshatra`].
 fn nakshatra_days(
     year: i64,
@@ -3102,6 +3193,31 @@ pub fn region_parent(code: &str) -> Option<&str> {
     parent.contains('-').then_some(parent)
 }
 
+/// Whether `code` has the shape of a region: an ISO 3166-2 code, the
+/// country's two letters, a hyphen and one to three letters or digits,
+/// `JP-13`, or a municipality's, that and a hyphen and the municipality's
+/// code in the country's own standard, up to six letters or digits,
+/// `JP-14-130` (ADR 0014), in any case, with white space around it
+/// allowed. It says nothing of whether the country has the subdivision:
+/// `JP-99` has the shape, and `JP-14-130-5`, `JP garbage` and `Tokyo` do
+/// not.
+#[must_use]
+pub fn is_region_code(code: &str) -> bool {
+    let mut parts = code.trim().split('-');
+    let (Some(country), Some(subdivision)) = (parts.next(), parts.next()) else {
+        return false;
+    };
+    let word = |text: &str, longest: usize| {
+        (1..=longest).contains(&text.len()) && text.bytes().all(|byte| byte.is_ascii_alphanumeric())
+    };
+    let municipality = parts.next();
+    country.len() == 2
+        && country.bytes().all(|byte| byte.is_ascii_alphabetic())
+        && word(subdivision, 3)
+        && municipality.is_none_or(|local| word(local, 6))
+        && parts.next().is_none()
+}
+
 /// Whether the region `code` is `scoped` or lies within it: the same code,
 /// matched as every identifier is, or a municipality of that subdivision
 /// ([`region_parent`]).
@@ -3241,6 +3357,15 @@ pub enum Subdivisions {
     /// day of their own beyond the nationwide ones. Any other region is a
     /// gap.
     Read(&'static [&'static str]),
+    /// A country's table, as [`Subdivisions::Read`], whose sources for the
+    /// listed subdivisions reach back only to a year each: the subdivision
+    /// and the first year it was read for. Asked for an earlier year, such a
+    /// subdivision is a gap, as one not read at all is. This is the shape
+    /// of a subdivision read in the ordinances in force now, which give no
+    /// day of its own and say nothing of the regime before the one they
+    /// began: Japan's twenty-six prefectures whose 休日条例 of 1989 gives
+    /// none, each from the year of its 休日条例 (audit 10 a4).
+    ReadFrom(&'static [(&'static str, i32)]),
 }
 
 /// The name of the gap the engine reports for a subdivision whose own days
@@ -3417,25 +3542,51 @@ impl RuleSet {
             .flat_map(|rule| rule.regions.iter().chain(rule.except_regions).copied())
     }
 
-    /// Whether the table's sources were read for `region`, a subdivision's
-    /// ISO 3166-2 code matched as every identifier is: always for a table
-    /// with no subdivisions, and for a country's, whether a rule is scoped
-    /// to it or excepted from it or [`Subdivisions::Read`] lists it. A
-    /// municipality's code is read when it is so and its subdivision is
-    /// read too: a prefecture read says nothing of its cities (ADR 0014).
+    /// Whether the table's sources were read for `region` in some year, a
+    /// subdivision's ISO 3166-2 code matched as every identifier is: always
+    /// for a table with no subdivisions, and for a country's, whether a
+    /// rule is scoped to it or excepted from it or [`Subdivisions::Read`]
+    /// or [`Subdivisions::ReadFrom`] lists it. A municipality's code is
+    /// read when it is so and its subdivision is read too: a prefecture
+    /// read says nothing of its cities (ADR 0013, 0014). Which years it was
+    /// read for is [`RuleSet::reads_region_in`].
     #[must_use]
     pub fn reads_region(&self, region: &str) -> bool {
-        match self.subdivisions {
-            Subdivisions::Undivided => true,
-            Subdivisions::Read(listed) => {
-                listed
-                    .iter()
-                    .copied()
-                    .chain(self.region_codes())
-                    .any(|code| hc_core::catalogue::matches(region, code))
-                    && region_parent(region).is_none_or(|parent| self.reads_region(parent))
+        let listed = match self.subdivisions {
+            Subdivisions::Undivided => return true,
+            Subdivisions::Read(listed) => listed.iter().any(|code| matches_code(region, code)),
+            Subdivisions::ReadFrom(listed) => {
+                listed.iter().any(|(code, _)| matches_code(region, code))
             }
-        }
+        };
+        (listed || self.region_codes().any(|code| matches_code(region, code)))
+            && region_parent(region).is_none_or(|parent| self.reads_region(parent))
+    }
+
+    /// Whether the table's sources were read for `region` in `year`: as
+    /// [`RuleSet::reads_region`], and, for a subdivision
+    /// [`Subdivisions::ReadFrom`] lists, only from its first year, and a
+    /// municipality's only where its subdivision's was read in that year
+    /// too. A subdivision a rule is scoped to or excepted from, and that
+    /// [`Subdivisions::ReadFrom`] does not list, is read in every year: the
+    /// rule's own years say which it answers for.
+    #[must_use]
+    pub fn reads_region_in(&self, region: &str, year: i64) -> bool {
+        let scoped = || self.region_codes().any(|code| matches_code(region, code));
+        let read = match self.subdivisions {
+            Subdivisions::Undivided => return true,
+            Subdivisions::Read(listed) => {
+                listed.iter().any(|code| matches_code(region, code)) || scoped()
+            }
+            // The year a subdivision is listed for decides, whatever rule is
+            // scoped to it too: Iwate's day of 2011 does not make its years
+            // before the 休日条例 of 1989 read.
+            Subdivisions::ReadFrom(listed) => listed
+                .iter()
+                .find(|(code, _)| matches_code(region, code))
+                .map_or_else(scoped, |(_, first)| year >= i64::from(*first)),
+        };
+        read && region_parent(region).is_none_or(|parent| self.reads_region_in(parent, year))
     }
 
     /// Every subdivision code the table's rules are scoped to or excepted
@@ -3460,15 +3611,13 @@ impl RuleSet {
     #[cfg(feature = "alloc")]
     #[must_use]
     pub fn read_subdivisions(&self) -> alloc::vec::Vec<&'static str> {
-        let Subdivisions::Read(listed) = self.subdivisions else {
-            return alloc::vec::Vec::new();
+        let mut codes: alloc::vec::Vec<&'static str> = match self.subdivisions {
+            Subdivisions::Undivided => return alloc::vec::Vec::new(),
+            Subdivisions::Read(listed) => listed.to_vec(),
+            Subdivisions::ReadFrom(listed) => listed.iter().map(|(code, _)| *code).collect(),
         };
-        let mut codes: alloc::vec::Vec<&'static str> = listed
-            .iter()
-            .copied()
-            .chain(self.region_codes())
-            .filter(|code| self.reads_region(code))
-            .collect();
+        codes.extend(self.region_codes());
+        codes.retain(|code| self.reads_region(code));
         codes.sort_unstable();
         codes.dedup();
         codes
@@ -3552,6 +3701,40 @@ pub const fn joined<const N: usize>(parts: &[&[HolidayRule]]) -> [HolidayRule; N
     }
     assert!(index == N, "fewer rules than N");
     out
+}
+
+/// Whether `region` is the subdivision code `code`, matched as every
+/// identifier is.
+fn matches_code(region: &str, code: &str) -> bool {
+    hc_core::catalogue::matches(region, code)
+}
+
+/// The rules of a table with the years its sources begin, for a table all
+/// of whose rules rest on one source: each rule that has no establishment
+/// of its own gets `valid_from`, and each gets the earliest supported year
+/// `read_from` (ADR 0013). A rule that already has an establishment keeps
+/// it.
+///
+/// A church's calendar, a tradition's schedule or a reconstruction is one
+/// text, read once; a year before it is a gap, and a year before the
+/// instrument that set it is absent, for every rule of the table alike.
+/// Writing the two years on each of dozens of entries is how a table comes
+/// to answer for years its sources do not reach.
+#[must_use]
+pub const fn dated<const N: usize>(
+    mut rules: [HolidayRule; N],
+    valid_from: Option<i32>,
+    read_from: Option<i32>,
+) -> [HolidayRule; N] {
+    let mut index = 0;
+    while index < N {
+        if rules[index].valid_from.is_none() {
+            rules[index].valid_from = valid_from;
+        }
+        rules[index].read_from = read_from;
+        index += 1;
+    }
+    rules
 }
 
 /// Whether `year` falls inside an inclusive, optionally open-ended range.

@@ -779,6 +779,13 @@ describe("holidays", () => {
     assert.equal(hc.holidayIsDayOff("US", "", goodFriday), false);
     refused(() => hc.holidayIsDayOff("ZZ", "", goodFriday), "unknown");
     refused(() => hc.holidaysInYear("ZZ", "", 2026), "unknown");
+    // A region the country has no subdivision for is refused, not read as a
+    // subdivision whose days are not yet read.
+    refused(() => hc.holidaysInYear("US", "US-ZZ", 2026), "unknown");
+    refused(() => hc.holidaysInYear("JP", "Tokyo", 2026), "unknown");
+    refused(() => hc.holidayIsDayOff("JP", "JP-99", goodFriday), "unknown");
+    refused(() => hc.holidayIsDayOff("JP", "JP-14-130-5", goodFriday), "unknown");
+    assert.equal(hc.holidayIsDayOff("JP", " jp-13 ", hc.gregorianToFixed(2026, 1, 1)), true);
     refused(() => hc.holidayIsDayOff("JP", "", 2n ** 62n), "out-of-range");
     assert.throws(() => hc.holidayIsDayOff("JP", /** @type {any} */ (null), goodFriday), TypeError);
   });
@@ -2575,7 +2582,7 @@ describe("the buffer protocol", () => {
   test("every block allocated for a call is freed, even when the call is refused", async () => {
     const { hc: counted1, calls } = await counted(64 * 1024);
     counted1.describeDay(739_880, "ja-JP");
-    counted1.holidayIsDayOff("JP", "Tokyo", 739_880);
+    counted1.holidayIsDayOff("JP", "JP-13", 739_880);
     counted1.loadZone("Test/Eastern", TZIF_V2_EASTERN);
     refused(() => counted1.holidaysInYear("ZZ", "", 2026), "unknown");
     refused(() => counted1.termInEffect(739_880, "mars"), "unknown");

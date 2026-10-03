@@ -166,9 +166,16 @@ Not carried:
   Service" of the modern Prayer Book, which move a holy day off some
   Sundays, are not in the 1662 text and are not carried; nor is a
   leap-year day for St Matthias, whom the Kalendar keeps on 24 February.
-- **The years before *Common Worship*.** The Rules are applied to every
-  year the Gregorian computus gives; when they were authorized was not
-  read.
+- **The years before *Common Worship*, and the year it was launched.**
+  *Common Worship* was "launched on the first Sunday of Advent in 2000",
+  3 December [wikipedia-common-worship, secondary], and the Church's page
+  of Rules is the text read, which it dated no more closely. A calendar
+  year before 2000 belongs to the *Alternative Service Book*, and the table
+  is absent in it; 2000 holds the one Advent and is a gap; the Rules are
+  applied from 2001 to every year the Gregorian computus gives, in the text
+  as the Church now publishes it, any amendment since 2000 not having been
+  read. A festival counted from Easter outside the computus's years, 1583 to
+  4099, is a gap, as every Easter-relative day now is (ADR 0013).
 
 ## Accuracy
 
@@ -178,9 +185,9 @@ Not carried:
 | St George on Monday 28 April 2025 [fullfact-st-george-2025] | the same | yes |
 | The Annunciation of 2024 and 2008, St Joseph of 2008, Philip and James of 2008 and St Andrew of 2025, from the rules | the same | yes |
 | St Mark on Monday 25 April and St George on Tuesday 26 April 2022, as the Church's *Daily Prayer* keeps St George [cofe-daily-prayer-2022] | `the_years_the_common_worship_rules_leave_open_are_gaps` | yes |
-| The open years of 1962, 2000, 2011 and 2038 reported as gaps | the same | yes |
+| The open years of 2011, 2038, 2057 and 2079 reported as gaps (the years 1962 and 2000 the table once tested for the same Easters, 22 and 23 April, are before it) | the same | yes |
 | St Mary Magdalen on 21 July in the 1662 Kalendar and on 22 July in the Calendar of 1871, St Blasius in the 1662 Kalendar alone [howell-bcp-kalendar] | `the_moveable_feasts_of_2026`, `the_calendar_of_1871_is_a_reading_of_its_own` | yes |
-| 1900–2100: no Festival shares its day with another celebration, none is kept on a Sunday of Advent, Lent or Eastertide or in Easter Week, and every celebration is kept once a year or reported as a gap | `no_festival_is_kept_where_the_common_worship_rules_forbid_it` | yes |
+| 2001–2100: no Festival shares its day with another celebration, none is kept on a Sunday of Advent, Lent or Eastertide or in Easter Week, and every celebration is kept once a year or reported as a gap | `no_festival_is_kept_where_the_common_worship_rules_forbid_it` | yes |
 
 The *Daily Prayer* pages of May 2026 and of the years before were no
 longer online when read; the one of 26 April 2022 was read in the
@@ -195,6 +202,7 @@ rest on the rules and one press report.
 | Key | Used for | Read |
 | --- | --- | --- |
 | [cw-rules] | The ranks, the celebrations of each, the transfers and the Table of Transferences | Yes, 2026-09-26 and 2026-09-27 |
+| [wikipedia-common-worship] | That Common Worship was launched on the first Sunday of Advent in 2000 and succeeded the Alternative Service Book of 1980 | Yes, 2026-10-03 (secondary; no page dates the Rules themselves) |
 | [cofe-daily-prayer-2026] | The days of June and September 2026 | Yes, 2026-09-27 |
 | [cofe-daily-prayer-2022] | St George on Tuesday 26 April 2022 | Yes, 2026-09-27, through web.archive.org |
 | [fullfact-st-george-2025] | St George's Day 2025 | Yes, 2026-09-27 (press) |

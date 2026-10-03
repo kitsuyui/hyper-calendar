@@ -50,6 +50,7 @@ SolarTerm { term, meridian }          春分の日, the equinox at UTC+9
 EasterRelative { computus, offset }   Good Friday (−2), Corpus Christi (+60)
 LunarPhase { phase, month, day, mer } the first full moon on or after a date
 Tithi { month, tithi, prevails, wt }  Rāma Navamī, Chaitra śukla 9 at midday
+TithiAfterBhadra { month, tithi, cal } Rakṣā Bandhana, the full-moon tithi once Bhadra is over
 Sankranti { sign, ayanamsa, mer }     Makar Sankranti, the Sun's entry into Makara
 Nakshatra { n, sign, tithi, ay, mer } Thaipusam, Puṣya in Thai
 TibetanDay { calendar, month, day }   Tsagaan Sar, days 1–3 of the first month in mongolian
@@ -266,6 +267,22 @@ Reingold and Dershowitz's coincidences of a weekday and a date: Friday the
 month of the book's own Hindu calendar, `hindu-lunar-surya-siddhanta`
 (`sacred-wednesdays`). The Islamic table carries three
 Shia days, Tasu'a, Arba'een and Eid al-Ghadir, beside the others.
+
+A table begins where its sources do, and says so (ADR 0013): the General
+Roman Calendar from 1970, when the calendar of 1969 came into force, and read
+from the Missal of 2002, so that 1970–2001 are gaps; *Common Worship* and its
+Ember Days from 2001, after the Advent of 2000 that launched it; the 1662
+Ember Days from 1753, the first year wholly on the Gregorian calendar; the
+Chaldean year read from 2025 and the Syro-Malabar from 2020; the Wheel of the
+Year from 1974, Tenrikyo's services from 2017 and the Mandaean feasts from
+1932. Every earlier year is a gap, or absent before the instrument. A day
+counted from Easter is a gap outside the computus, 1583–4099 for the Gregorian
+and from 326 for the Julian, and the saṅkrānti days of `hindu` are gaps outside
+1701–2298. The festivals of the Qumran scrolls are approximate, since their
+Gregorian dates are a convention of this library's epoch. Raksha Bandhan is
+kept when Bhadra is over (`TithiAfterBhadra`), and Holika Dahan is not yet:
+its page of Drik Panchang parts from it a day in 2016, 2023 and 2026, whose
+rule for Bhadra Punchha no source read defines.
 
 Beside the tables, `holy_years` lists the Catholic Holy Years from 1975
 to 2025, each with the days its bull of indiction fixes, and answers

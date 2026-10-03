@@ -165,3 +165,43 @@ fn india_s_state_gaps_stop_at_the_act_that_formed_the_state() {
     assert!(!gap("IN-GJ", 1950));
     assert!(!gap("IN-KL", 1880));
 }
+
+static FROM_TABLE: RuleSet = RuleSet {
+    code: "XY",
+    english_name: "A test country whose subdivisions were read from a year",
+    rules: &[HolidayRule::public("Everywhere", "", Rule::gregorian(1, 1))],
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 10, 3),
+    sources: "invented for the test",
+    subdivisions: Subdivisions::ReadFrom(&[("XY-A", 2000), ("XY-A-001", 2005)]),
+};
+
+#[test]
+fn a_subdivision_read_from_a_year_is_a_gap_before_it() {
+    // Audit 10 a4: Japan's prefectures whose ordinances in force now give no
+    // day of their own say nothing of the years before the 休日条例.
+    let gaps = |region: &str, year: i64| -> Vec<&'static str> {
+        gap_names(&FROM_TABLE, Some(region), year)
+    };
+    assert_eq!(gaps("XY-A", 1999), [UNREAD_SUBDIVISION]);
+    assert!(gaps("XY-A", 2000).is_empty());
+    assert!(gaps("XY-A", 2026).is_empty());
+    // A municipality is read from its own year, and not before its
+    // subdivision's: 2004 is its subdivision's year but not its own.
+    assert_eq!(gaps("XY-A-001", 2004), [UNREAD_SUBDIVISION]);
+    assert!(gaps("XY-A-001", 2005).is_empty());
+    assert_eq!(gaps("XY-A-001", 1990), [UNREAD_SUBDIVISION]);
+    // A subdivision not listed at all is a gap in every year, and the
+    // nationwide table has none.
+    assert_eq!(gaps("XY-B", 2026), [UNREAD_SUBDIVISION]);
+    assert!(gap_names(&FROM_TABLE, None, 1990).is_empty());
+    // Which years each is read for is `reads_region_in`; `reads_region` is
+    // true for any year.
+    assert!(FROM_TABLE.reads_region("XY-A"));
+    assert!(!FROM_TABLE.reads_region_in("XY-A", 1999));
+    assert!(FROM_TABLE.reads_region_in("xy-a", 2000));
+    assert_eq!(FROM_TABLE.read_subdivisions(), ["XY-A", "XY-A-001"]);
+}

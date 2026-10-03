@@ -4,7 +4,10 @@
 //! The calendar of the Roman Missal of 2002, as the Liturgy Office of the
 //! Bishops' Conference of England and Wales publishes it, with the
 //! celebrations the Holy See has inscribed or raised since, each from its
-//! decree. A celebration is a day of the year — St Anthony on 17 January —
+//! decree. It is the calendar from 1970, when the calendar of 1969 came
+//! into force ([`FIRST_YEAR`]); before that year the calendar is absent,
+//! and the years 1970 to 2001, which the Missal of 2002 does not speak for,
+//! are gaps ([`FIRST_YEAR_READ`]). A celebration is a day of the year — St Anthony on 17 January —
 //! or one of the handful the calendar dates by the Sunday or by Easter,
 //! and its rank is one of the four the Universal Norms give:
 //!
@@ -96,6 +99,22 @@ impl Rank {
     }
 }
 
+/// The first year of the calendar: the General Roman Calendar and the
+/// Norms were "into effect on January 1, 1970", as Paul VI's *Mysterii
+/// Paschalis* of 14 February 1969 says (`mysterii-paschalis-1969`). Before
+/// it the calendar of 1960 was the Roman Rite's, which
+/// [`crate::roman_calendar_1960`] carries.
+pub const FIRST_YEAR: i32 = 1970;
+
+/// The first year the calendar is read for: that of the *Missale Romanum*,
+/// editio typica tertia, 2002, whose calendar the Liturgy Office's page
+/// copies, with each later decree's changes from its own year. The
+/// years from 1970 to 2001 were kept under the Missal's earlier editions,
+/// whose calendars were not read, and a celebration inscribed between 1970
+/// and 2002 has no year in this table; so each of those years is a gap
+/// (audit 10 a2).
+pub const FIRST_YEAR_READ: i32 = 2002;
+
 /// A celebration of the General Roman Calendar.
 #[derive(Debug, Clone, Copy)]
 pub struct Celebration {
@@ -118,7 +137,7 @@ impl Celebration {
     pub const fn applies_in(&self, year: i64) -> bool {
         let after = match self.since {
             Some(since) => year >= since as i64,
-            None => true,
+            None => year >= FIRST_YEAR as i64,
         };
         let before = match self.until {
             Some(until) => year <= until as i64,
@@ -156,6 +175,14 @@ const CHRIST_THE_KING: Rule = Rule::WeekdayOnOrAfter {
     weekday: Weekday::Sunday,
 };
 
+/// The year a celebration begins in: its decree's, or the calendar's.
+const fn first_year(since: Option<i32>) -> Option<i32> {
+    match since {
+        Some(year) => Some(year),
+        None => Some(FIRST_YEAR),
+    }
+}
+
 /// `Some` of a year, or `None` when there is none.
 macro_rules! optional_year {
     () => {
@@ -189,7 +216,8 @@ macro_rules! general_roman_calendar {
         static RULES: &[HolidayRule] = &[$(
             HolidayRule::observance($title, "", $rule)
                 .of_kind(Kind::Religious)
-                .years(optional_year!($($since)?), optional_year!($($until)?))
+                .years(first_year(optional_year!($($since)?)), optional_year!($($until)?))
+                .read_from(FIRST_YEAR_READ)
         ),*];
     };
 }

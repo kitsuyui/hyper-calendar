@@ -47,7 +47,10 @@
 //! Not carried: the Lesser Festivals and Commemorations of the calendar,
 //! which the minister may keep or not; a church's Patronal and Dedication
 //! Festivals; and the Book of Common Prayer's own calendar. The Rules are
-//! applied to any year; when they were authorized was not read.
+//! applied from 2001, the first calendar year wholly under *Common Worship*,
+//! which was launched on Advent Sunday 2000: 2000 is a gap, earlier years
+//! are absent, and the Rules as the Church publishes them now are applied to
+//! every year since, any amendment between not having been read.
 
 use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
@@ -58,8 +61,19 @@ use crate::computus::offsets::{
     TRINITY_SUNDAY,
 };
 use crate::rule::{
-    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions,
+    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions, dated,
 };
+
+/// The year the calendar begins in: *Common Worship* was "launched on the
+/// first Sunday of Advent in 2000" (Wikipedia, "Common Worship", read
+/// 2026-10-03, secondary; `wikipedia-common-worship`), 3 December. A
+/// calendar year before 2000 belongs to the *Alternative Service Book*'s
+/// calendar and is absent.
+pub const FIRST_YEAR: i32 = 2000;
+
+/// The first year the calendar is kept for the whole of: 2001. 2000 holds
+/// Advent alone, which this table cannot say, and is a gap.
+pub const FIRST_YEAR_READ: i32 = 2001;
 
 /// The rank of a celebration, as the Rules list them.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -139,18 +153,16 @@ fn annunciation_day(year: i64) -> Option<Rd> {
     })
 }
 
-fn annunciation(year: i64) -> Days {
-    annunciation_day(year).map_or_else(Days::new, Days::one)
+fn annunciation(year: i64) -> Option<Days> {
+    annunciation_day(year).map(Days::one)
 }
 
 /// St Joseph, on 19 March: from the paschal fortnight to the Monday after
 /// the Second Sunday of Easter, or the next day if the Annunciation is
 /// there; from a Sunday, always one of Lent, to the Monday.
-fn joseph(year: i64) -> Days {
-    let Some((easter, day)) = easter_and(year, 3, 19) else {
-        return Days::new();
-    };
-    Days::one(if in_paschal_fortnight(day, easter) {
+fn joseph(year: i64) -> Option<Days> {
+    let (easter, day) = easter_and(year, 3, 19)?;
+    Some(Days::one(if in_paschal_fortnight(day, easter) {
         let monday = monday_after_easter_two(easter);
         if annunciation_day(year) == Some(monday) {
             Rd(monday.0 + 1)
@@ -161,7 +173,7 @@ fn joseph(year: i64) -> Days {
         Rd(day.0 + 1)
     } else {
         day
-    })
+    }))
 }
 
 /// Whether `day` is 25 April or 1 May, the days of St Mark and of Philip
@@ -178,9 +190,7 @@ fn holds_another_festival(year: i64, day: Rd) -> bool {
 /// on 26 April 2022. Unsettled when the Monday is the day of Philip and
 /// James, which happens when Easter is 23 April.
 fn george(year: i64) -> Option<Days> {
-    let Some((easter, day)) = easter_and(year, 4, 23) else {
-        return Some(Days::new());
-    };
+    let (easter, day) = easter_and(year, 4, 23)?;
     if in_paschal_fortnight(day, easter) {
         let monday = monday_after_easter_two(easter);
         if date(year, 4, 25) == Some(monday) {
@@ -198,9 +208,7 @@ fn george(year: i64) -> Option<Days> {
 /// Tuesday. Unsettled when St Mark's Tuesday is 1 May, as when Easter is
 /// 22 April.
 fn mark(year: i64) -> Option<Days> {
-    let Some((easter, day)) = easter_and(year, 4, 25) else {
-        return Some(Days::new());
-    };
+    let (easter, day) = easter_and(year, 4, 25)?;
     if in_paschal_fortnight(day, easter) {
         let monday = monday_after_easter_two(easter);
         let george_moves = in_paschal_fortnight(Rd(day.0 - 2), easter);
@@ -229,9 +237,7 @@ fn after_easter(year: i64, month: u8, day: u8) -> Option<Rd> {
 /// with St George moved to the Monday after (24), or a day of Easter Week
 /// (25).
 fn philip_and_james(year: i64) -> Option<Days> {
-    let Some((easter, day)) = easter_and(year, 5, 1) else {
-        return Some(Days::new());
-    };
+    let (easter, day) = easter_and(year, 5, 1)?;
     let offset = day.0 - easter.0;
     if (6..=9).contains(&offset) {
         return None;
@@ -239,16 +245,16 @@ fn philip_and_james(year: i64) -> Option<Days> {
     Some(after_easter(year, 5, 1).map_or_else(Days::new, Days::one))
 }
 
-fn matthias(year: i64) -> Days {
-    after_easter(year, 5, 14).map_or_else(Days::new, Days::one)
+fn matthias(year: i64) -> Option<Days> {
+    after_easter(year, 5, 14).map(Days::one)
 }
 
-fn visitation(year: i64) -> Days {
-    after_easter(year, 5, 31).map_or_else(Days::new, Days::one)
+fn visitation(year: i64) -> Option<Days> {
+    after_easter(year, 5, 31).map(Days::one)
 }
 
-fn barnabas(year: i64) -> Days {
-    after_easter(year, 6, 11).map_or_else(Days::new, Days::one)
+fn barnabas(year: i64) -> Option<Days> {
+    after_easter(year, 6, 11).map(Days::one)
 }
 
 /// St Andrew, on 30 November: to the Monday when it is the First Sunday of
@@ -284,9 +290,9 @@ macro_rules! common_worship_calendar {
             Celebration { id: $id, title: $title, rank: Rank::$rank, rule: $rule }
         ),*];
 
-        static RULES: &[HolidayRule] = &[$(
+        static RULES: &[HolidayRule] = &dated([$(
             HolidayRule::observance($title, "", $rule).of_kind(Kind::Religious).with_id($id)
-        ),*];
+        ),*], Some(FIRST_YEAR), Some(FIRST_YEAR_READ));
     };
 }
 
@@ -295,7 +301,7 @@ common_worship_calendar! {
     "the-epiphany", "The Epiphany", PrincipalFeast, Rule::gregorian(1, 6);
     "the-presentation-of-christ-in-the-temple", "The Presentation of Christ in the Temple", PrincipalFeast, Rule::gregorian(2, 2);
     "the-annunciation-of-our-lord-to-the-blessed-virgin-mary", "The Annunciation of Our Lord to the Blessed Virgin Mary", PrincipalFeast,
-        Rule::Computed(annunciation);
+        Rule::Unsettled(annunciation);
     "easter-day", "Easter Day", PrincipalFeast, Rule::easter(EASTER_SUNDAY);
     "ascension-day", "Ascension Day", PrincipalFeast, Rule::easter(ASCENSION);
     "pentecost-whit-sunday", "Pentecost (Whit Sunday)", PrincipalFeast, Rule::easter(PENTECOST);
@@ -307,13 +313,13 @@ common_worship_calendar! {
     "the-naming-and-circumcision-of-jesus", "The Naming and Circumcision of Jesus", Festival, Rule::gregorian(1, 1);
     "the-baptism-of-christ", "The Baptism of Christ", Festival, BAPTISM_OF_CHRIST;
     "the-conversion-of-paul", "The Conversion of Paul", Festival, Rule::gregorian(1, 25);
-    "joseph-of-nazareth", "Joseph of Nazareth", Festival, Rule::Computed(joseph);
+    "joseph-of-nazareth", "Joseph of Nazareth", Festival, Rule::Unsettled(joseph);
     "george-martyr-patron-of-england", "George, Martyr, Patron of England", Festival, Rule::Unsettled(george);
     "mark-the-evangelist", "Mark the Evangelist", Festival, Rule::Unsettled(mark);
     "philip-and-james-apostles", "Philip and James, Apostles", Festival, Rule::Unsettled(philip_and_james);
-    "matthias-the-apostle", "Matthias the Apostle", Festival, Rule::Computed(matthias);
-    "the-visit-of-the-blessed-virgin-mary-to-elizabeth", "The Visit of the Blessed Virgin Mary to Elizabeth", Festival, Rule::Computed(visitation);
-    "barnabas-the-apostle", "Barnabas the Apostle", Festival, Rule::Computed(barnabas);
+    "matthias-the-apostle", "Matthias the Apostle", Festival, Rule::Unsettled(matthias);
+    "the-visit-of-the-blessed-virgin-mary-to-elizabeth", "The Visit of the Blessed Virgin Mary to Elizabeth", Festival, Rule::Unsettled(visitation);
+    "barnabas-the-apostle", "Barnabas the Apostle", Festival, Rule::Unsettled(barnabas);
     "the-birth-of-john-the-baptist", "The Birth of John the Baptist", Festival, Rule::gregorian(6, 24);
     "peter-and-paul-apostles", "Peter and Paul, Apostles", Festival, Rule::gregorian(6, 29);
     "thomas-the-apostle", "Thomas the Apostle", Festival, Rule::gregorian(7, 3);

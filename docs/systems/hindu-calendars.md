@@ -768,6 +768,42 @@ the day's name, and
 `panchanga::the_karanas_of_january_2025_end_when_drik_panchang_says` the
 month's fifty-nine printed ends.
 
+**Bhadra, the karaṇa Viṣṭi.** The seventh movable name is the one a rite
+avoids: "Bhadra is malicious time which should be avoided for all
+auspicious work" [drik-raksha-bandhan]. It falls on the halves numbered
+8, 15, 22, 29, 36, 43, 50 and 57, which Table VIII prints as the second
+half of śukla 4 and 11 and of kṛṣṇa 3 and 10 and the first half of śukla
+8 and 15 and of kṛṣṇa 7 and 14 [sewell1896, Table VIII, cols. 4 and 5]:
+"Bhadra prevails during first half of Purnima Tithi", as Drik Panchang
+says [drik-raksha-bandhan]. A rite that is not done in Bhadra is done in
+the other half, and `panchanga::vishti_free_span` gives its two moments:
+for the full-moon tithi, from the moment the elongation is 174° to the
+full moon. The Moon gains 6° in about half a tithi, so the search crosses
+the two angles from a day or two before.
+
+**Worked example: the Bhadra of Raksha Bandhan 2025.** The full-moon
+tithi of Śrāvaṇa begins when the elongation reaches 168°, 14:12 IST on
+8 August by Drik Panchang's page for New Delhi, and ends at the full moon,
+13:24 on the 9th; the library puts the full moon at 13:25. Bhadra runs
+from 168° to 174°, and the library's search ends it at 01:52 IST on the
+9th. The page prints no time for it that year, only "Bhadra got over
+before Sunrise", which the 01:52 agrees with; the years where it prints a
+time bear the search out. The rite is for the part from 01:52
+to 13:25, which begins on the civil day of the 9th, and that tithi is
+gone before the next sunrise, so the day is 9 August, though the
+afternoon of the 8th held the full moon, which is where the earlier rule,
+a tithi at an instant in the afternoon, put it. In 2026 the full moon is at
+09:48 on 28 August and Bhadra ends at 21:32 on the 27th, so the part begins
+on the 27th; but it still holds 4 hours of the 28th after sunrise, more
+than six ghaṭikās, and the page gives the 28th. In 2023 Bhadra ends at
+21:01 on 30 August and the tithi at 07:05 on the 31st, 1 hour 24 minutes
+after sunrise, and the page gives the 30th, "after 09:01 PM". The rule is
+`hindu::RAKSHA_BANDHAN`, a `Rule::TithiAfterBhadra`; the six ghaṭikās are
+a jyotiṣī's page's and the classical texts are not read, as the rule's
+documentation says. The test `raksha_bandhan` in `hc-holiday` holds 75 of
+the 76 days Drik Panchang gives for 1995 to 2070, and the one that parts
+from it, 2036, is the place's.
+
 **The Siddhānta's yoga and karaṇa.** Reingold and Dershowitz compute
 the yoga on the *Sūrya Siddhānta*'s Sun and Moon, one plus the floor of
 their sidereal longitudes' sum, modulo 360°, over 13°20′, and number the
@@ -1125,7 +1161,10 @@ rules, which were not read, are more than that.
   the fixed four in the *Sūrya Siddhānta*'s order, Śakuni, Nāga,
   Catuṣpada, Kiṃstughna from the second half of kṛṣṇa 14 (II.67)
   [sastri1861], where `karana_name` has the western order Sewell and
-  Dikshit follow, Catuṣpada before Nāga: two conventions, two functions. The
+  Dikshit follow, Catuṣpada before Nāga: two conventions, two functions.
+  `VISHTI` is Viṣṭi's number in `karana_name`, 7, and `vishti_free_span`
+  the moments the part of a tithi that Viṣṭi does not cover begins and
+  ends. The
   names are Drik Panchang's, in English and in its Hindi edition's
   Devanagari [drik-day-panchang-2025]. On the *Sūrya Siddhānta*'s Sun and
   Moon, `surya_siddhanta::yoga_longitude`, `yoga_at`, `yoga_of_day` and
@@ -1288,6 +1327,8 @@ assert:
 | The moment: the Siddhānta's Meṣa saṅkrānti of 1514 against Table I's, Vṛṣa's end on 31 March 1514, the expunged Chitrabhānu and Subhānu at the next saṅkrānti; Vibhava 3.3 days and Śukla 364.3 days after the saṅkrānti of Śaka 1779 current; the worked example of 2024 | `the_moment_follows_the_rule_through_an_expunged_year`, `vibhava_begins_three_days_after_the_sankranti_of_1779`, `pingala_gives_way_to_kalayukta_a_fortnight_into_saka_1946` | the saṅkrānti of 1514 1½ minutes from the printed one, Vṛṣa's end within three minutes, the rest to the tenth of a day |
 | The Sun's twenty-seven nakṣatra entries of 2025 | `nakshatra::the_suns_nakshatra_transits_of_2025_are_the_almanacs` | every entry 7 to 10½ minutes before Drik Panchang's, the spread under two minutes |
 | The thirty-two yoga ends and fifty-nine karaṇa ends Drik Panchang prints for New Delhi, 1 to 30 January 2025 | `panchanga::the_yogas_of_january_2025_end_when_drik_panchang_says`, `the_karanas_of_january_2025_end_when_drik_panchang_says` | every yoga end from 56 seconds before the printed minute to 14 seconds after; every karaṇa end 0.6 to 1.6 minutes after it — the pages appear to truncate to the minute, and the yoga carries the two ayanāṃśas' 20″ twice |
+| The Bhadra ends and full-moon ends Drik Panchang prints for the Raksha Bandhan of sixteen years, 2015 to 2044, for New Delhi | `panchanga::bhadra_ends_when_drik_panchang_says_for_the_full_moon_of_shravana` | the Bhadra ends from 2.6 minutes before the printed minute to 4.8 after, the tithi ends 0.2 before to 1.7 after |
+| Viṣṭi on halves 8, 15, 22, 29, 36, 43, 50 and 57, and the free part of the fourth, fourteenth and full-moon tithis | `panchanga::vishti_is_the_first_half_of_the_full_moon_and_the_second_half_of_the_fourth` | all, to a thousandth of a degree |
 | The karaṇa names Table VIII, cols. 4 and 5, prints for śukla 1 (Kiṃstughna, Bava), śukla 2 (Bālava, Kaulava), kṛṣṇa 14 (Viṣṭi, Śakuni) and amāvāsyā (Catuṣpada, Nāga), and the seven movable names eight times between; forty yogas each within Art. 9's 20 h 52 m 48 s to 24 h 36 m 24 s, widened for the true Moon | `panchanga::the_sixty_halves_take_the_names_table_viii_prints`, `a_yoga_lasts_about_a_day` | all; the yogas between 0.85 and 1.06 days |
 | The Siddhānta's yoga and karaṇa against Sewell and Dikshit's pañcāṅga extract for Poona, 31 August to 29 September 1894, computed by the *Grahalāghava* | `surya_siddhanta::the_siddhantas_yoga_is_the_extracts_on_every_legible_day`, `the_siddhantas_karana_is_the_extracts_on_every_legible_day` | the yoga of 24 of 24 legible days and every end within 1.6 ghaṭikās of the printed one; the karaṇa of 15 of 15, within 1.8 |
 | The Siddhānta's yoga is the book's `yoga` and its karaṇa half its tithi | `the_yoga_is_the_books_arithmetic_and_the_karana_half_the_tithi` | 200 moments of 2024 |
@@ -1490,6 +1531,9 @@ for 2024 and 2025 give the times the tests hold.
 | [drik-vidhi-vidhan] | "Vaishnavas should fast only on Ekadashi mixed with Dwadashi" | Yes, 2026-10-03 |
 | [drik-day-panchang-ayanamsha] | The "Lahiri Ayanamsha" Drik prints on 1 January 2000, 22 March 2024 and 1 January 2025 | Yes, 2026-10-03 |
 | [drik-day-panchang-2025] | The yoga and karaṇa of every day of 1 to 30 January 2025 for New Delhi, with their end times, in English and in the Hindi edition; the English and Devanagari names; for 1 to 31 January 2025, Abhijit ("None" on Wednesdays), each Dur Muhurtam, and the Amrita Siddhi Yoga with its times, in English, and the Hindi labels अभिजित मुहूर्त, दुर्मुहूर्त and अमृत सिद्धि योग | Yes, 2026-09-26; the January pages again 2026-09-29 |
+| [drik-raksha-bandhan] | The day of Raksha Bandhan, the full-moon tithi's beginning and end, and Bhadra's end, for New Delhi, for every year 1995 to 2070, and its statement of the rule (Aparahna, then Pradosh, Bhadra avoided, Bhadra the first half of the full-moon tithi) | Yes, 2026-10-03 |
+| [drik-holika-dahan] | The day of Holika Dahan and of Rangwali Holi for New Delhi, 2015 to 2036, with the tithi's beginning and end and Bhadra's Punchha and Mukha, and its rules for lighting the fire | Yes, 2026-10-03 |
+| [onlinejyotish-rakhi-2024] | "after six Ghadiyas (2 hours 24 minutes) from sunrise, avoiding the Bhadra Karan", and the Bhadra of 19 August 2024 until 01:33 PM | Yes, 2026-10-03 (secondary: the classical texts it follows are not named) |
 | [wikipedia-nityayoga] | The yoga's definition, the twenty-seven names in order, Wikipedia's copy of Sewell and Dikshit's table of lengths, the other system of twenty-eight | Yes, 2026-09-26 |
 | [wikipedia-karana] | The karaṇa as half a tithi and the table of the sixty halves' names | Yes, 2026-09-26 |
 

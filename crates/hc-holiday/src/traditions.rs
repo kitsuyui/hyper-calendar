@@ -85,7 +85,7 @@ use crate::hindu::{
 };
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Listing, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
-    Subdivisions, TibetanDayRule, TibetanMonth, joined,
+    Subdivisions, TibetanDayRule, TibetanMonth, dated, joined,
 };
 
 /// 清明, the fifth solar term.
@@ -980,27 +980,35 @@ const fn cross_quarter_day(name: &'static str, month: u8, day: u8) -> HolidayRul
     feast(name, "", Rule::gregorian(month, day))
 }
 
-static WHEEL_OF_THE_YEAR_RULES: &[HolidayRule] = &[
-    cross_quarter_day("Imbolc", 2, 1),
-    quarter_day("Ostara", SolarTerm::SPRING_EQUINOX),
-    cross_quarter_day("Beltane", 5, 1),
-    quarter_day("Litha", SolarTerm::SUMMER_SOLSTICE),
-    cross_quarter_day("Lughnasadh", 8, 1),
-    quarter_day("Mabon", SolarTerm::AUTUMN_EQUINOX),
-    cross_quarter_day("Samhain", 11, 1),
-    quarter_day("Yule", SolarTerm::WINTER_SOLSTICE),
-];
+static WHEEL_OF_THE_YEAR_RULES: &[HolidayRule] = &dated(
+    [
+        cross_quarter_day("Imbolc", 2, 1),
+        quarter_day("Ostara", SolarTerm::SPRING_EQUINOX),
+        cross_quarter_day("Beltane", 5, 1),
+        quarter_day("Litha", SolarTerm::SUMMER_SOLSTICE),
+        cross_quarter_day("Lughnasadh", 8, 1),
+        quarter_day("Mabon", SolarTerm::AUTUMN_EQUINOX),
+        cross_quarter_day("Samhain", 11, 1),
+        quarter_day("Yule", SolarTerm::WINTER_SOLSTICE),
+    ],
+    None,
+    Some(1974),
+);
 
-static WHEEL_OF_THE_YEAR_SOUTH_RULES: &[HolidayRule] = &[
-    cross_quarter_day("Lughnasadh", 2, 1),
-    quarter_day("Mabon", SolarTerm::SPRING_EQUINOX),
-    cross_quarter_day("Samhain", 5, 1),
-    quarter_day("Yule", SolarTerm::SUMMER_SOLSTICE),
-    cross_quarter_day("Imbolc", 8, 1),
-    quarter_day("Ostara", SolarTerm::AUTUMN_EQUINOX),
-    cross_quarter_day("Beltane", 11, 1),
-    quarter_day("Litha", SolarTerm::WINTER_SOLSTICE),
-];
+static WHEEL_OF_THE_YEAR_SOUTH_RULES: &[HolidayRule] = &dated(
+    [
+        cross_quarter_day("Lughnasadh", 2, 1),
+        quarter_day("Mabon", SolarTerm::SPRING_EQUINOX),
+        cross_quarter_day("Samhain", 5, 1),
+        quarter_day("Yule", SolarTerm::SUMMER_SOLSTICE),
+        cross_quarter_day("Imbolc", 8, 1),
+        quarter_day("Ostara", SolarTerm::AUTUMN_EQUINOX),
+        cross_quarter_day("Beltane", 11, 1),
+        quarter_day("Litha", SolarTerm::WINTER_SOLSTICE),
+    ],
+    None,
+    Some(1974),
+);
 
 /// The Wheel of the Year, as kept in the northern hemisphere.
 ///
@@ -1017,6 +1025,12 @@ static WHEEL_OF_THE_YEAR_SOUTH_RULES: &[HolidayRule] = &[
 /// local date, on the astronomical midpoint of a cross-quarter, or on the
 /// nearest weekend do so by their own rule, which this table does not
 /// carry.
+///
+/// Read from 1974, the year Aidan Kelly named the summer solstice and the
+/// equinoxes' festivals, Litha, Ostara and Mabon, as Wikipedia dates it:
+/// the same article says only that "Wheel of the Year" was in use "by the
+/// mid-1960s" for a cycle of eight observances, with no year, and the
+/// earlier years are gaps (audit 10 a2).
 pub static WHEEL_OF_THE_YEAR: RuleSet = RuleSet {
     code: "wheel-of-the-year",
     english_name: "Wheel of the Year",
@@ -2742,36 +2756,40 @@ const fn monthly_service(month: u8) -> HolidayRule {
     feast("Monthly Service", "月次祭", Rule::gregorian(month, 26))
 }
 
-static TENRIKYO_RULES: &[HolidayRule] = &[
-    feast("New Year's Day Service", "元旦祭", Rule::gregorian(1, 1)),
-    feast("Spring Grand Service", "春季大祭", Rule::gregorian(1, 26)),
-    monthly_service(2),
-    monthly_service(3),
-    feast(
-        "Spring Memorial Service",
-        "春季霊祭",
-        Rule::gregorian(3, 27),
-    ),
-    feast(
-        "Oyasama Birth Celebration Service",
-        "教祖誕生祭",
-        Rule::gregorian(4, 18),
-    ),
-    monthly_service(4),
-    monthly_service(5),
-    monthly_service(6),
-    monthly_service(7),
-    monthly_service(8),
-    monthly_service(9),
-    feast(
-        "Autumn Memorial Service",
-        "秋季霊祭",
-        Rule::gregorian(9, 27),
-    ),
-    feast("Autumn Grand Service", "秋季大祭", Rule::gregorian(10, 26)),
-    monthly_service(11),
-    monthly_service(12),
-];
+static TENRIKYO_RULES: &[HolidayRule] = &dated(
+    [
+        feast("New Year's Day Service", "元旦祭", Rule::gregorian(1, 1)),
+        feast("Spring Grand Service", "春季大祭", Rule::gregorian(1, 26)),
+        monthly_service(2),
+        monthly_service(3),
+        feast(
+            "Spring Memorial Service",
+            "春季霊祭",
+            Rule::gregorian(3, 27),
+        ),
+        feast(
+            "Oyasama Birth Celebration Service",
+            "教祖誕生祭",
+            Rule::gregorian(4, 18),
+        ),
+        monthly_service(4),
+        monthly_service(5),
+        monthly_service(6),
+        monthly_service(7),
+        monthly_service(8),
+        monthly_service(9),
+        feast(
+            "Autumn Memorial Service",
+            "秋季霊祭",
+            Rule::gregorian(9, 27),
+        ),
+        feast("Autumn Grand Service", "秋季大祭", Rule::gregorian(10, 26)),
+        monthly_service(11),
+        monthly_service(12),
+    ],
+    None,
+    Some(2017),
+);
 
 /// The services of Tenrikyo at its Church Headquarters in Tenri, as the
 /// headquarters' own page lists them: the New Year's Day Service on
@@ -2785,9 +2803,9 @@ static TENRIKYO_RULES: &[HolidayRule] = &[
 /// The anniversaries were lunar dates — the 26th of the first month of
 /// 1887, the 18th of the fourth month of 1798, the 26th of the tenth month
 /// of 1838 — and the services are now kept on the same numbers of the
-/// Gregorian months. When that began was not read, so the table applies the
-/// present schedule to every year, and an early year's dates are the
-/// schedule's and not a record. The
+/// Gregorian months. When that began was not read, so the table is read
+/// from 2017, the earliest of the services Tenrikyo Online reports (18 April
+/// 2017), and every earlier year is a gap (audit 10 a2). The
 /// Service for Germination, performed in April on a night the weather
 /// decides, the *obiya-zutome*, performed as needed, and a church's own
 /// monthly service, on a day each church sets, are not carried.
@@ -2946,19 +2964,15 @@ const HOLY_CROSS_DAY: u8 = 13;
 /// Summer, unless that is on or after the Feast of the Cross, when the
 /// sixth and seventh Sundays of Summer merge and Elijah begins a week
 /// earlier, so that its first Sunday comes before the Cross.
-fn first_sunday_of_elijah(year: i64) -> Days {
-    let (Some(easter), Ok(cross)) = (
-        crate::computus::gregorian_easter(year),
-        gregorian::to_fixed(year, 9, HOLY_CROSS_DAY),
-    ) else {
-        return Days::new();
-    };
+fn first_sunday_of_elijah(year: i64) -> Option<Days> {
+    let easter = crate::computus::gregorian_easter(year)?;
+    let cross = gregorian::to_fixed(year, 9, HOLY_CROSS_DAY).ok()?;
     let ideal = Rd(easter.0 + 147);
-    Days::one(if ideal < cross {
+    Some(Days::one(if ideal < cross {
         ideal
     } else {
         Rd(ideal.0 - 7)
-    })
+    }))
 }
 
 /// The Monday, Tuesday and Wednesday of the Rogation of the Ninevites,
@@ -3012,7 +3026,7 @@ pub(crate) static CHURCH_OF_THE_EAST_RULES: &[HolidayRule] = &[
     east(
         "First Sunday of Elijah",
         "ܐ ܕܐܠܝܐ",
-        Rule::Computed(first_sunday_of_elijah),
+        Rule::Unsettled(first_sunday_of_elijah),
     ),
     east(
         "Feast of the Cross",
@@ -3816,62 +3830,66 @@ const WEDNESDAY_AFTER_ST_LUCY: Rule = Rule::WeekdayOnOrAfter {
     weekday: Weekday::Wednesday,
 };
 
-static EMBER_BCP1662_RULES: &[HolidayRule] = &{
-    let lent = ember_days!(
-        "Lent",
-        Rule::easter(FIRST_SUNDAY_IN_LENT + 3),
-        Rule::easter(FIRST_SUNDAY_IN_LENT + 5),
-        Rule::easter(FIRST_SUNDAY_IN_LENT + 6)
-    );
-    let whitsun = ember_days!(
-        "Whitsun",
-        Rule::easter(PENTECOST + 3),
-        Rule::easter(PENTECOST + 5),
-        Rule::easter(PENTECOST + 6)
-    );
-    let september = ember_days!(
-        "September",
-        WEDNESDAY_AFTER_HOLY_CROSS,
-        Rule::Offset {
-            base: &WEDNESDAY_AFTER_HOLY_CROSS,
-            days: 2,
-        },
-        Rule::Offset {
-            base: &WEDNESDAY_AFTER_HOLY_CROSS,
-            days: 3,
-        }
-    );
-    let december = ember_days!(
-        "December",
-        WEDNESDAY_AFTER_ST_LUCY,
-        Rule::Offset {
-            base: &WEDNESDAY_AFTER_ST_LUCY,
-            days: 2,
-        },
-        Rule::Offset {
-            base: &WEDNESDAY_AFTER_ST_LUCY,
-            days: 3,
-        }
-    );
-    let rogation = rogation_days!("Rogation Monday", "Rogation Tuesday", "Rogation Wednesday");
-    [
-        lent[0],
-        lent[1],
-        lent[2],
-        rogation[0],
-        rogation[1],
-        rogation[2],
-        whitsun[0],
-        whitsun[1],
-        whitsun[2],
-        september[0],
-        september[1],
-        september[2],
-        december[0],
-        december[1],
-        december[2],
-    ]
-};
+static EMBER_BCP1662_RULES: &[HolidayRule] = &dated(
+    {
+        let lent = ember_days!(
+            "Lent",
+            Rule::easter(FIRST_SUNDAY_IN_LENT + 3),
+            Rule::easter(FIRST_SUNDAY_IN_LENT + 5),
+            Rule::easter(FIRST_SUNDAY_IN_LENT + 6)
+        );
+        let whitsun = ember_days!(
+            "Whitsun",
+            Rule::easter(PENTECOST + 3),
+            Rule::easter(PENTECOST + 5),
+            Rule::easter(PENTECOST + 6)
+        );
+        let september = ember_days!(
+            "September",
+            WEDNESDAY_AFTER_HOLY_CROSS,
+            Rule::Offset {
+                base: &WEDNESDAY_AFTER_HOLY_CROSS,
+                days: 2,
+            },
+            Rule::Offset {
+                base: &WEDNESDAY_AFTER_HOLY_CROSS,
+                days: 3,
+            }
+        );
+        let december = ember_days!(
+            "December",
+            WEDNESDAY_AFTER_ST_LUCY,
+            Rule::Offset {
+                base: &WEDNESDAY_AFTER_ST_LUCY,
+                days: 2,
+            },
+            Rule::Offset {
+                base: &WEDNESDAY_AFTER_ST_LUCY,
+                days: 3,
+            }
+        );
+        let rogation = rogation_days!("Rogation Monday", "Rogation Tuesday", "Rogation Wednesday");
+        [
+            lent[0],
+            lent[1],
+            lent[2],
+            rogation[0],
+            rogation[1],
+            rogation[2],
+            whitsun[0],
+            whitsun[1],
+            whitsun[2],
+            september[0],
+            september[1],
+            september[2],
+            december[0],
+            december[1],
+            december[2],
+        ]
+    },
+    Some(1662),
+    Some(1753),
+);
 
 /// The Ember and Rogation Days of the *Book of Common Prayer* of 1662.
 ///
@@ -3892,6 +3910,10 @@ static EMBER_BCP1662_RULES: &[HolidayRule] = &{
 ///
 /// The three churches' tables, the two readings of "after September 14"
 /// and a worked example are in `docs/systems/ember-and-rogation-days.md`.
+///
+/// Absent before 1662, the year of the book; a gap from 1662 to 1752, when
+/// England kept the Julian calendar, whose days this table does not
+/// compute; answered from 1753, as `bcp-1662`'s calendar does.
 pub static EMBER_BCP1662: RuleSet = RuleSet {
     code: "ember-bcp1662",
     english_name: "Ember and Rogation Days (Book of Common Prayer, 1662)",
@@ -3953,36 +3975,40 @@ macro_rules! ember_week_before {
     };
 }
 
-static EMBER_COMMON_WORSHIP_RULES: &[HolidayRule] = &{
-    // The Second Sunday of Lent is a week after the first.
-    let lent = ember_days!(
-        "Lent",
-        Rule::easter(FIRST_SUNDAY_IN_LENT + 3),
-        Rule::easter(FIRST_SUNDAY_IN_LENT + 5),
-        Rule::easter(FIRST_SUNDAY_IN_LENT + 6)
-    );
-    let june = ember_week_before!("June", SUNDAY_NEAREST_29_JUNE);
-    let september = ember_week_before!("September", SUNDAY_NEAREST_29_SEPTEMBER);
-    let advent = ember_week_before!("Advent", THIRD_SUNDAY_OF_ADVENT);
-    let rogation = rogation_days!("Rogation Monday", "Rogation Tuesday", "Rogation Wednesday");
-    [
-        lent[0],
-        lent[1],
-        lent[2],
-        rogation[0],
-        rogation[1],
-        rogation[2],
-        june[0],
-        june[1],
-        june[2],
-        september[0],
-        september[1],
-        september[2],
-        advent[0],
-        advent[1],
-        advent[2],
-    ]
-};
+static EMBER_COMMON_WORSHIP_RULES: &[HolidayRule] = &dated(
+    {
+        // The Second Sunday of Lent is a week after the first.
+        let lent = ember_days!(
+            "Lent",
+            Rule::easter(FIRST_SUNDAY_IN_LENT + 3),
+            Rule::easter(FIRST_SUNDAY_IN_LENT + 5),
+            Rule::easter(FIRST_SUNDAY_IN_LENT + 6)
+        );
+        let june = ember_week_before!("June", SUNDAY_NEAREST_29_JUNE);
+        let september = ember_week_before!("September", SUNDAY_NEAREST_29_SEPTEMBER);
+        let advent = ember_week_before!("Advent", THIRD_SUNDAY_OF_ADVENT);
+        let rogation = rogation_days!("Rogation Monday", "Rogation Tuesday", "Rogation Wednesday");
+        [
+            lent[0],
+            lent[1],
+            lent[2],
+            rogation[0],
+            rogation[1],
+            rogation[2],
+            june[0],
+            june[1],
+            june[2],
+            september[0],
+            september[1],
+            september[2],
+            advent[0],
+            advent[1],
+            advent[2],
+        ]
+    },
+    Some(2000),
+    Some(2001),
+);
 
 /// The Ember and Rogation Days of the Church of England's *Common Worship*,
 /// on the traditional weeks its rules name.
@@ -4003,6 +4029,10 @@ static EMBER_COMMON_WORSHIP_RULES: &[HolidayRule] = &{
 /// nearest 29 September rather than after 14 September, and before the
 /// Third Sunday of Advent rather than after 13 December. The Lent week is
 /// the same.
+///
+/// Absent before 2000, a gap in 2000, which holds only the Advent *Common
+/// Worship* was launched on, and answered from 2001, as `common-worship`
+/// is.
 pub static EMBER_COMMON_WORSHIP: RuleSet = RuleSet {
     code: "ember-common-worship",
     english_name: "Ember and Rogation Days (Common Worship, traditional weeks)",
@@ -4022,18 +4052,14 @@ pub static EMBER_COMMON_WORSHIP: RuleSet = RuleSet {
 
 /// The Greater Litanies: 25 April, or the Tuesday after Easter when Easter
 /// Sunday or Easter Monday falls on 25 April.
-fn greater_litanies(year: i64) -> Days {
-    let (Ok(day), Some(easter)) = (
-        gregorian::to_fixed(year, 4, 25),
-        crate::computus::gregorian_easter(year),
-    ) else {
-        return Days::new();
-    };
-    if day == easter || day.0 == easter.0 + 1 {
+fn greater_litanies(year: i64) -> Option<Days> {
+    let day = gregorian::to_fixed(year, 4, 25).ok()?;
+    let easter = crate::computus::gregorian_easter(year)?;
+    Some(if day == easter || day.0 == easter.0 + 1 {
         Days::one(Rd(easter.0 + 2))
     } else {
         Days::one(day)
-    }
+    })
 }
 
 static ROGATION_ROMAN_1960_RULES: &[HolidayRule] = &{
@@ -4046,7 +4072,7 @@ static ROGATION_ROMAN_1960_RULES: &[HolidayRule] = &{
         feast(
             "Greater Litanies (Major Rogation)",
             "Litaniae maiores",
-            Rule::Computed(greater_litanies),
+            Rule::Unsettled(greater_litanies),
         ),
         lesser[0],
         lesser[1],
@@ -4199,36 +4225,40 @@ const SHUMBULTA_30: Rule = mandaean(8, 30);
 const GADIA_27: Rule = mandaean(13, 27);
 const GADIA_29: Rule = mandaean(13, 29);
 
-static MANDAEAN_RULES: &[HolidayRule] = &[
-    feast("Dehwa Rabba (New Year)", "", mandaean(1, 1)),
-    feast("Dehwa d Shishlam Rba (Nauruz Zota)", "", mandaean(1, 6)),
-    feast("Dehwa d Shishlam Rba (Nauruz Zota)", "", mandaean(1, 7)),
-    feast(
-        "Dehwa Hnina",
-        "",
-        Rule::span(&DEHWA_HNINA_FIRST, &DEHWA_HNINA_LAST),
-    ),
-    feast("Ashuriyah", "", mandaean(6, 1)),
-    feast(
-        "Panja (Parwanaia)",
-        "",
-        Rule::span(&PANJA_FIRST, &PANJA_LAST),
-    ),
-    feast("Dehwa Daimana", "", mandaean(12, 1)),
-    feast("Kanshia uZahla (New Year's Eve)", "", mandaean(13, 30)),
-    mbattal(mandaean(1, 6)),
-    mbattal(mandaean(1, 7)),
-    mbattal(mandaean(1, 22)),
-    mbattal(mandaean(2, 25)),
-    mbattal(Rule::span(&TAURA_FIRST, &TAURA_FOURTH)),
-    mbattal(mandaean(6, 9)),
-    mbattal(mandaean(6, 15)),
-    mbattal(mandaean(6, 23)),
-    mbattal(Rule::span(&SHUMBULTA_26, &SHUMBULTA_30)),
-    mbattal(mandaean(10, 1)),
-    mbattal(mandaean(12, 2)),
-    mbattal(Rule::span(&GADIA_27, &GADIA_29)),
-];
+static MANDAEAN_RULES: &[HolidayRule] = &dated(
+    [
+        feast("Dehwa Rabba (New Year)", "", mandaean(1, 1)),
+        feast("Dehwa d Shishlam Rba (Nauruz Zota)", "", mandaean(1, 6)),
+        feast("Dehwa d Shishlam Rba (Nauruz Zota)", "", mandaean(1, 7)),
+        feast(
+            "Dehwa Hnina",
+            "",
+            Rule::span(&DEHWA_HNINA_FIRST, &DEHWA_HNINA_LAST),
+        ),
+        feast("Ashuriyah", "", mandaean(6, 1)),
+        feast(
+            "Panja (Parwanaia)",
+            "",
+            Rule::span(&PANJA_FIRST, &PANJA_LAST),
+        ),
+        feast("Dehwa Daimana", "", mandaean(12, 1)),
+        feast("Kanshia uZahla (New Year's Eve)", "", mandaean(13, 30)),
+        mbattal(mandaean(1, 6)),
+        mbattal(mandaean(1, 7)),
+        mbattal(mandaean(1, 22)),
+        mbattal(mandaean(2, 25)),
+        mbattal(Rule::span(&TAURA_FIRST, &TAURA_FOURTH)),
+        mbattal(mandaean(6, 9)),
+        mbattal(mandaean(6, 15)),
+        mbattal(mandaean(6, 23)),
+        mbattal(Rule::span(&SHUMBULTA_26, &SHUMBULTA_30)),
+        mbattal(mandaean(10, 1)),
+        mbattal(mandaean(12, 2)),
+        mbattal(Rule::span(&GADIA_27, &GADIA_29)),
+    ],
+    None,
+    Some(1932),
+);
 
 /// The feasts and *mbattal* days of the Mandaeans, on the Mandaean
 /// calendar, as Drower recorded them.
@@ -4252,6 +4282,12 @@ static MANDAEAN_RULES: &[HolidayRule] = &[
 /// date drifts a day earlier against the Gregorian every four years. The
 /// Mandaean day begins at dawn (p. 87); the date given is the civil day
 /// that holds its daylight.
+///
+/// Read from 1932, the first year of the dates Drower records that the
+/// calendar reproduces (Panja on 5 April 1932 to 1935, the new year of 1934
+/// and 1935): the record of 1854 she quotes, Petermann's, parts from it by
+/// a day, and no earlier year was read, so every year before 1932 is a gap
+/// (audit 10 a2).
 pub static MANDAEAN: RuleSet = RuleSet {
     code: "mandaean",
     english_name: "Mandaean feasts",
@@ -4280,6 +4316,9 @@ const fn qumran(name: &'static str, month: u8, day: u8) -> HolidayRule {
         "",
         Rule::in_calendar(CalendarSystem::QUMRAN, month, day),
     )
+    // The weekday is the scrolls', the Gregorian date a convention of this
+    // library's epoch, so no date is firmer than approximate.
+    .approximate()
 }
 
 static QUMRAN_RULES: &[HolidayRule] = &[
@@ -4308,6 +4347,11 @@ static QUMRAN_RULES: &[HolidayRule] = &[
 /// reconstruction (`docs/systems/qumran.md`). The festivals of the Temple
 /// Scroll — the New Wine, the New Oil, the Wood Offering — are not carried:
 /// no source read dates them.
+///
+/// Every entry is approximate: the weekday is the scrolls', but the
+/// Gregorian date is the convention's, and no source read says in which
+/// years the covenanters kept the calendar, so no year is a gap or absent,
+/// and none is more than a position in the convention (audit 10 a2).
 pub static QUMRAN: RuleSet = RuleSet {
     code: "qumran-festivals",
     english_name: "Qumran festivals",

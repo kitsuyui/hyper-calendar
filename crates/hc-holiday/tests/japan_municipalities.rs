@@ -346,8 +346,32 @@ fn hiroshima_s_peace_memorial_day_closes_the_city_s_offices_alone() {
 #[test]
 fn sagamihara_s_foundation_day_is_a_gap_in_every_year() {
     // 相模原市表彰条例 gives awards on the 市制施行記念日 and no date.
-    for year in [1960, 2026] {
+    for year in [1989, 2026] {
         assert_eq!(gap_names("JP-14-150", year), ["市制施行記念日"], "{year}");
+    }
+    // Before Kanagawa's 休日条例 of 1989 the prefecture is a gap too, and
+    // the city's with it.
+    assert_eq!(gap_names("JP-14-150", 1960), ["", "市制施行記念日"]);
+}
+
+#[test]
+fn a_city_read_for_no_day_is_a_gap_before_its_holiday_ordinance() {
+    // Each city's 休日条例, as the 条例Webアーカイブ's copy gives it: 札幌市
+    // 1990-06-15, 仙台市 1989-09-22, 新潟市 1989-10-09, 大阪市 1991-12-24 (in
+    // force 1992-04-01), 北九州市 1991-03-25, 福岡市 1990-12-22. The regime
+    // before it was not read, and a city's days are no better known than
+    // its prefecture's.
+    for (region, first) in [
+        ("JP-01-100", 1990),
+        ("JP-04-100", 1989),
+        ("JP-15-100", 1989),
+        ("JP-27-100", 1992),
+        ("JP-40-100", 1991),
+        ("JP-40-130", 1990),
+    ] {
+        assert!(!gap_names(region, first - 1).is_empty(), "{region}");
+        assert!(gap_names(region, first).is_empty(), "{region} {first}");
+        assert!(gap_names(region, 2026).is_empty(), "{region}");
     }
 }
 

@@ -3027,23 +3027,23 @@ fn the_years_the_common_worship_rules_leave_open_are_gaps() {
     );
     // Easter on 25 April 2038: 1 May is in Easter Week.
     assert_eq!(gapped(2038), ["Philip and James, Apostles"]);
-    // Easter on 23 April 2000: St George's Monday is 1 May.
+    // Easter on 23 April 2079: St George's Monday is 1 May.
     assert_eq!(
-        gapped(2000),
+        gapped(2079),
         [
             "George, Martyr, Patron of England",
             "Philip and James, Apostles"
         ]
     );
-    expect(&COMMON_WORSHIP, &[(2000, 5, 2, "Mark the Evangelist")]);
-    // Easter on 22 April 1962: St Mark's Tuesday is 1 May.
+    expect(&COMMON_WORSHIP, &[(2079, 5, 2, "Mark the Evangelist")]);
+    // Easter on 22 April 2057: St Mark's Tuesday is 1 May.
     assert_eq!(
-        gapped(1962),
+        gapped(2057),
         ["Mark the Evangelist", "Philip and James, Apostles"]
     );
     expect(
         &COMMON_WORSHIP,
-        &[(1962, 4, 30, "George, Martyr, Patron of England")],
+        &[(2057, 4, 30, "George, Martyr, Patron of England")],
     );
     assert!(gapped(2026).is_empty());
 }
@@ -3058,7 +3058,7 @@ fn no_festival_is_kept_where_the_common_worship_rules_forbid_it() {
             .map(|celebration| celebration.rank)
             .expect("every name is a celebration")
     };
-    for year in 1900..=2100 {
+    for year in 2001..=2100 {
         let calendar = HolidayCalendar::for_year(&COMMON_WORSHIP, None, year);
         let easter = hc_holiday::gregorian_easter(year).expect("in range");
         let advent = only_date(&CHRISTIAN_WESTERN, year, "First Sunday of Advent");

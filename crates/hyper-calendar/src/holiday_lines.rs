@@ -33,7 +33,7 @@ use hc_holiday::group::Group;
 use hc_holiday::holy_years::{self, HolyYearOn, Jubilee, JubileeKind, TableDate};
 use hc_holiday::orthodox_fasts::{self, Abstinence, PeriodKind, Reckoning, Status};
 use hc_holiday::roman_calendar_1960;
-use hc_holiday::rule::{Kind, RuleSet, Scope, region_parent};
+use hc_holiday::rule::{Kind, RuleSet, Scope, is_region_code, region_parent};
 use hc_holiday::{
     Gap, Holiday, HolidayCalendar, computus, countries, exchanges, international, lectionary,
     traditions,
@@ -399,19 +399,84 @@ fn table_group(table: &RuleSet, group: Option<&str>) -> Option<&'static str> {
         .find(|id| hc_core::catalogue::matches(group, id))
 }
 
-/// The scope a caller asks for: `region` as given, and `group`, which must
-/// name a group of [`hc_holiday::group::GROUPS`] when it is not blank. A
-/// known group the table gives no day to alone has everyone's days; a
-/// name that is no group is refused rather than answered as if it were
-/// everyone.
+/// The country a table's regions belong to: a country's table, its own
+/// code, and an exchange's, the country whose table it includes
+/// ([`country_of`]). A tradition's or a set of observances' has none, and
+/// no region is one of its.
+fn region_country(table: &RuleSet) -> Option<&'static str> {
+    let is_table =
+        |found: Option<&'static RuleSet>| found.is_some_and(|set| core::ptr::eq(set, table));
+    if is_table(countries::by_code(table.code)) {
+        Some(table.code)
+    } else if is_table(exchanges::by_code(table.code)) {
+        country_of(table, TableKind::Exchange)
+    } else {
+        None
+    }
+}
+
+/// Whether `region` is a region `table` can be asked for: of the table's
+/// country, and either a subdivision or municipality the table names (a rule
+/// is scoped to it, or it is listed as read) or a subdivision ISO 3166-2
+/// has in CLDR's list (`hc_i18n::place_names`), or a municipality's code
+/// of such a subdivision (ADR 0014). `US-ZZ`, `JP-99`, `JP garbage` and
+/// `JP-14-130-5` are none of these, and neither is any region of a
+/// tradition's table; a subdivision that exists and was not read, `US-NH`
+/// for a table that carries no New Hampshire day, is, and is answered with
+/// a gap (ADR 0013).
+fn is_known_region(table: &RuleSet, region: &str) -> bool {
+    let region = region.trim();
+    if !is_region_code(region) {
+        return false;
+    }
+    let Some(country) = region_country(table) else {
+        return false;
+    };
+    let named = |codes: alloc::vec::Vec<&'static str>| {
+        codes
+            .iter()
+            .any(|code| hc_core::catalogue::matches(region, code))
+    };
+    if named(table.regions()) || named(table.read_subdivisions()) {
+        return true;
+    }
+    // The subdivision is the first two parts of the code: `JP-14` of
+    // `JP-14-130`.
+    let mut parts = region.splitn(3, '-');
+    let (Some(first), Some(second)) = (parts.next(), parts.next()) else {
+        return false;
+    };
+    first.eq_ignore_ascii_case(country)
+        && place_names::subdivision(&alloc::format!("{first}-{second}")).is_some()
+}
+
+/// The scope a caller asks for: `region`, which must be a region the table
+/// can be asked for when it is not blank, and `group`, which must name a
+/// group of [`hc_holiday::group::GROUPS`] when it is not blank. A known
+/// group the table gives no day to alone has everyone's days; a name that
+/// is no group is refused rather than answered as if it were everyone. A
+/// subdivision that exists and was not read is a gap, and a code that is
+/// no subdivision of the table's country is refused, as a typo would
+/// otherwise look like a region not yet read (audit 10 b25).
 ///
 /// # Errors
 ///
-/// [`Refusal::Unknown`] for a `group` that names no group.
-fn requested_scope<'a>(region: Option<&'a str>, group: Option<&'a str>) -> Answer<Scope<'a>> {
+/// [`Refusal::Unknown`] for a `group` that names no group, and for a
+/// `region` that is no region of the table's country.
+fn requested_scope<'a>(
+    table: &RuleSet,
+    region: Option<&'a str>,
+    group: Option<&'a str>,
+) -> Answer<Scope<'a>> {
     let group = group.filter(|group| !group.trim().is_empty());
     if let Some(group) = group {
         hc_holiday::group::by_id(group).ok_or(Refusal::Unknown)?;
+    }
+    let region = region.filter(|region| !region.trim().is_empty());
+    if let Some(region) = region
+        && !is_known_region(table, region)
+    {
+        return Err(Refusal::Unknown);
     }
     Ok(Scope::new(region, group))
 }
@@ -465,7 +530,7 @@ pub fn year_lines(table: &RuleSet, scope: Scope<'_>, kinds: &[Kind], year: i64) 
         scope
             .region
             .map(str::trim)
-            .filter(|region| !table.reads_region(region))
+            .filter(|region| !table.reads_region_in(region, year))
     });
     let own_group = table_group(table, scope.group);
     // The calendar without the region, and the calendar without the group:
@@ -599,7 +664,7 @@ pub fn holidays_in_year(
     year: i64,
 ) -> Answer<String> {
     let table = rule_set(code)?;
-    let scope = requested_scope(region, group)?;
+    let scope = requested_scope(table, region, group)?;
     Ok(year_lines(table, scope, &requested_kinds(kind)?, year))
 }
 
@@ -803,7 +868,7 @@ pub fn is_day_off(
     let table = rule_set(code)?;
     let day = Rd(fixed);
     gregorian::year_from_fixed(day).map_err(|_| Refusal::OutOfRange)?;
-    let scope = requested_scope(region, group)?;
+    let scope = requested_scope(table, region, group)?;
     Ok(HolidayCalendar::for_day_scoped(table, scope, day).is_holiday(day))
 }
 
@@ -836,7 +901,7 @@ pub fn add_business_days(
     count: i64,
 ) -> Answer<i64> {
     let table = rule_set(code)?;
-    let scope = requested_scope(region, group)?;
+    let scope = requested_scope(table, region, group)?;
     let year = year_of(fixed)?;
     if count.unsigned_abs() > MAX_BUSINESS_DAYS.unsigned_abs() {
         return Err(Refusal::OutOfRange);
@@ -874,7 +939,7 @@ pub fn business_days_between(
     to_fixed: i64,
 ) -> Answer<i64> {
     let table = rule_set(code)?;
-    let scope = requested_scope(region, group)?;
+    let scope = requested_scope(table, region, group)?;
     let (from, to) = (year_of(from_fixed)?, year_of(to_fixed)?);
     let (first, last) = (from.min(to), from.max(to));
     if last - first > 100 {
@@ -2272,5 +2337,66 @@ mod tests {
         assert!(row("JP")[12].split(';').any(|code| code == "JP-14-130"));
         assert_eq!(row("XNYS")[11], "");
         assert_eq!(row("XNYS")[12], "");
+    }
+
+    #[test]
+    fn a_region_no_country_has_is_refused_and_one_not_read_is_a_gap() {
+        // Audit 10 b25. `US-ZZ`, `JP garbage` and `JP-99` were answered with
+        // the nationwide days and the gap of a subdivision not read, so a
+        // typo looked like a region whose days had not been read yet.
+        for (table, region) in [
+            ("US", "US-ZZ"),
+            ("JP", "JP garbage"),
+            ("JP", "JP-99"),
+            ("JP", "JP-14-130-5"),
+            ("JP", "Tokyo"),
+            ("JP", "US-NH"),
+            ("US", "JP-13"),
+            ("christian-western", "US-NH"),
+            ("XNYS", "JP-13"),
+        ] {
+            assert_eq!(
+                holidays_in_year(table, Some(region), None, None, 2026),
+                Err(Refusal::Unknown),
+                "{table} {region}"
+            );
+        }
+        // A subdivision that exists, with a day carried, one read for none, one
+        // not read, and a municipality of one, in either case and with white
+        // space around it.
+        for (table, region) in [
+            ("JP", "JP-13"),
+            ("JP", " jp-13 "),
+            ("JP", "JP-14-130"),
+            ("JP", "JP-14"),
+            ("US", "US-NH"),
+            ("US", "us-ca"),
+            ("JP", "JP-14-204"),
+        ] {
+            assert!(
+                holidays_in_year(table, Some(region), None, None, 2026).is_ok(),
+                "{table} {region}"
+            );
+        }
+        // A blank region is no region, as a blank group is no group.
+        assert_eq!(
+            holidays_in_year("JP", Some(" "), None, None, 2026),
+            holidays_in_year("JP", None, None, None, 2026)
+        );
+        // A subdivision read only from a year is a gap before it, in the
+        // lines as in the calendar (audit 10 a4).
+        let before = holidays_in_year("JP", Some("JP-27"), None, None, 1985).expect("JP");
+        assert!(
+            before
+                .lines()
+                .any(|line| line.ends_with("\tunread-subdivision\t")),
+            "{before}"
+        );
+        let after = holidays_in_year("JP", Some("JP-27"), None, None, 2026).expect("JP");
+        assert!(
+            !after
+                .lines()
+                .any(|line| line.ends_with("\tunread-subdivision\t"))
+        );
     }
 }
