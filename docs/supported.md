@@ -703,7 +703,7 @@ Besides these, `std` (on by default) chooses the build shape: turn it off for `n
 | `tz` | civil, hc-tz, hc-i18n, hc-i18n/exemplar-cities |
 | `localized-exemplar-cities` | hc-i18n, hc-i18n/localized-exemplar-cities |
 | `place-names` | hc-i18n, hc-i18n/place-names |
-| `format` | civil, hc-format, hc-humanize?/format |
+| `format` | civil, hc-format, hc-i18n, hc-tz, hc-humanize?/format |
 | `zone-names` | format, tz, hc-format/zone-names |
 | `localized-zone-names` | zone-names, localized-exemplar-cities, hc-format/localized-zone-names |
 | `i18n` | civil, hc-i18n |

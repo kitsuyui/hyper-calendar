@@ -49,7 +49,7 @@
 //! The entry points come in layers, each a Cargo feature: `civil` (the
 //! default), `timestamps`, `time-codes`, `calendars`, `holiday`, `seasons`,
 //! `deep-time`, `tz`, `sky`, `orbital`, `jupiter`, `planetary`, `relativity`, `places`,
-//! `humanize` and `zone-names`, with
+//! `humanize`, `natural`, `datetime`, `patterns` and `zone-names`, with
 //! `full` for all of them. Which feature each needs is in the README's table.
 //!
 //! Each layer is a module of its own. Most of its entry points are rows of
@@ -183,6 +183,21 @@ pub use places::*;
 mod humanize;
 #[cfg(feature = "humanize")]
 pub use humanize::*;
+
+#[cfg(feature = "natural")]
+mod natural;
+#[cfg(feature = "natural")]
+pub use natural::*;
+
+#[cfg(feature = "datetime")]
+mod datetime;
+#[cfg(feature = "datetime")]
+pub use datetime::*;
+
+#[cfg(feature = "patterns")]
+mod patterns;
+#[cfg(feature = "patterns")]
+pub use patterns::*;
 
 #[cfg(feature = "zone-names")]
 mod zone_names;

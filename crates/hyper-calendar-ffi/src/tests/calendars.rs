@@ -412,6 +412,13 @@ fn the_units_the_calendars_and_the_locales_are_lines_too() {
         .map(|line| line.split('\t').collect())
         .collect();
     assert_eq!(rows.len(), hc::hc_i18n::data::LOCALES.len());
-    assert!(rows.iter().all(|row| row.len() == 7), "{rows:?}");
+    assert!(rows.iter().all(|row| row.len() == 10), "{rows:?}");
     assert_eq!(rows[0][0], "aeb-Latn");
+    // The parent, the default numbering system and the direction:
+    // `parentLocales` send `en-GB` to `en-001`, `ar-EG` writes `arab`
+    // (`docs/systems/locale-fallback.md`, from CLDR 48).
+    let row = |tag: &str| rows.iter().find(|row| row[0] == tag).expect(tag).clone();
+    assert_eq!(row("en-GB")[7..], ["en-001", "latn", "ltr"]);
+    assert_eq!(row("ar-EG")[7..], ["ar", "arab", "rtl"]);
+    assert_eq!(row("ja")[7..], ["und", "latn", "ltr"]);
 }

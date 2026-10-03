@@ -46,7 +46,12 @@ the googol through `intword_digits`, which takes an integer of any length.
 `scripts/humanize-gettext.py` (`--check` verifies the file):
 `NaturalPhrases::by_catalogue("ru_RU")` is what
 `humanize.i18n.activate("ru_RU")` loads, and `Natural::for_language("de")`
-finds the one catalogue of a language that has exactly one. A plural message
+finds the one catalogue of a language that has exactly one.
+`NaturalPhrases::for_locale(&locale, NaturalWords::Intword)` chooses the one
+that serves a locale: the first step of its fallback chain that a catalogue
+is for and that translates those words, English where none does, since a
+catalogue holds the English of the source for a message it lacks and a result
+must not be written in two languages. A plural message
 is chosen by the catalogue's own `Plural-Forms` expression, evaluated as
 written (`natural::gettext`) and not by CLDR's categories, since the two
 disagree for some languages and for some counts; a message the catalogue

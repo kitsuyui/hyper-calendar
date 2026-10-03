@@ -131,6 +131,26 @@ test("calendarUnits, calendars and locales read the README's columns in order", 
   assert.deepEqual([...COLUMNS.gregorianAdoption], columnsAfter("## Gregorian adoption"));
 });
 
+test("the date-time lines read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.reading], columnsAfter("### Date-times"));
+  assert.deepEqual([...COLUMNS.formattedDatetime], columnsAfter("### Writing a date-time"));
+  assert.deepEqual([...COLUMNS.formattedIsoDate], columnsAfter("### Week and ordinal dates"));
+  assert.deepEqual([...COLUMNS.isoDateParts], columnsAfter("### An ISO 8601 date, read into its parts"));
+  assert.deepEqual([...COLUMNS.isoDuration], columnsAfter("### ISO 8601 durations"));
+  assert.deepEqual([...COLUMNS.formattedIsoDuration], columnsAfter("### A duration written"));
+  assert.deepEqual([...COLUMNS.isoInterval], columnsAfter("### ISO 8601 intervals"));
+  assert.deepEqual([...COLUMNS.patternFields], columnsAfter("### A text read against a pattern"));
+});
+
+test("the locale-resolution lines read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.localeChain], columnsAfter("### The fallback chain"));
+  assert.deepEqual([...COLUMNS.localeInfo], columnsAfter("### What a locale is"));
+  assert.deepEqual([...COLUMNS.pluralCategory], columnsAfter("### A plural category"));
+  assert.deepEqual([...COLUMNS.names], columnsAfter("### The names of a calendar"));
+  assert.deepEqual([...COLUMNS.caseText], columnsAfter("### Case"));
+  assert.deepEqual([...COLUMNS.isolated], columnsAfter("### Isolates"));
+});
+
 test("holidaysOn reads the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.holidaysOn], columnsAfter("### One day, every table"));
 });
@@ -421,7 +441,11 @@ test("the humanized times read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.relativeTime], columnsAfter("### Relative time"));
   assert.deepEqual([...COLUMNS.relativeDayAt], columnsAfter("### A relative day at a time"));
   assert.deepEqual([...COLUMNS.duration], columnsAfter("### Durations"));
-  assert.deepEqual([...COLUMNS.naturalText], columnsAfter("### Python humanize's numbers"));
+  assert.deepEqual([...COLUMNS.localizedNaturalText], columnsAfter("### Python humanize's words"));
+  assert.deepEqual([...COLUMNS.naturalText], ["text", "language"]);
+  assert.deepEqual([...COLUMNS.unitChoice], columnsAfter("### A threshold table and a rounding of the caller's"));
+  assert.deepEqual([...COLUMNS.relativeTimeWith], columnsAfter("### A relative time under a table"));
+  assert.deepEqual([...COLUMNS.approximateDuration], columnsAfter("### A hedged duration"));
 });
 
 test("the relativity lines read the README's columns in order", () => {

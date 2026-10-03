@@ -1,5 +1,13 @@
 use super::*;
 
+/// A string argument as the pointer and length the module takes.
+#[allow(unused_macros)]
+macro_rules! s {
+    ($text:expr) => {
+        ($text.as_ptr(), $text.len())
+    };
+}
+
 #[test]
 fn allocation_round_trips() {
     let pointer = hc_alloc(32);
@@ -69,6 +77,9 @@ fn the_error_floor_is_far_below_any_real_day_number() {
     feature = "relativity",
     feature = "places",
     feature = "humanize",
+    feature = "natural",
+    feature = "datetime",
+    feature = "patterns",
     feature = "zone-names"
 ))]
 fn read_lines(call: impl Fn(*mut u8, usize) -> i64) -> String {
@@ -147,6 +158,15 @@ mod places;
 #[cfg(feature = "humanize")]
 mod humanize;
 
+#[cfg(feature = "natural")]
+mod natural;
+
+#[cfg(feature = "datetime")]
+mod datetime;
+
+#[cfg(feature = "patterns")]
+mod patterns;
+
 #[cfg(feature = "zone-names")]
 mod zone_names;
 
@@ -158,6 +178,9 @@ mod clock_readings;
 
 #[cfg(feature = "calendars")]
 mod day_periods;
+
+#[cfg(feature = "calendars")]
+mod locale_resolution;
 
 #[cfg(feature = "holiday")]
 mod fasts;

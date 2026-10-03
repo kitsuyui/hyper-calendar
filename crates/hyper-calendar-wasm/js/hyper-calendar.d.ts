@@ -74,6 +74,9 @@ export type Feature =
   | "relativity"
   | "places"
   | "humanize"
+  | "natural"
+  | "datetime"
+  | "patterns"
   | "zone-names";
 
 /** A binary CCSDS code `hc_ccsds_decode` reads. */
@@ -1033,6 +1036,20 @@ export const COLUMNS: {
   readonly calendars: ReadonlyArray<string>;
   readonly calendarList: ReadonlyArray<string>;
   readonly locales: ReadonlyArray<string>;
+  readonly reading: ReadonlyArray<string>;
+  readonly formattedDatetime: ReadonlyArray<string>;
+  readonly formattedIsoDate: ReadonlyArray<string>;
+  readonly isoDateParts: ReadonlyArray<string>;
+  readonly isoDuration: ReadonlyArray<string>;
+  readonly formattedIsoDuration: ReadonlyArray<string>;
+  readonly isoInterval: ReadonlyArray<string>;
+  readonly patternFields: ReadonlyArray<string>;
+  readonly localeChain: ReadonlyArray<string>;
+  readonly localeInfo: ReadonlyArray<string>;
+  readonly pluralCategory: ReadonlyArray<string>;
+  readonly names: ReadonlyArray<string>;
+  readonly caseText: ReadonlyArray<string>;
+  readonly isolated: ReadonlyArray<string>;
   readonly gregorianAdoption: ReadonlyArray<string>;
   readonly holidaysInYear: ReadonlyArray<string>;
   readonly holidaysOn: ReadonlyArray<string>;
@@ -1078,6 +1095,10 @@ export const COLUMNS: {
   readonly relativeDayAt: ReadonlyArray<string>;
   readonly duration: ReadonlyArray<string>;
   readonly naturalText: ReadonlyArray<string>;
+  readonly localizedNaturalText: ReadonlyArray<string>;
+  readonly unitChoice: ReadonlyArray<string>;
+  readonly relativeTimeWith: ReadonlyArray<string>;
+  readonly approximateDuration: ReadonlyArray<string>;
   readonly zoneName: ReadonlyArray<string>;
   readonly utcFromTai: ReadonlyArray<string>;
   readonly tai64PosixPlus10: ReadonlyArray<string>;
@@ -1373,6 +1394,347 @@ export interface LocaleEntry {
   gregorianEras: boolean;
   /** The calendars it has vocabulary of its own for, beyond the shared Gregorian months. */
   calendars: string[];
+  /** Its parent in the fallback chain, `null` for none. */
+  parent: string | null;
+  /** The numbering system numbers are written in by default, `latn`, `arab`. */
+  numbering: string;
+  /** The direction of the locale's script. */
+  direction: TextDirection;
+}
+
+/** The syntaxes `hc_parse_datetime` reads. */
+export type DatetimeSyntax = "iso8601" | "iso8601-full" | "rfc3339" | "rfc2822" | "python" | "auto";
+
+/** The syntaxes `hc_format_datetime` writes. */
+export type DatetimeFormat =
+  | "iso8601"
+  | "iso8601-basic"
+  | "iso8601-ordinal"
+  | "iso8601-week"
+  | "rfc3339"
+  | "rfc2822"
+  | "imf-fixdate"
+  | "python";
+
+/** How much of a time `hc_format_datetime` writes. */
+export type DatetimePrecision =
+  | "auto" | "hours" | "minutes" | "seconds" | "milliseconds" | "microseconds" | "nanoseconds";
+
+/** What a text said about its zone. */
+export type ReadingZone = "none" | "utc" | "offset" | "unknown-local";
+
+/** A date-time as text read it: a local reading, and an instant when the text states a zone. */
+export interface Reading {
+  /** The local fixed day. */
+  localDay: number;
+  /** The local second of the day, 0 to 86 400 (`23:59:60` is the 86 400th). */
+  localSecond: number;
+  /** The attoseconds into that second. */
+  attoseconds: bigint;
+  /** The zone the text stated. */
+  zone: ReadingZone;
+  /** The offset in seconds east of UTC, `null` where no zone was stated. */
+  offsetSeconds: number | null;
+  /** The POSIX second of the instant, floored, `null` where no zone was stated. */
+  unixSeconds: number | null;
+  /** Whether it is an inserted leap second, which POSIX counts as the second after it. */
+  leapSecond: boolean;
+  /** Whether the text wrote the end of a day as `24:00`. */
+  endOfDay: boolean;
+}
+
+/** The line of `hc_format_datetime`. */
+export interface FormattedDatetime {
+  /** The date-time. */
+  text: string;
+  /** The syntax it is written in. */
+  syntax: DatetimeFormat;
+}
+
+/** An ISO 8601 date's form. */
+export type IsoDateForm = "calendar" | "ordinal" | "week";
+
+/** An ISO 8601 date's style. */
+export type IsoDateStyle = "extended" | "basic";
+
+/** The line of `hc_format_iso_date_as`. */
+export interface FormattedIsoDate {
+  /** The date. */
+  text: string;
+  /** Its form. */
+  form: IsoDateForm;
+  /** Its style. */
+  style: IsoDateStyle;
+}
+
+/** An ISO 8601 date read into its parts. */
+export interface IsoDateParts {
+  /** The form. */
+  form: IsoDateForm;
+  /** The year; the week-numbering year of a week date. */
+  year: number;
+  /** The month, `null` where the form or the text has none. */
+  month: number | null;
+  /** The day of the month. */
+  day: number | null;
+  /** The day of the year. */
+  dayOfYear: number | null;
+  /** The week. */
+  week: number | null;
+  /** The weekday, 1 Monday to 7 Sunday. */
+  weekday: number | null;
+  /** The fixed day, `null` for a date that names none. */
+  fixed: number | null;
+  /** The style. */
+  style: IsoDateStyle;
+}
+
+/** A duration's exact length, where it has one. */
+export interface DurationLength {
+  /** The duration written in canonical form. */
+  text: string;
+  /** Whether it has years or months, which have no fixed length. */
+  nominal: boolean;
+  /** Its whole seconds, `null` for a nominal one. */
+  exactSeconds: bigint | null;
+  /** The attoseconds after them, `null` for a nominal one. */
+  exactAttoseconds: bigint | null;
+}
+
+/** An ISO 8601 duration read into its components. */
+export interface IsoDurationParts extends DurationLength {
+  /** Whether it had a leading minus (ISO 8601-2). */
+  negative: boolean;
+  /** The years, `null` where the text did not write them. */
+  years: number | null;
+  months: number | null;
+  weeks: number | null;
+  days: number | null;
+  hours: number | null;
+  minutes: number | null;
+  seconds: number | null;
+  /** The digits of the decimal fraction of the lowest component, as written. */
+  fraction: string | null;
+  /** `designators` (`P1Y2M3D`) or `alternative` (`P0001-02-03T04:05:06`). */
+  form: "designators" | "alternative";
+}
+
+/** The components of a duration to write; one left out is absent. */
+export interface IsoDurationInput {
+  negative?: boolean;
+  years?: number | bigint;
+  months?: number | bigint;
+  weeks?: number | bigint;
+  days?: number | bigint;
+  hours?: number | bigint;
+  minutes?: number | bigint;
+  seconds?: number | bigint;
+  /** The digits of a decimal fraction of the lowest component. */
+  fraction?: string;
+}
+
+/** The line of `hc_format_iso_duration`. */
+export type FormattedIsoDuration = DurationLength;
+
+/** An ISO 8601 interval's shape. */
+export type IntervalShape = "start-end" | "start-duration" | "duration-end" | "duration";
+
+/** An ISO 8601 interval read into its ends. */
+export interface IsoIntervalParts {
+  /** `null` for an interval that does not repeat, a count, or `inf` for `R/`. */
+  repetitions: number | "inf" | null;
+  /** The shape. */
+  shape: IntervalShape;
+  /** The start as written back. */
+  start: string | null;
+  /** The POSIX second of the start, `null` where it states no zone or no time. */
+  startUnixSeconds: number | null;
+  /** The end as written back. */
+  end: string | null;
+  /** The POSIX second of the end. */
+  endUnixSeconds: number | null;
+  /** The duration, `null` for a start and an end. */
+  duration: DurationLength | null;
+}
+
+/** The pattern languages `hc_parse_pattern` reads. */
+export type PatternSyntax = "strftime" | "python" | "cldr";
+
+/** The line of `hc_parse_pattern`: the fields a pattern read, and the reading they resolve to. */
+export interface PatternFields {
+  year: number | null;
+  century: number | null;
+  yearOfCentury: number | null;
+  month: number | null;
+  day: number | null;
+  dayOfYear: number | null;
+  isoYear: number | null;
+  isoWeek: number | null;
+  isoWeekday: number | null;
+  /** The `%U` week number. */
+  weekSunday: number | null;
+  /** The `%W` week number. */
+  weekMonday: number | null;
+  /** The hour on a 24-hour clock. */
+  hour: number | null;
+  /** The hour on a 12-hour clock. */
+  hour12: number | null;
+  dayPeriod: "am" | "pm" | null;
+  minute: number | null;
+  second: number | null;
+  attoseconds: bigint | null;
+  zone: ReadingZone | null;
+  offsetSeconds: number | null;
+  /** The POSIX second a `%s` read. */
+  unixSeconds: number | null;
+  era: "ce" | "bce" | null;
+  /** The fixed day CLDR's `g` read. */
+  fixed: number | null;
+  /** The reading the fields resolve to, `null` where they name no whole date and time. */
+  reading: Reading | null;
+}
+
+/** `ltr` or `rtl`. */
+export type TextDirection = "ltr" | "rtl";
+
+/** Why a fallback chain goes from one step to the next. */
+export type LocaleChainRule =
+  | "requested"
+  | "likely-script"
+  | "extensions"
+  | "variant"
+  | "parent-locales"
+  | "region"
+  | "script"
+  | "root";
+
+/** One step of `hc_locale_chain`. */
+export interface LocaleChainStep {
+  /** The step, from 0. */
+  step: number;
+  /** The tag. */
+  tag: string;
+  /** The rule that led to it from the step before. */
+  rule: LocaleChainRule;
+  /** Whether `hc-i18n` carries an entry of data for exactly this tag. */
+  carried: boolean;
+}
+
+/** Which case mappings apply. */
+export type CasingStyleName = "standard" | "turkic";
+
+/** The line of `hc_locale_info`. */
+export interface LocaleInfo {
+  /** The tag, written canonically. */
+  tag: string;
+  /** The language subtag. */
+  language: string;
+  /** The script subtag, as given. */
+  script: string | null;
+  /** The region subtag, as given. */
+  region: string | null;
+  /** The variant subtag, as given. */
+  variant: string | null;
+  /** The `-u-ca-` key. */
+  calendarKey: string | null;
+  /** The `-u-nu-` key. */
+  numberingKey: string | null;
+  /** The `-u-fw-` key as an ISO weekday number. */
+  firstDayKey: number | null;
+  /** The `-u-hc-` key. */
+  hourCycleKey: string | null;
+  /** The tag of the entry of data that answers for the locale. */
+  localeUsed: string;
+  /** The next step of the fallback chain. */
+  parent: string | null;
+  /** The rule that gave the parent. */
+  parentRule: LocaleChainRule | null;
+  /** The numbering system numbers are written in by default. */
+  numbering: string;
+  /** The ISO weekday number the week begins on. */
+  firstDay: number;
+  /** CLDR's `minDays`: the fewest days of a year a week needs to be its first. */
+  minDays: number;
+  /** The direction of the locale's script. */
+  direction: TextDirection;
+  /** Which case mappings apply. */
+  casing: CasingStyleName;
+  /** Whether month and weekday names are written with a capital. */
+  capitalisesMonthNames: boolean;
+  /** The language of the cardinal plural rules that apply, `und` for none. */
+  pluralRules: string;
+}
+
+/** The kinds of plural rule. `ordinal` is not carried. */
+export type PluralKind = "cardinal" | "ordinal";
+
+/** A CLDR plural category. */
+export type PluralCategoryName = "zero" | "one" | "two" | "few" | "many" | "other";
+
+/** The line of `hc_plural_category`. */
+export interface PluralCategoryAnswer {
+  /** The category. */
+  category: PluralCategoryName;
+  /** The language of the rules that decided it, `und` where none is carried. */
+  rules: string;
+  /** The operands of UTS #35 read from the number as written. */
+  operands: { i: bigint; v: number; w: number; f: bigint; t: bigint };
+}
+
+/** The widths of a name. */
+export type NameWidth = "wide" | "abbreviated" | "short" | "narrow";
+
+/** Whether a name stands inside a date or on its own. */
+export type NameContext = "format" | "standalone";
+
+/** One line of `hc_names`. */
+export interface LocaleName {
+  /** `month`, `month-in-leap-year`, `weekday`, `quarter`, `day-period` or a cycle's kind. */
+  kind: string;
+  /** The position from 1; the ISO number for a weekday. */
+  position: number;
+  /** The name. */
+  name: string;
+  /** The tag of the entry of data that answered. */
+  localeUsed: string;
+}
+
+/** How `hc_case` recases a text. */
+export type CaseMode =
+  | "lower"
+  | "upper"
+  | "capitalise-first"
+  | "lowercase-first"
+  | "sentence-start"
+  | "in-sentence";
+
+/** The line of `hc_case`. */
+export interface CasedText {
+  /** The text recased. */
+  text: string;
+  /** The mode. */
+  mode: CaseMode;
+  /** `standard` or `turkic`. */
+  casing: CasingStyleName;
+  /** The tag of the entry of data that answered. */
+  localeUsed: string;
+}
+
+/** How `hc_isolate` wraps a text. */
+export type IsolateMode = "field" | "first-strong" | "strip";
+
+/** The line of `hc_isolate`. */
+export interface IsolatedText {
+  /** The text, with the isolates around it where the mode says. */
+  text: string;
+  /** The locale's direction. */
+  direction: TextDirection;
+  /** The text's own direction by the first-strong rule, `null` where it has no strong character. */
+  textDirection: TextDirection | null;
+  /** Whether isolates were added. */
+  isolated: boolean;
+  /** The mode. */
+  mode: IsolateMode;
 }
 
 export type HolidayKind =
@@ -1906,12 +2268,76 @@ export interface HumanizedDuration {
   localeUsed: string;
 }
 
-/** The line of the `humanize` number functions. */
+/** The line of `hc_fractional` and `hc_scientific`, which write no word. */
 export interface NaturalText {
   /** The text: *five*, *3/10*, *1.50 kV*, *3.0 MB*, *one, two and three*, *1.0 googol*. */
   text: string;
-  /** The language of the vocabulary that wrote it, `en`, the only one carried. */
+  /** The language of the vocabulary that wrote it, always `en`. */
   language: string;
+}
+
+/** The line of the `humanize` functions that write words. */
+export interface LocalizedNaturalText {
+  /** The text: *fünf*, *12,4 Millionen*, *3.0 MB*, *vor 3 Sekunden*. */
+  text: string;
+  /** The language of the catalogue that wrote it, `de-DE`, `ru-RU`, or `en`. */
+  localeUsed: string;
+}
+
+/** A unit `naturalDelta` and `naturalTime` can stop at. */
+export type DeltaUnit = "seconds" | "milliseconds" | "microseconds";
+
+/** A unit `preciseDelta` can stop at or suppress. */
+export type PreciseUnitName =
+  | "microseconds" | "milliseconds" | "seconds" | "minutes" | "hours" | "days" | "months" | "years";
+
+/** The grammatical gender `ordinal` takes. */
+export type OrdinalGender = "male" | "female";
+
+/** A table of thresholds `hc-humanize` states. */
+export type ThresholdsName = "default" | "exact" | "with-quarters";
+
+/** How a fractional count is made whole. */
+export type RoundingName = "ceil" | "floor" | "nearest" | "truncate" | "nearest-half";
+
+/** How a hedge is chosen. */
+export type HedgePolicy = "default" | "bounded";
+
+/** What a hedge says about the round number. */
+export type Hedge = "exactly" | "about" | "just-over" | "over" | "nearly";
+
+/** The line of `hc_unit_choice`. */
+export interface UnitChoice {
+  /** The unit the span is said in. */
+  unit: HumanizeUnit;
+  /** The signed count, its whole part. */
+  count: number;
+  /** Whether a half is added to the count in the direction of its sign (`nearest-half`). */
+  half: boolean;
+  /** The thresholds applied. */
+  thresholds: ThresholdsName;
+  /** The rounding applied. */
+  rounding: RoundingName;
+}
+
+/** The line of `hc_relative_time_with`. */
+export interface RelativeTimeWith extends RelativeTime {
+  /** Whether a half is added to the count (*an hour and a half ago*). */
+  half: boolean;
+}
+
+/** The line of `hc_approximate_duration`. */
+export interface ApproximateDuration {
+  /** The phrase: *about 3 hours*, *just over a year*. */
+  phrase: string;
+  /** The hedge. */
+  hedge: Hedge;
+  /** The unit. */
+  unit: HumanizeUnit;
+  /** The count, which *nearly* carries up to the next. */
+  count: number;
+  /** The tag of the `hc-humanize` data the locale resolved to. */
+  localeUsed: string;
 }
 
 /** The suffixes and base of `naturalSize`. */
@@ -3106,6 +3532,42 @@ export class HyperCalendar {
    * given, and a tag that does not parse is `und`, Monday.
    */
   firstDayOfWeek(locale?: string): number;
+  /** `hc_parse_datetime`: a date-time read in a syntax, as a reading. */
+  parseDatetime(syntax: DatetimeSyntax, text: string): Reading;
+  /** `hc_format_datetime`: an instant written as a date-time in a syntax and to a precision. */
+  formatDatetime(
+    syntax: DatetimeFormat,
+    unixSeconds: number | bigint,
+    attoseconds?: number | bigint,
+    offsetSeconds?: number,
+    precision?: DatetimePrecision,
+  ): FormattedDatetime;
+  /** `hc_format_iso_date_as`: a fixed day as an ISO 8601 calendar, ordinal or week date. */
+  formatIsoDateAs(fixed: number | bigint, form?: IsoDateForm, style?: IsoDateStyle): FormattedIsoDate;
+  /** `hc_iso_date_parts`: an ISO 8601 date read into its parts, reduced accuracy included. */
+  isoDateParts(text: string): IsoDateParts;
+  /** `hc_iso_duration`: an ISO 8601 duration read into its components. */
+  isoDuration(text: string): IsoDurationParts;
+  /** `hc_format_iso_duration`: a duration written from its components. */
+  formatIsoDuration(components: IsoDurationInput): FormattedIsoDuration;
+  /** `hc_iso_interval`: an ISO 8601 interval or repeating interval read into its ends. */
+  isoInterval(text: string): IsoIntervalParts;
+  /** `hc_parse_pattern`: a text read against a `strptime` or CLDR pattern in the C locale's names. */
+  parsePattern(syntax: PatternSyntax, pattern: string, text: string): PatternFields;
+  /** `hc_parse_pattern_in`: `parsePattern` with a locale's names; `python` takes none. */
+  parsePatternIn(syntax: Exclude<PatternSyntax, "python">, pattern: string, text: string, locale: string): PatternFields;
+  /** `hc_locale_chain`: the fallback chain of a locale, from its tag to `und`. */
+  localeChain(locale: string): LocaleChainStep[];
+  /** `hc_locale_info`: what a locale is, its week, numbering, direction, casing and plural rules. */
+  localeInfo(locale: string): LocaleInfo;
+  /** `hc_plural_category`: the plural category a number written as text has in a locale. */
+  pluralCategory(locale: string, number: string, kind?: PluralKind): PluralCategoryAnswer;
+  /** `hc_names`: the names a locale has for a calendar in a width and a context. */
+  names(locale: string, calendar: string, width?: NameWidth, context?: NameContext): LocaleName[];
+  /** `hc_case`: a text recased as a locale cases it. */
+  caseText(locale: string, mode: CaseMode, text: string): CasedText;
+  /** `hc_isolate`: a text made safe to embed in text running a locale's direction. */
+  isolate(locale: string, mode: IsolateMode, text: string): IsolatedText;
   /** `hc_gregorian_adoption`: the steps by which a country adopted the Gregorian calendar, by ISO 3166-1 alpha-2 code; none for a code the module does not know. */
   gregorianAdoption(region: string): GregorianAdoption[];
   /** `hc_panchanga_at`: the yoga's line, then the karaṇa's; an ayanamsa nobody knows is `unknown`. */
@@ -3516,20 +3978,63 @@ export class HyperCalendar {
   ): RelativeDayAt;
   /** `hc_duration`: a span of seconds in days, hours, minutes and seconds. */
   duration(seconds: number | bigint, style?: DurationStyle, maxComponents?: number, locale?: string): HumanizedDuration;
-  /** `hc_apnumber`: *zero* to *nine* spelled out, every other number as its digits. */
-  apnumber(value: number | bigint): NaturalText;
+  /** `hc_apnumber`: *zero* to *nine* spelled out, every other number as its digits, in a catalogue. */
+  apnumber(value: number | bigint, locale?: string): LocalizedNaturalText;
   /** `hc_fractional`: a number as a fraction, *3/10*, *1 3/10*. */
   fractional(value: number): NaturalText;
   /** `hc_scientific`: scientific notation with superscript exponent, *3.00 x 10⁻¹*. */
   scientific(value: number, precision?: number): NaturalText;
   /** `hc_metric`: a number with an SI prefix and a unit, *1.50 kV*. */
-  metric(value: number, unit?: string, precision?: number): NaturalText;
+  metric(value: number, unit?: string, precision?: number, locale?: string): LocalizedNaturalText;
   /** `hc_naturalsize`: a size in bytes, *3.0 MB*, *2.9 KiB*, *2.9K*. */
-  naturalSize(value: number, style?: NaturalSizeStyle, decimals?: number): NaturalText;
-  /** `hc_naturallist`: items joined as a list, *one, two and three*. */
-  naturalList(items: string[]): NaturalText;
+  naturalSize(value: number, style?: NaturalSizeStyle, decimals?: number, locale?: string): LocalizedNaturalText;
+  /** `hc_naturallist`: items joined as a list, *one, two and three*; English in every locale. */
+  naturalList(items: string[], locale?: string): LocalizedNaturalText;
   /** `hc_intword`: an integer of any length as a count with a word, *12.4 thousand*, *1.0 googol*. */
-  intword(digits: string | number | bigint, decimals?: number): NaturalText;
+  intword(digits: string | number | bigint, decimals?: number, locale?: string): LocalizedNaturalText;
+  /** `hc_naturaldelta`: a span without tense, *3 hours*. */
+  naturalDelta(seconds: number | bigint, microseconds?: number, months?: boolean, minimumUnit?: DeltaUnit, locale?: string): LocalizedNaturalText;
+  /** `hc_naturaltime`: a span with tense, *3 hours ago*. */
+  naturalTime(seconds: number | bigint, microseconds?: number, months?: boolean, minimumUnit?: DeltaUnit, locale?: string): LocalizedNaturalText;
+  /** `hc_precisedelta`: a span in every unit, *1 year, 2 months and 3 days*. */
+  preciseDelta(
+    seconds: number | bigint,
+    microseconds?: number,
+    minimumUnit?: PreciseUnitName,
+    suppress?: PreciseUnitName[],
+    decimals?: number,
+    locale?: string,
+  ): LocalizedNaturalText;
+  /** `hc_naturalday`: *today*, *tomorrow*, *yesterday*, or the day by a `strftime` pattern. */
+  naturalDay(day: number | bigint, today: number | bigint, pattern?: string, locale?: string): LocalizedNaturalText;
+  /** `hc_naturaldate`: `naturalDay` with the year from five twelfths of a year away. */
+  naturalDate(day: number | bigint, today: number | bigint, locale?: string): LocalizedNaturalText;
+  /** `hc_ordinal`: *1st*, *2nd*, *103rd*. */
+  ordinal(value: number | bigint, gender?: OrdinalGender, locale?: string): LocalizedNaturalText;
+  /** `hc_intcomma`: an integer with thousands separators. */
+  intcomma(digits: string | number | bigint, locale?: string): LocalizedNaturalText;
+  /** `hc_intcomma_float`: a float with thousands separators, to `ndigits` places or as Python's `repr`. */
+  intcommaFloat(value: number, ndigits?: number | null, locale?: string): LocalizedNaturalText;
+  /** `hc_unit_choice`: the unit a span is said in under a threshold table and a rounding. */
+  unitChoice(seconds: number | bigint, thresholds?: ThresholdsName, rounding?: RoundingName): UnitChoice;
+  /** `hc_relative_time_with`: `relativeTime` under a threshold table and a rounding. */
+  relativeTimeWith(
+    thenUnix: number | bigint,
+    nowUnix: number | bigint,
+    style?: RelativeStyle,
+    automatic?: boolean,
+    locale?: string,
+    thresholds?: ThresholdsName,
+    rounding?: RoundingName,
+  ): RelativeTimeWith;
+  /** `hc_approximate_duration`: a span hedged as a round number, *about 3 hours*. */
+  approximateDuration(
+    seconds: number | bigint,
+    style?: RelativeStyle,
+    locale?: string,
+    thresholds?: ThresholdsName,
+    policy?: HedgePolicy,
+  ): ApproximateDuration;
   /** `hc_zone_name`: a zone's name at an instant, as a CLDR field writes it. */
   zoneName(zone: string, unixSeconds: number | bigint, locale?: string, field?: ZoneNameField): ZoneName;
   /** `hc_format_pattern`: an instant formatted in a zone by a CLDR or strftime pattern. */

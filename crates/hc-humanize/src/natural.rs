@@ -55,6 +55,7 @@ use hc_calendar::Rd;
 use hc_core::Duration;
 #[cfg(feature = "format")]
 use hc_format::patterns::{FormatContext, strftime};
+use hc_i18n::Locale;
 
 mod catalogues;
 pub mod gettext;
@@ -258,6 +259,116 @@ impl NaturalPhrases {
         found.next().is_none().then_some(first)
     }
 
+    /// The catalogue that serves a locale for the words of one function:
+    /// the first step of the locale's fallback chain ([`Locale::fallback`],
+    /// `pt-AO` → `pt-PT` → `pt` → root) that a catalogue is for *and* that
+    /// translates those words, else the English of the source.
+    ///
+    /// A catalogue is for a step when it has the step's language and, if the
+    /// step names a region, the same region; a step with no region but a
+    /// script takes the catalogue whose own likely script is that one (`zh-Hant`
+    /// takes `zh_HK`, the only Traditional one, as `zh-Hans` takes `zh_CN`); and a step that is a bare
+    /// language takes the catalogue only when exactly one is for it, so `pt`,
+    /// which has two, picks neither and no region is guessed. `nb` stands for
+    /// `no`, the parent CLDR gives `nb`.
+    ///
+    /// A catalogue the `humanize` project has only part translated holds the
+    /// English of the source in the messages it lacks, and one that does not
+    /// translate the words of `words` is passed over, so a result is never
+    /// written half in one language and half in another; the answer's
+    /// [`NaturalPhrases::language`] says which language it is.
+    ///
+    /// ```
+    /// use hc_humanize::natural::{NaturalPhrases, NaturalWords};
+    /// use hc_i18n::Locale;
+    ///
+    /// let chain = |tag: &str| {
+    ///     NaturalPhrases::for_locale(&Locale::parse(tag).unwrap(), NaturalWords::Apnumber).language
+    /// };
+    /// assert_eq!(chain("ru"), "ru-RU");
+    /// assert_eq!(chain("pt-AO"), "pt-PT");
+    /// assert_eq!(chain("zh-Hant-TW"), "zh-HK");
+    /// assert_eq!(chain("pt"), "en");
+    /// ```
+    #[must_use]
+    pub fn for_locale(locale: &Locale, words: NaturalWords) -> &'static Self {
+        for step in locale.fallback() {
+            if step.language() == "en" {
+                return &Self::ENGLISH;
+            }
+            let mut found = catalogues::ALL
+                .into_iter()
+                .filter(|phrases| phrases.serves(&step) && phrases.translates(words));
+            if let Some(first) = found.next()
+                && (step.region().is_some() || step.script().is_some() || found.next().is_none())
+            {
+                return first;
+            }
+        }
+        &Self::ENGLISH
+    }
+
+    /// Whether this catalogue is for a step of a fallback chain; see
+    /// [`NaturalPhrases::for_locale`].
+    fn serves(&self, step: &Locale) -> bool {
+        let Ok(own) = Locale::parse(self.language) else {
+            return false;
+        };
+        let language = if step.language() == "no" {
+            "nb"
+        } else {
+            step.language()
+        };
+        if own.language() != language {
+            return false;
+        }
+        if let Some(region) = step.region() {
+            return own.region() == Some(region);
+        }
+        if let Some(script) = step.script() {
+            return own.with_likely_script().script() == Some(script);
+        }
+        true
+    }
+
+    /// Whether this catalogue translates the words of a function: whether
+    /// any of them differs from the English of the source, which is what a
+    /// catalogue holds for a message it does not translate.
+    #[must_use]
+    pub fn translates(&self, words: NaturalWords) -> bool {
+        let english = &Self::ENGLISH;
+        match words {
+            NaturalWords::Any => true,
+            NaturalWords::Apnumber => self.apnumber != english.apnumber,
+            NaturalWords::Intword => self.powers != english.powers,
+            NaturalWords::Time => {
+                self.seconds != english.seconds
+                    || self.minutes != english.minutes
+                    || self.hours != english.hours
+                    || self.days != english.days
+                    || self.months != english.months
+                    || self.years != english.years
+                    || self.ago != english.ago
+            }
+            NaturalWords::Ordinal => {
+                self.ordinal_by_last_digit != english.ordinal_by_last_digit
+                    || self.ordinal_by_last_digit_female != english.ordinal_by_last_digit_female
+            }
+            NaturalWords::Day => {
+                self.today != english.today
+                    || self.tomorrow != english.tomorrow
+                    || self.yesterday != english.yesterday
+            }
+            NaturalWords::Naturalsize => {
+                self.byte != english.byte
+                    || self.bytes != english.bytes
+                    || self.size_decimal != english.size_decimal
+                    || self.size_binary != english.size_binary
+                    || self.size_gnu != english.size_gnu
+            }
+        }
+    }
+
     /// Every translation `humanize` 4.16.0 ships, in the order of its
     /// directories: 35 of them, each [`NaturalPhrases::catalogue`] named as
     /// `humanize.i18n.activate` takes it. The English of the source is
@@ -335,6 +446,28 @@ impl NaturalPhrases {
     };
 }
 
+/// The words of one `humanize` function, for choosing the catalogue that
+/// serves a locale ([`NaturalPhrases::for_locale`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum NaturalWords {
+    /// A function that writes no word of its own, `metric`: the first
+    /// catalogue for the locale serves.
+    Any,
+    /// `apnumber`'s *zero* to *nine*.
+    Apnumber,
+    /// `intword`'s *thousand* to *googol*.
+    Intword,
+    /// `naturaldelta`, `naturaltime` and `precisedelta`'s *seconds* to
+    /// *years*, *ago* and *from now*.
+    Time,
+    /// `ordinal`'s suffixes.
+    Ordinal,
+    /// `naturalday`'s *today*, *tomorrow* and *yesterday*.
+    Day,
+    /// `naturalsize`'s *Byte* and the suffixes.
+    Naturalsize,
+}
+
 /// A unit `precisedelta` and `naturaldelta` can stop at, smallest first as
 /// `humanize`'s `Unit` enumeration orders them.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -358,6 +491,28 @@ pub enum PreciseUnit {
 }
 
 impl PreciseUnit {
+    /// Every unit, smallest first, with the identifier a caller names it by.
+    pub const ALL: [(&'static str, Self); 8] = [
+        ("microseconds", Self::Microseconds),
+        ("milliseconds", Self::Milliseconds),
+        ("seconds", Self::Seconds),
+        ("minutes", Self::Minutes),
+        ("hours", Self::Hours),
+        ("days", Self::Days),
+        ("months", Self::Months),
+        ("years", Self::Years),
+    ];
+
+    /// The unit an identifier names, `microseconds` to `years`, in any
+    /// case; `None` for other text.
+    #[must_use]
+    pub fn by_id(id: &str) -> Option<Self> {
+        Self::ALL
+            .into_iter()
+            .find(|(name, _)| hc_core::catalogue::matches(id, name))
+            .map(|(_, unit)| unit)
+    }
+
     /// Largest first, the order the phrases are written in.
     const DESCENDING: [Self; 8] = [
         Self::Years,
@@ -429,6 +584,21 @@ pub enum Gender {
     Male,
     /// `gender="female"`.
     Female,
+}
+
+impl Gender {
+    /// The gender an identifier names, `male` or `female`, in any case;
+    /// `None` for other text.
+    #[must_use]
+    pub fn by_id(id: &str) -> Option<Self> {
+        if hc_core::catalogue::matches(id, "male") {
+            Some(Self::Male)
+        } else if hc_core::catalogue::matches(id, "female") {
+            Some(Self::Female)
+        } else {
+            None
+        }
+    }
 }
 
 /// A phrase before its number is written.
@@ -1989,5 +2159,32 @@ mod tests {
         assert_eq!(natural.intword(999_999, 1).unwrap(), "1.0 million");
         assert_eq!(natural.intword(-12_400, 1).unwrap(), "-12.4 thousand");
         assert_eq!(natural.intword(i128::MAX, 1).unwrap(), "170141.2 decillion");
+    }
+
+    /// The catalogue that serves a locale follows its fallback chain and
+    /// passes over one that does not translate the words asked for: German
+    /// has *fünf* and *Millionen* but no *Byte* (`de_DE.po` of `humanize`
+    /// 4.16.0, which `tests/gettext_catalogues.rs` holds to GNU gettext).
+    #[test]
+    fn a_locale_is_served_by_the_first_catalogue_that_translates_the_words() {
+        use crate::natural::{NaturalPhrases, NaturalWords};
+        let language = |tag: &str, words| {
+            NaturalPhrases::for_locale(&Locale::parse(tag).unwrap(), words).language
+        };
+        assert_eq!(language("de", NaturalWords::Apnumber), "de-DE");
+        assert_eq!(language("de-AT", NaturalWords::Intword), "de-DE");
+        assert_eq!(language("de", NaturalWords::Naturalsize), "en");
+        assert_eq!(language("pt-AO", NaturalWords::Apnumber), "pt-PT");
+        assert_eq!(language("pt", NaturalWords::Apnumber), "en");
+        assert_eq!(language("zh-CN", NaturalWords::Time), "zh-CN");
+        assert_eq!(language("zh-Hant-TW", NaturalWords::Time), "zh-HK");
+        assert_eq!(language("nb", NaturalWords::Time), "nb");
+        assert_eq!(language("no", NaturalWords::Time), "nb");
+        assert_eq!(language("en-GB", NaturalWords::Time), "en");
+        assert_eq!(language("und", NaturalWords::Any), "en");
+        assert_eq!(language("tlh", NaturalWords::Any), "tlh");
+        // A catalogue serves exactly the languages it is for, never another.
+        assert_eq!(language("ja-JP", NaturalWords::Time), "ja-JP");
+        assert_eq!(language("sv-FI", NaturalWords::Time), "sv-SE");
     }
 }

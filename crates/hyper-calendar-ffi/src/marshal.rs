@@ -50,6 +50,9 @@ pub(crate) unsafe fn write_text(
     feature = "relativity",
     feature = "places",
     feature = "humanize",
+    feature = "natural",
+    feature = "datetime",
+    feature = "patterns",
     feature = "zone-names"
 ))]
 pub(crate) unsafe fn text<'a>(pointer: *const c_char) -> Result<Option<&'a str>, HcStatus> {
@@ -82,6 +85,9 @@ pub(crate) unsafe fn text<'a>(pointer: *const c_char) -> Result<Option<&'a str>,
     feature = "relativity",
     feature = "places",
     feature = "humanize",
+    feature = "natural",
+    feature = "datetime",
+    feature = "patterns",
     feature = "zone-names"
 ))]
 pub(crate) unsafe fn name<'a>(pointer: *const c_char) -> Result<&'a str, HcStatus> {
@@ -140,6 +146,9 @@ pub(crate) const fn status(refusal: hc::boundary::Refusal) -> HcStatus {
     feature = "relativity",
     feature = "places",
     feature = "humanize",
+    feature = "natural",
+    feature = "datetime",
+    feature = "patterns",
     feature = "zone-names"
 ))]
 pub(crate) unsafe fn write_answer(

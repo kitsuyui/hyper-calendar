@@ -182,7 +182,14 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a line | `hc_relative_time` | every `then_unix` and `now_unix` less than an `int64_t` of seconds apart; two further apart are `HC_ERROR_OUT_OF_RANGE`, and a style not named `HC_ERROR_UNKNOWN` |
 | a line | `hc_relative_day`, `hc_relative_day_at` | every `then_fixed` and `now_fixed` less than an `int64_t` of days apart, and for `hc_relative_day_at` seconds of the day below 86 400; any other is `HC_ERROR_OUT_OF_RANGE`, and a style not named `HC_ERROR_UNKNOWN` |
 | a line | `hc_duration` | every `seconds`; a style not named is `HC_ERROR_UNKNOWN` |
-| a line | `hc_apnumber` | every `value` |
+| a line | `hc_apnumber`, `hc_ordinal` | every `value` |
+| a line | `hc_format_datetime` | every `unix_seconds` an `int64_t` holds whose local reading in `offset_seconds` lies in the Gregorian range, and for RFC 3339, RFC 2822 and HTTP years 0000 to 9999; any other is `HC_ERROR_OUT_OF_RANGE`, and a syntax or precision not named `HC_ERROR_UNKNOWN` |
+| a line | `hc_format_iso_date_as` | `fixed` −3 652 424 999 through 3 652 424 634, the days of `hc_gregorian_year`; any other is `HC_ERROR_OUT_OF_RANGE`, and a form or style not named `HC_ERROR_UNKNOWN` |
+| a line | `hc_format_iso_duration` | `years`, `months`, `weeks`, `days`, `hours`, `minutes` and `seconds` from 0 through an `int64_t`'s largest, a negative one being absent; components ISO 8601 cannot spell are `HC_ERROR_MALFORMED` |
+| a line | `hc_naturaldelta`, `hc_naturaltime`, `hc_precisedelta` | every `seconds`, with `microseconds` below 1 000 000 in magnitude; any other is `HC_ERROR_OUT_OF_RANGE`, a unit or a gender not named `HC_ERROR_UNKNOWN`, and a span of more than about 10²⁶ years `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_naturalday`, `hc_naturaldate` | `day` and `today` −3 652 424 999 through 3 652 424 634, the days of `hc_gregorian_year`; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_unit_choice`, `hc_approximate_duration` | every `seconds` whose count fits an `int64_t`; a table, rounding, policy or style not named is `HC_ERROR_UNKNOWN` |
+| a line | `hc_relative_time_with` | every `then_unix` and `now_unix` less than an `int64_t` of seconds apart, as for `hc_relative_time`; a table or a rounding not named is `HC_ERROR_UNKNOWN` |
 
 A day outside the Gregorian range is `HC_ERROR_OUT_OF_RANGE` from the
 entry points in the third row, and the WebAssembly module's
@@ -290,7 +297,7 @@ follows it (`docs/policy.md` §5). A name no table carries is
 The entry points come in layers, each a Cargo feature, the same layers as
 the WebAssembly module's: `civil` (the default), `timestamps`, `time-codes`, `calendars`, `holiday`,
 `seasons`, `deep-time`, `tz`, `sky`, `orbital`, `jupiter`, `planetary`, `relativity`, `places`,
-`humanize`, `zone-names` and `full`.
+`humanize`, `natural`, `datetime`, `patterns`, `zone-names` and `full`.
 One pair sits in a different layer: `hc_tai_from_unix` and
 `hc_utc_from_tai` are `civil` here and `timestamps` there.
 Each builds on its own —
@@ -316,7 +323,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-224 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+250 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -388,6 +395,12 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_parse_number(const char *system, const char *text, int64_t *out_value);` | `calendars` | An integer read back out of a numbering system's notation. |
 | `HcStatus hc_numbering_systems(char *buffer, size_t capacity, size_t *written);` | `calendars` | Every numbering system `hc_format_number` writes, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_calendar_eras(const char *calendar, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The eras a calendar is described with, named in a locale, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_locale_chain(const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The fallback chain of a locale, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_locale_info(const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | What a locale is, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_plural_category(const char *locale, const char *number, const char *kind, char *buffer, size_t capacity, size_t *written);` | `calendars` | The plural category a number has in a locale, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_names(const char *locale, const char *calendar, const char *width, const char *context, char *buffer, size_t capacity, size_t *written);` | `calendars` | The names a locale has for a calendar in a width and a context, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_case(const char *locale, const char *mode, const char *text, char *buffer, size_t capacity, size_t *written);` | `calendars` | A text recased as a locale cases it, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_isolate(const char *locale, const char *mode, const char *text, char *buffer, size_t capacity, size_t *written);` | `calendars` | A text made safe to embed in text running a locale's direction, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_gregorian_adoption(const char *region, char *buffer, size_t capacity, size_t *written);` | `calendars` | The steps by which a country adopted the Gregorian calendar, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_naming_period_on(const char *calendar, int64_t fixed, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | Which month and weekday names a locale writes for a calendar on a fixed day, where a government renamed them for a period, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_panchanga_at(int64_t unix_seconds, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `calendars` | The yoga and the karaṇa in progress at a POSIX timestamp, as two NUL-terminated UTF-8 lines in a caller-owned buffer. |
@@ -535,13 +548,33 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_relative_day(int64_t then_fixed, int64_t now_fixed, const char *style, int automatic, const char *locale, char *buffer, size_t capacity, size_t *written);` | `humanize` | Which calendar day one fixed day is, seen from another, *yesterday* or *3 days ago*, in a locale, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_relative_day_at(int64_t then_fixed, int64_t now_fixed, uint32_t seconds_of_day, const char *style, int automatic, const char *locale, char *buffer, size_t capacity, size_t *written);` | `humanize` | Which calendar day one fixed day is, seen from another, with a time of day, *yesterday at 15:05*, in a locale, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_duration(int64_t seconds, const char *style, uint32_t max_components, const char *locale, char *buffer, size_t capacity, size_t *written);` | `humanize` | A span of seconds phrased in days, hours, minutes and seconds, *2 hours and 30 minutes*, in a locale, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
-| `HcStatus hc_apnumber(int64_t value, char *buffer, size_t capacity, size_t *written);` | `humanize` | A whole number as the Associated Press writes it, *zero* to *nine* spelled out and every other number as its digits, in the English of Python's `humanize`, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
-| `HcStatus hc_fractional(double value, char *buffer, size_t capacity, size_t *written);` | `humanize` | A number as a fraction, *3/10*, *1 3/10*, in the English of Python's `humanize`, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
-| `HcStatus hc_scientific(double value, uint32_t precision, char *buffer, size_t capacity, size_t *written);` | `humanize` | A number in scientific notation, *3.00 x 10⁻¹*, in the English of Python's `humanize`, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
-| `HcStatus hc_metric(double value, const char *unit, uint32_t precision, char *buffer, size_t capacity, size_t *written);` | `humanize` | A number with an SI prefix and a unit, *1.50 kV*, *220 μF*, in the English of Python's `humanize`, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
-| `HcStatus hc_naturalsize(double value, const char *style, uint32_t decimals, char *buffer, size_t capacity, size_t *written);` | `humanize` | A size in bytes, *3.0 MB*, *2.9 KiB*, *300B*, in the English of Python's `humanize`, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
-| `HcStatus hc_naturallist(const char *items, char *buffer, size_t capacity, size_t *written);` | `humanize` | Items joined as a list, *one, two and three*, in the English of Python's `humanize`, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
-| `HcStatus hc_intword(const char *digits, uint32_t decimals, char *buffer, size_t capacity, size_t *written);` | `humanize` | An integer of any length as a count with a word, *12.4 thousand*, *1.0 googol*, in the English of Python's `humanize`, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_unit_choice(int64_t seconds, const char *thresholds, const char *rounding, char *buffer, size_t capacity, size_t *written);` | `humanize` | The unit a span is said in and its count, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_relative_time_with(int64_t then_unix, int64_t now_unix, const char *style, int automatic, const char *locale, const char *thresholds, const char *rounding, char *buffer, size_t capacity, size_t *written);` | `humanize` | How one POSIX instant reads from another under a threshold table and a rounding of the caller's, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_approximate_duration(int64_t seconds, const char *style, const char *locale, const char *thresholds, const char *policy, char *buffer, size_t capacity, size_t *written);` | `humanize` | A span hedged as a round number, *about 3 hours*, *just over a week*, *nearly a year*, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_apnumber(int64_t value, const char *locale, char *buffer, size_t capacity, size_t *written);` | `natural` | A whole number as the Associated Press writes it, *zero* to *nine* spelled out and every other number as its digits, in a locale, by Python's `humanize` and its catalogues, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_fractional(double value, char *buffer, size_t capacity, size_t *written);` | `natural` | A number as a fraction, *3/10*, *1 3/10*, in the English of Python's `humanize`, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_scientific(double value, uint32_t precision, char *buffer, size_t capacity, size_t *written);` | `natural` | A number in scientific notation, *3.00 x 10⁻¹*, in the English of Python's `humanize`, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_metric(double value, const char *unit, uint32_t precision, const char *locale, char *buffer, size_t capacity, size_t *written);` | `natural` | A number with an SI prefix and a unit, *1.50 kV*, *220 μF*, by Python's `humanize`, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_naturalsize(double value, const char *style, uint32_t decimals, const char *locale, char *buffer, size_t capacity, size_t *written);` | `natural` | A size in bytes, *3.0 MB*, *2.9 KiB*, *300B*, in a locale, by Python's `humanize` and its catalogues, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_naturallist(const char *items, const char *locale, char *buffer, size_t capacity, size_t *written);` | `natural` | Items joined as a list, *one, two and three*, by Python's `humanize`, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_intword(const char *digits, uint32_t decimals, const char *locale, char *buffer, size_t capacity, size_t *written);` | `natural` | An integer of any length as a count with a word, *12.4 thousand*, *1.0 googol*, in a locale, by Python's `humanize` and its catalogues, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_naturaldelta(int64_t seconds, int microseconds, int months, const char *minimum_unit, const char *locale, char *buffer, size_t capacity, size_t *written);` | `natural` | `humanize`'s `naturaldelta` of a span, *3 hours*, *a moment*, *1 year, 3 months*, without tense, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_naturaltime(int64_t seconds, int microseconds, int months, const char *minimum_unit, const char *locale, char *buffer, size_t capacity, size_t *written);` | `natural` | `humanize`'s `naturaltime` of a span, *3 hours ago*, *3 hours from now*, *now*, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_precisedelta(int64_t seconds, int microseconds, const char *minimum_unit, const char *suppress, uint32_t decimals, const char *locale, char *buffer, size_t capacity, size_t *written);` | `natural` | `humanize`'s `precisedelta` of a span, *1 year, 2 months and 3 days*, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_naturalday(int64_t day, int64_t today, const char *pattern, const char *locale, char *buffer, size_t capacity, size_t *written);` | `natural` | `humanize`'s `naturalday` of a fixed day seen from another, *today*, *tomorrow*, *yesterday*, or the day by a `strftime` pattern, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_naturaldate(int64_t day, int64_t today, const char *locale, char *buffer, size_t capacity, size_t *written);` | `natural` | `humanize`'s `naturaldate` of a fixed day seen from another, as `hc_naturalday` with `%b %d`, and with the year added from five twelfths of a year away, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_ordinal(int64_t value, const char *gender, const char *locale, char *buffer, size_t capacity, size_t *written);` | `natural` | `humanize`'s `ordinal` of an integer, *1st*, *2nd*, *103rd*, *111th*, in a locale, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_intcomma(const char *digits, const char *locale, char *buffer, size_t capacity, size_t *written);` | `natural` | `humanize`'s `intcomma` of an integer written in digits, *1,234,567*, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_intcomma_float(double value, int ndigits, const char *locale, char *buffer, size_t capacity, size_t *written);` | `natural` | `humanize`'s `intcomma` of a float, *1,234,567.25*, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_parse_datetime(const char *syntax, const char *text, char *buffer, size_t capacity, size_t *written);` | `datetime` | A date-time read in a syntax, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_format_datetime(const char *syntax, int64_t unix_seconds, uint64_t attoseconds, int offset_seconds, const char *precision, char *buffer, size_t capacity, size_t *written);` | `datetime` | An instant written as a date-time in a syntax, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_format_iso_date_as(int64_t fixed, const char *form, const char *style, char *buffer, size_t capacity, size_t *written);` | `datetime` | A fixed day written as an ISO 8601 calendar, ordinal or week date, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_iso_date_parts(const char *text, char *buffer, size_t capacity, size_t *written);` | `datetime` | An ISO 8601 date read into its parts, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_iso_duration(const char *text, char *buffer, size_t capacity, size_t *written);` | `datetime` | An ISO 8601 duration read into its components, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_format_iso_duration(int negative, int64_t years, int64_t months, int64_t weeks, int64_t days, int64_t hours, int64_t minutes, int64_t seconds, const char *fraction, char *buffer, size_t capacity, size_t *written);` | `datetime` | A duration written from its components, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_iso_interval(const char *text, char *buffer, size_t capacity, size_t *written);` | `datetime` | An ISO 8601 interval, or a repeating one, read into its ends, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_parse_pattern(const char *syntax, const char *pattern, const char *text, char *buffer, size_t capacity, size_t *written);` | `patterns` | A text read against a pattern, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_parse_pattern_in(const char *syntax, const char *pattern, const char *text, const char *locale, char *buffer, size_t capacity, size_t *written);` | `patterns` | A text read against a `strptime` or CLDR pattern in the names of a locale, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_zone_name(const char *zone, int64_t unix_seconds, const char *locale, const char *field, char *buffer, size_t capacity, size_t *written);` | `zone-names` | A time zone's name at a POSIX timestamp in a locale, as a CLDR pattern field writes it, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_format_pattern(const char *zone, int64_t unix_seconds, const char *locale, const char *syntax, const char *pattern, char *buffer, size_t capacity, size_t *written);` | `zone-names` | An instant formatted in a time zone and a locale by a CLDR or a `strftime` pattern, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 
@@ -733,9 +766,10 @@ the native locales as `hc_calendars` has them, `;`-joined BCP 47 tags or
 empty, so that a menu can put a reader's own calendars first
 — converting no day, for a menu, which is asked for far more often than a
 day is described —
-`hc_locales(buffer, capacity, written)` every locale in its seven: tag,
-English name, native name, the three Gregorian coverage flags and the
-calendars it names — `hc_first_day_of_week(locale, out_weekday)` the ISO
+`hc_locales(buffer, capacity, written)` every locale in its ten: tag,
+English name, native name, the three Gregorian coverage flags, the
+calendars it names, its parent in the fallback chain, its default
+numbering system and its direction — `hc_first_day_of_week(locale, out_weekday)` the ISO
 weekday, Monday = 1 through Sunday = 7, the locale's week begins on by
 CLDR 48's week data, with a null or unparsable tag as `und`, Monday — and
 `hc_day_period(seconds_of_day, locale, buffer, capacity, written)`,
@@ -754,6 +788,41 @@ calendar's identifier and the polity. A code the library does not know is
 an empty string, and a null `region` is `HC_ERROR_NULL_POINTER`. The
 columns are the same as the module's, and the README there describes
 each.
+
+The `datetime` feature is ISO 8601 beyond a calendar date, in the same
+lines as the module's: `hc_parse_datetime(syntax, text, buffer, capacity,
+written)` reads a date-time as a reading, with no instant where the text
+states no zone; `hc_format_datetime(syntax, unix_seconds, attoseconds,
+offset_seconds, precision, ...)` writes one in `iso8601`, its basic,
+ordinal and week forms, `rfc3339`, `rfc2822`, `imf-fixdate` or `python`;
+`hc_format_iso_date_as(fixed, form, style, ...)` writes a calendar, ordinal
+or week date; `hc_iso_date_parts(text, ...)` reads a date of any accuracy;
+`hc_iso_duration(text, ...)`, `hc_format_iso_duration(negative, years,
+months, weeks, days, hours, minutes, seconds, fraction, ...)` and
+`hc_iso_interval(text, ...)` read and write durations and intervals, a
+component below zero being absent; and `hc_parse_pattern(syntax, pattern,
+text, ...)` reads a text against a `strftime`, Python `strptime` or CLDR
+pattern, with `hc_parse_pattern_in(syntax, pattern, text, locale, ...)` adding a
+locale's names; those two are the `patterns` feature. A text not in the syntax is
+`HC_ERROR_MALFORMED`, a date or time that does not exist
+`HC_ERROR_INVALID_DATE`. The module's README gives the columns.
+
+How a locale resolves is six more entry points of the same feature, which
+write the module's lines and take a NUL-terminated BCP 47 tag, null for the
+root locale, one that does not parse being `HC_ERROR_MALFORMED`:
+`hc_locale_chain(locale, buffer, capacity, written)` the fallback chain a
+name is looked up along, one line per step with the rule that led to it;
+`hc_locale_info(locale, ...)` one line of what the locale is, its subtags
+and keys, parent, default numbering, first day of the week and `minDays`,
+direction, casing and plural rules;
+`hc_plural_category(locale, number, kind, ...)` the CLDR cardinal category a
+number written as text has (`kind` `cardinal`; `ordinal` is
+`HC_ERROR_NO_DATA`, since the ordinal rules are not carried);
+`hc_names(locale, calendar, width, context, ...)` the names a locale has
+for a calendar; `hc_case(locale, mode, text, ...)` a text recased as the
+locale cases it; and `hc_isolate(locale, mode, text, ...)` a text wrapped
+in the Unicode bidirectional isolates for the locale's direction. The
+module's README gives the columns.
 
 `hc_parse_date(calendar, locale, text, buffer, capacity, written)` reads
 a date as the locale writes it in the calendar — what column 16 of
@@ -1477,17 +1546,36 @@ parse, is the root locale, whose phrases are CLDR's `root.xml`'s, `-1 d`.
 well; another is `HC_ERROR_UNKNOWN`. The WebAssembly module's README gives
 the columns.
 
-The same feature has the number and list functions of Python's `humanize`
-package, in its English, one line of the text and the language `en`:
-`hc_apnumber(value, buffer, capacity, written)`,
-`hc_fractional(value, ...)`, `hc_scientific(value, precision, ...)`,
-`hc_metric(value, unit, precision, ...)`,
-`hc_naturalsize(value, style, decimals, ...)` with `style` `decimal`,
-`binary` or `gnu`, `hc_naturallist(items, ...)` with one item to a line, and
-`hc_intword(digits, decimals, ...)`, which takes the integer as digits and
-so reaches *1.0 googol*. Text that is not an integer is
-`HC_ERROR_MALFORMED`; `NaN` as a size, an integer beyond the largest double
-and more than 255 decimals are `HC_ERROR_OUT_OF_RANGE`.
+`hc_unit_choice(seconds, thresholds, rounding, ...)`,
+`hc_relative_time_with(then_unix, now_unix, style, automatic, locale,
+thresholds, rounding, ...)` and `hc_approximate_duration(seconds, style,
+locale, thresholds, policy, ...)`, in the same feature, take the thresholds
+(`default`, `exact` or `with-quarters`), the rounding (`ceil`, `floor`,
+`nearest`, `truncate` or `nearest-half`) and the hedge policy (`default` or
+`bounded`) that `hc_relative_time` fixes; a name not known is
+`HC_ERROR_UNKNOWN`.
+
+The `natural` feature has the functions of Python's `humanize` package with
+its 35 gettext catalogues. The ones with words take a `locale`, resolved
+along its fallback chain to the first catalogue that translates their words,
+English where none does, and write one line of the text and the language of
+the catalogue used, `en`, `de-DE`: `hc_apnumber(value, locale, buffer,
+capacity, written)`, `hc_metric(value, unit, precision, locale, ...)`,
+`hc_naturalsize(value, style, decimals, locale, ...)` with `style` `decimal`,
+`binary` or `gnu`, `hc_naturallist(items, locale, ...)` with one item to a
+line, `hc_intword(digits, decimals, locale, ...)`, which takes the integer
+as digits and so reaches *1.0 googol*, `hc_naturaldelta(seconds,
+microseconds, months, minimum_unit, locale, ...)`, `hc_naturaltime(...)`,
+`hc_precisedelta(seconds, microseconds, minimum_unit, suppress, decimals,
+locale, ...)`, `hc_naturalday(day, today, pattern, locale, ...)`,
+`hc_naturaldate(day, today, locale, ...)`, `hc_ordinal(value, gender,
+locale, ...)`, `hc_intcomma(digits, locale, ...)` and
+`hc_intcomma_float(value, ndigits, locale, ...)`. `hc_fractional(value,
+...)` and `hc_scientific(value, precision, ...)` write no word and take no
+locale; their language cell is `en`. Text that is not an integer is
+`HC_ERROR_MALFORMED`; `NaN` as a size, an integer beyond the largest double,
+more than 255 decimals and a minimum unit above seconds are
+`HC_ERROR_OUT_OF_RANGE`. The WebAssembly module's README gives the columns.
 
 ## Leap seconds, and the `strict` flag
 
