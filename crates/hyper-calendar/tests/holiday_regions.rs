@@ -1,4 +1,5 @@
-//! Every region a holiday table scopes a rule to must be a subdivision
+//! Every region a holiday table scopes a rule, a weekend law or a
+//! substitution policy to must be a subdivision
 //! CLDR 48 knows, and one in current use.
 //!
 //! `HolidayRule::regions` is a list of strings, so nothing stops a table
@@ -22,7 +23,7 @@ const EXCEPTIONS: &[&str] = &["GB-EAW"];
 #[test]
 fn every_region_is_a_regular_subdivision_of_its_country() {
     for table in countries::ALL {
-        for region in table.regions() {
+        for region in table.answered_regions() {
             // A municipality's code is held to its subdivision's (ADR 0014).
             let mut code = region;
             while let Some(parent) = region_parent(code) {

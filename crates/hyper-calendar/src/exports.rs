@@ -4719,8 +4719,10 @@ macro_rules! exports {
             /// the locale, the English name, the locale that answered, the sources,
             /// the ISO 3166-1 country of a subdivision or an exchange where its
             /// table records one, the short name in the locale, the ISO 3166-2
-            /// codes of the subdivisions its rules are scoped to, `;`-separated in
-            /// code order, or nothing, the identifiers of the groups of people its
+            /// codes of the regions it answers for, `;`-separated in code order, or
+            /// nothing (the subdivisions its rules, its weekend laws and its
+            /// substitution policies are scoped to, each a `region` every export
+            /// accepts), the identifiers of the groups of people its
             /// rules give days to alone, `;`-separated in identifier order, or
             /// nothing, and those groups' names in the locale, in the same order,
             /// each its English name where `hc-i18n` carries none, the
@@ -4756,8 +4758,10 @@ macro_rules! exports {
             /// that answered; the sources the table names; and, for a subdivision
             /// or an exchange, the ISO 3166-1 country it belongs to as its table
             /// records it, else empty; the short name in the locale, else empty;
-            /// the ISO 3166-2 codes of the subdivisions its rules are scoped to,
-            /// `;`-separated in code order, else empty; the identifiers of the
+            /// the ISO 3166-2 codes of the regions it answers for,
+            /// `;`-separated in code order, else empty (the subdivisions its
+            /// rules, its weekend laws and its substitution policies are scoped
+            /// to, each a `region` every export accepts); the identifiers of the
             /// groups of people its rules give days to alone, `;`-separated in
             /// identifier order, else empty; those groups' names in the locale,
             /// in the same order, each its English name where `hc-i18n` carries

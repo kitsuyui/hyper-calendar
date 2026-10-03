@@ -2925,7 +2925,13 @@ export interface HolidayTable {
    * country.
    */
   shortName: string | null;
-  /** The ISO 3166-2 codes of the subdivisions its rules are scoped to, the regions it answers for: `JP-11`, `JP-12`, … */
+  /**
+   * The ISO 3166-2 codes of the regions it answers for, in code order: the subdivisions its
+   * rules, its weekend laws and its substitution policies are scoped to, `JP-11`, `JP-12`, …,
+   * and Kedah `MY-02` and Sharjah `AE-SH`, whose only law of their own is a weekend. Every
+   * holiday method accepts each as its `region`, and a region outside the list that a country
+   * has has the nationwide days. Empty for a table with none.
+   */
   regions: string[];
   /** The groups of people its rules give days to alone, the groups it answers for: `children`, `military`, `women`, `youth`. */
   groups: string[];
@@ -2938,7 +2944,8 @@ export interface HolidayTable {
   regionGroups: HolidayRegionGroup[];
   /**
    * The ISO 3166-2 codes of the subdivisions the table's sources were read for, in code order:
-   * `regions` and those read and found to keep no day of their own. A region outside it keeps
+   * the `regions` whose days are rules and those read and found to keep no day of their own;
+   * a region that has only a weekend law or a substitution policy is not read for its days. A region outside it keeps
    * the nationwide days and has a gap for its own, and so does one in it for a year before the first its
    * sources were read for (`JP-27` before 1989). Empty for a table with no subdivisions.
    */

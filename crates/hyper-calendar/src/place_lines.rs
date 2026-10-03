@@ -218,7 +218,7 @@ mod tests {
         }
     }
 
-    /// Every subdivision a holiday table's rules are scoped to, column 9
+    /// Every region a holiday table answers for, column 9
     /// of `hc_holiday_tables`, and every country with a table, is a place
     /// named in Japanese or in English and in use today, but one; a
     /// municipality's code is not a CLDR place, and is the next test's.

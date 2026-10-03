@@ -312,7 +312,7 @@ fn one_day_across_every_table_is_what_the_years_say() {
             let day = hc::hc_holiday::Rd(*fixed);
             hc::holiday_lines::push_day_lines(text, table, &year, day);
         }
-        for region in table.regions() {
+        for region in table.answered_regions() {
             let regional = hc::hc_holiday::HolidayCalendar::for_year(table, Some(region), 2026);
             for (text, (_, _, fixed)) in expected.iter_mut().zip(&days) {
                 let day = hc::hc_holiday::Rd(*fixed);
@@ -643,6 +643,31 @@ fn the_weekend_of_a_region_is_one_or_zero_and_refused_where_unread() {
     );
     assert_eq!(weekend("ZZ", "", friday), HC_ERR_UNKNOWN);
     assert_eq!(weekend("MY", "MY-99", friday), HC_ERR_UNKNOWN);
+    // Column 9 of `hc_holiday_tables` lists the regions with only a weekend
+    // law of their own, and the export accepts each of them.
+    let tables = read_lines(|buffer, capacity| unsafe {
+        hc_holiday_tables("en".as_ptr(), 2, buffer, capacity)
+    });
+    let regions = |code: &str| -> Vec<String> {
+        let row: Vec<&str> = tables
+            .lines()
+            .find(|line| line.split('\t').next() == Some(code))
+            .expect("a table")
+            .split('\t')
+            .collect();
+        row[8]
+            .split(';')
+            .filter(|region| !region.is_empty())
+            .map(String::from)
+            .collect()
+    };
+    assert_eq!(regions("MY"), ["MY-01", "MY-02", "MY-03", "MY-09", "MY-11"]);
+    assert_eq!(regions("AE"), ["AE-SH"]);
+    for code in ["MY", "AE"] {
+        for region in regions(code) {
+            assert_ne!(weekend(code, &region, friday), HC_ERR_UNKNOWN, "{region}");
+        }
+    }
     assert_eq!(weekend("MY", "", 1 << 62), HC_ERR_OUT_OF_RANGE);
     let not_utf8 = [0xffu8];
     assert_eq!(

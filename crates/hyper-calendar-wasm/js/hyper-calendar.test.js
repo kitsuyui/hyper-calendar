@@ -1263,6 +1263,39 @@ describe("holidays", () => {
     const emirates = tables.find((table) => table.code === "AE")?.weekend ?? [];
     assert.deepEqual(emirates.at(-1), { days: [5, 6, 7], first: "2022-01-01", last: null, regions: ["AE-SH"] });
   });
+
+  test("a table's regions are the ones it answers for, a region with only a weekend law among them", () => {
+    const tables = hc.holidayTables("en");
+    assert.deepEqual(tables.find((table) => table.code === "MY")?.regions, ["MY-01", "MY-02", "MY-03", "MY-09", "MY-11"]);
+    assert.deepEqual(tables.find((table) => table.code === "AE")?.regions, ["AE-SH"]);
+    const friday = hc.gregorianToFixed(2026, 3, 6);
+    for (const table of tables) {
+      // Every region a weekend law names is listed.
+      for (const law of table.weekend) {
+        for (const region of law.regions) {
+          assert.ok(table.regions.includes(region), `${table.code} ${region}`);
+        }
+      }
+      // And every listed region is accepted by the exports that take one: a gap is a refusal, never `unknown`.
+      for (const region of table.regions) {
+        for (const call of [
+          () => hc.holidaysInYear(table.code, region, 2026),
+          () => hc.holidayIsWeekend(table.code, region, friday),
+          () => hc.holidayIsDayOff(table.code, region, friday),
+        ]) {
+          try {
+            call();
+          } catch (error) {
+            assert.notEqual(error.name, "unknown", `${table.code} ${region}`);
+          }
+        }
+        assert.ok(hc.placeName(region, "en").name, `${table.code} ${region}`);
+      }
+    }
+    // A code that is no region of Malaysia is still refused.
+    refused(() => hc.holidayIsWeekend("MY", "MY-99", friday), "unknown");
+    refused(() => hc.holidaysInYear("MY", "AE-SH", 2026), "unknown");
+  });
 });
 
 describe("almanac", () => {

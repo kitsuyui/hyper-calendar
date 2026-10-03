@@ -95,6 +95,19 @@ holiday rule, with the same codes.
   day in force and the regions, written out in
   [docs/systems/regional-weekends.md](../systems/regional-weekends.md).
   The JavaScript binding reads it into `HolidayTable.weekend`.
+- **The regions a table lists are the regions it answers for.**
+  `RuleSet::answered_regions` is the one definition: the subdivisions the
+  table's rules are scoped to or excepted from, those a weekend law is
+  scoped to and those a substitution policy is, sorted, once each. Column
+  9 of `hc_holiday_tables` is it, so Kedah, Kelantan, Terengganu, Perlis,
+  Johor and Sharjah are listed though no rule of theirs exists. Every export
+  that takes a `region` validates it against the same definition (and
+  against the CLDR subdivisions of the country, which are answered with the
+  nationwide days and a gap), so that what the list offers is accepted and a
+  region with days or a weekend of its own is not missing from it. Column 13,
+  the subdivisions read, still holds only those whose days a rule or the
+  table's `Subdivisions` names: a region whose weekend is carried is not
+  thereby one whose holidays were read.
 
 ## Consequences
 
