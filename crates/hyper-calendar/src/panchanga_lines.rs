@@ -29,6 +29,7 @@ use hc_calendars_indic::panchanga::{
     karana_name, karana_name_surya_siddhanta, karana_span, yoga_at, yoga_span,
 };
 use hc_calendars_indic::surya_siddhanta::{self, MAX_SUNRISE_LATITUDE};
+use hc_calendars_indic::tithi::{self, Paksha, paksha_of, tithi_name};
 use hc_calendars_indic::{amrita_siddhi, muhurta};
 use hc_core::catalogue::matches;
 use hc_seasons::zodiac::Ayanamsa;
@@ -231,7 +232,241 @@ pub fn panchanga_of_day_lines(fixed: i64, place: Location, ayanamsa_name: &str) 
     Ok(lines_at(rise, unix_from_moment(rise), ayanamsa))
 }
 
-/// How many columns each line of [`nakshatra_at_lines`] writes.
+/// Which sky a tithi is read on.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Sky {
+    /// The true Sun and Moon of `hc-astro`.
+    True,
+    /// The *Sūrya Siddhānta*'s.
+    Siddhanta,
+}
+
+/// The sky a name asks for: [`SURYA_SIDDHANTA`], or `true` or the
+/// identifier of any ayanāṃśa [`ayanamsa`] reads for the true one, whose
+/// tithi does not move with the ayanāṃśa, so that the same text a caller
+/// gives `hc_panchanga_at` serves.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for any other text.
+fn sky(name: &str) -> Answer<Sky> {
+    if matches(name, SURYA_SIDDHANTA) {
+        Ok(Sky::Siddhanta)
+    } else if matches(name, "true") || Ayanamsa::by_id(name).is_some() {
+        Ok(Sky::True)
+    } else {
+        Err(Refusal::Unknown)
+    }
+}
+
+/// How many columns each line of [`tithi_at_lines`] writes.
+pub const TITHI_COLUMNS: usize = 8;
+
+/// How many columns each line of [`tithis_of_day_lines`] writes.
+pub const TITHIS_OF_DAY_COLUMNS: usize = TITHI_COLUMNS + 3;
+
+/// The first eight cells of a tithi's line: its number, 1 to 30, the
+/// fortnight (`shukla` or `krishna`), its day within the fortnight, 1 to 15,
+/// its name in IAST ([`tithi_name`]), the moments it began and ends as whole
+/// POSIX seconds of Universal Time, rounded down, the instant read, and the
+/// sky, `true` or [`SURYA_SIDDHANTA`].
+fn tithi_cells(line: &mut Line<'_>, number: u8, span: (Moment, Moment), read_at: i64, sky: Sky) {
+    let (paksha, day) = paksha_of(number);
+    line.value(number)
+        .cell(match paksha {
+            Paksha::Shukla => "shukla",
+            Paksha::Krishna => "krishna",
+        })
+        .value(day)
+        .cell(tithi_name(number).unwrap_or(""))
+        .value(unix_from_moment(span.0))
+        .value(unix_from_moment(span.1))
+        .value(read_at)
+        .cell(match sky {
+            Sky::True => "true",
+            Sky::Siddhanta => SURYA_SIDDHANTA,
+        });
+}
+
+/// The tithi in progress at a moment on a sky, and its span.
+fn tithi_now(moment: Moment, sky: Sky) -> (u8, (Moment, Moment)) {
+    match sky {
+        Sky::True => (tithi::tithi_number_at(moment), tithi::tithi_span(moment)),
+        Sky::Siddhanta => (
+            surya_siddhanta::tithi_at(moment),
+            surya_siddhanta::tithi_span(moment),
+        ),
+    }
+}
+
+/// The line of `hc_tithi_at`: the tithi in progress at a Universal Time
+/// instant, with the moments it began and ends — its number, 1 for śukla
+/// pratipadā through 30 for amāvasyā, the fortnight, its day in it, its
+/// name in IAST, the instants it began and ends and the one read, as whole
+/// POSIX seconds, and the sky.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a sky that is not `true`, an ayanāṃśa or the Siddhānta, and
+/// [`Refusal::OutOfRange`] for an instant outside the sky layer's era on
+/// the true sky, or outside [`SIDDHANTA_FIRST_DAY`] to
+/// [`SIDDHANTA_LAST_DAY`] on the Siddhānta's.
+pub fn tithi_at_lines(universal_unix: i64, sky_name: &str) -> Answer<String> {
+    let sky = sky(sky_name)?;
+    let moment = match sky {
+        Sky::True => moment_in_era(universal_unix)?,
+        Sky::Siddhanta => moment_on_day(universal_unix, siddhanta_day)?,
+    };
+    let (number, span) = tithi_now(moment, sky);
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    tithi_cells(&mut line, number, span, universal_unix, sky);
+    line.end();
+    Ok(out)
+}
+
+/// The lines of `hc_tithis_of_day`: every tithi in progress between a
+/// day's sunrise at a place and the next, one a line in order, each the
+/// columns of [`tithi_at_lines`], with the instant read the day's sunrise,
+/// and three flags. `1` for the first when the tithi holds the day's
+/// sunrise, the one the day carries; `1` for the second when it holds the
+/// next sunrise as well, a tithi that is repeated (*adhika*, *vṛddhi*) and
+/// is the day's again tomorrow; `1` for the third when it holds neither, a
+/// tithi that begins after one sunrise and ends before the next and is
+/// skipped (*kṣaya*), which no civil day carries.
+///
+/// # Errors
+///
+/// As [`panchanga_of_day_lines`].
+pub fn tithis_of_day_lines(fixed: i64, place: Location, sky_name: &str) -> Answer<String> {
+    let sky = sky(sky_name)?;
+    let (rise, next_rise) = match sky {
+        Sky::True => {
+            let day = day_in_era(fixed)?;
+            (
+                sunrise(day, place).ok_or(Refusal::NoData)?,
+                sunrise(Rd(day.0 + 1), place).ok_or(Refusal::NoData)?,
+            )
+        }
+        Sky::Siddhanta => {
+            let day = siddhanta_day(fixed)?;
+            let place = sunrise_place(place)?;
+            (
+                surya_siddhanta::sunrise(day, place),
+                surya_siddhanta::sunrise(siddhanta_day(fixed + 1)?, place),
+            )
+        }
+    };
+    let mut out = String::new();
+    let mut at = rise;
+    // A tithi runs 0.8 to 1.2 days and a day from sunrise to sunrise is
+    // about one, so two or three are in progress.
+    for _ in 0..4 {
+        let (number, span) = tithi_now(at, sky);
+        let holds = |moment: Moment| span.0.0 <= moment.0 && moment.0 < span.1.0;
+        let (first, second) = (holds(rise), holds(next_rise));
+        let mut line = Line::new(&mut out);
+        tithi_cells(&mut line, number, span, unix_from_moment(rise), sky);
+        line.flag(first)
+            .flag(first && second)
+            .flag(!first && !second);
+        line.end();
+        if span.1.0 >= next_rise.0 {
+            break;
+        }
+        at = Moment(span.1.0 + 1e-4);
+    }
+    Ok(out)
+}
+
+/// How many columns each line of [`ayanamsas_lines`] writes.
+pub const AYANAMSA_COLUMNS: usize = 5;
+
+/// The lines of `hc_ayanamsas`: every named ayanāṃśa, [`Ayanamsa::ALL`],
+/// one a line in the table's order — the identifier [`ayanamsa`] reads back,
+/// the full name, the Julian date its anchor is quoted for, the anchor in
+/// degrees and where the anchor is from. The value at another moment is
+/// the anchor carried by the IAU 2006 general precession.
+#[must_use]
+pub fn ayanamsas_lines() -> String {
+    let mut out = String::new();
+    for ayanamsa in Ayanamsa::ALL {
+        let mut line = Line::new(&mut out);
+        line.cell(ayanamsa.id())
+            .cell(ayanamsa.name())
+            .value(ayanamsa.anchor_julian_date())
+            .value(ayanamsa.degrees_at_anchor())
+            .cell(ayanamsa.source());
+        line.end();
+    }
+    out
+}
+
+/// The line of one ayanāṃśa's value: the degrees, the identifier and name
+/// (the empty identifier for an anchor a caller gave), the anchor's Julian
+/// date and degrees, and the instant read.
+fn ayanamsa_value_line(ayanamsa: Ayanamsa, moment: Moment, read_at: i64) -> String {
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.value(ayanamsa.degrees_at(moment))
+        .cell(ayanamsa.id())
+        .cell(ayanamsa.name())
+        .value(ayanamsa.anchor_julian_date())
+        .value(ayanamsa.degrees_at_anchor())
+        .value(read_at);
+    line.end();
+    out
+}
+
+/// How many columns each line of [`ayanamsa_at_line`] writes.
+pub const AYANAMSA_VALUE_COLUMNS: usize = 6;
+
+/// The line of `hc_ayanamsa_at`: a named ayanāṃśa's value in degrees at a
+/// Universal Time instant, then its identifier, its name, its anchor's Julian
+/// date and degrees, and the instant read.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for an ayanāṃśa [`ayanamsa`] does not name and
+/// [`Refusal::OutOfRange`] for an instant outside the sky layer's era.
+pub fn ayanamsa_at_line(universal_unix: i64, ayanamsa_name: &str) -> Answer<String> {
+    let ayanamsa = ayanamsa(ayanamsa_name)?;
+    Ok(ayanamsa_value_line(
+        ayanamsa,
+        moment_in_era(universal_unix)?,
+        universal_unix,
+    ))
+}
+
+/// The line of `hc_ayanamsa_from_anchor`: the value in degrees at a
+/// Universal Time instant of an ayanāṃśa a caller anchors, `degrees` at the
+/// Julian date `anchor_julian_date`, carried by the IAU 2006 general
+/// precession as the named ones are; the columns of [`ayanamsa_at_line`],
+/// with `custom` as the identifier and name.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for an instant outside the sky layer's era, an
+/// anchor that is not finite, a Julian date outside the sky layer's era
+/// (from −1000 to 3000) or degrees outside −360° to 360°.
+pub fn ayanamsa_from_anchor_line(
+    universal_unix: i64,
+    anchor_julian_date: f64,
+    degrees_at_anchor: f64,
+) -> Answer<String> {
+    crate::astro_lines::julian_date_in_era(anchor_julian_date)?;
+    if !(-360.0..=360.0).contains(&degrees_at_anchor) {
+        return Err(Refusal::OutOfRange);
+    }
+    let ayanamsa = Ayanamsa::new("custom", "custom", anchor_julian_date, degrees_at_anchor);
+    Ok(ayanamsa_value_line(
+        ayanamsa,
+        moment_in_era(universal_unix)?,
+        universal_unix,
+    ))
+}
+
+/// How many columns each line of [`nakshatra_at_lines`] writes./// How many columns each line of [`nakshatra_at_lines`] writes.
 pub const NAKSHATRA_COLUMNS: usize = 8;
 
 /// The line of the nakṣatra in progress at a moment, read at `read_at`:
@@ -454,6 +689,170 @@ pub fn kalam_lines(convention: &str, fixed: i64, place: Location, locale: &str) 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn rows_of(text: &str) -> alloc::vec::Vec<alloc::vec::Vec<String>> {
+        text.lines()
+            .map(|line| line.split('\t').map(String::from).collect())
+            .collect()
+    }
+
+    /// Drik Panchang's day page for Tokyo (35°41′22″N 139°41′30″E,
+    /// `drik-day-panchang-tokyo-2025`, read 2026-10-03) of 13 January 2025
+    /// prints "Chaturdashi upto 08:33 AM" with sunrise at 06:51 JST: the
+    /// bright fortnight's fourteenth, ending at 23:33 UT on the 12th, the
+    /// same moment as the New Delhi page's 05:03 IST. Purnima follows.
+    #[test]
+    fn a_tithi_ends_when_drik_panchang_says_and_a_day_lists_the_tithis_it_holds() {
+        let tokyo = Location::new(
+            35.0 + 41.0 / 60.0 + 22.0 / 3_600.0,
+            139.0 + 41.0 / 60.0 + 30.0 / 3_600.0,
+            0.0,
+        );
+        let day = hc_calendars_solar::gregorian::to_fixed(2025, 1, 13)
+            .expect("a date")
+            .0;
+        let unix = |fixed: i64, hours: f64| {
+            (fixed - hc_calendar::fixed::RD_OF_UNIX_EPOCH) * 86_400 + (hours * 3_600.0) as i64
+        };
+        let ends_at = unix(day - 1, 23.0 + 33.0 / 60.0);
+        let noon = unix(day - 1, 12.0);
+        let rows = rows_of(&tithi_at_lines(noon, "lahiri").expect("in the era"));
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].len(), TITHI_COLUMNS);
+        assert_eq!(rows[0][..4], ["14", "shukla", "14", "Caturdaśī"]);
+        assert_eq!(rows[0][7], "true");
+        let ends: i64 = rows[0][5].parse().expect("an instant");
+        assert!((ends - ends_at).abs() <= 120, "{} s", ends - ends_at);
+        let began: i64 = rows[0][4].parse().expect("an instant");
+        assert!((ends - began) > 20 * 3_600 && (ends - began) < 28 * 3_600);
+        assert_eq!(rows[0][6], noon.to_string());
+        // The day's tithis: Caturdaśī at sunrise and Pūrṇimā, which holds
+        // the next sunrise too.
+        let rows = rows_of(&tithis_of_day_lines(day, tokyo, "true").expect("in the era"));
+        assert!(rows.iter().all(|row| row.len() == TITHIS_OF_DAY_COLUMNS));
+        assert_eq!(rows[0][..4], ["14", "shukla", "14", "Caturdaśī"]);
+        assert_eq!(rows[0][8..], ["1", "0", "0"]);
+        assert_eq!(rows[1][..4], ["15", "shukla", "15", "Pūrṇimā"]);
+        assert_eq!(rows[1][8..], ["0", "0", "0"]);
+        let sunrise_read: i64 = rows[0][6].parse().expect("an instant");
+        assert!((sunrise_read - unix(day - 1, 21.0 + 51.0 / 60.0)).abs() <= 120);
+        assert_eq!(tithi_at_lines(noon, "mars"), Err(Refusal::Unknown));
+        assert_eq!(
+            tithi_at_lines(
+                unix(
+                    hc_calendars_solar::gregorian::to_fixed(3001, 1, 1)
+                        .expect("a date")
+                        .0,
+                    0.0
+                ),
+                "true"
+            ),
+            Err(Refusal::OutOfRange)
+        );
+    }
+
+    /// Over a year at Delhi the day's tithis agree with `tithi_of_day`,
+    /// which the Drik Panchang comparisons hold: the flagged tithi is the
+    /// day's, a tithi flagged repeated is the next day's too, and each skip
+    /// of two between the numbers of consecutive days is one row flagged
+    /// skipped.
+    #[test]
+    fn a_days_flags_agree_with_the_tithi_the_day_carries() {
+        let delhi = Location::new(28.6139, 77.2090, 0.0);
+        let first = hc_calendars_solar::gregorian::to_fixed(2025, 1, 1)
+            .expect("a date")
+            .0;
+        let (mut skipped_rows, mut skipped_days, mut repeated_rows, mut repeated_days) =
+            (0, 0, 0, 0);
+        for fixed in first..first + 365 {
+            let rows = rows_of(&tithis_of_day_lines(fixed, delhi, "lahiri").expect("in the era"));
+            let carried = hc_calendars_indic::tithi::tithi_of_day(Rd(fixed), delhi);
+            let next = hc_calendars_indic::tithi::tithi_of_day(Rd(fixed + 1), delhi);
+            let at_sunrise: alloc::vec::Vec<_> = rows.iter().filter(|row| row[8] == "1").collect();
+            assert_eq!(at_sunrise.len(), 1, "{fixed}");
+            assert_eq!(at_sunrise[0][0], carried.to_string(), "{fixed}");
+            // A day's own tithi is the first row, in order.
+            assert_eq!(rows[0][0], carried.to_string());
+            repeated_rows += rows.iter().filter(|row| row[9] == "1").count();
+            skipped_rows += rows.iter().filter(|row| row[10] == "1").count();
+            if next == carried {
+                repeated_days += 1;
+                assert_eq!(at_sunrise[0][9], "1", "{fixed}");
+            }
+            if (next + 30 - carried) % 30 == 2 {
+                skipped_days += 1;
+                let skipped: alloc::vec::Vec<_> =
+                    rows.iter().filter(|row| row[10] == "1").collect();
+                assert_eq!(skipped.len(), 1, "{fixed}");
+                assert_eq!(skipped[0][0], ((carried % 30) + 1).to_string(), "{fixed}");
+            }
+        }
+        assert_eq!((repeated_rows, skipped_rows), (repeated_days, skipped_days));
+        assert!(
+            skipped_rows >= 1 && repeated_rows >= 1,
+            "{skipped_rows} {repeated_rows}"
+        );
+    }
+
+    /// Drik Panchang's page prints its Lahiri ayanāṃśa as 24.213067 on 1
+    /// January 2025 (`drik-day-panchang-ayanamsha`, as `Ayanamsa::LAHIRI_DRIK`
+    /// is anchored), and the Calendar Reform Committee fixed Lahiri's at
+    /// 23°15′00″ on 21 March 1956 (`crc1955`, p. 8).
+    #[test]
+    fn the_ayanamsas_are_listed_and_valued_at_an_instant() {
+        let table = rows_of(&ayanamsas_lines());
+        assert_eq!(table.len(), Ayanamsa::ALL.len());
+        assert!(table.iter().all(|row| row.len() == AYANAMSA_COLUMNS));
+        let ids: alloc::vec::Vec<&str> = table.iter().map(|row| row[0].as_str()).collect();
+        assert!(ids.contains(&"lahiri-drik") && ids.contains(&"lahiri-crc-1955"));
+        let crc = table
+            .iter()
+            .find(|row| row[0] == "lahiri-crc-1955")
+            .expect("a row");
+        assert_eq!((crc[2].as_str(), crc[3].as_str()), ("2435553.5", "23.25"));
+        let day = |year| {
+            hc_calendars_solar::gregorian::to_fixed(year, 1, 1)
+                .expect("a date")
+                .0
+        };
+        let unix = (day(2025) - hc_calendar::fixed::RD_OF_UNIX_EPOCH) * 86_400;
+        let row = rows_of(&ayanamsa_at_line(unix, "lahiri-drik").expect("in the era"));
+        assert_eq!(row[0].len(), AYANAMSA_VALUE_COLUMNS);
+        let degrees: f64 = row[0][0].parse().expect("degrees");
+        assert!((degrees - 24.213_067).abs() < 3e-4, "{degrees}");
+        assert_eq!(row[0][1..3], ["lahiri-drik", "Lahiri (Drik Panchang)"]);
+        // An anchor a caller gives is read back at its own Julian date.
+        let march_1956 = (hc_calendars_solar::gregorian::to_fixed(1956, 3, 21)
+            .expect("a date")
+            .0
+            - hc_calendar::fixed::RD_OF_UNIX_EPOCH)
+            * 86_400;
+        let custom = rows_of(
+            &ayanamsa_from_anchor_line(march_1956, 2_435_553.5, 23.25).expect("in the era"),
+        );
+        let degrees: f64 = custom[0][0].parse().expect("degrees");
+        assert!((degrees - 23.25).abs() < 1e-6, "{degrees}");
+        assert_eq!(custom[0][1..3], ["custom", "custom"]);
+        // The named Lahiri sits 17.3 arcseconds below the Committee's on that day.
+        let lahiri: f64 = rows_of(&ayanamsa_at_line(march_1956, "lahiri").expect("in the era"))[0]
+            [0]
+        .parse()
+        .expect("degrees");
+        assert!(((23.25 - lahiri) * 3_600.0 - 17.3).abs() < 0.5, "{lahiri}");
+        assert_eq!(ayanamsa_at_line(unix, "mars"), Err(Refusal::Unknown));
+        assert_eq!(
+            ayanamsa_from_anchor_line(unix, f64::NAN, 1.0),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            ayanamsa_from_anchor_line(unix, 2_435_553.5, 400.0),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            ayanamsa_from_anchor_line(unix, 1.0e9, 1.0),
+            Err(Refusal::OutOfRange)
+        );
+    }
 
     /// Drik Panchang's New Delhi page of 1 January 2025, a Wednesday
     /// (`drik-day-panchang-2025`, as `hc-calendars-indic`'s test reads it):

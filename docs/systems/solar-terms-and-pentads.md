@@ -275,7 +275,11 @@ longitude is 230.8°, twenty-one degrees into Vṛścika.
   traditional name as the Japanese list would write it. `pentad_moment`,
   `pentad_day`, `pentad_event`, `pentad_in_effect`, `pentad_on_day`,
   `pentad_beginning_on`, `pentads_from` and `pentads_in_year`. Neither
-  tradition is a default.
+  tradition is a default. At the boundary `hc_pentad_in_effect` writes the
+  `CHINESE` and `JAPANESE` names alone; `hc_pentad_traditions` lists the four
+  traditions and `hc_pentad_in_tradition` writes the pentad in effect named
+  by any one of them, with the gloss and the `alternates` reading of its
+  text (`a_pentad_is_named_by_each_tradition_with_the_text_s_alternate`).
 - **`meridian`**: `Meridian`, with `UNIVERSAL`, `JAPAN`, `CHINA`, `KOREA`,
   `INDIA` and `CHINA_BEFORE_1929`, constructors from seconds, hours and a
   longitude, and `day_of`, `midnight`, `noon` and `local_hours`.

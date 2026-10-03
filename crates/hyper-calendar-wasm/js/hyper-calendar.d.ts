@@ -371,7 +371,56 @@ export interface KumbhOccasion {
   holds: boolean | null;
 }
 
-/** One line of `hc_pushkaram`: a river's twelve days. */
+/** One line of `hc_kumbh_yogas`: what a condition is. */
+export interface KumbhYogaInfo {
+  id: KumbhYoga;
+  site: string;
+  siteName: string;
+  localeUsed: string;
+  river: string;
+  jupiter: SiderealSignId;
+  jupiterName: string;
+  sun: SiderealSignId;
+  sunName: string;
+  atNewMoon: boolean;
+  /** Where the condition comes from. */
+  source: string;
+}
+
+/** One line of `hc_pushkaram_rivers`. */
+export interface PushkaramRiver {
+  /** `pushkaram-ganga` to `pushkaram-pranahita`. */
+  id: string;
+  name: string;
+  localeUsed: string;
+  /** Where the source keeps the river for the sign, where it names a region. */
+  region: string | null;
+  sign: SiderealSignId;
+  signName: string;
+  /** Where the pairing comes from. */
+  source: string;
+}
+
+/** One line of `hc_pushkaram_rules`. */
+export interface PushkaramRule {
+  id: PushkaramEntryRule;
+  /** Which entry the rule counts. */
+  description: string;
+}
+
+/** One line of `hc_jupiter_stations`. */
+export interface JupiterStation {
+  /** POSIX seconds, rounded down. */
+  moment: number;
+  /** `retrograde` where Jupiter turns back (vakri), `direct` where it resumes (mārgī). */
+  kind: "retrograde" | "direct";
+  sign: SiderealSignId;
+  signName: string;
+  /** Degrees, in the zodiac of the ayanāṃśa asked for. */
+  siderealLongitude: number;
+}
+
+/** One line of `hc_pushkaram`: a river's twelve days. *//** One line of `hc_pushkaram`: a river's twelve days. */
 export interface PushkaramDays {
   /** `pushkaram-ganga` to `pushkaram-pranahita`. */
   id: string;
@@ -790,20 +839,33 @@ export type TibetanAlmanacKind =
   | "royal-year"
   | "year-symbol"
   | "month-symbol"
-  | "day-symbol";
+  | "day-symbol"
+  | "lunar-day-animal"
+  | "lunar-day-element"
+  | "lunar-day-trigram"
+  | "lunar-day-number"
+  | "day-trigram"
+  | "day-number-janson"
+  | "day-number-henning"
+  | "chinese-mansion"
+  | "element-pair";
 
 /** One line of `hc_tibetan_almanac_day`. */
 export interface TibetanAlmanacEntry {
   kind: TibetanAlmanacKind;
-  /** The component's number, the half-day, the rab byung position, the royal year or the animal's number. */
+  /**
+   * The component's number, the half-day, the rab byung position, the royal year or the animal's number; for
+   * the attributes, the animal's, element's, trigram's, number's or Chinese mansion's number, and for
+   * `element-pair` the weekday's, 1 for Saturday.
+   */
   id: number | null;
-  /** The Sanskrit or English name, or for a symbol the element and animal, `Water-Snake`. */
+  /** The Sanskrit or English name, or for a symbol the element and animal, `Water-Snake`; for a trigram its Tibetan name (`li`), for a number its colour, for `element-pair` the weekday's element. */
   name: string | null;
-  /** The Tibetan name in Wylie; `null` for a symbol. */
+  /** The Tibetan name in Wylie; `null` for a symbol; for a trigram its Chinese name, for a number its element, for `element-pair` the mansion's element. */
   tibetan: string | null;
-  /** The almanac's reading, `2;11,24`, or for a symbol the gender. */
+  /** The almanac's reading, `2;11,24`, or for a symbol the gender; for a trigram or a number its direction. */
   reading: string | null;
-  /** The reading as a decimal, or for a symbol the element's colour. */
+  /** The reading as a decimal, or for a symbol the element's colour; for a trigram the attribute Janson calls its element, for `lunar-day-element` its colour. */
   value: string | null;
 }
 
@@ -975,6 +1037,10 @@ export const COLUMNS: {
   readonly holidaysInYear: ReadonlyArray<string>;
   readonly holidaysOn: ReadonlyArray<string>;
   readonly term: ReadonlyArray<string>;
+  readonly pentadTraditions: ReadonlyArray<string>;
+  readonly pentadInTradition: ReadonlyArray<string>;
+  readonly zassetsu: ReadonlyArray<string>;
+  readonly seasonalDay: ReadonlyArray<string>;
   readonly deepTime: ReadonlyArray<string>;
   readonly sky: ReadonlyArray<string>;
   readonly skyEvent: ReadonlyArray<string>;
@@ -987,6 +1053,10 @@ export const COLUMNS: {
   readonly oleAutomation: ReadonlyArray<string>;
   readonly excel1900Day: ReadonlyArray<string>;
   readonly panchanga: ReadonlyArray<string>;
+  readonly tithi: ReadonlyArray<string>;
+  readonly tithisOfDay: ReadonlyArray<string>;
+  readonly ayanamsaTable: ReadonlyArray<string>;
+  readonly ayanamsaValue: ReadonlyArray<string>;
   readonly marriageAugury: ReadonlyArray<string>;
   readonly chineseAlmanacSolarTerms: ReadonlyArray<string>;
   readonly holidayTables: ReadonlyArray<string>;
@@ -1039,6 +1109,8 @@ export const COLUMNS: {
   readonly dayPeriod: ReadonlyArray<string>;
   readonly numberingSystems: ReadonlyArray<string>;
   readonly calendarEras: ReadonlyArray<string>;
+  readonly eraTable: ReadonlyArray<string>;
+  readonly olympicGames: ReadonlyArray<string>;
   readonly ccsdsDecode: ReadonlyArray<string>;
   readonly ccsdsAscii: ReadonlyArray<string>;
   readonly radioDecode: ReadonlyArray<string>;
@@ -1075,6 +1147,10 @@ export const COLUMNS: {
   readonly jupiterIngress: ReadonlyArray<string>;
   readonly jupiterRising: ReadonlyArray<string>;
   readonly kumbhBySky: ReadonlyArray<string>;
+  readonly kumbhYoga: ReadonlyArray<string>;
+  readonly pushkaramRiver: ReadonlyArray<string>;
+  readonly pushkaramRule: ReadonlyArray<string>;
+  readonly jupiterStation: ReadonlyArray<string>;
   readonly pushkaramBySky: ReadonlyArray<string>;
   readonly pushkaramsInYear: ReadonlyArray<string>;
   readonly folkDay: ReadonlyArray<string>;
@@ -1366,6 +1442,73 @@ export interface HolidayOn {
   id: string;
   /** Whether a bridge policy made this entry, Japan's 国民の休日 between two holidays. */
   bridged: boolean;
+}
+
+/** One line of `hc_zassetsu_in_year`. */
+export interface ZassetsuDay {
+  /** `spring-setsubun`, `summer-doyo-entry`; the older rules' days end in `-classical`. */
+  id: string;
+  /** The name in Japanese, 節分. */
+  name: string;
+  romaji: string;
+  englishName: string;
+  /** `solar-longitude`, `offset-from-term`, `nights-from-beginning-of-spring`, `nearest-stem-day` or `classical`. */
+  rule: string;
+  /** The fixed day. */
+  day: number;
+  /** The last day of the period it opens: the 土用 of a 土用の入り, the week of a 彼岸入り; else `null`. */
+  last: number | null;
+  /** The first 丑の日 of a 土用, or `null`. */
+  firstOxDay: number | null;
+  /** The second 丑の日, `null` where the 土用 has one. */
+  secondOxDay: number | null;
+}
+
+/** The kind of a line of `hc_seasonal_days_in_year`. */
+export type SeasonalDayKind = "san-fu" | "shu-jiu" | "dog-days" | "quarter-day" | "folk-day";
+
+/** One line of `hc_seasonal_days_in_year`. */
+export interface SeasonalDay {
+  kind: SeasonalDayKind;
+  id: string;
+  name: string;
+  /** The name in the convention's own language, 初伏. */
+  localName: string;
+  first: number;
+  /** The last fixed day; the first for a single day. */
+  last: number;
+  /** The calendar of the dates (`gregorian`, `julian`) or the tradition of a quarter day; else `null`. */
+  group: string | null;
+}
+
+/** A tradition that names the 72 pentads. */
+export type PentadTraditionId = "chinese" | "japanese" | "jokyo" | "senmyo";
+
+/** One line of `hc_pentad_traditions`. */
+export interface PentadTradition {
+  id: PentadTraditionId;
+  englishName: string;
+  /** The text the tradition's names come from. */
+  authority: string;
+  /** How many of its names carry an alternate reading the text prints beside them. */
+  alternates: number;
+}
+
+/** The one line of `hc_pentad_in_tradition`. */
+export interface PentadInTradition {
+  /** The first pentad of 春分 at 0 through 71. */
+  index: number;
+  name: string;
+  /** The English gloss of the name in this tradition. */
+  gloss: string;
+  /** The alternate reading the tradition's text prints beside the name, `武始交` for 虎始交, or `null`. */
+  alternate: string | null;
+  /** The fixed day the pentad began at the meridian. */
+  begins: number;
+  /** The last fixed day before the next pentad begins. */
+  ends: number;
+  tradition: PentadTraditionId;
+  authority: string;
 }
 
 /** The one line of `hc_term_in_effect` or `hc_pentad_in_effect`. */
@@ -2002,7 +2145,58 @@ export interface Excel1900Day {
   phantom: boolean;
 }
 
-/** One line of `hc_panchanga_at` or `hc_panchanga_of_day`. */
+/** One line of `hc_tithi_at`. */
+export interface Tithi {
+  /** 1 for śukla pratipadā through 30 for amāvasyā. */
+  number: number;
+  paksha: "shukla" | "krishna";
+  /** The tithi's day in its fortnight, 1 to 15. */
+  pakshaDay: number;
+  /** The name in IAST: `Caturdaśī`, `Pūrṇimā`, `Amāvasyā`. */
+  name: string;
+  /** POSIX seconds, rounded down: the Moon had gained a multiple of 12° on the Sun. */
+  began: number;
+  ends: number;
+  /** The instant read: the one asked for, or the day's sunrise. */
+  readAt: number;
+  sky: "true" | "surya-siddhanta";
+}
+
+/** One line of `hc_tithis_of_day`: a tithi with what the day's sunrises make of it. */
+export interface TithiOfDay extends Tithi {
+  /** It holds the day's sunrise: the tithi the day carries. */
+  atSunrise: boolean;
+  /** It holds the next sunrise too: repeated (adhika), the day's again tomorrow. */
+  repeated: boolean;
+  /** It holds neither sunrise: skipped (kṣaya). */
+  skipped: boolean;
+}
+
+/** One line of `hc_ayanamsas`. */
+export interface AyanamsaInfo {
+  id: Ayanamsa;
+  name: string;
+  /** The Julian date the anchor is quoted for. */
+  anchorJulianDate: number;
+  /** The anchor in degrees. */
+  anchorDegrees: number;
+  /** Where the anchor is from. */
+  source: string;
+}
+
+/** The line of `hc_ayanamsa_at` and `hc_ayanamsa_from_anchor`. */
+export interface AyanamsaValue {
+  /** The ayanāṃśa in degrees at the instant. */
+  degrees: number;
+  /** `custom` for an anchor the caller gave. */
+  id: string;
+  name: string;
+  anchorJulianDate: number;
+  anchorDegrees: number;
+  readAt: number;
+}
+
+/** One line of `hc_panchanga_at` or `hc_panchanga_of_day`. *//** One line of `hc_panchanga_at` or `hc_panchanga_of_day`. */
 export interface PanchangaLimb {
   limb: "yoga" | "karana";
   /** The yoga, 1 to 27; the karaṇa's half-tithi, 1 to 60. */
@@ -2237,6 +2431,49 @@ export interface CalendarEra {
   narrow: string | null;
   calendar: string;
   localeUsed: string;
+}
+
+/** A table of eras `hc_era_table` lists. */
+export type EraTableId = "japanese" | "chinese-regnal" | "korean-regnal";
+
+/** One line of `hc_era_table`. */
+export interface EraTableRow {
+  /** The era's code: `reiwa`, `showa-1312`, `kangxi`, `gwangmu`. */
+  code: string;
+  /** The name in the characters of its source: 令和, 康熙, 光武. */
+  name: string;
+  /** The reading: hiragana, pinyin or hangul. */
+  reading: string;
+  romanised: string;
+  /** The court (`unified`, `northern`, `southern`) or the dynasty (`ming`, `southern-ming`, `shun`, `qing`, `korean-empire`). */
+  group: string;
+  /** The Gregorian year of the first year (元年). */
+  firstYear: number;
+  /** The year of the last, where the table has one: the Chinese and Korean tables. */
+  lastYear: number | null;
+  /** The fixed day it began; `null` where the table has none. */
+  start: number | null;
+  /** The last fixed day it was in force; `null` for the era in force and where the table has none. */
+  last: number | null;
+  /** `attested`, `disputed`, `month-only`, `kept` or `not-kept`. */
+  status: string;
+  /** The first day under the other reading, 光武 backdated to 1 January 1897; else `null`. */
+  otherStart: number | null;
+  note: string | null;
+}
+
+/** One line of `hc_olympic_games`. */
+export interface OlympicGames {
+  /** The number; `null` for a Winter Games not held. */
+  number: number | null;
+  /** The year awarded to: 2020 for the Games held in 2021. */
+  year: number;
+  /** The host city as Olympedia spells it. */
+  host: string;
+  status: "celebrated" | "not-held" | "scheduled";
+  /** The fixed day of the opening ceremony, or `null`. */
+  opening: number | null;
+  closing: number | null;
 }
 
 /** What a holiday table is, by the list it is in. */
@@ -2873,6 +3110,22 @@ export class HyperCalendar {
   gregorianAdoption(region: string): GregorianAdoption[];
   /** `hc_panchanga_at`: the yoga's line, then the karaṇa's; an ayanamsa nobody knows is `unknown`. */
   panchangaAt(unixSeconds: number | bigint, ayanamsa: Ayanamsa | "surya-siddhanta"): PanchangaLimb[];
+  /** `hc_tithi_at`: the tithi in progress, with its span; `sky` is `true`, an ayanāṃśa or `surya-siddhanta`. */
+  tithiAt(unixSeconds: number | bigint, sky: Ayanamsa | "true" | "surya-siddhanta"): Tithi;
+  /** `hc_tithis_of_day`: the tithis between a day's sunrise and the next, flagged repeated or skipped; no sunrise is `no-data`. */
+  tithisOfDay(
+    fixed: number | bigint,
+    latitude: number,
+    longitude: number,
+    elevation: number,
+    sky: Ayanamsa | "true" | "surya-siddhanta",
+  ): TithiOfDay[];
+  /** `hc_ayanamsas`: every named ayanāṃśa with its anchor. */
+  ayanamsas(): AyanamsaInfo[];
+  /** `hc_ayanamsa_at`: a named ayanāṃśa's value in degrees at an instant. */
+  ayanamsaAt(unixSeconds: number | bigint, ayanamsa: Ayanamsa): AyanamsaValue;
+  /** `hc_ayanamsa_from_anchor`: the value of an ayanāṃśa the caller anchors, `custom`. */
+  ayanamsaFromAnchor(unixSeconds: number | bigint, anchorJulianDate: number, degreesAtAnchor: number): AyanamsaValue;
   /** `hc_panchanga_of_day`: read at the day's sunrise at the place; no sunrise is `no-data`. */
   panchangaOfDay(
     fixed: number | bigint,
@@ -2978,6 +3231,12 @@ export class HyperCalendar {
   panchak(naming: PanchakNaming, unixSeconds: number | bigint, ayanamsa: Ayanamsa, offsetSeconds?: number, locale?: string): PanchakWindow;
   /** `hc_kumbh`: `jupiter` is the caller's, the library having no ephemeris of Jupiter; empty unless given. */
   kumbh(yoga: KumbhYoga, year: number | bigint, ayanamsa: Ayanamsa, jupiter?: SiderealSignId | "", locale?: string): KumbhOccasion;
+  /** `hc_kumbh_yogas`: the Mela Adhikari's seven conditions, with the identifiers `kumbh` takes. */
+  kumbhYogas(locale?: string): KumbhYogaInfo[];
+  /** `hc_pushkaram_rivers`: every river, with the sign Jupiter enters for it. */
+  pushkaramRivers(locale?: string): PushkaramRiver[];
+  /** `hc_pushkaram_rules`: the two entry rules `pushkaramBySky` takes. */
+  pushkaramRules(): PushkaramRule[];
   /** `hc_pushkaram`: Jupiter's sign and the moment it enters it are the caller's. */
   pushkaram(
     sign: SiderealSignId,
@@ -3043,6 +3302,10 @@ export class HyperCalendar {
   numberingSystems(): NumberingSystemInfo[];
   /** `hc_calendar_eras`: a calendar's eras named in a locale. */
   calendarEras(calendar: string, locale?: string): CalendarEra[];
+  /** `hc_era_table`: every era of a table; one not named is `unknown`. */
+  eraTable(table: EraTableId): EraTableRow[];
+  /** `hc_olympic_games`: the modern Games of a season; one not named is `unknown`. */
+  olympicGames(season: "summer" | "winter"): OlympicGames[];
   /** `hc_roman_1960_office_on`: the 1960 ordo of a day. */
   roman1960OfficeOn(fixed: number | bigint): Roman1960Office[];
   /** `hc_orthodox_fast_on`: a day outside the years 326 to 4099, or 1583 to 4099 on the Gregorian reckonings, is `out-of-range`. */
@@ -3054,6 +3317,14 @@ export class HyperCalendar {
   termInEffect(fixed: number | bigint, meridian?: Meridian): TermInEffect;
   /** `hc_pentad_in_effect`. */
   pentadInEffect(fixed: number | bigint, meridian?: Meridian): TermInEffect;
+  /** `hc_pentad_traditions`: every tradition that names the 72 pentads. */
+  pentadTraditions(): PentadTradition[];
+  /** `hc_pentad_in_tradition`: the pentad in effect, named by a tradition; one not listed is `unknown`. */
+  pentadInTradition(fixed: number | bigint, tradition: PentadTraditionId, meridian?: Meridian): PentadInTradition;
+  /** `hc_zassetsu_in_year`: the 21 雑節 and the three days the older rules place elsewhere; a year outside −1000 to 3000 is `out-of-range`. */
+  zassetsuInYear(year: number | bigint, meridian?: Meridian): ZassetsuDay[];
+  /** `hc_seasonal_days_in_year`: the 伏, the nines, the dog days, the quarter days and the folk days of a year. */
+  seasonalDaysInYear(year: number | bigint, meridian?: Meridian): SeasonalDay[];
   /** `hc_cold_food_day`; a reckoning nobody knows is `unknown`, a year outside −999 to 3000 `out-of-range`. */
   coldFoodDay(convention: ColdFoodConvention, year: number | bigint): number;
   /** `hc_plum_rains`: at `meridian`, `china` for the published days; a year outside −1000 to 3000 is `out-of-range`. */
@@ -3164,8 +3435,12 @@ export class HyperCalendar {
   jupiterIngresses(fromUnixSeconds: number | bigint, toUnixSeconds: number | bigint, ayanamsa: Ayanamsa): JupiterIngress[];
   /** `hc_jupiter_risings`: Jupiter's heliacal risings in `[from, to)`; a span over a hundred Julian years is `out-of-range`. */
   jupiterRisings(fromUnixSeconds: number | bigint, toUnixSeconds: number | bigint, ayanamsa: Ayanamsa): JupiterRising[];
+  /** `hc_jupiter_stations`: where Jupiter turns back or resumes in a span; an end outside −1000 to 3000, or a span over a hundred Julian years, is `out-of-range`. */
+  jupiterStations(fromUnixSeconds: number | bigint, toUnixSeconds: number | bigint, ayanamsa: Ayanamsa): JupiterStation[];
   /** `hc_kumbh_by_sky`: `kumbh` with Jupiter's sign computed. */
   kumbhBySky(yoga: KumbhYoga, year: number | bigint, ayanamsa: Ayanamsa, locale?: string): KumbhBySky;
+  /** `hc_kumbhs_in_year_by_sky`: `kumbhBySky` for each of the seven conditions, in the order `kumbhYogas` lists them. */
+  kumbhsInYearBySky(year: number | bigint, ayanamsa: Ayanamsa, locale?: string): KumbhBySky[];
   /** `hc_pushkaram_by_sky`: `pushkaram` for the entry into the sign that falls in the year; empty in a year with none. */
   pushkaramBySky(
     sign: SiderealSignId,

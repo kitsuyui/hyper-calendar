@@ -266,7 +266,19 @@ Water-Water; 11 Feb 2013 / phan tshun, gdab pa, Tiger, kham 7 / 2;6,31
   `WEEKDAY_ELEMENTS` from Janson's table of the weekdays and
   `MANSION_ELEMENTS` as Henning's almanacs print them, Janson referring to
   Henning's book for the list; `TRIGRAMS` and `NINE_NUMBERS` with Janson's
-  attributes of each.
+  attributes of each. `hc_tibetan_almanac_day` writes them as lines, one
+  kind each: `lunar-day-animal`, `lunar-day-element`, `lunar-day-trigram`
+  and `lunar-day-number` for the lunar day that ends on the calendar day,
+  none on the first of two days with one number, as Henning prints them;
+  `day-trigram`, `day-number-janson` and `day-number-henning` for the
+  calendar day, the two numbers as separate kinds (docs/policy.md §5) and
+  Henning's not on the Tsurphu or Mongolian versions, whose almanacs print
+  none; `chinese-mansion`; and `element-pair`, read at the weekday the
+  almanac names the day by, the Bhutanese one on the Bhutanese versions.
+  The Bhutanese versions' lunar day is read under the Phugpa's month
+  cycle, with which Henning's Bhutanese almanacs of 2000 to 2020 agree, and
+  has no element, since Janson gives no month rule for Bhutan. The lines'
+  columns are in the WebAssembly module's README.
 - **Festivals**: `HENNING_FESTIVALS`, the seven fixed-date festivals
   Henning's computed Phugpa almanacs mark in every year of 1960–2045 as
   read, with his English words; `berzin_day` and `henning_almanac_day`.

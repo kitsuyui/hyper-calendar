@@ -126,3 +126,108 @@ fn the_term_and_pentad_refuse_days_outside_the_era() {
         );
     }
 }
+
+/// The 暦Wiki's table of the 七十二候 (`nao-rekiwiki-72ko`): 立春次候 is
+/// 蟄虫始振 in the 宣明暦's list, 梅花乃芳 in the 貞享暦's and 黄鶯睍睆 in the
+/// 宝暦暦's, which the almanac prints today; 大雪次候's 虎始交 carries the
+/// alternate 武始交 in the first.
+#[test]
+fn the_pentad_traditions_and_a_pentad_named_by_each_cross_the_boundary() {
+    let text = read_lines(|buffer, capacity| unsafe { hc_pentad_traditions(buffer, capacity) });
+    let ids: Vec<&str> = text
+        .lines()
+        .map(|line| line.split('\t').next().expect("an id"))
+        .collect();
+    assert_eq!(ids, ["chinese", "japanese", "jokyo", "senmyo"]);
+    let day = hc_gregorian_to_fixed(2024, 2, 10);
+    let named = |tradition: &str, day: i64| {
+        let text = read_lines(|buffer, capacity| unsafe {
+            hc_pentad_in_tradition(
+                day,
+                tradition.as_ptr(),
+                tradition.len(),
+                "japan".as_ptr(),
+                5,
+                buffer,
+                capacity,
+            )
+        });
+        columns(&text)
+            .iter()
+            .map(|cell| (*cell).to_owned())
+            .collect::<Vec<_>>()
+    };
+    for (tradition, name) in [
+        ("senmyo", "蟄虫始振"),
+        ("JOKYO", "梅花乃芳"),
+        ("japanese", "黄鶯睍睆"),
+    ] {
+        let row = named(tradition, day);
+        assert_eq!(row.len(), 8, "{row:?}");
+        assert_eq!(row[..2], ["64", name]);
+        assert_eq!(row[4], hc_gregorian_to_fixed(2024, 2, 9).to_string());
+    }
+    let tiger = named("senmyo", hc_gregorian_to_fixed(2026, 12, 14));
+    assert_eq!(tiger[..4], ["52", "虎始交", tiger[2].as_str(), "武始交"]);
+    let none = unsafe {
+        hc_pentad_in_tradition(
+            day,
+            "horyaku".as_ptr(),
+            7,
+            "japan".as_ptr(),
+            5,
+            core::ptr::null_mut(),
+            0,
+        )
+    };
+    assert_eq!(none, HC_ERR_UNKNOWN);
+}
+
+/// 暦要項 2024: 節分 on 3 February, 入梅 on 10 June, 土用の入り on 19 July with
+/// its 丑の日 24 July and 5 August; and the three 伏 of 2026 in China begin
+/// on 15 July, 25 July and 14 August.
+#[test]
+fn the_zassetsu_and_the_seasonal_days_cross_the_boundary() {
+    let rows = |text: &str| {
+        text.lines()
+            .map(|line| line.split('\t').map(str::to_owned).collect::<Vec<_>>())
+            .collect::<Vec<_>>()
+    };
+    let japan = "japan";
+    let zassetsu = read_lines(|buffer, capacity| unsafe {
+        hc_zassetsu_in_year(2024, japan.as_ptr(), japan.len(), buffer, capacity)
+    });
+    let zassetsu = rows(&zassetsu);
+    assert_eq!(zassetsu.len(), 25);
+    let day = |year, month, date| hc_gregorian_to_fixed(year, month, date).to_string();
+    let find = |id: &str| {
+        zassetsu
+            .iter()
+            .find(|row| row[0] == id)
+            .expect("a day")
+            .clone()
+    };
+    assert_eq!(find("spring-setsubun")[5], day(2024, 2, 3));
+    assert_eq!(find("nyubai")[5], day(2024, 6, 10));
+    let summer = find("summer-doyo-entry");
+    assert_eq!(summer[5], day(2024, 7, 19));
+    assert_eq!(summer[7..9], [day(2024, 7, 24), day(2024, 8, 5)]);
+    let china = "china";
+    let seasonal = read_lines(|buffer, capacity| unsafe {
+        hc_seasonal_days_in_year(2026, china.as_ptr(), china.len(), buffer, capacity)
+    });
+    let seasonal = rows(&seasonal);
+    assert!(seasonal.iter().all(|row| row.len() == 7));
+    let fu: Vec<&str> = seasonal
+        .iter()
+        .filter(|row| row[0] == "san-fu")
+        .map(|row| row[4].as_str())
+        .collect();
+    assert_eq!(fu, [day(2026, 7, 15), day(2026, 7, 25), day(2026, 8, 14)]);
+    let bad = unsafe { hc_zassetsu_in_year(2024, "mars".as_ptr(), 4, core::ptr::null_mut(), 0) };
+    assert_eq!(bad, HC_ERR_UNKNOWN);
+    let far = unsafe {
+        hc_seasonal_days_in_year(3001, japan.as_ptr(), japan.len(), core::ptr::null_mut(), 0)
+    };
+    assert_eq!(far, HC_ERR_OUT_OF_RANGE);
+}

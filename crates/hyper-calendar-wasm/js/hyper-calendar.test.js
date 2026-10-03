@@ -1109,6 +1109,56 @@ describe("almanac", () => {
     assert.ok(pentad.chineseAuthority.length > 0 && pentad.japaneseAuthority.length > 0);
   });
 
+  test("a pentad is named by each tradition, with the alternate its text prints", () => {
+    // 暦Wiki's table of the 七十二候: 立春次候 is 蟄虫始振 before the 貞享暦, 梅花乃芳 in it and 黄鶯睍睆 from the
+    // 宝暦暦; 大雪次候's 虎始交 has the alternate 武始交 in the first.
+    assert.deepEqual(hc.pentadTraditions().map((tradition) => tradition.id), ["chinese", "japanese", "jokyo", "senmyo"]);
+    assert.equal(hc.pentadTraditions().find((tradition) => tradition.id === "senmyo")?.alternates, 4);
+    const day = hc.gregorianToFixed(2024, 2, 10);
+    for (const [tradition, name] of /** @type {const} */ ([
+      ["senmyo", "蟄虫始振"], ["jokyo", "梅花乃芳"], ["japanese", "黄鶯睍睆"],
+    ])) {
+      const pentad = hc.pentadInTradition(day, tradition, "japan");
+      assert.deepEqual([pentad.index, pentad.name, pentad.tradition], [64, name, tradition]);
+      assert.equal(pentad.begins, hc.gregorianToFixed(2024, 2, 9));
+      assert.equal(pentad.ends, hc.gregorianToFixed(2024, 2, 13));
+      assert.equal(pentad.alternate, null);
+    }
+    const tiger = hc.pentadInTradition(hc.gregorianToFixed(2026, 12, 14), "senmyo", "japan");
+    assert.deepEqual([tiger.index, tiger.name, tiger.alternate], [52, "虎始交", "武始交"]);
+    refused(() => hc.pentadInTradition(day, /** @type {any} */ ("horyaku"), "japan"), "unknown");
+  });
+
+  test("the zassetsu and the seasonal days of a year are their sources'", () => {
+    // 暦要項 2024: 節分 on 3 February, 入梅 on 10 June, 土用の入り on 19 July with its 丑の日 on 24 July and 5 August.
+    const zassetsu = hc.zassetsuInYear(2024, "japan");
+    assert.equal(zassetsu.length, 25);
+    const find = (/** @type {string} */ id) => zassetsu.find((day) => day.id === id);
+    assert.equal(find("spring-setsubun")?.day, hc.gregorianToFixed(2024, 2, 3));
+    assert.equal(find("nyubai")?.day, hc.gregorianToFixed(2024, 6, 10));
+    const summer = find("summer-doyo-entry");
+    assert.deepEqual(
+      [summer?.day, summer?.last, summer?.firstOxDay, summer?.secondOxDay],
+      [
+        hc.gregorianToFixed(2024, 7, 19), hc.gregorianToFixed(2024, 8, 6),
+        hc.gregorianToFixed(2024, 7, 24), hc.gregorianToFixed(2024, 8, 5),
+      ],
+    );
+    assert.equal(find("spring-setsubun")?.last, null);
+    assert.equal(find("hangesho-classical")?.rule, "classical");
+    // The three 伏 of 2026 in China begin on 15 July, 25 July and 14 August (Wikipedia zh, 三伏).
+    const seasonal = hc.seasonalDaysInYear(2026, "china");
+    assert.deepEqual(
+      seasonal.filter((day) => day.kind === "san-fu").map((day) => [day.name, day.localName, day.first]),
+      [["First fu", "初伏", hc.gregorianToFixed(2026, 7, 15)], ["Middle fu", "中伏", hc.gregorianToFixed(2026, 7, 25)], ["Last fu", "末伏", hc.gregorianToFixed(2026, 8, 14)]],
+    );
+    const hundstage = seasonal.find((day) => day.id === "hundstage");
+    assert.deepEqual([hundstage?.first, hundstage?.last], [hc.gregorianToFixed(2026, 7, 23), hc.gregorianToFixed(2026, 8, 23)]);
+    assert.equal(seasonal.filter((day) => day.kind === "quarter-day").length, 20);
+    refused(() => hc.zassetsuInYear(2024, "mars"), "unknown");
+    refused(() => hc.seasonalDaysInYear(3001, "japan"), "out-of-range");
+  });
+
   test("a meridian is a name or a longitude", () => {
     const day = hc.gregorianToFixed(2024, 2, 4);
     const begins = (/** @type {string | number} */ meridian) => hc.termInEffect(day, meridian).begins;
@@ -3294,6 +3344,113 @@ describe("the muhūrtas, amṛta siddhi, the nakṣatra, the drekkāṇa and the
   });
 });
 
+describe("the era tables and the Olympic Games", () => {
+  test("the era tables list what their tables know", () => {
+    // Japanese Wikipedia's 元号一覧 (日本): 248 eras, 令和 the 248th, from 1 May 2019 and still in force.
+    const japanese = hc.eraTable("japanese");
+    assert.equal(japanese.length, 248);
+    const reiwa = japanese.find((era) => era.code === "reiwa");
+    assert.deepEqual(
+      [reiwa?.name, reiwa?.group, reiwa?.start, reiwa?.last, reiwa?.status],
+      ["令和", "unified", hc.gregorianToFixed(2019, 5, 1), null, "attested"],
+    );
+    assert.equal(japanese.find((era) => era.code === "heisei")?.last, hc.gregorianToFixed(2019, 4, 30));
+    assert.equal(hc.eraTable("chinese-regnal").length, 37);
+    const gwangmu = hc.eraTable("korean-regnal").find((era) => era.code === "gwangmu");
+    assert.deepEqual(
+      [gwangmu?.name, gwangmu?.start, gwangmu?.otherStart],
+      ["光武", hc.gregorianToFixed(1897, 8, 14), hc.gregorianToFixed(1897, 1, 1)],
+    );
+    refused(() => hc.eraTable(/** @type {any} */ ("babylonian")), "unknown");
+  });
+
+  test("the Games are Olympedia's", () => {
+    // Olympedia's editions: Paris 2024 opened on 26 July and closed on 11 August; the VI Games of 1916 were not held.
+    const summer = hc.olympicGames("summer");
+    const paris = summer.find((games) => games.year === 2024);
+    assert.deepEqual(
+      [paris?.number, paris?.host, paris?.opening, paris?.closing],
+      [33, "Paris", hc.gregorianToFixed(2024, 7, 26), hc.gregorianToFixed(2024, 8, 11)],
+    );
+    assert.deepEqual(summer.find((games) => games.year === 1916), {
+      number: 6, year: 1916, host: "Berlin", status: "not-held", opening: null, closing: null,
+    });
+    assert.equal(hc.olympicGames("winter").find((games) => games.year === 2022)?.number, 24);
+    refused(() => hc.olympicGames(/** @type {any} */ ("spring")), "unknown");
+  });
+});
+
+describe("the tithi and the ayanāṃśas", () => {
+  // Drik Panchang's page for Tokyo (35°41′22″N 139°41′30″E) of 13 January 2025: "Chaturdashi upto 08:33 AM", sunrise 06:51.
+  const tokyo = [35 + 41 / 60 + 22 / 3600, 139 + 41 / 60 + 30 / 3600];
+
+  test("a tithi ends when Drik Panchang says and a day lists the tithis it holds", () => {
+    const noon = Date.UTC(2025, 0, 12, 12) / 1000;
+    const tithi = hc.tithiAt(noon, "lahiri");
+    assert.deepEqual([tithi.number, tithi.paksha, tithi.pakshaDay, tithi.name, tithi.sky], [14, "shukla", 14, "Caturdaśī", "true"]);
+    assert.ok(Math.abs(tithi.ends - Date.UTC(2025, 0, 12, 23, 33) / 1000) <= 120);
+    assert.equal(tithi.readAt, noon);
+    assert.equal(hc.tithiAt(1_700_000_000, "surya-siddhanta").sky, "surya-siddhanta");
+    const day = hc.gregorianToFixed(2025, 1, 13);
+    const rows = hc.tithisOfDay(day, tokyo[0], tokyo[1], 0, "true");
+    assert.deepEqual(rows.map((row) => [row.number, row.name, row.atSunrise, row.repeated, row.skipped]), [
+      [14, "Caturdaśī", true, false, false],
+      [15, "Pūrṇimā", false, false, false],
+    ]);
+    assert.ok(Math.abs(rows[0].readAt - Date.UTC(2025, 0, 12, 21, 51) / 1000) <= 120);
+    refused(() => hc.tithiAt(noon, /** @type {any} */ ("mars")), "unknown");
+    refused(() => hc.tithiAt(200_000_000_000, "true"), "out-of-range");
+  });
+
+  test("the ayanāṃśas are listed and valued at an instant", () => {
+    const table = hc.ayanamsas();
+    assert.ok(table.length >= 8);
+    const crc = table.find((row) => row.id === "lahiri-crc-1955");
+    assert.deepEqual([crc?.anchorJulianDate, crc?.anchorDegrees], [2_435_553.5, 23.25]);
+    // Drik Panchang prints its Lahiri as 24.213067 on 1 January 2025.
+    const drik = hc.ayanamsaAt(Date.UTC(2025, 0, 1) / 1000, "lahiri-drik");
+    assert.ok(Math.abs(drik.degrees - 24.213_067) < 3e-4, String(drik.degrees));
+    assert.equal(drik.name, "Lahiri (Drik Panchang)");
+    // The Calendar Reform Committee's value is read back at its own date.
+    const custom = hc.ayanamsaFromAnchor(Date.UTC(1956, 2, 21) / 1000, 2_435_553.5, 23.25);
+    assert.ok(Math.abs(custom.degrees - 23.25) < 1e-6);
+    assert.deepEqual([custom.id, custom.name], ["custom", "custom"]);
+    refused(() => hc.ayanamsaAt(0, /** @type {any} */ ("mars")), "unknown");
+    refused(() => hc.ayanamsaFromAnchor(0, Number.NaN, 1), "out-of-range");
+  });
+});
+
+describe("the Kumbh and Pushkaram tables, the Kumbhs of a year and Jupiter's stations", () => {
+  test("the tables list what the sources name", () => {
+    // The Mela Adhikari's seven conditions; Wikipedia's Pushkaram table: 14 rivers, the Ganga at Meṣa.
+    const yogas = hc.kumbhYogas("en");
+    assert.equal(yogas.length, 7);
+    assert.deepEqual([yogas[0].id, yogas[0].siteName, yogas[0].river, yogas[0].jupiter, yogas[0].sun], ["kumbh-haridwar", "Haridwar", "Ganga", "kumbha", "mesha"]);
+    assert.equal(yogas.find((yoga) => yoga.id === "kumbh-prayag-mesha")?.atNewMoon, true);
+    const rivers = hc.pushkaramRivers("en");
+    assert.equal(rivers.length, 14);
+    assert.deepEqual(rivers.find((river) => river.id === "pushkaram-bhima")?.region, "Maharashtra, Karnataka, Telangana");
+    assert.equal(rivers.find((river) => river.id === "pushkaram-ganga")?.sign, "mesha");
+    assert.deepEqual(hc.pushkaramRules().map((rule) => rule.id), ["pushkaram-final-entry", "pushkaram-first-entry"]);
+  });
+
+  test("a year's Kumbhs and Jupiter's stations are their sources'", () => {
+    // The Maha Kumbh of 2025 at Prayag is the one condition the sky meets.
+    const kumbhs = hc.kumbhsInYearBySky(2025, "lahiri", "en");
+    assert.equal(kumbhs.length, 7);
+    assert.deepEqual(kumbhs.filter((kumbh) => kumbh.holds).map((kumbh) => kumbh.id), ["kumbh-prayag-vrishabha"]);
+    assert.deepEqual(kumbhs[1], hc.kumbhBySky("kumbh-prayag-vrishabha", 2025, "lahiri", "en"));
+    // Drik Panchang: retrograde on 9 October 2024 at 12:33 IST, progressive on 4 February 2025 at 15:09.
+    const stations = hc.jupiterStations(Date.UTC(2024, 8, 1) / 1000, Date.UTC(2025, 2, 1) / 1000, "lahiri");
+    assert.deepEqual(stations.map((station) => station.kind), ["retrograde", "direct"]);
+    assert.ok(Math.abs(stations[0].moment - (Date.UTC(2024, 9, 9, 12, 33) / 1000 - 19_800)) < 7 * 60);
+    assert.ok(Math.abs(stations[1].moment - (Date.UTC(2025, 1, 4, 15, 9) / 1000 - 19_800)) < 7 * 60);
+    assert.equal(stations[0].sign, "vrishabha");
+    refused(() => hc.kumbhsInYearBySky(3001, "lahiri"), "out-of-range");
+    refused(() => hc.jupiterStations(0, 1, /** @type {any} */ ("mars")), "unknown");
+  });
+});
+
 describe("the Tibetan almanac", () => {
   test("Henning's Tsurphu almanac's first day of 2013 is written as he prints it", () => {
     const entries = hc.tibetanAlmanacDay("tibetan-tsurphu-karana", hc.gregorianToFixed(2013, 2, 11));
@@ -3302,6 +3459,21 @@ describe("the Tibetan almanac", () => {
     });
     assert.deepEqual([entries[1].name, entries[1].tibetan], ["Shatabhishaj", "mon gru"]);
     assert.equal(entries.find((entry) => entry.kind === "year-symbol")?.name, "Water-Snake");
+    // The attributes his almanac prints for that day: the Tiger lunar day with li and 1, the Chinese mansion
+    // Bi with no number, and the elements Water and Earth.
+    const of = (/** @type {string} */ kind) => entries.filter((entry) => entry.kind === kind);
+    assert.deepEqual(of("lunar-day-animal").map((e) => [e.id, e.name]), [[3, "Tiger"]]);
+    assert.deepEqual(of("lunar-day-trigram").map((e) => [e.id, e.name, e.tibetan, e.reading, e.value]), [[1, "li", "lí", "S", "fire"]]);
+    assert.deepEqual(of("lunar-day-number").map((e) => [e.id, e.name, e.tibetan, e.reading]), [[1, "white", "iron", "N"]]);
+    assert.deepEqual(of("chinese-mansion").map((e) => [e.id, e.name]), [[19, "Bi"]]);
+    assert.deepEqual(of("element-pair").map((e) => [e.id, e.name, e.tibetan]), [[3, "Water", "Earth"]]);
+    assert.equal(of("day-number-henning").length, 0);
+    const phugpa = hc.tibetanAlmanacDay("tibetan", hc.gregorianToFixed(2013, 2, 11));
+    // 11 February 2013 is 9 in Henning's almanac and 8 by Janson's rule: two conventions, two kinds.
+    assert.deepEqual(
+      [phugpa.find((e) => e.kind === "day-number-henning")?.id, phugpa.find((e) => e.kind === "day-number-janson")?.id],
+      [9, 8],
+    );
     refused(() => hc.tibetanAlmanacDay(/** @type {any} */ ("tibetan-x"), 0), "unknown");
   });
 

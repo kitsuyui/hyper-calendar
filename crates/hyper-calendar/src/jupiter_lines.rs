@@ -175,6 +175,94 @@ pub fn kumbh_by_sky_line(
     Ok(out)
 }
 
+/// The lines of `hc_kumbhs_in_year_by_sky`: [`kumbh_by_sky_line`] for every
+/// condition of [`KumbhYoga::ALL`] in a Gregorian year, one line each in the
+/// source's order, the condition in the first cell, so that a caller finds
+/// the sites that meet theirs that year in one call.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for an ayanāṃśa not named; [`Refusal::OutOfRange`]
+/// for a year outside the sky layer's era.
+pub fn kumbhs_in_year_by_sky_lines(year: i64, ayanamsa_name: &str, locale: &str) -> Answer<String> {
+    ayanamsa(ayanamsa_name)?;
+    if !(EARLIEST_YEAR..=LATEST_YEAR).contains(&year) {
+        return Err(Refusal::OutOfRange);
+    }
+    let mut out = String::new();
+    for yoga in KumbhYoga::ALL {
+        out.push_str(&kumbh_by_sky_line(yoga.id, year, ayanamsa_name, locale)?);
+    }
+    Ok(out)
+}
+
+/// How many columns each line of [`station_lines`] writes.
+pub const STATION_COLUMNS: usize = 5;
+
+/// The lines of `hc_jupiter_stations`: Jupiter's stations in the half-open
+/// span `[from, to)` of POSIX seconds, in time order — the moment its
+/// apparent longitude stops changing, as whole POSIX seconds of Universal
+/// Time rounded down; `retrograde` where it turns back (*vakri*) and `direct`
+/// where it resumes (*mārgī*, Drik Panchang's "becomes progressive"); the
+/// sidereal sign it turns in, by identifier and Sanskrit name; and its
+/// sidereal longitude there in degrees.
+///
+/// The station is found in the tropical longitude, which Drik Panchang's
+/// dates agree with to within 7 minutes on 18 stations from 2010 to 2027
+/// ([`hc_seasons::zodiac::jupiter::stations`]).
+///
+/// # Errors
+///
+/// As [`ingress_lines`].
+pub fn station_lines(from: i64, to: i64, ayanamsa_name: &str) -> Answer<String> {
+    let ayanamsa = ayanamsa(ayanamsa_name)?;
+    let start = moment_in_era(from)?;
+    if to <= from {
+        return Ok(String::new());
+    }
+    let end = moment_in_era(to - 1)?;
+    if to - from > MAX_INGRESS_SPAN_SECONDS {
+        return Err(Refusal::OutOfRange);
+    }
+    let mut out = String::new();
+    for station in jupiter::stations(start, Moment(end.0 + 1.0 / 86_400.0)) {
+        let unix = unix_from_moment(station.moment);
+        if unix >= to {
+            break;
+        }
+        let at = jupiter::position(station.moment, ayanamsa);
+        let mut line = Line::new(&mut out);
+        line.value(unix)
+            .cell(match station.kind {
+                jupiter::StationKind::Retrograde => "retrograde",
+                jupiter::StationKind::Direct => "direct",
+            })
+            .cell(at.sign.id())
+            .cell(at.sign.sanskrit_name())
+            .value(at.sidereal_longitude_degrees);
+        line.end();
+    }
+    Ok(out)
+}
+
+/// How many columns each line of [`pushkaram_by_sky_lines`] writes:/// How many columns each line of [`pushkaram_rules_lines`] writes.
+pub const PUSHKARAM_RULE_COLUMNS: usize = 2;
+
+/// The lines of `hc_pushkaram_rules`: the two rules for which entry of
+/// Jupiter into a sign a Pushkaram follows, [`EntryRule::ALL`], the one the
+/// festivals read follow first — the identifier `hc_pushkaram_by_sky` and
+/// `hc_pushkarams_in_year` take and a sentence saying which entry it counts.
+#[must_use]
+pub fn pushkaram_rules_lines() -> String {
+    let mut out = String::new();
+    for rule in EntryRule::ALL {
+        let mut line = Line::new(&mut out);
+        line.cell(rule.id()).cell(rule.description());
+        line.end();
+    }
+    out
+}
+
 /// How many columns each line of [`pushkaram_by_sky_lines`] writes:
 /// `hc_pushkaram`'s, and two.
 pub const PUSHKARAM_BY_SKY_COLUMNS: usize = crate::reckoning_lines::PUSHKARAM_COLUMNS + 2;
@@ -537,6 +625,109 @@ mod tests {
             kumbh_by_sky_line("kumbh-prayag-vrishabha", 2026, "lahiri", "en").expect("a line");
         assert_eq!(self::cells(&other)[12], "0");
         assert_eq!(self::cells(&other)[13], "mithuna");
+    }
+
+    /// The sites whose condition the sky meets in a year, from the seven at
+    /// once: the Maha Kumbh of 2025 at Prayag, the Haridwar Kumbh of 2021,
+    /// the Ujjain Simhastha of 2016 and the Nashik of 2015
+    /// (`wikipedia-kumbh-mela`), and each other site absent that year.
+    #[test]
+    fn the_sites_that_meet_their_condition_in_a_year_are_listed_together() {
+        let met = |year: i64| -> alloc::vec::Vec<String> {
+            let text = kumbhs_in_year_by_sky_lines(year, "lahiri", "en").expect("lines");
+            assert_eq!(text.lines().count(), KumbhYoga::ALL.len());
+            text.lines()
+                .map(|line| cells(line))
+                .inspect(|cells| assert_eq!(cells.len(), KUMBH_BY_SKY_COLUMNS))
+                .filter(|cells| cells[12] == "1")
+                .map(|cells| String::from(cells[0]))
+                .collect()
+        };
+        assert_eq!(met(2025), ["kumbh-prayag-vrishabha"]);
+        assert_eq!(met(2021), ["kumbh-haridwar"]);
+        assert_eq!(met(2016), ["kumbh-ujjain-simha"]);
+        assert_eq!(met(2015), ["kumbh-nashik-simha"]);
+        // Each line is the single call's.
+        let all = kumbhs_in_year_by_sky_lines(2025, "lahiri", "en").expect("lines");
+        assert_eq!(
+            all.lines().nth(1).map(String::from),
+            kumbh_by_sky_line("kumbh-prayag-vrishabha", 2025, "lahiri", "en")
+                .ok()
+                .map(|line| String::from(line.trim_end()))
+        );
+        assert_eq!(
+            kumbhs_in_year_by_sky_lines(2025, "nope", "en"),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            kumbhs_in_year_by_sky_lines(3001, "lahiri", "en"),
+            Err(Refusal::OutOfRange)
+        );
+    }
+
+    /// Drik Panchang's "Jupiter becomes Retrograde" on 9 October 2024 at
+    /// 12:33 IST and "Progressive" on 4 February 2025 at 15:09
+    /// (`drik-guru-retrograde`, as `hc-seasons`' test reads them): the two
+    /// stations of the year, each within 7 minutes, Jupiter turning in
+    /// Vṛṣabha by Lahiri's zodiac both times.
+    #[test]
+    fn jupiters_stations_are_drik_panchangs() {
+        let ist = |year: i64, month: u8, day: u8, hour: u8, minute: u8| {
+            let fixed = hc_calendars_solar::gregorian::to_fixed(year, month, day)
+                .expect("a date")
+                .0;
+            (fixed - hc_calendar::fixed::RD_OF_UNIX_EPOCH) * 86_400
+                + i64::from(hour) * 3_600
+                + i64::from(minute) * 60
+                - 19_800
+        };
+        let from = ist(2024, 9, 1, 0, 0);
+        let to = ist(2025, 3, 1, 0, 0);
+        let text = station_lines(from, to, "lahiri").expect("lines");
+        let rows: alloc::vec::Vec<_> = text.lines().map(cells).collect();
+        assert_eq!(rows.len(), 2);
+        assert!(rows.iter().all(|row| row.len() == STATION_COLUMNS));
+        for (row, (kind, expected)) in rows.iter().zip([
+            ("retrograde", ist(2024, 10, 9, 12, 33)),
+            ("direct", ist(2025, 2, 4, 15, 9)),
+        ]) {
+            assert_eq!(row[1], kind);
+            let found: i64 = row[0].parse().expect("an instant");
+            assert!(
+                (found - expected).abs() < 7 * 60,
+                "{kind}: {}",
+                found - expected
+            );
+        }
+        // Jupiter entered Mithuna on 14 May 2025, so both turn in Vṛṣabha.
+        assert!(rows.iter().all(|row| row[2] == "vrishabha"));
+        assert_eq!(station_lines(to, from, "lahiri"), Ok(String::new()));
+        assert_eq!(station_lines(from, to, "nope"), Err(Refusal::Unknown));
+        assert_eq!(
+            station_lines(from, from + MAX_INGRESS_SPAN_SECONDS + 1, "lahiri"),
+            Err(Refusal::OutOfRange)
+        );
+    }
+
+    /// The two rules, the final entry first, each with its sentence.
+    #[test]
+    fn the_pushkaram_rules_are_listed() {
+        let rules = pushkaram_rules_lines();
+        let rows: alloc::vec::Vec<_> = rules.lines().map(cells).collect();
+        assert_eq!(
+            rows.iter()
+                .map(|row| row[0])
+                .collect::<alloc::vec::Vec<_>>(),
+            ["pushkaram-final-entry", "pushkaram-first-entry"]
+        );
+        assert!(
+            rows.iter()
+                .all(|row| row.len() == PUSHKARAM_RULE_COLUMNS && !row[1].is_empty())
+        );
+        // Each is an identifier `hc_pushkaram_by_sky` takes.
+        for row in rows {
+            assert!(EntryRule::by_id(row[0]).is_some());
+        }
     }
 
     #[test]

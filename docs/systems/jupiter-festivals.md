@@ -177,7 +177,15 @@ to 2099 by the final entry and 13 by the first. Every ingress these find is the 
 export asks for it (jupiter-ephemeris.md says how and what it moved), so
 `hc_jupiter_ingresses`, `hc_pushkaram_by_sky` and `hc_pushkarams_in_year` agree
 on a festival's entry to the second. `hc_kumbh` and `hc_pushkaram`
-themselves, in the `calendars` layer, still take the caller's.
+themselves, in the `calendars` layer, still take the caller's. The tables the
+identifiers come from are exports too: `hc_kumbh_yogas` (the Mela Adhikari's
+seven conditions), `hc_pushkaram_rivers` (the 14 rivers with their signs and
+regions) in `calendars`, and `hc_pushkaram_rules` (the two `EntryRule`s with a
+sentence each) in the `jupiter` layer, where `EntryRule` is,
+and `hc_kumbhs_in_year_by_sky` is `hc_kumbh_by_sky` for all seven conditions in
+one call: in 2025 the Maha Kumbh at Prayag alone, in 2021 Haridwar, in 2016
+Ujjain and in 2015 Nashik, as `wikipedia-kumbh-mela` has them
+(`the_sites_that_meet_their_condition_in_a_year_are_listed_together`).
 
 Not carried:
 

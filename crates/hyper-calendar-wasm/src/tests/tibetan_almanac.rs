@@ -12,6 +12,22 @@ fn the_lines_are_the_facades() {
         hc_tibetan_almanac_day(calendar.as_ptr(), calendar.len(), 734_910, buffer, capacity)
     });
     assert!(text.starts_with("weekday\t3\tMonday\tzla ba\t2;11,24\t"));
+    // The attributes Henning prints on that day: the Tiger lunar day with
+    // *li* and 1, the Chinese mansion *Bi*, and the elements Water and Earth.
+    for line in [
+        "lunar-day-animal\t3\tTiger\t\t\t",
+        "lunar-day-trigram\t1\tli\tlí\tS\tfire",
+        "lunar-day-number\t1\twhite\tiron\tN\t",
+        "chinese-mansion\t19\tBi\t\t\t",
+        "element-pair\t3\tWater\tEarth\t\t",
+    ] {
+        assert!(text.lines().any(|found| found == line), "{line}\n{text}");
+    }
+    assert!(
+        !text
+            .lines()
+            .any(|line| line.starts_with("day-number-henning\t"))
+    );
     let text = read_lines(|buffer, capacity| unsafe {
         hc_bhutanese_winter_solstice(2001, buffer, capacity)
     });

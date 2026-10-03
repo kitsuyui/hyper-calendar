@@ -388,6 +388,21 @@ hc_core::catalogue! {
     }
 }
 
+impl EntryRule {
+    /// A sentence saying which entry the rule counts.
+    #[must_use]
+    pub const fn description(self) -> &'static str {
+        match self {
+            Self::FinalEntry => {
+                "the entry after which Jupiter stays in the sign until it moves on to the next: the second, where it enters, turns back and enters again; the entry the festivals read began at"
+            }
+            Self::FirstEntry => {
+                "the first entry into the sign from the sign before it, of the run of entries and returns; where Wikipedia's table opens the 2019 Tapti and Brahmaputra festival and the 2021 Sindhu festival"
+            }
+        }
+    }
+}
+
 /// How far either side of a span the search for an entry looks. Consecutive
 /// ingresses are at most 396.8 days apart (the most of 12 958 from −1000 to
 /// 3000, under two ayanāṃśas), so a search that runs 430 days either side of

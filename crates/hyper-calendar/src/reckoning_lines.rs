@@ -230,7 +230,56 @@ pub(crate) fn kumbh_condition_cells(line: &mut Line<'_>, yoga: &KumbhYoga, local
         .flag(yoga.at_new_moon);
 }
 
-/// How many columns [`kumbh_line`] writes.
+/// How many columns each line of [`kumbh_yogas_lines`] writes: the ten
+/// cells of a condition, then its source.
+pub const KUMBH_YOGA_COLUMNS: usize = 11;
+
+/// The lines of `hc_kumbh_yogas`: every condition of the Kumbh Mela of
+/// [`KumbhYoga::ALL`], one a line in the source's order — the condition's
+/// identifier; its site's identifier, and its name in the locale and the tag
+/// that named it; the river; the signs Jupiter and the Sun must be in, each by
+/// its identifier and its Sanskrit name; `1` when the Moon must be with the
+/// Sun at the new moon; and the source of the condition. These are the
+/// identifiers `hc_kumbh` and `hc_kumbh_by_sky` take.
+#[must_use]
+pub fn kumbh_yogas_lines(locale: &str) -> String {
+    let mut out = String::new();
+    for yoga in KumbhYoga::ALL {
+        let mut line = Line::new(&mut out);
+        kumbh_condition_cells(&mut line, yoga, locale);
+        line.cell(yoga.source);
+        line.end();
+    }
+    out
+}
+
+/// How many columns each line of [`pushkaram_rivers_lines`] writes.
+pub const PUSHKARAM_RIVER_COLUMNS: usize = 7;
+
+/// The lines of `hc_pushkaram_rivers`: every river of
+/// [`hc_calendars_indic::pushkaram::PushkaramRiver::ALL`], one a line, Meṣa's
+/// first — its identifier, its name in the locale and the tag that named it,
+/// the region the source keeps it in for the sign, empty where it names
+/// none, the sign Jupiter enters by identifier and Sanskrit name, and where
+/// the pairing comes from. These are the rivers `hc_pushkaram` and
+/// `hc_pushkaram_by_sky` write the days of.
+#[must_use]
+pub fn pushkaram_rivers_lines(locale: &str) -> String {
+    let mut out = String::new();
+    for river in hc_calendars_indic::pushkaram::PushkaramRiver::ALL {
+        let mut line = Line::new(&mut out);
+        line.cell(river.id);
+        reckoning_name(&mut line, locale, PUSHKARAM_RIVER, river.id);
+        line.cell(river.region)
+            .cell(river.sign.id())
+            .cell(river.sign.sanskrit_name())
+            .cell(river.source);
+        line.end();
+    }
+    out
+}
+
+/// How many columns [`kumbh_line`] writes./// How many columns [`kumbh_line`] writes.
 pub const KUMBH_COLUMNS: usize = 13;
 
 /// The line of `hc_kumbh`: when in a Gregorian year the Sun, and the Moon
@@ -391,15 +440,7 @@ const fn folk_half_id(half: FolkHalf) -> &'static str {
 /// The identifier of a named day of the Turkish folk year.
 #[must_use]
 pub const fn folk_named_day_id(day: NamedDay) -> &'static str {
-    match day {
-        NamedDay::Hidirellez => "hidirellez",
-        NamedDay::Kasim => "kasim",
-        NamedDay::Erbain => "erbain",
-        NamedDay::Hamsin => "hamsin",
-        NamedDay::CemreAir => "cemre-air",
-        NamedDay::CemreWater => "cemre-water",
-        NamedDay::CemreEarth => "cemre-earth",
-    }
+    day.id()
 }
 
 /// The Chinese year beginning in 2024 is 4661, so the Chinese year that
@@ -758,6 +799,71 @@ mod tests {
             panchak_line("panchak-five-kinds", i64::MIN, "lahiri", 0, "en"),
             Err(Refusal::OutOfRange)
         );
+    }
+
+    /// The Mela Adhikari's seven conditions (`kumbh-allahabad-astrology`):
+    /// Haridwar on the Ganga with Jupiter in Kumbha and the Sun in Meṣa,
+    /// Prayag's two, Nashik's two on the Godavari and Ujjain's two on the
+    /// Shipra; and Wikipedia's river of each sign (`wikipedia-pushkaram`):
+    /// the Ganga's is Meṣa, the Godavari's Siṃha and the Tapti's Dhanus,
+    /// with the Bhima and the Tamraparni sharing Vṛścika by region.
+    #[test]
+    fn the_festivals_tables_list_what_the_sources_name() {
+        let yogas = kumbh_yogas_lines("en");
+        let rows: alloc::vec::Vec<_> = yogas.lines().map(crate::boundary::cells).collect();
+        assert_eq!(rows.len(), 7);
+        assert!(rows.iter().all(|row| row.len() == KUMBH_YOGA_COLUMNS));
+        assert_eq!(
+            rows[0][..10],
+            [
+                "kumbh-haridwar",
+                "haridwar",
+                "Haridwar",
+                "en",
+                "Ganga",
+                "kumbha",
+                "Kumbha",
+                "mesha",
+                "Meṣa",
+                "0"
+            ]
+        );
+        assert_eq!(rows[2][0], "kumbh-prayag-mesha");
+        assert_eq!(rows[2][9], "1");
+        assert!(rows[6][10].contains("Mela Adhikari"));
+        let rivers = pushkaram_rivers_lines("en");
+        let rows: alloc::vec::Vec<_> = rivers.lines().map(crate::boundary::cells).collect();
+        assert_eq!(rows.len(), 14);
+        assert!(rows.iter().all(|row| row.len() == PUSHKARAM_RIVER_COLUMNS));
+        let find = |id: &str| rows.iter().find(|row| row[0] == id).expect("a river");
+        assert_eq!(find("pushkaram-ganga")[4..6], ["mesha", "Meṣa"]);
+        assert_eq!(find("pushkaram-godavari")[4], "simha");
+        assert_eq!(find("pushkaram-tapti")[4], "dhanus");
+        assert_eq!(
+            find("pushkaram-bhima")[3],
+            "Maharashtra, Karnataka, Telangana"
+        );
+        assert_eq!(find("pushkaram-tamraparni")[3], "Tamil Nadu");
+        assert_eq!(find("pushkaram-bhima")[4], find("pushkaram-tamraparni")[4]);
+        // The rivers are the ones `hc_pushkaram` writes for a sign.
+        let by_sign = pushkaram_lines(
+            "vrishchika",
+            1_700_000_000,
+            Location::new(28.6356, 77.2244, 0.0),
+            "india",
+            "en",
+        )
+        .expect("lines");
+        let in_sign: alloc::vec::Vec<&str> = by_sign
+            .lines()
+            .map(|line| crate::boundary::cells(line)[0])
+            .collect();
+        let listed: alloc::vec::Vec<&str> = rows
+            .iter()
+            .filter(|row| row[4] == "vrishchika")
+            .map(|row| row[0])
+            .collect();
+        assert_eq!(in_sign, listed);
     }
 
     /// The Maha Kumbh of 2025 (`wikipedia-kumbh-mela`, as

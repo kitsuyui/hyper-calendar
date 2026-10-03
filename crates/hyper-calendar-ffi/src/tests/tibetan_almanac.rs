@@ -15,6 +15,32 @@ fn the_lines_are_the_modules() {
         hc_tibetan_almanac_day(c"tibetan".as_ptr(), 734_910, buffer, capacity, written)
     });
     assert!(text.lines().any(|line| line.starts_with("rahu\t")));
+    // The attributes: 11 February 2013 of the Tsurphu is the Tiger lunar
+    // day with *li* and 1, in Henning's almanac (`kalacakra-org`), and the
+    // Chinese mansion *Bi* with the elements Water and Earth.
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_tibetan_almanac_day(
+            c"tibetan-tsurphu-karana".as_ptr(),
+            734_910,
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    for line in [
+        "lunar-day-animal\t3\tTiger\t\t\t",
+        "lunar-day-trigram\t1\tli\tlí\tS\tfire",
+        "lunar-day-number\t1\twhite\tiron\tN\t",
+        "chinese-mansion\t19\tBi\t\t\t",
+        "element-pair\t3\tWater\tEarth\t\t",
+    ] {
+        assert!(text.lines().any(|found| found == line), "{line}\n{text}");
+    }
+    assert!(
+        !text
+            .lines()
+            .any(|line| line.starts_with("day-number-henning\t"))
+    );
     let mut day = 0i64;
     let status = unsafe {
         hc_tibetan_festival_day(

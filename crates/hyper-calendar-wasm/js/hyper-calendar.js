@@ -114,9 +114,16 @@ export const METHODS = Object.freeze([
   { method: "parseNumber", export: "hc_parse_number", feature: "calendars" },
   { method: "numberingSystems", export: "hc_numbering_systems", feature: "calendars" },
   { method: "calendarEras", export: "hc_calendar_eras", feature: "calendars" },
+  { method: "eraTable", export: "hc_era_table", feature: "calendars" },
+  { method: "olympicGames", export: "hc_olympic_games", feature: "calendars" },
   { method: "gregorianAdoption", export: "hc_gregorian_adoption", feature: "calendars" },
   { method: "namingPeriodOn", export: "hc_naming_period_on", feature: "calendars" },
   { method: "panchangaAt", export: "hc_panchanga_at", feature: "calendars" },
+  { method: "tithiAt", export: "hc_tithi_at", feature: "calendars" },
+  { method: "tithisOfDay", export: "hc_tithis_of_day", feature: "calendars" },
+  { method: "ayanamsas", export: "hc_ayanamsas", feature: "calendars" },
+  { method: "ayanamsaAt", export: "hc_ayanamsa_at", feature: "calendars" },
+  { method: "ayanamsaFromAnchor", export: "hc_ayanamsa_from_anchor", feature: "calendars" },
   { method: "panchangaOfDay", export: "hc_panchanga_of_day", feature: "calendars" },
   { method: "hinduLunarDate", export: "hc_hindu_lunar_date", feature: "calendars" },
   { method: "suryaSiddhantaAt", export: "hc_surya_siddhanta_at", feature: "calendars" },
@@ -156,6 +163,8 @@ export const METHODS = Object.freeze([
   { method: "choghadiya", export: "hc_choghadiya", feature: "calendars" },
   { method: "panchak", export: "hc_panchak", feature: "calendars" },
   { method: "kumbh", export: "hc_kumbh", feature: "calendars" },
+  { method: "kumbhYogas", export: "hc_kumbh_yogas", feature: "calendars" },
+  { method: "pushkaramRivers", export: "hc_pushkaram_rivers", feature: "calendars" },
   { method: "pushkaram", export: "hc_pushkaram", feature: "calendars" },
   { method: "folkDay", export: "hc_folk_day", feature: "calendars" },
   { method: "nightWatch", export: "hc_night_watch", feature: "calendars" },
@@ -181,6 +190,10 @@ export const METHODS = Object.freeze([
   { method: "orthodoxFastSeasons", export: "hc_orthodox_fast_seasons", feature: "holiday" },
   { method: "termInEffect", export: "hc_term_in_effect", feature: "seasons" },
   { method: "pentadInEffect", export: "hc_pentad_in_effect", feature: "seasons" },
+  { method: "pentadTraditions", export: "hc_pentad_traditions", feature: "seasons" },
+  { method: "pentadInTradition", export: "hc_pentad_in_tradition", feature: "seasons" },
+  { method: "zassetsuInYear", export: "hc_zassetsu_in_year", feature: "seasons" },
+  { method: "seasonalDaysInYear", export: "hc_seasonal_days_in_year", feature: "seasons" },
   { method: "coldFoodDay", export: "hc_cold_food_day", feature: "seasons" },
   { method: "plumRains", export: "hc_plum_rains", feature: "seasons" },
   { method: "placeYearsAgo", export: "hc_place_years_ago", feature: "deep-time" },
@@ -227,6 +240,9 @@ export const METHODS = Object.freeze([
   { method: "jupiterIngresses", export: "hc_jupiter_ingresses", feature: "jupiter" },
   { method: "jupiterRisings", export: "hc_jupiter_risings", feature: "jupiter" },
   { method: "kumbhBySky", export: "hc_kumbh_by_sky", feature: "jupiter" },
+  { method: "kumbhsInYearBySky", export: "hc_kumbhs_in_year_by_sky", feature: "jupiter" },
+  { method: "jupiterStations", export: "hc_jupiter_stations", feature: "jupiter" },
+  { method: "pushkaramRules", export: "hc_pushkaram_rules", feature: "jupiter" },
   { method: "pushkaramBySky", export: "hc_pushkaram_by_sky", feature: "jupiter" },
   { method: "pushkaramsInYear", export: "hc_pushkarams_in_year", feature: "jupiter" },
   { method: "marsTime", export: "hc_mars_time", feature: "planetary" },
@@ -313,6 +329,14 @@ export const COLUMNS = Object.freeze({
     "index", "chinese name", "japanese name", "begins", "ends",
     "chinese authority", "japanese authority",
   ]),
+  pentadTraditions: Object.freeze(["id", "english name", "authority", "alternates"]),
+  pentadInTradition: Object.freeze([
+    "index", "name", "gloss", "alternate", "begins", "ends", "tradition", "authority",
+  ]),
+  zassetsu: Object.freeze([
+    "id", "name", "romaji", "english name", "rule", "day", "last", "first ox day", "second ox day",
+  ]),
+  seasonalDay: Object.freeze(["kind", "id", "name", "local name", "first", "last", "group"]),
   deepTime: Object.freeze([
     "kind", "id", "name", "scope", "start", "start σ", "start figures", "start approximate",
     "end", "end σ", "end figures", "end approximate", "unit", "description", "source",
@@ -336,6 +360,13 @@ export const COLUMNS = Object.freeze({
     "limb", "number", "name", "devanagari", "began", "ends", "read at", "ayanamsa",
     "ayanamsa name",
   ]),
+  tithi: Object.freeze(["number", "paksha", "paksha day", "name", "began", "ends", "read at", "sky"]),
+  tithisOfDay: Object.freeze([
+    "number", "paksha", "paksha day", "name", "began", "ends", "read at", "sky",
+    "at sunrise", "repeated", "skipped",
+  ]),
+  ayanamsaTable: Object.freeze(["id", "name", "anchor julian date", "anchor degrees", "source"]),
+  ayanamsaValue: Object.freeze(["degrees", "id", "name", "anchor julian date", "anchor degrees", "read at"]),
   marriageAugury: Object.freeze([
     "augury", "lichun at start", "lichun at end", "chinese names", "name scripts", "name regions",
   ]),
@@ -444,6 +475,11 @@ export const COLUMNS = Object.freeze({
   dayPeriod: Object.freeze(["half", "half name", "period", "abbreviated", "wide", "narrow", "locale used"]),
   numberingSystems: Object.freeze(["system", "algorithmic", "digits"]),
   calendarEras: Object.freeze(["code", "wide", "abbreviated", "narrow", "calendar", "locale used"]),
+  eraTable: Object.freeze([
+    "code", "name", "reading", "romanised", "group", "first year", "last year", "start", "last",
+    "status", "other start", "note",
+  ]),
+  olympicGames: Object.freeze(["number", "year", "host", "status", "opening", "closing"]),
   ccsdsDecode: Object.freeze([
     "code", "tai seconds", "tai attoseconds", "unix seconds", "leap second", "utc attoseconds",
   ]),
@@ -533,6 +569,15 @@ export const COLUMNS = Object.freeze({
     "id", "site", "site name", "locale used", "river", "jupiter", "jupiter name", "sun", "sun name",
     "at new moon", "from", "to", "holds", "jupiter then", "jupiter longitude then",
   ]),
+  kumbhYoga: Object.freeze([
+    "id", "site", "site name", "locale used", "river", "jupiter", "jupiter name", "sun", "sun name",
+    "at new moon", "source",
+  ]),
+  pushkaramRiver: Object.freeze([
+    "id", "name", "locale used", "region", "sign", "sign name", "source",
+  ]),
+  pushkaramRule: Object.freeze(["id", "description"]),
+  jupiterStation: Object.freeze(["moment", "kind", "sign", "sign name", "sidereal longitude"]),
   pushkaramBySky: Object.freeze([
     "id", "name", "locale used", "region", "sign", "sign name", "first", "last", "missing",
     "missing day", "depression", "depression arcseconds", "entry", "rule",
@@ -1167,6 +1212,42 @@ function termInEffect(cells) {
     ends: integer(ends, "ends"),
     chineseAuthority,
     japaneseAuthority,
+  };
+}
+
+/**
+ * One line of `hc_pentad_traditions`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").PentadTradition}
+ */
+function pentadTradition(cells) {
+  const [id, englishName, authority, alternates] = cells;
+  return {
+    id: /** @type {import("./hyper-calendar.d.ts").PentadTraditionId} */ (id),
+    englishName,
+    authority,
+    alternates: integer(alternates, "alternates"),
+  };
+}
+
+/**
+ * The one line of `hc_pentad_in_tradition`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").PentadInTradition}
+ */
+function pentadInTradition(cells) {
+  const [index, name, gloss, alternate, begins, ends, tradition, authority] = cells;
+  return {
+    index: integer(index, "index"),
+    name,
+    gloss,
+    alternate: optional(alternate),
+    begins: integer(begins, "begins"),
+    ends: integer(ends, "ends"),
+    tradition: /** @type {import("./hyper-calendar.d.ts").PentadTraditionId} */ (tradition),
+    authority,
   };
 }
 
@@ -2542,6 +2623,45 @@ function almanacPersonDay(cells) {
 }
 
 /**
+ * One line of `hc_tithi_at` or `hc_tithis_of_day`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").Tithi}
+ */
+function tithi(cells) {
+  const [number, paksha, pakshaDay, name, began, ends, readAt, sky] = cells;
+  return {
+    number: integer(number, "number"),
+    paksha: /** @type {"shukla" | "krishna"} */ (paksha),
+    pakshaDay: integer(pakshaDay, "paksha day"),
+    name,
+    began: integer(began, "began"),
+    ends: integer(ends, "ends"),
+    readAt: integer(readAt, "read at"),
+    sky: /** @type {"true" | "surya-siddhanta"} */ (sky),
+  };
+}
+
+/**
+ * One line of `hc_ayanamsa_at` or `hc_ayanamsa_from_anchor`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").AyanamsaValue}
+ */
+function ayanamsaValue(cells) {
+  const [degrees, id, name, anchorJulianDate, anchorDegrees, readAt] = cells;
+  return {
+    degrees: decimal(degrees, "degrees"),
+    id,
+    name,
+    anchorJulianDate: decimal(anchorJulianDate, "anchor julian date"),
+    anchorDegrees: decimal(anchorDegrees, "anchor degrees"),
+    readAt: integer(readAt, "read at"),
+  };
+}
+
+/**
+ * One line of `hc_tibetan_almanac_day`./**
  * One line of `hc_tibetan_almanac_day`.
  *
  * @param {string[]} cells
@@ -2648,6 +2768,29 @@ function kumbhOccasion(cells) {
 }
 
 /**
+ * One line of `hc_kumbh_yogas`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").KumbhYogaInfo}
+ */
+function kumbhYogaInfo(cells) {
+  const [id, site, siteName, localeUsed, river, jupiter, jupiterName, sun, sunName, atNewMoon, source] = cells;
+  return {
+    id: /** @type {import("./hyper-calendar.d.ts").KumbhYoga} */ (id),
+    site,
+    siteName,
+    localeUsed,
+    river,
+    jupiter: /** @type {import("./hyper-calendar.d.ts").SiderealSignId} */ (jupiter),
+    jupiterName,
+    sun: /** @type {import("./hyper-calendar.d.ts").SiderealSignId} */ (sun),
+    sunName,
+    atNewMoon: flag(atNewMoon, "at new moon"),
+    source,
+  };
+}
+
+/**
  * One line of `hc_pushkaram`.
  *
  * @param {string[]} cells
@@ -2666,6 +2809,23 @@ function pushkaramDays(cells) {
     first: optionalInteger(first, "first"),
     last: optionalInteger(last, "last"),
     missing: missingSolarEvent(missing, missingDay, depression, arcseconds),
+  };
+}
+
+/**
+ * One line of `hc_jupiter_stations`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").JupiterStation}
+ */
+function jupiterStation(cells) {
+  const [moment, kind, sign, signName, siderealLongitude] = cells;
+  return {
+    moment: integer(moment, "moment"),
+    kind: /** @type {"retrograde" | "direct"} */ (kind),
+    sign: /** @type {import("./hyper-calendar.d.ts").SiderealSignId} */ (sign),
+    signName,
+    siderealLongitude: decimal(siderealLongitude, "sidereal longitude"),
   };
 }
 
@@ -3689,6 +3849,57 @@ export class HyperCalendar {
   }
 
   /**
+   * Every era of a table, one row each: `japanese` (the 248 eras of the
+   * table, where {@link calendarEras} has the locale data's 236),
+   * `chinese-regnal` or `korean-regnal`. A table not named is `unknown`.
+   *
+   * @param {import("./hyper-calendar.d.ts").EraTableId} table
+   * @returns {import("./hyper-calendar.d.ts").EraTableRow[]}
+   */
+  eraTable(table) {
+    const fn = this.#export("hc_era_table");
+    const text = this.#withText(table, "table", (pointer, len) =>
+      this.#text("hc_era_table", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.eraTable, "hc_era_table").map(
+      ([code, name, reading, romanised, group, firstYear, lastYear, start, last, status, otherStart, note]) => ({
+        code,
+        name,
+        reading,
+        romanised,
+        group,
+        firstYear: integer(firstYear, "first year"),
+        lastYear: optionalInteger(lastYear, "last year"),
+        start: optionalInteger(start, "start"),
+        last: optionalInteger(last, "last"),
+        status,
+        otherStart: optionalInteger(otherStart, "other start"),
+        note: optional(note),
+      }));
+  }
+
+  /**
+   * The modern Olympic Games of a season, `summer` or `winter`, one row
+   * each in order. A season not named is `unknown`.
+   *
+   * @param {"summer" | "winter"} season
+   * @returns {import("./hyper-calendar.d.ts").OlympicGames[]}
+   */
+  olympicGames(season) {
+    const fn = this.#export("hc_olympic_games");
+    const text = this.#withText(season, "season", (pointer, len) =>
+      this.#text("hc_olympic_games", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.olympicGames, "hc_olympic_games").map(
+      ([number, year, host, status, opening, closing]) => ({
+        number: optionalInteger(number, "number"),
+        year: integer(year, "year"),
+        host,
+        status: /** @type {"celebrated" | "not-held" | "scheduled"} */ (status),
+        opening: optionalInteger(opening, "opening"),
+        closing: optionalInteger(closing, "closing"),
+      }));
+  }
+
+  /**
    * The steps by which a country adopted the Gregorian calendar, oldest
    * first. `region` is an ISO 3166-1 alpha-2 code, in either case; a code
    * the module does not know answers with no steps.
@@ -3936,6 +4147,112 @@ export class HyperCalendar {
   pentadInEffect(fixed, meridian = "universal") {
     return this.#almanac("hc_pentad_in_effect", fixed, meridian);
   }
+
+  /**
+   * Every tradition that names the 72 pentads, in the table's order.
+   *
+   * @returns {import("./hyper-calendar.d.ts").PentadTradition[]}
+   */
+  pentadTraditions() {
+    const fn = this.#export("hc_pentad_traditions");
+    const text = this.#text("hc_pentad_traditions", (buffer, capacity) => fn(buffer, capacity), true);
+    return rows(text, COLUMNS.pentadTraditions, "hc_pentad_traditions").map(pentadTradition);
+  }
+
+  /**
+   * The pentad in effect on a fixed day at a meridian, named by a tradition
+   * of {@link pentadTraditions}: the same pentad as {@link pentadInEffect},
+   * with the tradition's name, its English gloss and the alternate reading
+   * its text prints beside the name. A tradition not listed is `unknown`.
+   *
+   * @param {number | bigint} fixed
+   * @param {import("./hyper-calendar.d.ts").PentadTraditionId} tradition
+   * @param {string | number} [meridian]
+   * @returns {import("./hyper-calendar.d.ts").PentadInTradition}
+   */
+  pentadInTradition(fixed, tradition, meridian = "universal") {
+    const fn = this.#export("hc_pentad_in_tradition");
+    const day = toI64(fixed, "fixed");
+    const name = typeof meridian === "number" ? String(meridian) : meridian;
+    const text = this.#withText(tradition, "tradition", (traditionPointer, traditionLen) =>
+      this.#withText(name, "meridian", (pointer, len) =>
+        this.#text("hc_pentad_in_tradition", (buffer, capacity) =>
+          fn(day, traditionPointer, traditionLen, pointer, len, buffer, capacity), true)));
+    const lines = rows(text, COLUMNS.pentadInTradition, "hc_pentad_in_tradition");
+    if (lines.length !== 1) {
+      throw new HcError("malformed", {
+        export: "hc_pentad_in_tradition",
+        message: `hc_pentad_in_tradition wrote ${lines.length} lines, not one`,
+      });
+    }
+    return pentadInTradition(lines[0]);
+  }
+  /**
+   * The 雑節 of a Gregorian year at a meridian, one row a day, then the days
+   * the older rules place elsewhere under ids of their own (`nyubai-classical`,
+   * `hangesho-classical`, `spring-shanichi-classical`,
+   * `autumn-shanichi-classical`).
+   *
+   * @param {number | bigint} year
+   * @param {string | number} [meridian]
+   * @returns {import("./hyper-calendar.d.ts").ZassetsuDay[]}
+   */
+  zassetsuInYear(year, meridian = "universal") {
+    const text = this.#yearLines("hc_zassetsu_in_year", year, meridian);
+    return rows(text, COLUMNS.zassetsu, "hc_zassetsu_in_year").map(
+      ([id, name, romaji, englishName, rule, day, last, firstOxDay, secondOxDay]) => ({
+        id,
+        name,
+        romaji,
+        englishName,
+        rule,
+        day: integer(day, "day"),
+        last: optionalInteger(last, "last"),
+        firstOxDay: optionalInteger(firstOxDay, "first ox day"),
+        secondOxDay: optionalInteger(secondOxDay, "second ox day"),
+      }));
+  }
+
+  /**
+   * The other seasonal days and spans of a Gregorian year: the three 伏 and the
+   * nine nines of the Chinese year, the dog days under each convention, the
+   * quarter and term days of Britain and Ireland, and the Turkish folk year's
+   * named days.
+   *
+   * @param {number | bigint} year
+   * @param {string | number} [meridian]
+   * @returns {import("./hyper-calendar.d.ts").SeasonalDay[]}
+   */
+  seasonalDaysInYear(year, meridian = "universal") {
+    const text = this.#yearLines("hc_seasonal_days_in_year", year, meridian);
+    return rows(text, COLUMNS.seasonalDay, "hc_seasonal_days_in_year").map(
+      ([kind, id, name, localName, first, last, group]) => ({
+        kind: /** @type {import("./hyper-calendar.d.ts").SeasonalDayKind} */ (kind),
+        id,
+        name,
+        localName,
+        first: integer(first, "first"),
+        last: integer(last, "last"),
+        group: optional(group),
+      }));
+  }
+
+  /**
+   * The lines of an export of a year and a meridian.
+   *
+   * @param {string} exportName
+   * @param {number | bigint} year
+   * @param {string | number} meridian
+   * @returns {string}
+   */
+  #yearLines(exportName, year, meridian) {
+    const fn = this.#export(exportName);
+    const y = toI64(year, "year");
+    const name = typeof meridian === "number" ? String(meridian) : meridian;
+    return this.#withText(name, "meridian", (pointer, len) =>
+      this.#text(exportName, (buffer, capacity) => fn(y, pointer, len, buffer, capacity), true));
+  }
+
   /**
    * The fixed day of 寒食, the Cold Food Day, of a Gregorian year under a
    * named reckoning: `hanshi-solstice-105`, `hanshi-eve-of-qingming` or
@@ -4410,6 +4727,48 @@ export class HyperCalendar {
   }
 
   /**
+   * Jupiter's stations in `[fromUnixSeconds, toUnixSeconds)`: where its
+   * apparent longitude stops changing and it turns back (`retrograde`,
+   * *vakri*) or resumes (`direct`, *mārgī*), with the sidereal sign and
+   * longitude it turns at. A span longer than a hundred Julian years or an
+   * end outside −1000 to 3000 is `out-of-range`.
+   *
+   * @param {number | bigint} fromUnixSeconds
+   * @param {number | bigint} toUnixSeconds
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @returns {import("./hyper-calendar.d.ts").JupiterStation[]}
+   */
+  jupiterStations(fromUnixSeconds, toUnixSeconds, ayanamsa) {
+    const fn = this.#export("hc_jupiter_stations");
+    const from = toI64(fromUnixSeconds, "fromUnixSeconds");
+    const to = toI64(toUnixSeconds, "toUnixSeconds");
+    const text = this.#withText(ayanamsa, "ayanamsa", (pointer, len) =>
+      this.#text("hc_jupiter_stations", (buffer, capacity) => fn(from, to, pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.jupiterStation, "hc_jupiter_stations").map(jupiterStation);
+  }
+
+  /**
+   * {@link kumbhBySky} for every condition of {@link kumbhYogas} in a
+   * Gregorian year, in that order: the ones whose `holds` is true are the
+   * sites the year's sky meets.
+   *
+   * @param {number | bigint} year
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").KumbhBySky[]}
+   */
+  kumbhsInYearBySky(year, ayanamsa, locale = "und") {
+    const fn = this.#export("hc_kumbhs_in_year_by_sky");
+    const y = toI64(year, "year");
+    const text = this.#withText(ayanamsa, "ayanamsa", (ayanamsaPointer, ayanamsaLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#text("hc_kumbhs_in_year_by_sky", (buffer, capacity) =>
+          fn(y, ayanamsaPointer, ayanamsaLen, localePointer, localeLen, buffer, capacity), true)));
+    return rows(text, COLUMNS.kumbhBySky, "hc_kumbhs_in_year_by_sky").map(kumbhBySky);
+  }
+
+  /**
+   * {@link kumbh} with Jupiter's sign computed at the occasion's first  /**
    * {@link kumbh} with Jupiter's sign computed at the occasion's first
    * moment, in the zodiac of the same ayanāṃśa, in place of the caller's.
    *
@@ -4912,6 +5271,101 @@ export class HyperCalendar {
       this.#text("hc_panchanga_of_day", (buffer, capacity) =>
         fn(day, lat, lon, elev, pointer, len, buffer, capacity), true));
     return rows(text, COLUMNS.panchanga, "hc_panchanga_of_day").map(panchangaLimb);
+  }
+
+  /**
+   * The tithi in progress at a POSIX instant, with the moments it began and
+   * ends. `sky` is `true`, an ayanāṃśa (which the tithi does not depend on)
+   * or `surya-siddhanta`.
+   *
+   * @param {number | bigint} unixSeconds
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa | "true" | "surya-siddhanta"} sky
+   * @returns {import("./hyper-calendar.d.ts").Tithi}
+   */
+  tithiAt(unixSeconds, sky) {
+    const fn = this.#export("hc_tithi_at");
+    const instant = toI64(unixSeconds, "unixSeconds");
+    const text = this.#withText(sky, "sky", (pointer, len) =>
+      this.#text("hc_tithi_at", (buffer, capacity) => fn(instant, pointer, len, buffer, capacity), true));
+    return tithi(this.#oneLine("hc_tithi_at", text, COLUMNS.tithi));
+  }
+
+  /**
+   * The tithis in progress between a day's sunrise at a place and the next,
+   * with whether each holds the day's sunrise, is repeated (holds both) or
+   * is skipped (holds neither); a day without a sunrise there is `no-data`.
+   *
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} elevation
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa | "true" | "surya-siddhanta"} sky
+   * @returns {import("./hyper-calendar.d.ts").TithiOfDay[]}
+   */
+  tithisOfDay(fixed, latitude, longitude, elevation, sky) {
+    const fn = this.#export("hc_tithis_of_day");
+    const day = toI64(fixed, "fixed");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(sky, "sky", (pointer, len) =>
+      this.#text("hc_tithis_of_day", (buffer, capacity) =>
+        fn(day, lat, lon, elev, pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.tithisOfDay, "hc_tithis_of_day").map((cells) => ({
+      ...tithi(cells),
+      atSunrise: flag(cells[8], "at sunrise"),
+      repeated: flag(cells[9], "repeated"),
+      skipped: flag(cells[10], "skipped"),
+    }));
+  }
+
+  /**
+   * Every named ayanāṃśa with its anchor.
+   *
+   * @returns {import("./hyper-calendar.d.ts").AyanamsaInfo[]}
+   */
+  ayanamsas() {
+    const fn = this.#export("hc_ayanamsas");
+    const text = this.#text("hc_ayanamsas", (buffer, capacity) => fn(buffer, capacity), true);
+    return rows(text, COLUMNS.ayanamsaTable, "hc_ayanamsas").map(
+      ([id, name, anchorJulianDate, anchorDegrees, source]) => ({
+        id: /** @type {import("./hyper-calendar.d.ts").Ayanamsa} */ (id),
+        name,
+        anchorJulianDate: decimal(anchorJulianDate, "anchor julian date"),
+        anchorDegrees: decimal(anchorDegrees, "anchor degrees"),
+        source,
+      }));
+  }
+
+  /**
+   * A named ayanāṃśa's value in degrees at a POSIX instant.
+   *
+   * @param {number | bigint} unixSeconds
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @returns {import("./hyper-calendar.d.ts").AyanamsaValue}
+   */
+  ayanamsaAt(unixSeconds, ayanamsa) {
+    const fn = this.#export("hc_ayanamsa_at");
+    const instant = toI64(unixSeconds, "unixSeconds");
+    const text = this.#withText(ayanamsa, "ayanamsa", (pointer, len) =>
+      this.#text("hc_ayanamsa_at", (buffer, capacity) => fn(instant, pointer, len, buffer, capacity), true));
+    return ayanamsaValue(this.#oneLine("hc_ayanamsa_at", text, COLUMNS.ayanamsaValue));
+  }
+
+  /**
+   * The value at a POSIX instant of an ayanāṃśa the caller anchors:
+   * `degreesAtAnchor` degrees at the Julian date `anchorJulianDate`, carried
+   * by precession as the named ones are.
+   *
+   * @param {number | bigint} unixSeconds
+   * @param {number} anchorJulianDate
+   * @param {number} degreesAtAnchor
+   * @returns {import("./hyper-calendar.d.ts").AyanamsaValue}
+   */
+  ayanamsaFromAnchor(unixSeconds, anchorJulianDate, degreesAtAnchor) {
+    const fn = this.#export("hc_ayanamsa_from_anchor");
+    const instant = toI64(unixSeconds, "unixSeconds");
+    const text = this.#text("hc_ayanamsa_from_anchor", (buffer, capacity) =>
+      fn(instant, toF64(anchorJulianDate, "anchorJulianDate"), toF64(degreesAtAnchor, "degreesAtAnchor"), buffer, capacity), true);
+    return ayanamsaValue(this.#oneLine("hc_ayanamsa_from_anchor", text, COLUMNS.ayanamsaValue));
   }
 
   /**
@@ -6843,6 +7297,59 @@ export class HyperCalendar {
             fn(namingPointer, namingLen, seconds, ayanamsaPointer, ayanamsaLen, offset, localePointer, localeLen,
               buffer, capacity), true))));
     return panchakWindow(this.#oneLine("hc_panchak", text, COLUMNS.panchak));
+  }
+
+  /**
+   * Every condition of the Kumbh Mela, the Mela Adhikari's seven, in the
+   * order of the source: the identifiers {@link kumbh} and {@link kumbhBySky}
+   * take.
+   *
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").KumbhYogaInfo[]}
+   */
+  kumbhYogas(locale = "und") {
+    const fn = this.#export("hc_kumbh_yogas");
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_kumbh_yogas", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.kumbhYoga, "hc_kumbh_yogas").map(kumbhYogaInfo);
+  }
+
+  /**
+   * Every river of the Pushkaram, Meṣa's first, with the sign Jupiter enters
+   * for it.
+   *
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").PushkaramRiver[]}
+   */
+  pushkaramRivers(locale = "und") {
+    const fn = this.#export("hc_pushkaram_rivers");
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_pushkaram_rivers", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.pushkaramRiver, "hc_pushkaram_rivers").map(
+      ([id, name, localeUsed, region, sign, signName, source]) => ({
+        id,
+        name,
+        localeUsed,
+        region: optional(region),
+        sign: /** @type {import("./hyper-calendar.d.ts").SiderealSignId} */ (sign),
+        signName,
+        source,
+      }));
+  }
+
+  /**
+   * The two rules for which entry of Jupiter into a sign a Pushkaram
+   * follows, the ones {@link pushkaramBySky} takes.
+   *
+   * @returns {import("./hyper-calendar.d.ts").PushkaramRule[]}
+   */
+  pushkaramRules() {
+    const fn = this.#export("hc_pushkaram_rules");
+    const text = this.#text("hc_pushkaram_rules", (buffer, capacity) => fn(buffer, capacity), true);
+    return rows(text, COLUMNS.pushkaramRule, "hc_pushkaram_rules").map(([id, description]) => ({
+      id: /** @type {import("./hyper-calendar.d.ts").PushkaramEntryRule} */ (id),
+      description,
+    }));
   }
 
   /**

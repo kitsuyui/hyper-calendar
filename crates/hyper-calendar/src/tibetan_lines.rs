@@ -113,6 +113,33 @@ fn month_cycle(id: &str) -> Option<MonthCycle> {
 /// the Mouse, the element and animal, the gender and the colour in place
 /// of the reading and the decimal.
 ///
+/// After them the attributes, as Henning's almanacs print them and as
+/// Janson's rules give them (Appendix E), each with its number in the
+/// second cell:
+///
+/// * of the lunar day that ends on the calendar day, none on the first of
+///   two days with one number: `lunar-day-animal`, the animal's number, 1
+///   for the Mouse, and its name; `lunar-day-element`, the element's
+///   number, 1 for Wood, its name and, in the last cell, its colour, on
+///   the versions whose rule for months is given, as for `month-symbol`;
+///   `lunar-day-trigram`, the trigram's number, 1 for *li* to 8 for *zon*
+///   in Janson's order, its Tibetan and Chinese names, its direction and
+///   the attribute Janson calls its element; and `lunar-day-number`, the
+///   number 1 to 9, its colour, its element and its direction in the magic
+///   square, the last cell empty;
+/// * of the calendar day: `day-trigram` and `day-number-janson`, in those
+///   two layouts, on Janson's rules, which no almanac read prints; and
+///   `day-number-henning` in the number's layout, the other count Henning's
+///   Phugpa and Bhutanese almanacs print after the Chinese mansion, on the
+///   versions other than the Tsurphu and the Mongolian, whose almanacs
+///   print none (two conventions, one function each);
+/// * `chinese-mansion`, 1 for *Jiao* to 28, and its name in Henning's
+///   spelling, the other cells empty; and `element-pair`, the number of the
+///   weekday the almanac names the day by, which on `tibetan-bhutan` and
+///   `tibetan-bhutan-lochen` is the Bhutanese one, a day ahead of the
+///   `weekday` line's, then the weekday's element and the mansion's, `Water`
+///   and `Earth`, of the four of the Indian system.
+///
 /// # Errors
 ///
 /// [`Refusal::Unknown`] for a version [`tibetan::by_id`] does not find,
@@ -184,7 +211,119 @@ pub fn almanac_day_lines(id: &str, fixed: i64) -> Answer<String> {
         );
     }
     push_symbol(&mut out, "day-symbol", almanac::day_symbol(rd));
+    push_attributes(&mut out, &calendar, &day, rd);
     Ok(out)
+}
+
+/// A trigram's line: the trigram's number, 1 for *li*, its Tibetan and
+/// Chinese names, its direction and the attribute Janson calls its element.
+fn push_trigram(out: &mut String, kind: &str, trigram: usize) {
+    let trigram_row = &almanac::TRIGRAMS[trigram];
+    let mut line = Line::new(out);
+    line.cell(kind)
+        .value(trigram + 1)
+        .cell(trigram_row.tibetan)
+        .cell(trigram_row.chinese)
+        .cell(trigram_row.direction)
+        .cell(trigram_row.element);
+    line.end();
+}
+
+/// A number's line: the number, 1 to 9, its colour, its element and its
+/// direction in the magic square, with the last cell empty.
+fn push_number(out: &mut String, kind: &str, number: u8) {
+    let row = &almanac::NINE_NUMBERS[usize::from(number) - 1];
+    let mut line = Line::new(out);
+    line.cell(kind)
+        .value(number)
+        .cell(row.colour)
+        .cell(row.element)
+        .cell(row.direction)
+        .empty();
+    line.end();
+}
+
+/// The attributes of the day: those of its lunar day, the Chinese-style
+/// ones of the calendar day, the Chinese mansion and the pair of elements.
+///
+/// A lunar day's animal, trigram and number are Janson's rules
+/// ([`almanac::lunar_day_attributes`]) and are read as Henning's almanacs
+/// print them, on the calendar day the lunar day ends in: the first of two
+/// days with one number, in which none ends, has none. The Bhutanese
+/// versions are read under the Phugpa's month cycle, which Henning's
+/// Bhutanese almanacs of 2000 to 2020 agree with; the lunar day's element
+/// rests on the month's, so it is written only where the version's rule
+/// for months is given.
+fn push_attributes(
+    out: &mut String,
+    calendar: &TibetanCalendar,
+    day: &almanac::AlmanacDay,
+    rd: Rd,
+) {
+    let id = hc_calendar::Calendar::meta(calendar).id.0;
+    let bhutan = id.starts_with("tibetan-bhutan");
+    let rule = month_cycle(id);
+    if !day.date.leap_day
+        && let Some(attributes) = almanac::lunar_day_attributes(
+            rule.unwrap_or(MonthCycle::Phugpa),
+            day.date.year,
+            day.date.month.ordinal,
+            day.date.day,
+        )
+    {
+        let animal = usize::from(attributes.animal);
+        let mut line = Line::new(out);
+        line.cell("lunar-day-animal")
+            .value(animal + 1)
+            .cell(ANIMALS[animal])
+            .empties(3);
+        line.end();
+        if rule.is_some() {
+            let element = usize::from(attributes.element);
+            let mut line = Line::new(out);
+            line.cell("lunar-day-element")
+                .value(element + 1)
+                .cell(ELEMENTS[element])
+                .empties(2)
+                .cell(almanac::COLOURS[element]);
+            line.end();
+        }
+        push_trigram(out, "lunar-day-trigram", usize::from(attributes.trigram));
+        push_number(out, "lunar-day-number", attributes.number);
+    }
+    push_trigram(out, "day-trigram", usize::from(almanac::day_trigram(rd)));
+    push_number(out, "day-number-janson", almanac::janson_day_number(rd));
+    // Henning's computed Phugpa and Bhutanese almanacs print the number
+    // after the Chinese mansion; the Tsurphu's print none.
+    if rule != Some(MonthCycle::Tsurphu) {
+        push_number(
+            out,
+            "day-number-henning",
+            almanac::henning_almanac_day_number(rd),
+        );
+    }
+    let mansion = usize::from(almanac::chinese_mansion(rd));
+    let mut line = Line::new(out);
+    line.cell("chinese-mansion")
+        .value(mansion + 1)
+        .cell(almanac::CHINESE_MANSIONS[mansion])
+        .empties(3);
+    line.end();
+    // The pair is read at the weekday the almanac names the day by.
+    let weekday = if bhutan {
+        almanac::bhutanese_weekday(rd)
+    } else {
+        day.weekday
+    };
+    if let Some((weekday_element, mansion_element)) = almanac::element_pair(weekday, day.mansion) {
+        let mut line = Line::new(out);
+        line.cell("element-pair")
+            .value(usize::from(weekday) + 1)
+            .cell(almanac::INDIAN_ELEMENTS[usize::from(weekday_element)])
+            .cell(almanac::INDIAN_ELEMENTS[usize::from(mansion_element)])
+            .empties(2);
+        line.end();
+    }
 }
 
 /// How many columns each line of [`planet_lines`] writes.
@@ -344,6 +483,92 @@ mod tests {
                 .any(|line| line.starts_with("month-symbol\t"))
         );
         assert!(phugpa.lines().any(|line| line.starts_with("rahu\t")));
+    }
+
+    fn kind_rows<'a>(text: &'a str, kind: &str) -> Vec<Vec<&'a str>> {
+        text.lines()
+            .map(|line| line.split('\t').collect::<Vec<_>>())
+            .filter(|row| row[0] == kind)
+            .collect()
+    }
+
+    /// Henning's computed almanacs print, for each day, the two elements,
+    /// the Chinese mansion and its number, and the lunar day's animal,
+    /// trigram and number (`tdata/pl_2013.txt`, `ts_2013.txt`, the
+    /// Bhutanese almanac of 2019; as `hc-calendars-regional`'s
+    /// `the_attributes_are_those_hennings_almanacs_print` reads them):
+    /// Wednesday 20 February 2013 of the Phugpa is "Water-Earth", *Zhen* 9
+    /// and, the 10th of month 1, "Pig, gin 7"; Monday 11 February 2013 of
+    /// the Tsurphu is "Water-Earth", *Bi* with no number, and "Tiger, li
+    /// 1"; and Wednesday 5 February 2019 of the Bhutanese, a Tuesday in the
+    /// world, is "Water-Earth", *Zui* 7 and "Tiger, kham 7".
+    #[test]
+    fn the_attributes_of_a_day_are_those_the_almanacs_print() {
+        let phugpa = almanac_day_lines("tibetan", greg(2013, 2, 20)).expect("in range");
+        assert!(
+            crate::boundary::cells(phugpa.lines().next().expect("a line")).len()
+                == TIBETAN_ALMANAC_COLUMNS
+        );
+        for row in phugpa.lines() {
+            assert_eq!(row.split('\t').count(), TIBETAN_ALMANAC_COLUMNS, "{row}");
+        }
+        assert_eq!(
+            kind_rows(&phugpa, "element-pair")[0][1..4],
+            ["5", "Water", "Earth"]
+        );
+        assert_eq!(kind_rows(&phugpa, "chinese-mansion")[0][2], "Zhen");
+        assert_eq!(kind_rows(&phugpa, "day-number-henning")[0][1], "9");
+        assert_eq!(
+            kind_rows(&phugpa, "lunar-day-animal")[0][1..3],
+            ["12", "Pig"]
+        );
+        assert_eq!(
+            kind_rows(&phugpa, "lunar-day-trigram")[0][1..3],
+            ["6", "gin"]
+        );
+        assert_eq!(kind_rows(&phugpa, "lunar-day-number")[0][1], "7");
+        // The two numbers of the calendar day are two conventions: 11
+        // February 2013 is 9 in the almanac and 8 by Janson's rule.
+        let first = almanac_day_lines("tibetan", greg(2013, 2, 11)).expect("in range");
+        assert_eq!(kind_rows(&first, "day-number-henning")[0][1], "9");
+        assert_eq!(kind_rows(&first, "day-number-janson")[0][1], "8");
+        assert_eq!(kind_rows(&first, "day-trigram").len(), 1);
+
+        let tsurphu =
+            almanac_day_lines("tibetan-tsurphu-karana", greg(2013, 2, 11)).expect("in range");
+        assert_eq!(
+            kind_rows(&tsurphu, "element-pair")[0][1..4],
+            ["3", "Water", "Earth"]
+        );
+        assert_eq!(kind_rows(&tsurphu, "chinese-mansion")[0][2], "Bi");
+        assert!(kind_rows(&tsurphu, "day-number-henning").is_empty());
+        assert_eq!(
+            kind_rows(&tsurphu, "lunar-day-animal")[0][1..3],
+            ["3", "Tiger"]
+        );
+        assert_eq!(kind_rows(&tsurphu, "lunar-day-trigram")[0][2], "li");
+        assert_eq!(kind_rows(&tsurphu, "lunar-day-number")[0][1], "1");
+        // The Tsurphu's month rule is Janson's, so the lunar day has an element.
+        assert_eq!(kind_rows(&tsurphu, "lunar-day-element").len(), 1);
+
+        let bhutan = almanac_day_lines("tibetan-bhutan", greg(2019, 2, 5)).expect("in range");
+        assert_eq!(
+            kind_rows(&bhutan, "element-pair")[0][1..4],
+            ["5", "Water", "Earth"]
+        );
+        assert_eq!(kind_rows(&bhutan, "chinese-mansion")[0][2], "Zui");
+        assert_eq!(kind_rows(&bhutan, "day-number-henning")[0][1], "7");
+        assert_eq!(kind_rows(&bhutan, "lunar-day-animal")[0][2], "Tiger");
+        assert_eq!(kind_rows(&bhutan, "lunar-day-trigram")[0][2], "kham");
+        assert_eq!(kind_rows(&bhutan, "lunar-day-number")[0][1], "7");
+        // Janson gives no month rule for Bhutan, so no element of the day.
+        assert!(kind_rows(&bhutan, "lunar-day-element").is_empty());
+        // The first of two days with one number ends no lunar day, and
+        // Henning prints none: Saturday 8 February 2019.
+        let doubled = almanac_day_lines("tibetan-bhutan", greg(2019, 2, 8)).expect("in range");
+        assert!(kind_rows(&doubled, "lunar-day-animal").is_empty());
+        assert_eq!(kind_rows(&doubled, "day-trigram").len(), 1);
+        assert_eq!(kind_rows(&doubled, "chinese-mansion")[0][2], "Gui");
     }
 
     /// Henning's Bhutanese almanac of 2001 puts the winter solstice on 1

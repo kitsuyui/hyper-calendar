@@ -161,7 +161,13 @@ conventions.
 
 ## Code
 
-`crates/hc-calendars-regional/src/olympiad.rs`. Anchors:
+`crates/hc-calendars-regional/src/olympiad.rs`; `hc_olympic_games` writes
+`SUMMER_GAMES` and `WINTER_GAMES` as lines, one a Games, with Olympedia's
+host spelling, status and ceremony days, empty where it dates none
+(`the_games_are_listed_as_olympedia_lists_them`, whose rows were read from
+Olympedia's editions on 2026-10-03: Athina 1896, Berlin 1916 not held, Tokyo
+2020 held in 2021, Paris 2024, and the Winter Games of 1924, 1952 and 2022).
+Anchors:
 `the_first_olympiad_is_776_bc_and_jeromes_194_3_is_2_bc`,
 `the_two_functions_are_inverses`,
 `the_modern_olympiads_count_from_1896_with_the_lost_games_numbered`,

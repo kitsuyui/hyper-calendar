@@ -156,6 +156,12 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a line | `hc_jupiter_at` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_jupiter_ingresses`, `hc_jupiter_risings` | `from_unix_seconds` and `to_unix_seconds` −93 724 128 000 through 32 535 216 000 (the span `[from, to)` ends within the years −1000 to 3000), at most 3 155 760 000 apart, a hundred Julian years; a `to` not after the `from` writes nothing; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_kumbh_by_sky`, `hc_pushkaram_by_sky`, `hc_pushkarams_in_year` | `year` −1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_jupiter_stations` | `from_unix_seconds` and `to_unix_seconds` within the years −1000 to 3000 and no more than a hundred Julian years apart; any other is `HC_ERROR_OUT_OF_RANGE`, a `to` not after `from` an empty answer |
+| a line | `hc_kumbhs_in_year_by_sky` | `year` −1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and an ayanāṃśa not known `HC_ERROR_UNKNOWN` |
+| a line | `hc_tithis_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000, and on `surya-siddhanta` −1 132 604 through 2 519 973; any other is `HC_ERROR_OUT_OF_RANGE`, and a day or morrow without a sunrise `HC_ERROR_NO_DATA` |
+| a line | `hc_tithi_at`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor` | `unix_seconds` −62 167 219 200 through 93 305 366 399, the years −1000 to 3000, and on `surya-siddhanta` for `hc_tithi_at` −159 992 668 800 through 155 590 156 799, the days of Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_zassetsu_in_year`, `hc_seasonal_days_in_year` | `year` −1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and a meridian not read `HC_ERROR_UNKNOWN` |
+| a line | `hc_pentad_in_tradition` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and a tradition not listed `HC_ERROR_UNKNOWN` |
 | a line | `hc_gmat_from_gmt`, `hc_gmt_from_gmat` | `fixed` −3 652 424 999 through 3 652 424 634, the Gregorian years −9 999 999 to 9 999 999, with whole seconds up to 86 400 and attoseconds below 10¹⁸; 23:59:60, which neither reckoning shifts, and any other are `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_solar_terms_between`, `hc_moon_phases_between` | `from_unix` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; a `to_unix` at or before it writes no lines, and a later one must be at most 32 535 216 000 and at most 400 years after it; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_chinese_marriage_augury` | `chinese_year` 4282 through 4786, whose New Year and the next both fall in the Chinese calendar's range (1645 through 2150); any other is `HC_ERROR_OUT_OF_RANGE` |
@@ -310,7 +316,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-208 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+224 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -386,12 +392,19 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_naming_period_on(const char *calendar, int64_t fixed, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | Which month and weekday names a locale writes for a calendar on a fixed day, where a government renamed them for a period, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_panchanga_at(int64_t unix_seconds, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `calendars` | The yoga and the karaṇa in progress at a POSIX timestamp, as two NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_panchanga_of_day(int64_t fixed, double latitude, double longitude, double elevation, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `calendars` | The yoga and the karaṇa a fixed day carries at a place, the ones in progress at its sunrise, as two NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_tithi_at(int64_t unix_seconds, const char *sky, char *buffer, size_t capacity, size_t *written);` | `calendars` | The tithi in progress at a POSIX timestamp, with the moments it began and ends, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_tithis_of_day(int64_t fixed, double latitude, double longitude, double elevation, const char *sky, char *buffer, size_t capacity, size_t *written);` | `calendars` | The tithis in progress between a fixed day's sunrise at a place and the next, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_ayanamsas(char *buffer, size_t capacity, size_t *written);` | `calendars` | Every named ayanāṃśa, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_ayanamsa_at(int64_t unix_seconds, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `calendars` | A named ayanāṃśa's value at a POSIX timestamp, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_ayanamsa_from_anchor(int64_t unix_seconds, double anchor_julian_date, double degrees_at_anchor, char *buffer, size_t capacity, size_t *written);` | `calendars` | The value at a POSIX timestamp of an ayanāṃśa the caller anchors, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_hindu_lunar_date(const char *sky, int64_t fixed, double latitude, double longitude, double elevation, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The Hindu lunisolar date of a fixed day at a place, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_surya_siddhanta_at(int64_t unix_seconds, char *buffer, size_t capacity, size_t *written);` | `calendars` | The *Sūrya Siddhānta*'s Sun and Moon at a POSIX timestamp, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_surya_siddhanta_sunrise(int64_t fixed, double latitude, double longitude, char *buffer, size_t capacity, size_t *written);` | `calendars` | The *Sūrya Siddhānta*'s sunrise on a fixed day at a place, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_crescent_visible(const char *criterion, int64_t fixed, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `calendars` | Whether the young crescent should have been visible on the evening that begins a fixed day, from a place, by a named criterion, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_ioc_olympiad(int64_t gregorian_year, int64_t *out_olympiad);` | `calendars` | The number of the modern Olympiad a Gregorian year belongs to. |
 | `HcStatus hc_ioc_olympiad_on(int64_t fixed, int64_t *out_olympiad);` | `calendars` | The modern Olympiad a fixed day belongs to, by the Olympic Charter in force on that day. |
+| `HcStatus hc_olympic_games(const char *season, char *buffer, size_t capacity, size_t *written);` | `calendars` | The modern Olympic Games of a season, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_era_table(const char *table, char *buffer, size_t capacity, size_t *written);` | `calendars` | Every era of a table, one a line, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_babylonian_regnal_year(int64_t seleucid_year, char *buffer, size_t capacity, size_t *written);` | `calendars` | The king and regnal year labelling a Seleucid year, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_equinox_new_year_margin(const char *calendar, int64_t year, char *buffer, size_t capacity, size_t *written);` | `calendars` | How far the equinox that begins a year of a calendar fell from the moment of the day that decides its new year, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_shmuel_tekufah(int64_t hebrew_year, const char *tekufah, char *buffer, size_t capacity, size_t *written);` | `calendars` | A *tekufah* of Shmuel's reckoning in a Hebrew year, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
@@ -424,11 +437,17 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_choghadiya(int64_t fixed, double latitude, double longitude, double elevation, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The sixteen choghadiya of a fixed day at a place, as NUL-terminated UTF-8 lines in a caller-owned buffer, each named in a locale. |
 | `HcStatus hc_panchak(const char *naming, int64_t unix_seconds, const char *ayanamsa, int32_t offset_seconds, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The Panchak window in progress at a POSIX timestamp, or the next one, and its kind under a naming table, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_kumbh(const char *yoga, int64_t year, const char *ayanamsa, const char *jupiter, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | When in a Gregorian year the Sun, and the Moon where it is asked for, stand as a condition of the Kumbh Mela requires, and whether Jupiter's sign, which the caller gives, meets it, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_kumbh_yogas(const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | Every condition of the Kumbh Mela, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_pushkaram_rivers(const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | Every river of the Pushkaram, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_pushkaram(const char *sign, int64_t entry_unix_seconds, double latitude, double longitude, double elevation, const char *meridian, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The twelve days of the *Ādi Pushkaram* of each river of a sidereal sign, for Jupiter's entry into it at a POSIX timestamp, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_folk_day(int64_t fixed, const char *meridian, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The folk reckonings of a fixed day outside the Japanese almanac, as NUL-terminated UTF-8 lines in a caller-owned buffer, one a reckoning, each named in a locale. |
 | `HcStatus hc_night_watch(uint32_t seconds_of_day, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The Chinese night watch and its points of a time of the civil clock by the fixed reckoning, as one NUL-terminated UTF-8 line in a caller-owned buffer, or the empty string by day. |
 | `HcStatus hc_term_in_effect(int64_t fixed, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The solar term in effect on a fixed day at a meridian, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_pentad_in_effect(int64_t fixed, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The pentad (候) in effect on a fixed day at a meridian, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_pentad_traditions(char *buffer, size_t capacity, size_t *written);` | `seasons` | Every tradition that names the 72 pentads (候), as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_pentad_in_tradition(int64_t fixed, const char *tradition, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The pentad (候) in effect on a fixed day at a meridian, named by a tradition, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_zassetsu_in_year(int64_t year, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The 雑節 of a Gregorian year at a meridian, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_seasonal_days_in_year(int64_t year, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The other seasonal days and spans of a Gregorian year, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_cold_food_day(const char *convention, int64_t year, int64_t *out_fixed);` | `seasons` | The fixed day of 寒食, the Cold Food Day, of a Gregorian year under a named reckoning. |
 | `HcStatus hc_plum_rains(const char *rule, int64_t year, const char *meridian, int64_t *out_fixed);` | `seasons` | The fixed day of 入梅 or 出梅 of a Gregorian year by a named rule of the Chinese almanac, with the solar term it counts from at a meridian. |
 | `HcStatus hc_holiday_is_day_off(const char *code, const char *region, const char *group, int64_t fixed, int *out_is_day_off);` | `holiday` | Whether a fixed day is a day off in a holiday table. |
@@ -495,8 +514,11 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_jupiter_ingresses(int64_t from_unix_seconds, int64_t to_unix_seconds, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `jupiter` | Jupiter's crossings of the boundaries of the sidereal signs in a span of POSIX seconds, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_jupiter_risings(int64_t from_unix_seconds, int64_t to_unix_seconds, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `jupiter` | Jupiter's heliacal risings in a span of POSIX seconds, each with the name a year of Jupiter has from it, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_kumbh_by_sky(const char *yoga, int64_t year, const char *ayanamsa, const char *locale, char *buffer, size_t capacity, size_t *written);` | `jupiter` | When in a Gregorian year the Sun, and the Moon where it is asked for, stand as a condition of the Kumbh Mela requires, and whether Jupiter, whose sign is computed, meets it, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_kumbhs_in_year_by_sky(int64_t year, const char *ayanamsa, const char *locale, char *buffer, size_t capacity, size_t *written);` | `jupiter` | Every condition of the Kumbh Mela that a Gregorian year's sky meets or does not, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_jupiter_stations(int64_t from_unix_seconds, int64_t to_unix_seconds, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `jupiter` | Jupiter's stations in a span of POSIX seconds, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_pushkaram_by_sky(const char *sign, int64_t year, const char *ayanamsa, const char *rule, double latitude, double longitude, double elevation, const char *meridian, const char *locale, char *buffer, size_t capacity, size_t *written);` | `jupiter` | The twelve days of the *Ādi Pushkaram* of each river of a sidereal sign, for Jupiter's entry into it in a Gregorian year, found, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_pushkarams_in_year(int64_t year, const char *ayanamsa, const char *rule, double latitude, double longitude, double elevation, const char *meridian, const char *locale, char *buffer, size_t capacity, size_t *written);` | `jupiter` | The twelve days of the *Ādi Pushkaram* of each river of every sidereal sign Jupiter enters in a Gregorian year, found, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_pushkaram_rules(char *buffer, size_t capacity, size_t *written);` | `jupiter` | The rules for which entry of Jupiter into a sign a Pushkaram follows, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_mars_time(double unix_seconds, double east_longitude_degrees, char *buffer, size_t capacity, size_t *written);` | `planetary` | Mars at a POSIX instant and an east longitude, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_missions(char *buffer, size_t capacity, size_t *written);` | `planetary` | Every surface mission on Mars and the rules of its sol count, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_mission_sol(const char *mission, double unix_seconds, int64_t *out_sol);` | `planetary` | The sol number of a Mars surface mission at a POSIX instant, by the mission's own clock. |
@@ -830,6 +852,15 @@ almanac's columns for a day, the Phugpa planets, the Bhutanese winter
 solstice of a Gregorian year and the day a festival on a skipped or
 repeated date is kept by `berzin` or `henning-almanac`.
 
+`hc_era_table(table, buffer, capacity, written)` and
+`hc_olympic_games(season, buffer, capacity, written)`, in `calendars` too,
+write the module's lines of every era of the `japanese` (248 eras),
+`chinese-regnal` (37) or `korean-regnal` (3) table, which
+`hc_calendar_eras` does not list: it lists what the locale data does, 236
+Japanese eras and none of the other two; and of the modern Olympic Games of
+the `summer` or `winter` season, as Olympedia lists them. A name not known
+is `HC_ERROR_UNKNOWN`, and null for it `HC_ERROR_NULL_POINTER`.
+
 `hc_choghadiya(fixed, latitude, longitude, elevation, locale, buffer,
 capacity, written)` writes the module's sixteen lines of the choghadiya,
 the eighths of a day's daylight and of the night after it with the kind
@@ -1109,6 +1140,29 @@ NUL-terminated name — `universal`, `japan`, `china`, `korea`, `india` or
 `china-before-1929`, in any case — or a longitude in decimal degrees east of
 Greenwich, read as local mean solar time; null or empty is `universal`, and
 anything else is `HC_ERROR_UNKNOWN`.
+
+`hc_pentad_traditions(buffer, capacity, written)` and
+`hc_pentad_in_tradition(fixed, tradition, meridian, buffer, capacity,
+written)`, in the same feature, write the module's lines of the four
+traditions that name the 72 pentads (`chinese`, `japanese`, `jokyo` and
+`senmyo`) and of the pentad in effect named by one of them, with its English
+gloss and the alternate reading the tradition's text prints beside the
+name; a tradition not listed is `HC_ERROR_UNKNOWN`, and null for it
+`HC_ERROR_NULL_POINTER`. `hc_zassetsu_in_year(year, meridian, buffer,
+capacity, written)` and `hc_seasonal_days_in_year(year, meridian, buffer,
+capacity, written)` write the module's lines of the 雑節 of a year and of the
+other seasonal days — the 三伏 and nine nines of the Chinese year, the dog
+days, the British and Irish quarter days and the Turkish folk year's named
+days — for a year from −1000 to 3000 at a meridian read as above.
+`hc_kumbh_yogas(locale, buffer, capacity, written)` and
+`hc_pushkaram_rivers(locale, buffer, capacity, written)`, in `calendars`,
+write the module's lines of the Kumbh Mela's seven conditions and the 14
+rivers of the Pushkaram; the `jupiter` layer's
+`hc_pushkaram_rules(buffer, capacity, written)` writes the two rules for which
+of Jupiter's entries it follows, `hc_kumbhs_in_year_by_sky(year, ayanamsa,
+locale, buffer, capacity, written)` writes `hc_kumbh_by_sky`'s line for all seven conditions
+and `hc_jupiter_stations(from_unix_seconds, to_unix_seconds, ayanamsa,
+buffer, capacity, written)` the moments Jupiter turns back or resumes.
 
 `hc_cold_food_day(convention, year, out_fixed)`, in the same feature,
 writes the fixed day of 寒食 under a NUL-terminated reckoning:
