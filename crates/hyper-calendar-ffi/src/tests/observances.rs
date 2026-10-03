@@ -199,7 +199,7 @@ fn the_groups_and_the_named_days_cross() {
     });
     assert!(
         text.lines()
-            .any(|line| line.ends_with("\tⲡⲓⲭⲗⲟⲙ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ\tcop\tnayrouz-new-year"))
+            .any(|line| line.ends_with("\tⲡⲓⲭⲗⲟⲙ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ\tcop\tnayrouz-new-year\t0"))
     );
 }
 

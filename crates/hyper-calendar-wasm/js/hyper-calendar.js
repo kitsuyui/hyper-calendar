@@ -162,6 +162,9 @@ export const METHODS = Object.freeze([
   { method: "holidayIsDayOff", export: "hc_holiday_is_day_off", feature: "holiday" },
   { method: "holidayAddBusinessDays", export: "hc_holiday_add_business_days", feature: "holiday" },
   { method: "holidayBusinessDaysBetween", export: "hc_holiday_business_days_between", feature: "holiday" },
+  { method: "holidayIsWeekend", export: "hc_holiday_is_weekend", feature: "holiday" },
+  { method: "holidayNext", export: "hc_holiday_next", feature: "holiday" },
+  { method: "holidayPrevious", export: "hc_holiday_previous", feature: "holiday" },
   { method: "holidaysInYear", export: "hc_holidays_in_year", feature: "holiday" },
   { method: "holidayCodes", export: "hc_holiday_codes", feature: "holiday" },
   { method: "holidaysOn", export: "hc_holidays_on", feature: "holiday" },
@@ -300,11 +303,11 @@ export const COLUMNS = Object.freeze({
   ]),
   holidaysInYear: Object.freeze([
     "date", "name", "local name", "kind", "confidence", "substitute", "observed for", "region",
-    "group", "id", "source",
+    "group", "id", "source", "bridged",
   ]),
   holidaysOn: Object.freeze([
     "table", "table name", "name", "local name", "kind", "confidence", "source",
-    "substitute", "observed for", "region", "group", "id",
+    "substitute", "observed for", "region", "group", "id", "bridged",
   ]),
   term: Object.freeze([
     "index", "chinese name", "japanese name", "begins", "ends",
@@ -1104,7 +1107,7 @@ function gregorianAdoption(cells) {
  * @returns {import("./hyper-calendar.d.ts").HolidayInYear}
  */
 function holidayInYear(cells) {
-  const [date, name, localName, kind, confidence, substitute, observedFor, region, group, id, source] =
+  const [date, name, localName, kind, confidence, substitute, observedFor, region, group, id, source, bridged] =
     cells;
   return {
     date: optional(date),
@@ -1118,6 +1121,7 @@ function holidayInYear(cells) {
     group: optional(group),
     id,
     source: optional(source),
+    bridged: flag(bridged, "bridged"),
   };
 }
 
@@ -1128,7 +1132,7 @@ function holidayInYear(cells) {
  * @returns {import("./hyper-calendar.d.ts").HolidayOn}
  */
 function holidayOn(cells) {
-  const [table, tableName, name, localName, kind, confidence, source, substitute, observedFor, region, group, id] =
+  const [table, tableName, name, localName, kind, confidence, source, substitute, observedFor, region, group, id, bridged] =
     cells;
   return {
     table,
@@ -1143,6 +1147,7 @@ function holidayOn(cells) {
     region: optional(region),
     group: optional(group),
     id,
+    bridged: flag(bridged, "bridged"),
   };
 }
 
@@ -3772,6 +3777,87 @@ export class HyperCalendar {
   }
 
   /**
+   * Whether a fixed day is a weekend day in a holiday table, in the
+   * subdivision `region` names or, when it is empty, nationwide: under the
+   * weekend law in force on the day in the region, as column 14 of
+   * `holidayTables` lists the laws. A day on which the region's weekend law
+   * was not read, the `unread-weekend` gap of `holidaysInYear`, is refused as
+   * `out-of-range`, not answered as a day of no weekend.
+   *
+   * @param {string} code
+   * @param {string} region
+   * @param {number | bigint} fixed
+   * @returns {boolean}
+   */
+  holidayIsWeekend(code, region, fixed) {
+    const fn = this.#export("hc_holiday_is_weekend");
+    const day = toI64(fixed, "fixed");
+    return this.#withText(code, "code", (codePointer, codeLen) =>
+      this.#withText(region, "region", (regionPointer, regionLen) =>
+        toNumber(
+          fn(codePointer, codeLen, regionPointer, regionLen, day),
+          "hc_holiday_is_weekend",
+        ) === 1));
+  }
+
+  /**
+   * The first holiday of a table after a fixed day: the row `holidaysInYear`
+   * writes for the first entry strictly after it, of the kinds `kind` lists,
+   * `;`-separated, or of the kinds that stop work, `public` and `bank`, when
+   * it is empty. A gap that could hide a nearer entry, and a table with
+   * none of the kind within sixteen years, are refused as `no-data`.
+   *
+   * @param {string} code
+   * @param {string} region
+   * @param {number | bigint} fixed
+   * @param {string} [group]
+   * @param {string} [kind]
+   * @returns {import("./hyper-calendar.d.ts").HolidayInYear}
+   */
+  holidayNext(code, region, fixed, group = "", kind = "") {
+    return this.#holidayBeyond("hc_holiday_next", code, region, fixed, group, kind);
+  }
+
+  /**
+   * The last holiday of a table before a fixed day, as `holidayNext` finds
+   * the first after it.
+   *
+   * @param {string} code
+   * @param {string} region
+   * @param {number | bigint} fixed
+   * @param {string} [group]
+   * @param {string} [kind]
+   * @returns {import("./hyper-calendar.d.ts").HolidayInYear}
+   */
+  holidayPrevious(code, region, fixed, group = "", kind = "") {
+    return this.#holidayBeyond("hc_holiday_previous", code, region, fixed, group, kind);
+  }
+
+  /**
+   * The one row of `hc_holiday_next` or `hc_holiday_previous`.
+   *
+   * @param {string} name
+   * @param {string} code
+   * @param {string} region
+   * @param {number | bigint} fixed
+   * @param {string} group
+   * @param {string} kind
+   * @returns {import("./hyper-calendar.d.ts").HolidayInYear}
+   */
+  #holidayBeyond(name, code, region, fixed, group, kind) {
+    const fn = this.#export(name);
+    const day = toI64(fixed, "fixed");
+    const text = this.#withText(code, "code", (codePointer, codeLen) =>
+      this.#withText(region, "region", (regionPointer, regionLen) =>
+        this.#withText(group, "group", (groupPointer, groupLen) =>
+          this.#withText(kind, "kind", (kindPointer, kindLen) =>
+            this.#text(name, (buffer, capacity) =>
+              fn(codePointer, codeLen, regionPointer, regionLen, groupPointer, groupLen, kindPointer, kindLen, day,
+                buffer, capacity), true)))));
+    return rows(text, COLUMNS.holidaysInYear, name).map(holidayInYear)[0];
+  }
+
+  /**
    * The holidays of a Gregorian year in a table, in a subdivision when
    * `region` is not empty, for a group of people when `group` is given, and
    * of the kinds `kind` lists, `;`-separated (`"public;bank"`), when it is
@@ -5322,11 +5408,12 @@ export class HyperCalendar {
     const text = this.#withText(locale, "locale", (pointer, len) =>
       this.#text("hc_holidays_on_in", (buffer, capacity) => fn(day, pointer, len, buffer, capacity), true));
     // The eleven columns of `hc_holidays_on` before its identifier, the two
-    // names, and then the identifier, which keeps the names in their places.
-    const before = COLUMNS.holidaysOn.length - 1;
-    const columns = [...COLUMNS.holidaysOn.slice(0, before), "name in locale", "name locale", "id"];
+    // names, then the identifier, which keeps the names in their places, and
+    // the bridge flag, which `hc_holidays_on` ends with.
+    const before = COLUMNS.holidaysOn.length - 2;
+    const columns = [...COLUMNS.holidaysOn.slice(0, before), "name in locale", "name locale", "id", "bridged"];
     return rows(text, columns, "hc_holidays_on_in").map((cells) => ({
-      ...holidayOn([...cells.slice(0, before), cells[before + 2]]),
+      ...holidayOn([...cells.slice(0, before), cells[before + 2], cells[before + 3]]),
       nameInLocale: optional(cells[before]),
       nameLocale: optional(cells[before + 1]),
     }));

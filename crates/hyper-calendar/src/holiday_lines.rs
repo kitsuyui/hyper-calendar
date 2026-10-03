@@ -25,7 +25,7 @@
 
 use alloc::string::{String, ToString};
 
-use hc_calendar::Rd;
+use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
 use hc_holiday::common_worship::{CELEBRATIONS, COMMON_WORSHIP, Rank};
 use hc_holiday::engine::{UNREAD_SUBDIVISION_ID, UNREAD_WEEKEND_ID};
@@ -35,8 +35,8 @@ use hc_holiday::orthodox_fasts::{self, Abstinence, PeriodKind, Reckoning, Status
 use hc_holiday::roman_calendar_1960;
 use hc_holiday::rule::{Kind, RuleSet, Scope, is_region_code, region_parent};
 use hc_holiday::{
-    Gap, Holiday, HolidayCalendar, computus, countries, exchanges, international, lectionary,
-    traditions,
+    Gap, Holiday, HolidayCalendar, Unanswered, computus, countries, exchanges, international,
+    lectionary, traditions,
 };
 use hc_i18n::Locale;
 use hc_i18n::place_names::{self, Alt, Draft};
@@ -236,7 +236,9 @@ pub fn short_table_name(
 /// and for every table that is not a country. Column 9 is
 /// [`RuleSet::regions`]: the ISO 3166-2 codes a caller may pass as the
 /// region of the table, separated by `;` in code order, `JP-11;JP-12;…`,
-/// and empty for a table with no subdivision's days. Column 10 is
+/// and empty for a table with no subdivision's days; a region with only a
+/// weekend law of its own, Kedah, is not among them but in column 14, and is
+/// a region of the table all the same. Column 10 is
 /// [`RuleSet::groups`]: the identifiers of the groups a caller may pass as
 /// the group of the table, `;`-separated in identifier order,
 /// `children;military;women;youth` for `CN`, and empty for a table that
@@ -437,7 +439,8 @@ fn is_known_region(table: &RuleSet, region: &str) -> bool {
             .iter()
             .any(|code| hc_core::catalogue::matches(region, code))
     };
-    if named(table.regions()) || named(table.read_subdivisions()) {
+    if named(table.regions()) || named(table.read_subdivisions()) || named(table.weekend_regions())
+    {
         return true;
     }
     // The subdivision is the first two parts of the code: `JP-14` of
@@ -481,6 +484,19 @@ fn requested_scope<'a>(
     Ok(Scope::new(region, group))
 }
 
+/// The subdivisions `hc_holidays_on` evaluates a table in, besides the
+/// nationwide days: those a rule is scoped to and those a weekend law is
+/// (ADR 0015), once each in code order. A region that has only a weekend
+/// law has no rule of its own, and its substitute days, which differ from
+/// the country's because its weekend does, are its own (audit 10 d2).
+fn day_regions(table: &RuleSet) -> alloc::vec::Vec<&'static str> {
+    let mut codes = table.regions();
+    codes.extend(table.weekend_regions());
+    codes.sort_unstable();
+    codes.dedup();
+    codes
+}
+
 /// The subdivision code of `table` that `region` names, as the table
 /// writes it: `JP-13` for `jp-13`. `None` when the table scopes no rule to
 /// it, which leaves the caller with the nationwide days.
@@ -510,12 +526,13 @@ fn table_region(table: &RuleSet, region: Option<&str>) -> Option<&'static str> {
 /// name, the local name, the kind `gap`, an empty confidence, `0`, nothing,
 /// and the subdivision and the group whose own gap it is, as for an entry.
 ///
-/// Two cells follow, after the group: the holiday's identifier within its
+/// Three cells follow, after the group: the holiday's identifier within its
 /// table ([`hc_holiday::id`]), which a line of `hc_holidays_on` and of
-/// `hc_common_worship_on` carries too, and the instrument its rule cites,
-/// or nothing where the table's `sources` speaks for it; a gap's are its
-/// rule's, and `unread-subdivision` and nothing for a subdivision not
-/// read.
+/// `hc_common_worship_on` carries too, the instrument its rule cites,
+/// or nothing where the table's `sources` speaks for it, and `1` for an
+/// entry a bridge policy made, Japan's 国民の休日 between two holidays, and
+/// `0` otherwise, a gap included; a gap's are its rule's, and
+/// `unread-subdivision` and nothing for a subdivision not read.
 ///
 /// `kinds` keeps the entries of those kinds and the gaps of the rules of
 /// those kinds, and all of them when it is empty; a subdivision not read
@@ -578,7 +595,8 @@ pub fn year_lines(table: &RuleSet, scope: Scope<'_>, kinds: &[Kind], year: i64) 
             .cell_or_empty(regional)
             .cell_or_empty(grouped)
             .value(holiday.id)
-            .cell(holiday.source);
+            .cell(holiday.source)
+            .flag(holiday.bridged);
         line.end();
     }
     let own_gap = |parent: Option<&HolidayCalendar<'_>>, gap: &Gap, code| {
@@ -604,7 +622,8 @@ pub fn year_lines(table: &RuleSet, scope: Scope<'_>, kinds: &[Kind], year: i64) 
             .cell_or_empty(regional)
             .cell_or_empty(grouped)
             .value(gap.id)
-            .cell(gap.source);
+            .cell(gap.source)
+            .flag(false);
         line.end();
     }
     out
@@ -677,7 +696,9 @@ pub fn holidays_in_year(
 /// group, which are nothing here, and the holiday's identifier within its
 /// table ([`hc_holiday::id`]); a gap has the kind `gap`, an empty
 /// confidence, the instrument its rule cites, which for a year before its
-/// sources were read says what was read, `0` and nothing.
+/// sources were read says what was read, `0` and nothing. The last cell is
+/// `1` for an entry a bridge policy made ([`Holiday::bridged`]) and `0`
+/// for every other line.
 pub fn push_day_lines(out: &mut String, table: &RuleSet, calendar: &HolidayCalendar<'_>, day: Rd) {
     push_entry_lines(
         out,
@@ -735,9 +756,16 @@ pub fn push_scoped_day_lines(
         .into_iter()
         .filter(|holiday| !elsewhere.iter().any(|entries| entries.contains(holiday)))
         .collect();
+    // A region the table's sources never read has its own days unknown, as
+    // every subdivision the table does not list does, and no line a day
+    // says so for the regions that have only a weekend law (ADR 0015).
+    let never_read = scope
+        .region
+        .is_some_and(|region| !table.reads_region(region));
     let gaps: alloc::vec::Vec<Gap> = scoped
         .gaps()
         .iter()
+        .filter(|gap| !(never_read && gap.id == UNREAD_SUBDIVISION_ID))
         .filter(|gap| !parents.iter().any(|parent| parent.gaps().contains(gap)))
         .copied()
         .collect();
@@ -765,7 +793,8 @@ fn push_entry_lines(
             .value_or_empty(holiday.observed_for.map(|day| day.0))
             .cell_or_empty(scope.region)
             .cell_or_empty(scope.group)
-            .value(holiday.id);
+            .value(holiday.id)
+            .flag(holiday.bridged);
         line.end();
     }
     // A gap is a holiday the table could not place this year — its
@@ -784,7 +813,8 @@ fn push_entry_lines(
             .empty()
             .cell_or_empty(scope.region)
             .cell_or_empty(scope.group)
-            .value(gap.id);
+            .value(gap.id)
+            .flag(false);
         line.end();
     }
 }
@@ -792,7 +822,9 @@ fn push_entry_lines(
 /// The lines of `hc_holidays_on`: for every table in [`tables`]' order,
 /// [`push_day_lines`] for the table evaluated nationwide, then
 /// [`push_region_day_lines`] for each subdivision of
-/// [`RuleSet::regions`], in code order, so that a subdivision's own day —
+/// [`RuleSet::regions`] and of [`RuleSet::weekend_regions`], in code order,
+/// the second for the substitute days a weekend of its own moves (audit 10
+/// d2), so that a subdivision's own day —
 /// Tokyo's 都民の日, a Canadian province's Civic Holiday — is a line with
 /// its region, and a day the nationwide calendar already has is not
 /// repeated; then [`push_scoped_day_lines`] for each group of
@@ -818,7 +850,7 @@ pub fn holidays_on(fixed: i64) -> Answer<String> {
         for table in tables() {
             let calendar = HolidayCalendar::for_day_with(table, None, day, &mut context);
             push_day_lines(&mut out, table, &calendar, day);
-            for region in table.regions() {
+            for region in day_regions(table) {
                 let regional =
                     HolidayCalendar::for_day_with(table, Some(region), day, &mut context);
                 push_region_day_lines(&mut out, table, region, &regional, &calendar, day);
@@ -850,15 +882,37 @@ pub fn holidays_on(fixed: i64) -> Answer<String> {
     Ok(out)
 }
 
+/// The refusal a question a calendar cannot answer is: a day it did not
+/// evaluate or a weekend law not read is [`Refusal::OutOfRange`], as the
+/// business-day arithmetic has always answered an unread weekend, and a gap
+/// is [`Refusal::NoData`], the table having no answer for the day (ADR 0013,
+/// ADR 0015).
+const fn refusal(unanswered: Unanswered) -> Refusal {
+    match unanswered {
+        Unanswered::OutsideSpan | Unanswered::UnreadWeekend => Refusal::OutOfRange,
+        Unanswered::Gap => Refusal::NoData,
+    }
+}
+
 /// Whether a fixed day is a day off in the table `code` names, nationwide
 /// or in the subdivision `region` names, for everyone or for the group
 /// `group` names.
 ///
+/// A day with an entry that stops work is a day off. A day without one is
+/// not, unless the answer is open: a holiday the table could not place in
+/// the day's year — its calendar's range ended, no announcement was read,
+/// the year is before the first its sources were read for, or the
+/// subdivision's own days were not read — may be this day, and the weekend
+/// law of the region on the day may not have been read. Those are refused
+/// rather than answered `false` (audit 10 d1).
+///
 /// # Errors
 ///
 /// As [`rule_set`]; [`Refusal::Unknown`] for a `group` that names no group
-/// of [`hc_holiday::group::GROUPS`]; and [`Refusal::OutOfRange`] for a day
-/// with no Gregorian year.
+/// of [`hc_holiday::group::GROUPS`] and for a `region` that is none of the
+/// table's country; [`Refusal::OutOfRange`] for a day with no Gregorian
+/// year and for a day whose region's weekend law was not read; and
+/// [`Refusal::NoData`] for a day a gap of the day's year leaves open.
 pub fn is_day_off(
     code: &str,
     region: Option<&str>,
@@ -869,7 +923,143 @@ pub fn is_day_off(
     let day = Rd(fixed);
     gregorian::year_from_fixed(day).map_err(|_| Refusal::OutOfRange)?;
     let scope = requested_scope(table, region, group)?;
-    Ok(HolidayCalendar::for_day_scoped(table, scope, day).is_holiday(day))
+    HolidayCalendar::for_day_scoped(table, scope, day)
+        .day_off(day)
+        .map_err(refusal)
+}
+
+/// Whether a fixed day is a weekend day in the table `code` names, in the
+/// subdivision `region` names or nationwide: under the weekend law in force
+/// on the day in the region, as [`WeekendPolicy`] says it and
+/// [`weekend_cell`] lists it. Kedah keeps Friday and Saturday from
+/// 25 November 2013, where the rest of Malaysia keeps Saturday and Sunday
+/// (ADR 0015). A table that states no weekend keeps Saturday and Sunday.
+///
+/// [`WeekendPolicy`]: hc_holiday::rule::WeekendPolicy
+///
+/// # Errors
+///
+/// As [`rule_set`]; [`Refusal::Unknown`] for a `region` that is none of the
+/// table's country; and [`Refusal::OutOfRange`] for a day with no Gregorian
+/// year and for a day on which the region's weekend law was not read, the
+/// `unread-weekend` gap of `hc_holidays_in_year`, which is no weekend of no
+/// days.
+pub fn is_weekend(code: &str, region: Option<&str>, fixed: i64) -> Answer<bool> {
+    let table = rule_set(code)?;
+    let day = Rd(fixed);
+    gregorian::year_from_fixed(day).map_err(|_| Refusal::OutOfRange)?;
+    let scope = requested_scope(table, region, None)?;
+    table
+        .weekend_in(scope.region, day)
+        .map(|days| days.contains(&Weekday::from_rd(day)))
+        .ok_or(Refusal::OutOfRange)
+}
+
+/// How many years [`holiday_beyond`] looks at most: the next and the last
+/// day off are searched a year, four, and sixteen on either side of the
+/// day, which every table with a day off has one within.
+pub const MAX_HOLIDAY_SEARCH_YEARS: i64 = 16;
+
+/// The line of `hc_holiday_next` and `hc_holiday_previous`: the first
+/// entry after `fixed`, or the last before it when `forward` is false, of
+/// the kinds `kind` lists, `public;bank`, or of a kind that stops work for
+/// none, in the table `code` names, in the subdivision `region` names, for
+/// the group `group` names, written as a line of `hc_holidays_in_year`
+/// writes it: the date, the name, the local name, the kind, the confidence,
+/// the substitute flag, the day a substitute stands in for, the region and
+/// the group whose own entry it is, the identifier, the instrument and the
+/// bridge flag. A substitute day and a bridged one are entries, as a
+/// calendar holds them.
+///
+/// The search reaches [`MAX_HOLIDAY_SEARCH_YEARS`] years at most, and
+/// refuses the moment a gap could hide a nearer entry: a holiday of a
+/// wanted kind the table could not place in any year from the day's to
+/// the found entry's (audit 10 d3, d1).
+///
+/// # Errors
+///
+/// As [`holidays_in_year`] for the table, the region, the group and the
+/// kinds; [`Refusal::OutOfRange`] for a day with no Gregorian year;
+/// [`Refusal::NoData`] for a gap that could hide a nearer entry, and for a
+/// table with none of the wanted kind within the reach.
+pub fn holiday_beyond(
+    code: &str,
+    region: Option<&str>,
+    group: Option<&str>,
+    kind: Option<&str>,
+    fixed: i64,
+    forward: bool,
+) -> Answer<String> {
+    let table = rule_set(code)?;
+    let scope = requested_scope(table, region, group)?;
+    let kinds = requested_kinds(kind)?;
+    let day = Rd(fixed);
+    let year = year_of(fixed)?;
+    for reach in [1, 4, MAX_HOLIDAY_SEARCH_YEARS] {
+        let (first, last) = if forward {
+            (year, year + reach)
+        } else {
+            (year - reach, year)
+        };
+        let calendar = HolidayCalendar::scoped(table, scope, first, last);
+        let found = if forward {
+            calendar.try_next_of(day, &kinds)
+        } else {
+            calendar.try_previous_of(day, &kinds)
+        }
+        .map_err(refusal)?;
+        if let Some(holiday) = found {
+            let found_year = year_of(holiday.date.0)?;
+            let wanted = iso(holiday.date);
+            let id = holiday.id.to_string();
+            // The line is the year's own, so that its region and group
+            // cells are the ones `hc_holidays_in_year` writes.
+            let lines = year_lines(table, scope, &kinds, found_year);
+            return lines
+                .lines()
+                .find(|line| {
+                    let mut cells = line.split('\t');
+                    cells.next() == Some(wanted.as_str()) && cells.nth(8) == Some(id.as_str())
+                })
+                .map(|line| alloc::format!("{line}\n"))
+                .ok_or(Refusal::NoData);
+        }
+    }
+    Err(Refusal::NoData)
+}
+
+/// The line of `hc_holiday_next`: the first entry after `fixed` in the
+/// table `code` names, in the subdivision `region` names, for the group
+/// `group` names, of the kinds `kind` lists or of a kind that stops work
+/// for none, as [`holiday_beyond`] writes it.
+///
+/// # Errors
+///
+/// As [`holiday_beyond`].
+pub fn next_holiday_line(
+    code: &str,
+    region: Option<&str>,
+    group: Option<&str>,
+    kind: Option<&str>,
+    fixed: i64,
+) -> Answer<String> {
+    holiday_beyond(code, region, group, kind, fixed, true)
+}
+
+/// The line of `hc_holiday_previous`: the last entry before `fixed`, as
+/// [`next_holiday_line`] finds the first after.
+///
+/// # Errors
+///
+/// As [`holiday_beyond`].
+pub fn previous_holiday_line(
+    code: &str,
+    region: Option<&str>,
+    group: Option<&str>,
+    kind: Option<&str>,
+    fixed: i64,
+) -> Answer<String> {
+    holiday_beyond(code, region, group, kind, fixed, false)
 }
 
 /// The most business days [`add_business_days`] walks: a hundred years'
@@ -891,8 +1081,11 @@ fn year_of(fixed: i64) -> Answer<i64> {
 ///
 /// [`Refusal::Unknown`] for a code that names no table or a `group` that
 /// names no group; [`Refusal::OutOfRange`] for a day with no Gregorian year, a count past
-/// [`MAX_BUSINESS_DAYS`] either way, or a walk that leaves the years the
-/// tables evaluate.
+/// [`MAX_BUSINESS_DAYS`] either way, a walk that leaves the years the
+/// tables evaluate, and a walk that reaches a day whose weekend law was not
+/// read; and [`Refusal::NoData`] for a walk that reaches a day a gap leaves
+/// open, which would be counted or skipped on a guess
+/// ([`HolidayCalendar::business_day`], audit 10 d1).
 pub fn add_business_days(
     code: &str,
     region: Option<&str>,
@@ -916,9 +1109,9 @@ pub fn add_business_days(
     };
     let calendar = HolidayCalendar::scoped(table, scope, first, last);
     calendar
-        .add_business_days(Rd(fixed), count)
+        .try_add_business_days(Rd(fixed), count)
         .map(|day| day.0)
-        .ok_or(Refusal::OutOfRange)
+        .map_err(refusal)
 }
 
 /// The number of business days of a table in a scope in the half-open
@@ -929,8 +1122,10 @@ pub fn add_business_days(
 /// # Errors
 ///
 /// [`Refusal::Unknown`] for a code that names no table or a `group` that
-/// names no group, and [`Refusal::OutOfRange`] for a day with no Gregorian year or two days
-/// more than a hundred years apart.
+/// names no group, [`Refusal::OutOfRange`] for a day with no Gregorian year,
+/// two days more than a hundred years apart or an interval with a day whose
+/// weekend law was not read, and [`Refusal::NoData`] for an interval with a
+/// day a gap leaves open, as [`add_business_days`].
 pub fn business_days_between(
     code: &str,
     region: Option<&str>,
@@ -946,8 +1141,8 @@ pub fn business_days_between(
         return Err(Refusal::OutOfRange);
     }
     HolidayCalendar::scoped(table, scope, first, last)
-        .business_days_between(Rd(from_fixed), Rd(to_fixed))
-        .ok_or(Refusal::OutOfRange)
+        .try_business_days_between(Rd(from_fixed), Rd(to_fixed))
+        .map_err(refusal)
 }
 
 /// The line of `hc_lectionary`: the liturgical year a day falls in, named
@@ -1142,12 +1337,12 @@ pub fn holiday_groups_lines(tag: &str) -> String {
 }
 
 /// The lines of `hc_holidays_on_in`: [`holidays_on`]'s lines less their
-/// last cell, with two more cells — the day's name in a locale, by
+/// last two cells, with two more cells — the day's name in a locale, by
 /// [`hc_i18n::holiday_names::holiday_name`], where a source in the
 /// language names that day of that table by its identifier, and the tag
-/// that named it, both empty where none does — and then the identifier,
-/// the cell `hc_holidays_on` ends with, so that the first eleven cells and
-/// the two names keep their places.
+/// that named it, both empty where none does — and then the identifier and
+/// the bridge flag, the two cells `hc_holidays_on` ends with, so that the
+/// first eleven cells and the two names keep their places.
 ///
 /// # Errors
 ///
@@ -1157,20 +1352,23 @@ pub fn holidays_on_in_lines(fixed: i64, tag: &str) -> Answer<String> {
     let lines = holidays_on(fixed)?;
     let mut out = String::with_capacity(lines.len());
     for line in lines.lines() {
-        // The holiday's identifier is the line's last cell, which goes
-        // after the two new ones so that every cell of `hc_holidays_on`
-        // before it, and the two names, keep their places.
-        let (cells, id) = line.rsplit_once('\t').unwrap_or((line, ""));
+        // The holiday's identifier is the line's last cell but one, and the
+        // bridge flag its last. The identifier goes after the two new
+        // cells, so that every cell of `hc_holidays_on` before it keeps its
+        // place, and the flag stays last, as it is in `hc_holidays_on`.
+        let (rest_of_line, bridged) = line.rsplit_once('\t').unwrap_or((line, ""));
+        let (cells, id) = rest_of_line.rsplit_once('\t').unwrap_or((rest_of_line, ""));
         let table = cells.split('\t').next().unwrap_or("");
         let named = hc_i18n::holiday_names::holiday_name(&locale, table, id);
         out.push_str(cells);
-        // The line's last cell goes on as an empty first cell of the rest,
+        // The line's identifier goes on as an empty first cell of the rest,
         // so that the three more are each after a tab.
         let mut rest = Line::new(&mut out);
         rest.cell("")
             .cell_or_empty(named.map(|named| named.name))
             .cell_or_empty(named.map(|named| named.tag))
-            .cell(id);
+            .cell(id)
+            .cell(bridged);
         rest.end();
     }
     Ok(out)
@@ -1632,7 +1830,7 @@ mod tests {
             .filter(|line| line.contains("\tThe weekend\t"))
             .collect();
         assert!(
-            gap[0].contains("\tgap\t") && gap[0].ends_with("unread-weekend\t"),
+            gap[0].contains("\tgap\t") && gap[0].ends_with("unread-weekend\t\t0"),
             "{gap:?}"
         );
         let filtered = year_lines(malaysia, Scope::region("MY-02"), &[Kind::Observance], 2010);
@@ -1664,7 +1862,7 @@ mod tests {
             own,
             [concat!(
                 "2026-03-08\tWomen's Day\t妇女节\thalf-day\texact\t0\t\t\twomen\twomens-day\t",
-                "全国年节及纪念日放假办法, 第三条 (一): 妇女放假半天"
+                "全国年节及纪念日放假办法, 第三条 (一): 妇女放假半天\t0"
             )]
         );
         assert!(women.starts_with(
@@ -1691,10 +1889,10 @@ mod tests {
             .collect();
         assert_eq!(women.len(), 1, "{text}");
         assert!(women[0].ends_with(
-            "\thalf-day\texact\t全国年节及纪念日放假办法, 第三条 (一): 妇女放假半天\t0\t\t\twomen\twomens-day"
+            "\thalf-day\texact\t全国年节及纪念日放假办法, 第三条 (一): 妇女放假半天\t0\t\t\twomen\twomens-day\t0"
         ));
         assert!(
-            text.lines().all(|line| line.split('\t').count() == 12),
+            text.lines().all(|line| line.split('\t').count() == 13),
             "{text}"
         );
         assert_eq!(
@@ -1702,9 +1900,16 @@ mod tests {
             Ok(true)
         );
         assert_eq!(is_day_off("CN", None, None, ymd(2026, 6, 1)), Ok(false));
+        // A half day is not a day off, even for the group it is given to;
+        // 2027's arrangement has not been announced, so the day is open and
+        // is refused, not answered "no" (audit 10 d1).
+        assert_eq!(
+            is_day_off("CN", None, Some("women"), ymd(2026, 3, 8)),
+            Ok(false)
+        );
         assert_eq!(
             is_day_off("CN", None, Some("women"), ymd(2027, 3, 8)),
-            Ok(false)
+            Err(Refusal::NoData)
         );
     }
 
@@ -2004,7 +2209,7 @@ mod tests {
         );
         assert_eq!(
             text,
-            "2026-01-01\tNew Year's Day\t元  日\tpublic\texact\t0\t\t\t\tnew-years-day\t\n"
+            "2026-01-01\tNew Year's Day\t元  日\tpublic\texact\t0\t\t\t\tnew-years-day\t\t0\n"
         );
     }
 
@@ -2019,7 +2224,7 @@ mod tests {
         push_day_lines(&mut out, table, &calendar, day);
         assert_eq!(
             out,
-            "XX\tA test\tNew Year's Day\t元  日\tpublic\texact\t\t0\t\t\t\tnew-years-day\n"
+            "XX\tA test\tNew Year's Day\t元  日\tpublic\texact\t\t0\t\t\t\tnew-years-day\t0\n"
         );
     }
 
@@ -2043,13 +2248,13 @@ mod tests {
         let hampshire = holidays_in_year("US", Some("US-NH"), None, None, 2026).unwrap_or_default();
         assert!(
             hampshire.lines().any(|line| line
-                == "\tThe subdivision's own days\t\tgap\t\t0\t\tUS-NH\t\tunread-subdivision\t"),
+                == "\tThe subdivision's own days\t\tgap\t\t0\t\tUS-NH\t\tunread-subdivision\t\t0"),
             "{hampshire}"
         );
-        // Every line keeps its nine columns and ends with the identifier and
-        // the source.
+        // Every line keeps its nine columns and ends with the identifier, the
+        // source and the bridge flag.
         for line in women.lines().chain(hampshire.lines()) {
-            assert_eq!(line.split('\t').count(), 11, "{line}");
+            assert_eq!(line.split('\t').count(), 12, "{line}");
         }
         // A day's gap line carries the rule's source.
         let day = hc_holiday::rule::Scope::group("women");
@@ -2113,7 +2318,7 @@ mod tests {
             .find(|line| line.starts_with("coptic-orthodox\t"))
             .expect("Nayrouz");
         assert!(
-            nayrouz.ends_with("\tⲡⲓⲭⲗⲟⲙ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ\tcop\tnayrouz-new-year"),
+            nayrouz.ends_with("\tⲡⲓⲭⲗⲟⲙ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ\tcop\tnayrouz-new-year\t0"),
             "{nayrouz}"
         );
         // A gap line keeps the rule's source, as `hc_holidays_on` writes it,
@@ -2126,7 +2331,7 @@ mod tests {
             .find(|line| line.starts_with("CN\t") && line.contains("\tWomen's Day\t"))
             .expect("a gap line");
         assert!(gap.contains("全国年节及纪念日放假办法"), "{gap}");
-        assert_eq!(gap.split('\t').count(), 14, "{gap}");
+        assert_eq!(gap.split('\t').count(), 15, "{gap}");
         let groups = holiday_groups_lines("en");
         assert!(groups.starts_with("women\t"));
         assert!(
@@ -2185,7 +2390,7 @@ mod tests {
         assert!(
             on.lines()
                 .any(|line| line.starts_with("common-worship\t")
-                    && line.ends_with("\tchristmas-day")),
+                    && line.ends_with("\tchristmas-day\t0")),
             "{on}"
         );
         let mut kept = alloc::vec::Vec::new();
@@ -2222,7 +2427,7 @@ mod tests {
         };
         let all = holidays_in_year("US", None, None, None, 2026).expect("US");
         for line in all.lines() {
-            assert_eq!(line.split('\t').count(), 11, "{line}");
+            assert_eq!(line.split('\t').count(), 12, "{line}");
         }
         assert!(all.lines().any(|line| line.contains("\tnew-years-day\t")));
         // A state with observances: the days of its own kinds go and the
@@ -2283,7 +2488,7 @@ mod tests {
         assert!(
             hampshire
                 .lines()
-                .any(|line| line.ends_with("\tunread-subdivision\t")),
+                .any(|line| line.ends_with("\tunread-subdivision\t\t0")),
             "{hampshire}"
         );
         // An entry cites the instrument its rule does: the United Nations'
@@ -2389,14 +2594,241 @@ mod tests {
         assert!(
             before
                 .lines()
-                .any(|line| line.ends_with("\tunread-subdivision\t")),
+                .any(|line| line.ends_with("\tunread-subdivision\t\t0")),
             "{before}"
         );
         let after = holidays_in_year("JP", Some("JP-27"), None, None, 2026).expect("JP");
         assert!(
             !after
                 .lines()
-                .any(|line| line.ends_with("\tunread-subdivision\t"))
+                .any(|line| line.ends_with("\tunread-subdivision\t\t0"))
+        );
+    }
+
+    /// A day the table cannot answer is refused, not answered `false` or
+    /// counted (audit 10 d1): Victoria Day 2025 is a gap in Newfoundland
+    /// and Labrador, Louisiana's Mardi Gras 2025 a gap in the walk that
+    /// would cross it, and Kedah's weekend law of 2012 was not read.
+    #[test]
+    fn a_day_a_gap_leaves_open_is_refused_by_the_day_off_and_the_business_days() {
+        let monday = ymd(2025, 5, 19);
+        assert_eq!(
+            is_day_off("CA", Some("CA-NL"), None, monday),
+            Err(Refusal::NoData)
+        );
+        // A holiday the table has is a day off whatever else is open.
+        assert_eq!(
+            is_day_off("CA", Some("CA-NL"), None, ymd(2025, 12, 25)),
+            Ok(true)
+        );
+        // The walk from Friday 16 May 2025 in Newfoundland and Labrador
+        // would count or skip Victoria Day, and so does Egypt's, whose
+        // holidays of 2025 follow an announcement not read.
+        assert_eq!(
+            add_business_days("CA", Some("CA-NL"), None, ymd(2025, 5, 16), 1),
+            Err(Refusal::NoData)
+        );
+        assert_eq!(
+            business_days_between(
+                "CA",
+                Some("CA-NL"),
+                None,
+                ymd(2025, 5, 16),
+                ymd(2025, 5, 21)
+            ),
+            Err(Refusal::NoData)
+        );
+        assert_eq!(
+            add_business_days("EG", None, None, ymd(2025, 3, 3), 1),
+            Err(Refusal::NoData)
+        );
+        // A walk in the nationwide table of a year it reads whole is not.
+        assert!(add_business_days("US", None, None, ymd(2025, 3, 3), 1).is_ok());
+        // Louisiana's Mardi Gras is a day of the state's offices (the kind
+        // `government`), which the arithmetic does not count (ADR 0010), so
+        // its gap does not open the walk.
+        assert_eq!(
+            add_business_days("US", Some("US-LA"), None, ymd(2025, 3, 3), 1),
+            Ok(ymd(2025, 3, 4))
+        );
+        // Kedah's Friday of 2012 has a weekend law that was not read: the
+        // answer is open, and the refusal is the one the arithmetic gives.
+        assert_eq!(
+            is_day_off("MY", Some("MY-02"), None, ymd(2012, 5, 11)),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            add_business_days("MY", Some("MY-02"), None, ymd(2012, 5, 9), 1),
+            Err(Refusal::OutOfRange)
+        );
+        // The country's own weekend was read, and its holidays of 2026 are
+        // whole; Kedah's own days are not read, so its Friday is open too.
+        assert_eq!(is_day_off("MY", None, None, ymd(2026, 3, 6)), Ok(false));
+        assert_eq!(
+            is_day_off("MY", Some("MY-02"), None, ymd(2026, 3, 6)),
+            Err(Refusal::NoData)
+        );
+        // A subdivision never read, a year before a table's first.
+        assert_eq!(
+            is_day_off("US", Some("US-NH"), None, ymd(2026, 3, 4)),
+            Err(Refusal::NoData)
+        );
+        assert_eq!(is_day_off("JP", None, None, ymd(2026, 3, 4)), Ok(false));
+    }
+
+    /// The weekend of a region is its own law's (ADR 0015), refused where
+    /// that law was not read.
+    #[test]
+    fn a_region_s_weekend_is_asked_for_and_refused_where_unread() {
+        let friday = ymd(2026, 3, 6);
+        assert_eq!(is_weekend("MY", Some("MY-02"), friday), Ok(true));
+        assert_eq!(is_weekend("MY", None, friday), Ok(false));
+        assert_eq!(is_weekend("MY", Some("MY-10"), friday), Ok(false));
+        assert_eq!(is_weekend("MY", Some("my-02"), friday), Ok(true));
+        assert_eq!(is_weekend("MY", Some("MY-02"), friday + 2), Ok(false));
+        assert_eq!(is_weekend("MY", None, friday + 2), Ok(true));
+        // Kedah's law is in force from 25 November 2013; before it is not
+        // read, which is no weekend of no days.
+        assert_eq!(
+            is_weekend("MY", Some("MY-02"), ymd(2013, 11, 24)),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(is_weekend("MY", Some("MY-02"), ymd(2013, 11, 29)), Ok(true));
+        assert_eq!(is_weekend("MY", None, ymd(2013, 11, 24)), Ok(true));
+        // Sharjah's government keeps Friday to Sunday from 2022.
+        assert_eq!(is_weekend("AE", Some("AE-SH"), ymd(2026, 3, 6)), Ok(true));
+        assert_eq!(is_weekend("AE", None, ymd(2026, 3, 6)), Ok(false));
+        // A table that states nothing keeps Saturday and Sunday.
+        assert_eq!(is_weekend("JP", None, ymd(2026, 3, 7)), Ok(true));
+        assert_eq!(is_weekend("JP", Some("JP-13"), ymd(2026, 3, 6)), Ok(false));
+        assert_eq!(is_weekend("XNYS", None, ymd(2026, 3, 8)), Ok(true));
+        // Refusals: no such table, no such region, no such day.
+        assert_eq!(is_weekend("ZZ", None, friday), Err(Refusal::Unknown));
+        assert_eq!(
+            is_weekend("MY", Some("MY-99"), friday),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(is_weekend("MY", None, 1 << 62), Err(Refusal::OutOfRange));
+    }
+
+    /// A region with only a weekend law has substitute days of its own,
+    /// which `hc_holidays_on` writes (audit 10 d2): Awal Muharram 2025 was a
+    /// Friday, which Kedah moves to the Sunday.
+    #[test]
+    fn a_region_with_only_a_weekend_law_has_its_substitute_day_on_the_day() {
+        let sunday = ymd(2025, 6, 29);
+        let text = holidays_on(sunday).expect("a day");
+        let kedah: Vec<Vec<&str>> = text
+            .lines()
+            .map(|line| line.split('\t').collect::<Vec<_>>())
+            .filter(|cells| cells[0] == "MY" && cells[9] == "MY-02")
+            .collect();
+        assert!(
+            kedah.iter().any(|cells| cells[7] == "1"
+                && cells[8] == ymd(2025, 6, 27).to_string()
+                && cells[4] == "public"),
+            "{kedah:?}"
+        );
+        // The country has no such day, and the region's own days the table
+        // does not read are not a line on every day of the year.
+        assert!(
+            text.lines()
+                .filter(|line| line.starts_with("MY\t"))
+                .all(|line| line.split('\t').nth(9) == Some("MY-02")),
+            "{text}"
+        );
+        assert!(
+            kedah
+                .iter()
+                .all(|cells| cells[2] != "The subdivision's own days"),
+            "{kedah:?}"
+        );
+        // The year's lines for the region have it too, as they did.
+        let year = holidays_in_year("MY", Some("MY-02"), None, None, 2025).expect("MY");
+        assert!(year.contains(&ymd(2025, 6, 29).to_string()) || year.contains("2025-06-29"));
+    }
+
+    /// The first holiday after a day and the last before it, and the gap
+    /// that could hide a nearer one (audit 10 d3, d1).
+    #[test]
+    fn the_next_and_the_previous_holiday_are_a_line_of_the_year() {
+        let line = |text: Answer<String>| -> Vec<String> {
+            let text = text.expect("a line");
+            assert_eq!(text.lines().count(), 1, "{text}");
+            text.trim_end().split('\t').map(String::from).collect()
+        };
+        let next = line(next_holiday_line("JP", None, None, None, ymd(2026, 4, 28)));
+        assert_eq!(next.len(), 12);
+        assert_eq!(
+            &next[..5],
+            ["2026-04-29", "Shōwa Day", "昭和の日", "public", "exact"]
+        );
+        assert_eq!(next[11], "0");
+        // The substitute day is an entry, and the day after 6 May is Marine
+        // Day, the third Monday of July.
+        let previous = line(previous_holiday_line(
+            "JP",
+            None,
+            None,
+            None,
+            ymd(2026, 5, 7),
+        ));
+        assert_eq!(previous[0], "2026-05-06");
+        assert_eq!(previous[5], "1");
+        assert_eq!(previous[6], "2026-05-03");
+        let after = line(next_holiday_line("JP", None, None, None, ymd(2026, 5, 6)));
+        assert_eq!(after[0], "2026-07-20");
+        // The next of the year's last day is in the next year.
+        let new_year = line(next_holiday_line("JP", None, None, None, ymd(2026, 12, 31)));
+        assert_eq!(new_year[0], "2027-01-01");
+        // A region's own day carries its region, as the year's lines do.
+        let tokyo = line(next_holiday_line(
+            "JP",
+            Some("JP-13"),
+            None,
+            Some("school"),
+            ymd(2026, 9, 1),
+        ));
+        assert_eq!(tokyo[0], "2026-10-01");
+        assert_eq!(tokyo[7], "JP-13");
+        // The bridge is an entry and says so: 22 September 2009.
+        let bridge = line(next_holiday_line("JP", None, None, None, ymd(2009, 9, 21)));
+        assert_eq!(&bridge[..2], ["2009-09-22", "Citizens' Holiday"]);
+        assert_eq!(bridge[11], "1");
+        // A gap that could hide a nearer entry refuses; one far after does not.
+        assert_eq!(
+            next_holiday_line("CA", Some("CA-NL"), None, None, ymd(2025, 5, 1)),
+            Err(Refusal::NoData)
+        );
+        assert_eq!(
+            previous_holiday_line("CA", Some("CA-NL"), None, None, ymd(2025, 7, 15)),
+            Err(Refusal::NoData)
+        );
+        // A table that keeps no day off has none within the reach.
+        assert_eq!(
+            next_holiday_line("un-days", None, None, None, ymd(2026, 1, 1)),
+            Err(Refusal::NoData)
+        );
+        let observance = line(next_holiday_line(
+            "un-days",
+            None,
+            None,
+            Some("observance"),
+            ymd(2026, 1, 1),
+        ));
+        assert_eq!(observance[3], "observance");
+        // Refusals as the year's lines have them.
+        assert_eq!(
+            next_holiday_line("ZZ", None, None, None, ymd(2026, 1, 1)),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            next_holiday_line("JP", None, None, Some("festival"), ymd(2026, 1, 1)),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            next_holiday_line("JP", None, None, None, 1 << 62),
+            Err(Refusal::OutOfRange)
         );
     }
 }

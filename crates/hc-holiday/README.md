@@ -734,6 +734,25 @@ assert_eq!(
 count from Monday to Wednesday plus the count from Wednesday to Friday is the
 count from Monday to Friday, and a reversed interval gives a negative answer.
 
+A day a gap leaves open is not answered. `day_off(day)` and
+`business_day(day)` say `Err(Unanswered::Gap)` for a day without an entry
+when a gap of a kind that stops work lies in its year (a work day's gap, for
+a weekend day) or the subdivision's own days were not read, and `Err(Unanswered::UnreadWeekend)` where the weekend law of
+the region was not read; a day with an entry is a day off whatever else is
+open. `add_business_days` and `business_days_between` return `None` on the
+first such day the walk reaches, and `try_add_business_days` and
+`try_business_days_between` say which. `try_next_of` and `try_previous_of`
+find the first entry after a day and the last before it, of the kinds asked
+for, and refuse when a gap in any year from the day's to the entry's could
+hide a nearer one. `is_holiday`, `on`, `next_holiday` and `previous_holiday`
+are the entries alone, as they were (ADR 0013).
+
+```rust
+let calendar = HolidayCalendar::for_year(&countries::CHINA, None, 2151);
+// 2151 is past the lunisolar range: a day without an entry might be one.
+assert_eq!(calendar.day_off(to_fixed(2151, 3, 4)?), Err(Unanswered::Gap));
+```
+
 ## Where the data came from
 
 Every table names its source in a comment on the `RuleSet` and carries the
