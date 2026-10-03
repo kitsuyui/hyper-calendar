@@ -349,7 +349,7 @@ impl Sky for HinduLunarCalendar {
             .map(|&(_, earliest, latest)| (earliest, latest))
     }
 
-    fn zodiac_key(&self) -> [u64; 2] {
+    fn zodiac_key(&self) -> [u64; 3] {
         self.ayanamsa.key()
     }
 

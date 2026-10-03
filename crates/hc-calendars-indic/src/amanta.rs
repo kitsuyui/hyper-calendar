@@ -59,7 +59,7 @@ pub(crate) trait Sky: Copy {
 
     /// The zodiac as words of a [`hc_core::memo`] key: the part of the sky
     /// the months depend on and the place does not.
-    fn zodiac_key(&self) -> [u64; 2];
+    fn zodiac_key(&self) -> [u64; 3];
 
     /// The place as words of a [`hc_core::memo`] key.
     fn place_key(&self) -> [u64; 3];
@@ -128,8 +128,8 @@ impl<S: Sky> Amanta<S> {
     /// wherever its sunrise is read.
     pub(crate) fn month_from(&self, start: Moment) -> LunarMonth {
         enum MonthFrom {}
-        let [anchor, degrees] = self.0.zodiac_key();
-        hc_core::memo::cached::<MonthFrom, _, 3>([anchor, degrees, start.0.to_bits()], || {
+        let [anchor, degrees, kind] = self.0.zodiac_key();
+        hc_core::memo::cached::<MonthFrom, _, 4>([anchor, degrees, kind, start.0.to_bits()], || {
             self.computed_month_from(start)
         })
     }
@@ -159,10 +159,10 @@ impl<S: Sky> Amanta<S> {
 
     /// The calendar and one more word as a [`hc_core::memo`] key: its place
     /// and its zodiac, bit for bit, then `word`.
-    fn key_with(&self, word: u64) -> [u64; 6] {
+    fn key_with(&self, word: u64) -> [u64; 7] {
         let [latitude, longitude, elevation] = self.0.place_key();
-        let [anchor, degrees] = self.0.zodiac_key();
-        [latitude, longitude, elevation, anchor, degrees, word]
+        let [anchor, degrees, kind] = self.0.zodiac_key();
+        [latitude, longitude, elevation, anchor, degrees, kind, word]
     }
 
     /// The label — month number and intercalary flag — of the month after
@@ -170,7 +170,7 @@ impl<S: Sky> Amanta<S> {
     /// [`hc_core::memo::scope`], once a day.
     pub(crate) fn next_month_label(&self, day: Rd) -> (u8, bool) {
         enum NextMonthLabel {}
-        hc_core::memo::cached::<NextMonthLabel, _, 6>(self.key_with(day.0 as u64), || {
+        hc_core::memo::cached::<NextMonthLabel, _, 7>(self.key_with(day.0 as u64), || {
             self.computed_next_month_label(day)
         })
     }
@@ -295,11 +295,11 @@ impl<S: Sky> Amanta<S> {
     /// The fixed day of a date; see the calendars' `to_fixed`.
     pub(crate) fn fixed_of(&self, date: HinduLunarDate) -> CalendarResult<Rd> {
         enum ToFixed {}
-        let mut key = [0; 8];
-        key[..6].copy_from_slice(&self.key_with(date.year as u64));
-        key[6] = u64::from(date.month) << 8 | u64::from(date.day);
-        key[7] = u64::from(date.leap_month) << 1 | u64::from(date.leap_day);
-        hc_core::memo::cached::<ToFixed, _, 8>(key, || self.computed_to_fixed(date))
+        let mut key = [0; 9];
+        key[..7].copy_from_slice(&self.key_with(date.year as u64));
+        key[7] = u64::from(date.month) << 8 | u64::from(date.day);
+        key[8] = u64::from(date.leap_month) << 1 | u64::from(date.leap_day);
+        hc_core::memo::cached::<ToFixed, _, 9>(key, || self.computed_to_fixed(date))
     }
 
     /// [`Amanta::fixed_of`], computed.
@@ -315,7 +315,7 @@ impl<S: Sky> Amanta<S> {
     /// The date of a fixed day; see the calendars' `from_fixed`.
     pub(crate) fn date_of(&self, rd: Rd) -> CalendarResult<HinduLunarDate> {
         enum FromFixed {}
-        hc_core::memo::cached::<FromFixed, _, 6>(self.key_with(rd.0 as u64), || {
+        hc_core::memo::cached::<FromFixed, _, 7>(self.key_with(rd.0 as u64), || {
             self.computed_from_fixed(rd)
         })
     }
@@ -368,7 +368,7 @@ impl<S: Sky> Amanta<S> {
     /// year is searched once.
     pub(crate) fn leap_month_of(&self, year: i64) -> CalendarResult<Option<(u8, Rd, Rd)>> {
         enum LeapMonthOf {}
-        hc_core::memo::cached::<LeapMonthOf, _, 6>(self.key_with(year as u64), || {
+        hc_core::memo::cached::<LeapMonthOf, _, 7>(self.key_with(year as u64), || {
             self.computed_leap_month_of(year)
         })
     }

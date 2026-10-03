@@ -39,9 +39,13 @@
 //! under a name of its own with the source it was read in — the *Rashtriya
 //! Panchang*'s printed one, the Committee's and Drik Panchang's, which stand
 //! up to 25″ from the Swiss Ephemeris's and from each other
-//! ([policy §5](../../../../docs/policy.md)). [`Ayanamsa::new`] takes any
-//! anchor at all, because a library that hard-coded one would be taking a
-//! side in a live argument.
+//! ([policy §5](../../../../docs/policy.md)). The Committee's and the
+//! *Rashtriya Panchang*'s printed values are **true** ones, the mean value
+//! plus the nutation in longitude of the day ([`AyanamsaKind`]), and are
+//! carried so; the Swiss Ephemeris's and Drik Panchang's are mean, and two
+//! readings that look 21″ apart as mean values stand within a second as
+//! true ones. [`Ayanamsa::new`] takes any anchor at all, because a library
+//! that hard-coded one would be taking a side in a live argument.
 //!
 //! # Accuracy, twice over
 //!
@@ -52,7 +56,7 @@
 //! is the same: a boundary near midnight may move. The document states
 //! both.
 
-use hc_astro::earth::general_precession_arcseconds;
+use hc_astro::earth::{general_precession_arcseconds, nutation_at_centuries};
 use hc_astro::julian_centuries;
 use hc_astro::solar::{solar_longitude, solar_longitude_after};
 use hc_astro::time::J2000_JULIAN_DATE;
@@ -80,16 +84,38 @@ use crate::zodiac::{DEGREES_PER_SIGN, SIGNS_PER_ZODIAC, SignPeriod, degrees_into
 /// that are measurable are shipped under names of their own, each with the
 /// source it was read in: `lahiri-rashtriya`, the *Rashtriya Panchang*'s
 /// printed value; `lahiri-crc-1955`, the Calendar Reform Committee's; and
-/// `lahiri-drik`, Drik Panchang's. See the module documentation for what
-/// the differences cost, and [`Ayanamsa::source`] for where an anchor is
-/// from.
+/// `lahiri-drik`, Drik Panchang's. The first two print a true value, the
+/// mean value plus the nutation in longitude of the day, and are made with
+/// [`Ayanamsa::new_true`]; the others are mean ([`AyanamsaKind`]). See the
+/// module documentation for what the differences cost, and
+/// [`Ayanamsa::source`] for where an anchor is from.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Ayanamsa {
     id: &'static str,
     name: &'static str,
     anchor_julian_date: f64,
     degrees_at_anchor: f64,
+    kind: AyanamsaKind,
     source: &'static str,
+}
+
+/// What the number an almanac prints as its ayanāṃśa stands for.
+///
+/// The sidereal zero point moves by precession, steadily, and the equinox
+/// it is measured from also wobbles by the nutation in longitude Δψ, up to
+/// 17″ either way over 18.6 years. A **mean** ayanāṃśa leaves the wobble
+/// out; a **true** one is the mean one plus Δψ, the angle between the true
+/// equinox of the day and the sidereal zero point, which is what a
+/// sidereal longitude taken from an apparent tropical one has to subtract
+/// for the nutation to cancel. The Swiss Ephemeris's anchors are mean; an
+/// almanac that prints the value for a day may print either, and the two
+/// stand up to 17″ apart on a day.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum AyanamsaKind {
+    /// The precession alone: the value moves steadily.
+    Mean,
+    /// The precession plus the nutation in longitude of the day.
+    True,
 }
 
 /// Where the Swiss Ephemeris's anchors come from.
@@ -144,16 +170,17 @@ hc_core::catalogue! {
 
         /// Lahiri as the *Rashtriya Panchang* prints it: 24°11′39″ on
         /// 1 Chaitra of Śaka 1946, 22 March 2024, the value at the head of
-        /// the almanac's year, which stands 3.3″ below [`Self::LAHIRI`] on
-        /// that day. The same almanac prints 24°12′35″ for 30 March 2025,
-        /// 1.4″ above it, so the printed values do not move at the rate of
-        /// precession and this anchor holds for the year it was printed for
-        /// and drifts from the other prints by a few arcseconds
-        /// (`rashtriya-panchang-1946`; the Panchang's own method not read).
+        /// the almanac's year. It is a **true** value, mean plus the
+        /// nutation in longitude (see [`AyanamsaKind`]): [`Self::LAHIRI`]
+        /// plus Δψ stands within 1.5″ of it on 22 March 2024 (24°11′37.7″)
+        /// and within 1″ of the 24°12′35″ the same almanac prints for
+        /// 30 March 2025, where the mean value stands 3.3″ below the first
+        /// and 1.4″ above the second (`rashtriya-panchang-1946`; the
+        /// Panchang's own method not read).
         ///
         /// Anchored at 24.194 166 67° for Julian date 2460391.5 (22 March
-        /// 2024, 0 h UT).
-        pub const LAHIRI_RASHTRIYA = Self::new(
+        /// 2024, 0 h UT), as a true value.
+        pub const LAHIRI_RASHTRIYA = Self::new_true(
             "lahiri-rashtriya",
             "Lahiri (Rashtriya Panchang, Saka 1946)",
             2_460_391.5,
@@ -161,18 +188,22 @@ hc_core::catalogue! {
         )
         .with_source(
             "Rashtriya Panchang, Saka 1946 (rashtriya-panchang-1946): ``Ayanamsa on 1st Chaitra'' \
-             24 degrees 11 minutes 39 seconds, 22 March 2024; not re-read, the reading of 2026-09-22",
+             24 degrees 11 minutes 39 seconds, 22 March 2024, read as a true value, mean plus \
+             nutation in longitude; not re-read, the reading of 2026-09-22",
         );
 
         /// Lahiri as the Calendar Reform Committee fixed it: 23°15′00″ on
-        /// 21 March 1956, which stands 17.3″ above [`Self::LAHIRI`] on that
-        /// day. The Committee's report gives the value for that date and
-        /// the Chitrā-at-180° definition; this crate carries it forward by
-        /// precession (`crc1955`, p. 8).
+        /// 21 March 1956. It is a **true** value, mean plus the nutation in
+        /// longitude (see [`AyanamsaKind`]): [`Self::LAHIRI`] plus Δψ is
+        /// 23°14′59.4″ on that day, within 0.7″, where the mean value alone
+        /// stands 17.3″ below. The Committee's report gives the value for
+        /// that date and the Chitrā-at-180° definition; this crate carries
+        /// it forward by precession and the nutation of each day
+        /// (`crc1955`, p. 8).
         ///
         /// Anchored at 23.25° for Julian date 2435553.5 (21 March 1956,
-        /// 0 h UT).
-        pub const LAHIRI_CRC_1955 = Self::new(
+        /// 0 h UT), as a true value.
+        pub const LAHIRI_CRC_1955 = Self::new_true(
             "lahiri-crc-1955",
             "Lahiri (Calendar Reform Committee, 1955)",
             2_435_553.5,
@@ -180,7 +211,8 @@ hc_core::catalogue! {
         )
         .with_source(
             "Report of the Calendar Reform Committee, 1955 (crc1955), p. 8: 23 degrees 15 minutes \
-             on 21 March 1956; read 2026-09-25",
+             on 21 March 1956, read as a true value, mean plus nutation in longitude; read \
+             2026-09-25",
         );
 
         /// Lahiri as Drik Panchang prints it: 23.863 776° on 1 January 2000,
@@ -264,7 +296,29 @@ impl Ayanamsa {
             name,
             anchor_julian_date,
             degrees_at_anchor,
+            kind: AyanamsaKind::Mean,
             source: "",
+        }
+    }
+
+    /// An ayanāṃśa whose anchor is a **true** value, mean plus the nutation
+    /// in longitude, as an almanac prints it for a day.
+    ///
+    /// The mean value it carries is the printed one less Δψ of the anchor's
+    /// day, and the value at any moment is that mean value carried by
+    /// precession plus Δψ of the moment (see [`AyanamsaKind`]), so the
+    /// printed figure is reproduced on its own day and the nutation is
+    /// followed on every other.
+    #[must_use]
+    pub const fn new_true(
+        id: &'static str,
+        name: &'static str,
+        anchor_julian_date: f64,
+        degrees_at_anchor: f64,
+    ) -> Self {
+        Self {
+            kind: AyanamsaKind::True,
+            ..Self::new(id, name, anchor_julian_date, degrees_at_anchor)
         }
     }
 
@@ -289,14 +343,22 @@ impl Ayanamsa {
     }
 
     /// The scheme as words of a [`hc_core::memo`] key: its anchor, bit for
-    /// bit, which is all its value at any instant depends on; the
-    /// identifier and the name are labels.
+    /// bit, and whether the anchor is a mean or a true value, which is all
+    /// its value at any instant depends on; the identifier and the name are
+    /// labels.
     #[must_use]
-    pub const fn key(self) -> [u64; 2] {
+    pub const fn key(self) -> [u64; 3] {
         [
             self.anchor_julian_date.to_bits(),
             self.degrees_at_anchor.to_bits(),
+            self.kind as u64,
         ]
+    }
+
+    /// Whether the anchor is a mean or a true value.
+    #[must_use]
+    pub const fn kind(self) -> AyanamsaKind {
+        self.kind
     }
 
     /// The name of the scheme, e.g. `"Lahiri (Chitrapaksha)"`.
@@ -311,13 +373,16 @@ impl Ayanamsa {
         self.anchor_julian_date
     }
 
-    /// The anchor value in degrees.
+    /// The anchor value in degrees, as its source states it: a mean or a
+    /// true value according to [`Ayanamsa::kind`].
     #[must_use]
     pub const fn degrees_at_anchor(self) -> f64 {
         self.degrees_at_anchor
     }
 
-    /// The ayanāṃśa, in degrees, at a given moment.
+    /// The ayanāṃśa, in degrees, at a given moment: a mean one carried by
+    /// precession, a true one that and the nutation in longitude of the
+    /// moment (see [`AyanamsaKind`]).
     ///
     /// About 24.2° in the 2020s, growing by about 0.014° — 50″ — a year, and
     /// passing through zero in 285 CE for the Lahiri anchor, 389 for Raman's
@@ -336,10 +401,32 @@ impl Ayanamsa {
     /// ```
     #[must_use]
     pub fn degrees_at(self, moment: Moment) -> f64 {
+        let centuries = julian_centuries(moment);
+        let mean = self.mean_degrees_at_centuries(centuries);
+        match self.kind {
+            AyanamsaKind::Mean => mean,
+            AyanamsaKind::True => mean + nutation_at_centuries(centuries).longitude_degrees,
+        }
+    }
+
+    /// The mean ayanāṃśa, in degrees, at a given moment: the precession
+    /// alone, whether the anchor is a mean or a true value.
+    #[must_use]
+    pub fn mean_degrees_at(self, moment: Moment) -> f64 {
+        self.mean_degrees_at_centuries(julian_centuries(moment))
+    }
+
+    fn mean_degrees_at_centuries(self, centuries: f64) -> f64 {
         let anchor_centuries = (self.anchor_julian_date - J2000_JULIAN_DATE) / JULIAN_CENTURY_DAYS;
-        let accumulated = general_precession_arcseconds(julian_centuries(moment))
+        let accumulated = general_precession_arcseconds(centuries)
             - general_precession_arcseconds(anchor_centuries);
-        self.degrees_at_anchor + accumulated / 3_600.0
+        let mean_at_anchor = match self.kind {
+            AyanamsaKind::Mean => self.degrees_at_anchor,
+            AyanamsaKind::True => {
+                self.degrees_at_anchor - nutation_at_centuries(anchor_centuries).longitude_degrees
+            }
+        };
+        mean_at_anchor + accumulated / 3_600.0
     }
 }
 
@@ -624,6 +711,9 @@ hc_core::catalogue_tests! {
 /// The Sun's apparent sidereal longitude at a moment, in degrees.
 ///
 /// The apparent tropical longitude less the ayanāṃśa, reduced to 0°–360°.
+/// The apparent longitude is measured from the true equinox, so with a
+/// **true** ayanāṃśa the nutation in longitude cancels; with a mean one it
+/// stays in (up to 17″, seven minutes of the Sun's motion).
 #[must_use]
 pub fn sidereal_longitude(moment: Moment, ayanamsa: Ayanamsa) -> f64 {
     normalize_degrees(solar_longitude(moment) - ayanamsa.degrees_at(moment))
@@ -842,6 +932,8 @@ impl ExactSizeIterator for SiderealSignsInYear {}
 mod tests {
     use hc_calendar::gregorian;
 
+    use hc_astro::earth::nutation;
+
     use super::*;
     use crate::zodiac::tropical;
 
@@ -892,23 +984,45 @@ mod tests {
             assert!(((printed - book) * 3_600.0).abs() < 0.7, "{day}");
         }
         // The Rashtriya Panchang's 24°11′39″ on 1 Chaitra of Śaka 1946,
-        // 22 March 2024, 3.3″ below the Swiss Ephemeris's; its 24°12′35″ of
-        // 30 March 2025 stands 4.6″ off the value this anchor carries
-        // forward, which is the printed table's own, not the model's.
+        // 22 March 2024, is a true value: it stands 3.3″ below the mean
+        // Swiss Ephemeris one, and the Swiss Ephemeris's plus the nutation
+        // of the day is within 1.5″ of it. The same almanac's 24°12′35″ of
+        // 30 March 2025 (`rashtriya-panchang-1946`) is not an anchor and
+        // the carried value stands within 0.5″ of it.
         let rashtriya = Ayanamsa::LAHIRI_RASHTRIYA.degrees_at(Moment(738_967.0));
         assert!((rashtriya - (24.0 + 11.0 / 60.0 + 39.0 / 3_600.0)).abs() < 1e-6);
+        assert_eq!(Ayanamsa::LAHIRI_RASHTRIYA.kind(), AyanamsaKind::True);
         let below = (LAHIRI.degrees_at(Moment(738_967.0)) - rashtriya) * 3_600.0;
         assert!((3.2..3.4).contains(&below), "{below}″");
+        let nutation_arcseconds = |day: f64| nutation(Moment(day)).longitude_degrees * 3_600.0;
+        let mean_plus_nutation = (LAHIRI.degrees_at(Moment(738_967.0)) - rashtriya) * 3_600.0
+            + nutation_arcseconds(738_967.0);
+        assert!(mean_plus_nutation.abs() < 1.5, "{mean_plus_nutation}″");
         let printed_2025 = 24.0 + 12.0 / 60.0 + 35.0 / 3_600.0;
         let carried =
             (printed_2025 - Ayanamsa::LAHIRI_RASHTRIYA.degrees_at(Moment(739_340.0))) * 3_600.0;
-        assert!((4.5..4.7).contains(&carried), "{carried}″");
+        assert!(carried.abs() < 0.5, "{carried}″");
         // The Committee's 23°15′0″ on 21 March 1956 (`crc1955`, p. 8) is
-        // 17.3″ above the Swiss Ephemeris's.
+        // 17.3″ above the Swiss Ephemeris's mean value, and the true value
+        // that value plus the nutation of the day gives is within 0.7″ of it.
         let committee = Ayanamsa::LAHIRI_CRC_1955.degrees_at(Moment(714_129.0));
         assert!((committee - 23.25).abs() < 1e-6);
+        assert_eq!(Ayanamsa::LAHIRI_CRC_1955.kind(), AyanamsaKind::True);
         let above = (committee - LAHIRI.degrees_at(Moment(714_129.0))) * 3_600.0;
         assert!((17.2..17.4).contains(&above), "{above}″");
+        assert!(
+            (above - nutation_arcseconds(714_129.0)).abs() < 0.7,
+            "{above}″"
+        );
+        // Both are one true reading of Lahiri's, carried through the
+        // nutation: they stand within a second of each other on any day,
+        // where carried as mean values 21″ apart.
+        for day in [714_129.0, 730_120.0, 738_967.0, 739_340.0, 766_644.0] {
+            let apart = (Ayanamsa::LAHIRI_RASHTRIYA.degrees_at(Moment(day))
+                - Ayanamsa::LAHIRI_CRC_1955.degrees_at(Moment(day)))
+                * 3_600.0;
+            assert!(apart.abs() < 1.0, "{day}: {apart}″");
+        }
         // None of the four is another's: their anchors differ.
         let four = [
             LAHIRI,
@@ -924,6 +1038,42 @@ mod tests {
         for ayanamsa in Ayanamsa::ALL {
             assert!(!ayanamsa.source().is_empty(), "{}", ayanamsa.id());
         }
+    }
+
+    /// A true value carries the nutation of each day, so a saṅkrānti read
+    /// with it is not where the same printed anchor carried as a mean value
+    /// puts it: on 1 January 2000 the nutation in longitude was −14″ and
+    /// on 21 March 1956 +17″, 31″ apart, which is thirteen minutes of the Sun's
+    /// motion.
+    #[test]
+    fn a_true_anchor_moves_a_sankranti_by_the_nutation_between_its_day_and_the_ingress() {
+        let carried_as_mean = Ayanamsa::new("mean", "mean", 2_435_553.5, 23.25);
+        let true_value = Ayanamsa::LAHIRI_CRC_1955;
+        let after = Moment(730_120.0 + 60.0);
+        let by_true = ingress_after(SiderealSign::MESHA, true_value, after);
+        let by_mean = ingress_after(SiderealSign::MESHA, carried_as_mean, after);
+        let minutes = (by_true.0 - by_mean.0) * 1_440.0;
+        // The true value is the smaller one here, 32″ in all (17″ of
+        // nutation at its anchor and 15″ at the ingress), so the ingress is
+        // earlier by the 13 minutes the Sun takes to cover it.
+        assert!((-14.0..-12.5).contains(&minutes), "{minutes} minutes");
+        // The true value less the mean one is the nutation difference.
+        let at = Moment(730_200.0);
+        let difference = (true_value.degrees_at(at) - carried_as_mean.degrees_at(at)) * 3_600.0;
+        let expected = nutation(at).longitude_degrees * 3_600.0
+            - nutation(Moment(714_129.0)).longitude_degrees * 3_600.0;
+        assert!(
+            (difference - expected).abs() < 0.05,
+            "{difference}″ against {expected}″"
+        );
+        assert!(
+            (true_value.degrees_at(at)
+                - true_value.mean_degrees_at(at)
+                - nutation(at).longitude_degrees)
+                .abs()
+                < 1e-12
+        );
+        assert_eq!(LAHIRI.mean_degrees_at(at), LAHIRI.degrees_at(at));
     }
 
     /// Fifty arcseconds a year is the whole of precession, and the ayanāṃśa
@@ -943,15 +1093,16 @@ mod tests {
     }
 
     /// Every named ayanāṃśa is the same precession with a different anchor,
-    /// so the differences between them are constant to within the tiny
-    /// second-order terms.
+    /// so the differences between their mean values are constant to within
+    /// the tiny second-order terms; a true one adds the nutation of the day
+    /// to its mean value and nothing else.
     #[test]
     fn the_named_ayanamsas_differ_by_a_constant_offset() {
         for ayanamsa in Ayanamsa::ALL {
-            let early =
-                ayanamsa.degrees_at(Moment(693_596.0)) - LAHIRI.degrees_at(Moment(693_596.0));
-            let late =
-                ayanamsa.degrees_at(Moment(766_644.0)) - LAHIRI.degrees_at(Moment(766_644.0));
+            let early = ayanamsa.mean_degrees_at(Moment(693_596.0))
+                - LAHIRI.mean_degrees_at(Moment(693_596.0));
+            let late = ayanamsa.mean_degrees_at(Moment(766_644.0))
+                - LAHIRI.mean_degrees_at(Moment(766_644.0));
             assert!(
                 (early - late).abs() < 1e-6,
                 "{} drifted against Lahiri by {}",

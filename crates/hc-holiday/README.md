@@ -280,9 +280,11 @@ counted from Easter is a gap outside the computus, 1583–4099 for the Gregorian
 and from 326 for the Julian, and the saṅkrānti days of `hindu` are gaps outside
 1701–2298. The festivals of the Qumran scrolls are approximate, since their
 Gregorian dates are a convention of this library's epoch. Raksha Bandhan is
-kept when Bhadra is over (`TithiAfterBhadra`), and Holika Dahan is not yet:
-its page of Drik Panchang parts from it a day in 2016, 2023 and 2026, whose
-rule for Bhadra Punchha no source read defines.
+kept when Bhadra is over (`TithiAfterBhadra`). Holika Dahan and Holi in `hindu`
+are Drik Panchang's days for 2015 to 2036, because the rule parts from the
+pages a day in 2016, 2023 and 2026 and the page's rule for Bhadra Punchha is
+not defined enough to reproduce them; outside those years the rule answers,
+approximately.
 
 Beside the tables, `holy_years` lists the Catholic Holy Years from 1975
 to 2025, each with the days its bull of indiction fixes, and answers

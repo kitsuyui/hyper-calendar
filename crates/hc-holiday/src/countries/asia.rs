@@ -1303,25 +1303,16 @@ const IN_LISTED_LAST: i32 = 2027;
 /// approximate, after them, and a gap before them, which the row `base`
 /// carries by the table's first year (ADR 0013).
 const fn in_listed(base: HolidayRule, name: &'static str, hijri: bool) -> [HolidayRule; 3] {
-    let read = HolidayRule {
-        rule: Rule::listed(
-            IN_LISTED.named(name),
-            IN_LISTED_FIRST as i64,
-            IN_LISTED_LAST as i64,
-        ),
-        confidence: if hijri {
+    base.read_in(
+        IN_LISTED.named(name),
+        IN_LISTED_FIRST,
+        IN_LISTED_LAST,
+        if hijri {
             Confidence::Approximate
         } else {
             Confidence::Exact
         },
-        ..base
-    }
-    .years(Some(IN_LISTED_FIRST), Some(IN_LISTED_LAST));
-    [
-        read,
-        base.approximate().years(None, Some(IN_LISTED_FIRST - 1)),
-        base.approximate().years(Some(IN_LISTED_LAST + 1), None),
-    ]
+    )
 }
 
 const IN_FITR: [HolidayRule; 3] = in_listed(

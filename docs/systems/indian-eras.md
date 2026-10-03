@@ -337,12 +337,23 @@ Faṣlī 1434, which opened on 1 July 2024.
   era codes are `gupta`, `valabhi`, `kalachuri` and `lakshmana-sena`. The
   Gupta and Chedi eras are pūrṇimānta, the Valabhī and Lakṣmaṇa Sena
   amānta, each with the opening the source gives. Their usage is the
-  span of the dated inscriptions a source reports — the years 82 to 945 of
-  the Gupta and Valabhī eras together, 793 to 934 of the Chedi — a lower
-  bound on the period of use and not the whole of it, and the Lakṣmaṇa Sena
-  era's is undated and still in use, the Mithila Panchang printing it. The
+  period from the opening of year 1, the epoch the source states, with no
+  end: the dated inscriptions a source reports — the years 82 to 945 of the
+  Gupta and Valabhī eras together, 793 to 934 of the Chedi — are a lower
+  bound on the use and are named in the usage's source, not carried as its
+  limits, and no source read dates the last use of the Gupta, Valabhī or
+  Chedi era, so none is carried and a day after the inscriptions reads as in
+  use, not as extended. The Lakṣmaṇa Sena era's period opens with year 1 on
+  Kielhorn's epoch and is still in use, the Mithila Panchang printing it. The
   `EraYear` values `GUPTA`, `VALABHI`, `KALACHURI` and `LAKSHMANA_SENA` give
   the year of an amānta date and the first day of a year over any months.
+  `hc_era_new_year` is `LunarEra::new_year` at the boundary, for the seven
+  eras of `lunar_era::ALL`. In Hindi the seven eras are written with Hindi
+  month names (from Kārttika for the eras whose year opens there) and under
+  the names Hindi Wikipedia's "अब्द" article gives them
+  [wikipedia-hi-abda]; in Sanskrit with the month names the lunisolar
+  calendars carry, and the era in the fallback language, since no Sanskrit name
+  of an era was found in a source read.
 - **`magi-san`**, as `hindu_solar::MAGI`, the Bengali calendar under the
   era code `magi-san`, on Sewell and Dikshit's months.
 - **`fasli-madras`**, **`fasli-bombay`** and **`sur-san`**, as
@@ -352,6 +363,19 @@ Faṣlī 1434, which opened on 1 July 2024.
   Sun's ingresses of 1700 to 2299, the range of the crate's other solar
   reckonings.
 - **Not carried, and why:**
+  - *A Kārttikādi Kalachuri reading.* A late record of the Ratnapur branch with
+    a weekday, as it was reported to this library, dates a Tuesday in "year 905
+    expired, Āśvina śukla 6", which the editors equate with 14 September 1154:
+    the Āśvinādi reading carried here gives that Tuesday Chedi year 907 current,
+    906 expired, with the fifth tithi at sunrise, a year after the record and a
+    tithi before it. A year that opens at Kārttika śukla 1 instead of Āśvina
+    śukla 1, on the same epoch, would give 906 current, 905 expired, as the
+    record reads. No source was read that states the record, its edition or the
+    editors' conversion (the plates were not read, and Mirashi's corpus, which
+    Wikipedia cites for the Kalachuri inscriptions, is a PDF), so the Kārttikādi
+    count has no dated day to hold it to and is not registered; it would be a
+    convention of its own under policy §5, `kalachuri-kartikadi`, over the same
+    months.
   - *Another reading of the Lakṣmaṇa Sena era.* Colebrooke's, Buchanan's
     and the Tirhut almanacs' epochs (A.D. 1105, 1105 or 1106, 1108 or 1109)
     and the openings Buchanan (the day after Āṣāḍha's full moon) and
@@ -497,6 +521,7 @@ Faṣlī 1434, which opened on 1 July 2024.
 | [wikipedia-lakshmana-era] | "Most currently agree that it is 1118-1119 AD", and no year opening or months | Yes, 2026-10-03 |
 | [hinducalculator-mithila-panchang] | The Mithila Panchang's "La. Sam." and its pūrṇimānta months, "La. Sam. 907" for October 2026, and the Maithil new year at the Meṣa saṅkrānti | Yes, 2026-10-03 |
 | [wikipedia-azes-era], [wikipedia-yavana-era] | The Azes era's 47/46 BCE and its spring or autumn start; the Yavana era's 174 BCE and its dated years | Yes, 2026-10-03 |
+| [wikipedia-hi-abda] | The Hindi names of the Saptarṣi, Kalachuri, Gupta (Valabhī), Lakṣmaṇa Sena and Rājyābhiṣeka saṃvats, in the page's wikitext; the Vikrama Samvat as that article is titled | Yes, 2026-10-04 |
 | [wikipedia-gupta-era] | The Gupta years as Chaitrādi and pūrṇimānta in the early inscriptions and the Valabhī ones as Kārttikādi and amānta, after Salomon, *Indian Epigraphy* (1998), not read | Yes, 2026-09-26 |
 | [wikipedia-kalachuri-era] | Kielhorn's September 248 and the Āśvina year, which it cites to the *Indian Antiquary* XIX, not read | Yes, 2026-09-26 |
 | [wikipedia-shivaji] | The coronation on 6 June 1674, Jyeṣṭha śukla 13 of 1596 | Yes, 2026-09-26 |

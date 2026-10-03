@@ -1079,6 +1079,12 @@ export const COLUMNS: {
   readonly tithisOfDay: ReadonlyArray<string>;
   readonly ayanamsaTable: ReadonlyArray<string>;
   readonly ayanamsaValue: ReadonlyArray<string>;
+  readonly festivalReading: ReadonlyArray<string>;
+  readonly janmashtami: ReadonlyArray<string>;
+  readonly vaishnavaDay: ReadonlyArray<string>;
+  readonly vishtiFreeSpan: ReadonlyArray<string>;
+  readonly rahuAt: ReadonlyArray<string>;
+  readonly rahuIngress: ReadonlyArray<string>;
   readonly marriageAugury: ReadonlyArray<string>;
   readonly chineseAlmanacSolarTerms: ReadonlyArray<string>;
   readonly holidayTables: ReadonlyArray<string>;
@@ -2649,6 +2655,107 @@ export interface AyanamsaInfo {
   anchorDegrees: number;
   /** Where the anchor is from. */
   source: string;
+  /**
+   * What the anchor stands for: `mean`, the precession alone, or `true`,
+   * the mean value plus the nutation in longitude of the day (the value
+   * carries the nutation of each day besides).
+   */
+  kind: "mean" | "true";
+}
+
+/** The two readings of a festival's day where the sects part: `hc_festival_readings`. */
+export type FestivalReadingId = "smarta" | "vaishnava";
+
+/** The historical Indian eras over the lunisolar months, `hc_era_new_year`. */
+export type LunarEraId =
+  | "vikram-samvat-kartikadi"
+  | "rajyabhisheka-saka"
+  | "saptarshi"
+  | "gupta"
+  | "valabhi"
+  | "kalachuri"
+  | "lakshmana-sena";
+
+/** One line of `hc_festival_readings`. */
+export interface FestivalReading {
+  id: FestivalReadingId;
+  name: string;
+  /** How the day is taken, in words. */
+  rule: string;
+  /** Where the reading is from. */
+  source: string;
+}
+
+/** The line of `hc_janmashtami`. */
+export interface FestivalDay {
+  reading: FestivalReadingId;
+  /** The Gregorian year asked. */
+  year: number;
+  /** The fixed day. */
+  fixed: number;
+  /** Its Gregorian year, month and day. */
+  gregorian: [number, number, number];
+  /** The tithi the day carries at sunrise there, 1 to 30: 23 or 24 for Janmāṣṭamī. */
+  sunriseTithi: number;
+  ayanamsa: Ayanamsa;
+}
+
+/** The line of `hc_vaishnava_day`. */
+export interface VaishnavaDay {
+  sakaYear: number;
+  /** 1 for Chaitra through 12 for Phālguna. */
+  month: number;
+  /** 1 for śukla pratipadā through 30 for amāvasyā. */
+  tithi: number;
+  fixed: number;
+  gregorian: [number, number, number];
+  sunriseTithi: number;
+  ayanamsa: Ayanamsa;
+}
+
+/** The line of `hc_vishti_free_span`. */
+export interface VishtiFreeSpan {
+  sakaYear: number;
+  month: number;
+  tithi: number;
+  /** The fixed day the month's first sunrise falls on. */
+  monthFirstDay: number;
+  /** POSIX seconds, rounded down; `null` for a tithi Viṣṭi never falls on. */
+  begins: number | null;
+  ends: number | null;
+  ayanamsa: Ayanamsa;
+}
+
+/** A node's place: its sidereal longitude and sign. */
+export interface NodeSign {
+  /** Degrees, 0 up to 360. */
+  longitude: number;
+  /** The sign by number, 1 for Meṣa through 12. */
+  number: number;
+  sign: SiderealSignId;
+  signName: string;
+}
+
+/** The line of `hc_rahu_at`. */
+export interface NodePlace {
+  /** `mean`: the true node is not carried. */
+  node: "mean";
+  rahu: NodeSign;
+  ketu: NodeSign;
+  ayanamsa: Ayanamsa;
+  readAt: number;
+}
+
+/** One line of `hc_rahu_ingresses`: Rāhu's entry into a sign, Ketu's into the opposite one. */
+export interface NodeIngress {
+  /** POSIX seconds, rounded down. */
+  moment: number;
+  from: SiderealSignId;
+  fromName: string;
+  into: SiderealSignId;
+  intoName: string;
+  ketuInto: SiderealSignId;
+  ketuIntoName: string;
 }
 
 /** The line of `hc_ayanamsa_at` and `hc_ayanamsa_from_anchor`. */
@@ -2661,6 +2768,8 @@ export interface AyanamsaValue {
   anchorJulianDate: number;
   anchorDegrees: number;
   readAt: number;
+  /** What the anchor stands for, as `AyanamsaInfo.kind`; `mean` for a caller's anchor. */
+  kind: "mean" | "true";
 }
 
 /** One line of `hc_panchanga_at` or `hc_panchanga_of_day`. *//** One line of `hc_panchanga_at` or `hc_panchanga_of_day`. */
@@ -4524,6 +4633,43 @@ export class HyperCalendar {
   ayanamsaAt(unixSeconds: number | bigint, ayanamsa: Ayanamsa): AyanamsaValue;
   /** `hc_ayanamsa_from_anchor`: the value of an ayanāṃśa the caller anchors, `custom`. */
   ayanamsaFromAnchor(unixSeconds: number | bigint, anchorJulianDate: number, degreesAtAnchor: number): AyanamsaValue;
+  /** `hc_festival_readings`: the Smārta and Vaiṣṇava readings of a festival's day. */
+  festivalReadings(): FestivalReading[];
+  /** `hc_janmashtami`: the day of Kṛṣṇa Janmāṣṭamī in a Gregorian year at a place by a reading. */
+  janmashtami(
+    year: number | bigint,
+    reading: FestivalReadingId,
+    latitude: number,
+    longitude: number,
+    elevation: number,
+    ayanamsa: Ayanamsa,
+  ): FestivalDay;
+  /** `hc_vaishnava_day`: the first day whose sunrise carries a tithi of a month of a Śaka year. */
+  vaishnavaDay(
+    sakaYear: number | bigint,
+    month: number,
+    tithi: number,
+    latitude: number,
+    longitude: number,
+    elevation: number,
+    ayanamsa: Ayanamsa,
+  ): VaishnavaDay;
+  /** `hc_vishti_free_span`: the part of a tithi Bhadra does not cover. */
+  vishtiFreeSpan(
+    sakaYear: number | bigint,
+    month: number,
+    tithi: number,
+    latitude: number,
+    longitude: number,
+    elevation: number,
+    ayanamsa: Ayanamsa,
+  ): VishtiFreeSpan;
+  /** `hc_rahu_at`: the mean Rāhu and Ketu at an instant. */
+  rahuAt(unixSeconds: number | bigint, ayanamsa: Ayanamsa): NodePlace;
+  /** `hc_rahu_ingresses`: the mean node's entries into the signs in a span. */
+  rahuIngresses(fromUnixSeconds: number | bigint, toUnixSeconds: number | bigint, ayanamsa: Ayanamsa): NodeIngress[];
+  /** `hc_era_new_year`: the first day of a year of a historical Indian era over the lunisolar months. */
+  eraNewYear(calendar: LunarEraId, year: number | bigint): number;
   /** `hc_panchanga_of_day`: read at the day's sunrise at the place; no sunrise is `no-data`. */
   panchangaOfDay(
     fixed: number | bigint,

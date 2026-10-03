@@ -150,8 +150,8 @@ impl Sky for SiddhantaLunarCalendar {
     }
 
     /// No ayanāṃśa's key: two NaN patterns, which no anchor or angle has.
-    fn zodiac_key(&self) -> [u64; 2] {
-        [u64::MAX; 2]
+    fn zodiac_key(&self) -> [u64; 3] {
+        [u64::MAX; 3]
     }
 
     fn place_key(&self) -> [u64; 3] {

@@ -78,7 +78,7 @@ pub use drekkana::Drekkana;
 pub use rashi::{
     BENGALI, MALAYALAM, Rashi, SANSKRIT, SOLAR_MONTH_TRADITIONS, SolarMonthTradition, TAMIL,
 };
-pub use sidereal::{Ayanamsa, SiderealSign};
+pub use sidereal::{Ayanamsa, AyanamsaKind, SiderealSign};
 pub use tropical::{ConventionalPeriod, Element, Modality, RulingPlanet, TropicalSign};
 
 use hc_calendar::Rd;

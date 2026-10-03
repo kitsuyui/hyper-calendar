@@ -312,8 +312,16 @@ were compared, on 2026-09-25, with Office Holidays' list for 2024
 notification for 2024 was not reachable, and the Ministry of Immigration
 and Population's holiday pages [moip-public-holidays] serve their lists by
 script and returned nothing to read. Every day of 2000–2030 round-trips
-through the calendar, and a sample of days across the whole range does
-(`every_day_of_three_decades_round_trips`).
+through the calendar (`every_day_of_three_decades_round_trips_and_counts_on`),
+and so does every day of the whole range, 639 to 3639 CE, in a release build;
+a debug build takes a deterministic sample and, besides it, the first Tagu of
+every year it spans and the day before (`every_day_of_the_range_round_trips`).
+That sweep found the one day of the range that shared its date with another:
+the day before 16 ME's first Tagu, which is also the Sun's New Year of 16 ME,
+fell to 16 ME's own Tabaung 30. It is the last day of 15 ME, a 385-day big
+watat year whose months run on to the day before 16 ME's first Tagu, and its
+Tabaung has 30 days
+(`the_day_before_the_first_tagu_that_follows_a_new_year_ends_the_year_before`).
 
 **Re-read on 2026-09-25.** The module's dates for 1387 and 1388 ME were
 compared with the lists that could be read that day. The Thadingyut

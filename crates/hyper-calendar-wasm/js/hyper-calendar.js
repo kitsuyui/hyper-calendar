@@ -130,6 +130,13 @@ export const METHODS = Object.freeze([
   { method: "ayanamsas", export: "hc_ayanamsas", feature: "calendars" },
   { method: "ayanamsaAt", export: "hc_ayanamsa_at", feature: "calendars" },
   { method: "ayanamsaFromAnchor", export: "hc_ayanamsa_from_anchor", feature: "calendars" },
+  { method: "festivalReadings", export: "hc_festival_readings", feature: "calendars" },
+  { method: "janmashtami", export: "hc_janmashtami", feature: "calendars" },
+  { method: "vaishnavaDay", export: "hc_vaishnava_day", feature: "calendars" },
+  { method: "vishtiFreeSpan", export: "hc_vishti_free_span", feature: "calendars" },
+  { method: "rahuAt", export: "hc_rahu_at", feature: "calendars" },
+  { method: "rahuIngresses", export: "hc_rahu_ingresses", feature: "calendars" },
+  { method: "eraNewYear", export: "hc_era_new_year", feature: "calendars" },
   { method: "panchangaOfDay", export: "hc_panchanga_of_day", feature: "calendars" },
   { method: "hinduLunarDate", export: "hc_hindu_lunar_date", feature: "calendars" },
   { method: "suryaSiddhantaAt", export: "hc_surya_siddhanta_at", feature: "calendars" },
@@ -461,8 +468,27 @@ export const COLUMNS = Object.freeze({
     "number", "paksha", "paksha day", "name", "began", "ends", "read at", "sky",
     "at sunrise", "repeated", "skipped",
   ]),
-  ayanamsaTable: Object.freeze(["id", "name", "anchor julian date", "anchor degrees", "source"]),
-  ayanamsaValue: Object.freeze(["degrees", "id", "name", "anchor julian date", "anchor degrees", "read at"]),
+  ayanamsaTable: Object.freeze(["id", "name", "anchor julian date", "anchor degrees", "source", "kind"]),
+  ayanamsaValue: Object.freeze(["degrees", "id", "name", "anchor julian date", "anchor degrees", "read at", "kind"]),
+  festivalReading: Object.freeze(["id", "name", "rule", "source"]),
+  janmashtami: Object.freeze([
+    "reading", "year", "fixed", "gregorian year", "gregorian month", "gregorian day",
+    "sunrise tithi", "ayanamsa",
+  ]),
+  vaishnavaDay: Object.freeze([
+    "saka year", "month", "tithi", "fixed", "gregorian year", "gregorian month", "gregorian day",
+    "sunrise tithi", "ayanamsa",
+  ]),
+  vishtiFreeSpan: Object.freeze([
+    "saka year", "month", "tithi", "month first day", "begins", "ends", "ayanamsa",
+  ]),
+  rahuAt: Object.freeze([
+    "node", "rahu longitude", "rahu number", "rahu sign", "rahu sign name", "ketu longitude",
+    "ketu number", "ketu sign", "ketu sign name", "ayanamsa", "read at",
+  ]),
+  rahuIngress: Object.freeze([
+    "moment", "from", "from name", "into", "into name", "ketu into", "ketu into name",
+  ]),
   marriageAugury: Object.freeze([
     "augury", "lichun at start", "lichun at end", "chinese names", "name scripts", "name regions",
   ]),
@@ -3888,7 +3914,7 @@ function tithi(cells) {
  * @returns {import("./hyper-calendar.d.ts").AyanamsaValue}
  */
 function ayanamsaValue(cells) {
-  const [degrees, id, name, anchorJulianDate, anchorDegrees, readAt] = cells;
+  const [degrees, id, name, anchorJulianDate, anchorDegrees, readAt, kind] = cells;
   return {
     degrees: decimal(degrees, "degrees"),
     id,
@@ -3896,6 +3922,7 @@ function ayanamsaValue(cells) {
     anchorJulianDate: decimal(anchorJulianDate, "anchor julian date"),
     anchorDegrees: decimal(anchorDegrees, "anchor degrees"),
     readAt: integer(readAt, "read at"),
+    kind: /** @type {"mean" | "true"} */ (kind),
   };
 }
 
@@ -6705,12 +6732,13 @@ export class HyperCalendar {
     const fn = this.#export("hc_ayanamsas");
     const text = this.#text("hc_ayanamsas", (buffer, capacity) => fn(buffer, capacity), true);
     return rows(text, COLUMNS.ayanamsaTable, "hc_ayanamsas").map(
-      ([id, name, anchorJulianDate, anchorDegrees, source]) => ({
+      ([id, name, anchorJulianDate, anchorDegrees, source, kind]) => ({
         id: /** @type {import("./hyper-calendar.d.ts").Ayanamsa} */ (id),
         name,
         anchorJulianDate: decimal(anchorJulianDate, "anchor julian date"),
         anchorDegrees: decimal(anchorDegrees, "anchor degrees"),
         source,
+        kind: /** @type {"mean" | "true"} */ (kind),
       }));
   }
 
@@ -6727,6 +6755,211 @@ export class HyperCalendar {
     const text = this.#withText(ayanamsa, "ayanamsa", (pointer, len) =>
       this.#text("hc_ayanamsa_at", (buffer, capacity) => fn(instant, pointer, len, buffer, capacity), true));
     return ayanamsaValue(this.#oneLine("hc_ayanamsa_at", text, COLUMNS.ayanamsaValue));
+  }
+
+  /**
+   * The two readings of a festival's day where the sects part, `smarta` and
+   * `vaishnava`, with how each takes the day and where it is from.
+   *
+   * @returns {import("./hyper-calendar.d.ts").FestivalReading[]}
+   */
+  festivalReadings() {
+    const fn = this.#export("hc_festival_readings");
+    const text = this.#text("hc_festival_readings", (buffer, capacity) => fn(buffer, capacity), true);
+    return rows(text, COLUMNS.festivalReading, "hc_festival_readings").map(
+      ([id, name, rule, source]) => ({
+        id: /** @type {import("./hyper-calendar.d.ts").FestivalReadingId} */ (id),
+        name,
+        rule,
+        source,
+      }));
+  }
+
+  /**
+   * The day of Kṛṣṇa Janmāṣṭamī in a Gregorian year at a place by a
+   * reading, `smarta` or `vaishnava`; a year outside 1700 to 2299 or a place
+   * the Sun does not rise at every day is `out-of-range`.
+   *
+   * @param {number | bigint} year
+   * @param {import("./hyper-calendar.d.ts").FestivalReadingId} reading
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} elevation
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @returns {import("./hyper-calendar.d.ts").FestivalDay}
+   */
+  janmashtami(year, reading, latitude, longitude, elevation, ayanamsa) {
+    const fn = this.#export("hc_janmashtami");
+    const y = toI64(year, "year");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(reading, "reading", (readingPointer, readingLen) =>
+      this.#withText(ayanamsa, "ayanamsa", (ayanamsaPointer, ayanamsaLen) =>
+        this.#text("hc_janmashtami", (buffer, capacity) =>
+          fn(y, readingPointer, readingLen, lat, lon, elev, ayanamsaPointer, ayanamsaLen, buffer, capacity), true)));
+    const [id, yearCell, fixed, gy, gm, gd, sunriseTithi, ayanamsaId] =
+      this.#oneLine("hc_janmashtami", text, COLUMNS.janmashtami);
+    return {
+      reading: /** @type {import("./hyper-calendar.d.ts").FestivalReadingId} */ (id),
+      year: integer(yearCell, "year"),
+      fixed: integer(fixed, "fixed"),
+      gregorian: [integer(gy, "gregorian year"), integer(gm, "gregorian month"), integer(gd, "gregorian day")],
+      sunriseTithi: integer(sunriseTithi, "sunrise tithi"),
+      ayanamsa: /** @type {import("./hyper-calendar.d.ts").Ayanamsa} */ (ayanamsaId),
+    };
+  }
+
+  /**
+   * The Vaiṣṇava day of a tithi of an amānta month of a Śaka year at a
+   * place: the first day whose sunrise carries the tithi or a later one.
+   * `month` is 1 for Chaitra through 12 for Phālguna and `tithi` 1 through
+   * 30; a Śaka year outside 1622 to 2221 or a month outside 1 to 12 is
+   * `out-of-range` and a tithi outside 1 to 30 `invalid-date`.
+   *
+   * @param {number | bigint} sakaYear
+   * @param {number} month
+   * @param {number} tithi
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} elevation
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @returns {import("./hyper-calendar.d.ts").VaishnavaDay}
+   */
+  vaishnavaDay(sakaYear, month, tithi, latitude, longitude, elevation, ayanamsa) {
+    const fn = this.#export("hc_vaishnava_day");
+    const year = toI64(sakaYear, "sakaYear");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(ayanamsa, "ayanamsa", (pointer, len) =>
+      this.#text("hc_vaishnava_day", (buffer, capacity) =>
+        fn(year, toU32(month, "month"), toU32(tithi, "tithi"), lat, lon, elev, pointer, len, buffer, capacity), true));
+    const [saka, monthCell, tithiCell, fixed, gy, gm, gd, sunriseTithi, ayanamsaId] =
+      this.#oneLine("hc_vaishnava_day", text, COLUMNS.vaishnavaDay);
+    return {
+      sakaYear: integer(saka, "saka year"),
+      month: integer(monthCell, "month"),
+      tithi: integer(tithiCell, "tithi"),
+      fixed: integer(fixed, "fixed"),
+      gregorian: [integer(gy, "gregorian year"), integer(gm, "gregorian month"), integer(gd, "gregorian day")],
+      sunriseTithi: integer(sunriseTithi, "sunrise tithi"),
+      ayanamsa: /** @type {import("./hyper-calendar.d.ts").Ayanamsa} */ (ayanamsaId),
+    };
+  }
+
+  /**
+   * The part of a tithi that Bhadra, the karaṇa Viṣṭi, does not cover, for
+   * a tithi of an amānta month of a Śaka year at a place: the second half of
+   * the full moon's tithi, which Rakṣā Bandhana waits for. `begins` and
+   * `ends` are `null` for a tithi Viṣṭi never falls on. Errors as
+   * {@link vaishnavaDay}.
+   *
+   * @param {number | bigint} sakaYear
+   * @param {number} month
+   * @param {number} tithi
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} elevation
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @returns {import("./hyper-calendar.d.ts").VishtiFreeSpan}
+   */
+  vishtiFreeSpan(sakaYear, month, tithi, latitude, longitude, elevation, ayanamsa) {
+    const fn = this.#export("hc_vishti_free_span");
+    const year = toI64(sakaYear, "sakaYear");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(ayanamsa, "ayanamsa", (pointer, len) =>
+      this.#text("hc_vishti_free_span", (buffer, capacity) =>
+        fn(year, toU32(month, "month"), toU32(tithi, "tithi"), lat, lon, elev, pointer, len, buffer, capacity), true));
+    const [saka, monthCell, tithiCell, first, begins, ends, ayanamsaId] =
+      this.#oneLine("hc_vishti_free_span", text, COLUMNS.vishtiFreeSpan);
+    return {
+      sakaYear: integer(saka, "saka year"),
+      month: integer(monthCell, "month"),
+      tithi: integer(tithiCell, "tithi"),
+      monthFirstDay: integer(first, "month first day"),
+      begins: optionalInteger(begins, "begins"),
+      ends: optionalInteger(ends, "ends"),
+      ayanamsa: /** @type {import("./hyper-calendar.d.ts").Ayanamsa} */ (ayanamsaId),
+    };
+  }
+
+  /**
+   * Rāhu, the mean ascending node, and Ketu opposite it at a POSIX instant,
+   * in the zodiac of an ayanāṃśa; an instant outside −1000 to 3000 is
+   * `out-of-range`.
+   *
+   * @param {number | bigint} unixSeconds
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @returns {import("./hyper-calendar.d.ts").NodePlace}
+   */
+  rahuAt(unixSeconds, ayanamsa) {
+    const fn = this.#export("hc_rahu_at");
+    const instant = toI64(unixSeconds, "unixSeconds");
+    const text = this.#withText(ayanamsa, "ayanamsa", (pointer, len) =>
+      this.#text("hc_rahu_at", (buffer, capacity) => fn(instant, pointer, len, buffer, capacity), true));
+    const [node, rahu, rahuNumber, rahuSign, rahuSignName, ketu, ketuNumber, ketuSign, ketuSignName, ayanamsaId, readAt] =
+      this.#oneLine("hc_rahu_at", text, COLUMNS.rahuAt);
+    return {
+      node: /** @type {"mean"} */ (node),
+      rahu: {
+        longitude: decimal(rahu, "rahu longitude"),
+        number: integer(rahuNumber, "rahu number"),
+        sign: /** @type {import("./hyper-calendar.d.ts").SiderealSignId} */ (rahuSign),
+        signName: rahuSignName,
+      },
+      ketu: {
+        longitude: decimal(ketu, "ketu longitude"),
+        number: integer(ketuNumber, "ketu number"),
+        sign: /** @type {import("./hyper-calendar.d.ts").SiderealSignId} */ (ketuSign),
+        signName: ketuSignName,
+      },
+      ayanamsa: /** @type {import("./hyper-calendar.d.ts").Ayanamsa} */ (ayanamsaId),
+      readAt: integer(readAt, "read at"),
+    };
+  }
+
+  /**
+   * The entries of the mean node into the sidereal signs in
+   * `[fromUnixSeconds, toUnixSeconds)`, in time order: Rāhu moves backward,
+   * a sign in about 566 days. A span longer than a hundred Julian years or
+   * an end outside −1000 to 3000 is `out-of-range`.
+   *
+   * @param {number | bigint} fromUnixSeconds
+   * @param {number | bigint} toUnixSeconds
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @returns {import("./hyper-calendar.d.ts").NodeIngress[]}
+   */
+  rahuIngresses(fromUnixSeconds, toUnixSeconds, ayanamsa) {
+    const fn = this.#export("hc_rahu_ingresses");
+    const from = toI64(fromUnixSeconds, "fromUnixSeconds");
+    const to = toI64(toUnixSeconds, "toUnixSeconds");
+    const text = this.#withText(ayanamsa, "ayanamsa", (pointer, len) =>
+      this.#text("hc_rahu_ingresses", (buffer, capacity) => fn(from, to, pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.rahuIngress, "hc_rahu_ingresses").map(
+      ([moment, from, fromName, into, intoName, ketuInto, ketuIntoName]) => ({
+        moment: integer(moment, "moment"),
+        from: /** @type {import("./hyper-calendar.d.ts").SiderealSignId} */ (from),
+        fromName,
+        into: /** @type {import("./hyper-calendar.d.ts").SiderealSignId} */ (into),
+        intoName,
+        ketuInto: /** @type {import("./hyper-calendar.d.ts").SiderealSignId} */ (ketuInto),
+        ketuIntoName,
+      }));
+  }
+
+  /**
+   * The first day of a year of a historical Indian era over the lunisolar
+   * months, as a fixed day: `calendar` is `vikram-samvat-kartikadi`,
+   * `rajyabhisheka-saka`, `saptarshi`, `gupta`, `valabhi`, `kalachuri` or
+   * `lakshmana-sena`. The day is the era's own: a year opens at Kārttika
+   * śukla 1, Āśvina śukla 1 or Jyeṣṭha śukla 13 as its source states.
+   *
+   * @param {import("./hyper-calendar.d.ts").LunarEraId} calendar
+   * @param {number | bigint} year
+   * @returns {number}
+   */
+  eraNewYear(calendar, year) {
+    const fn = this.#export("hc_era_new_year");
+    const y = toI64(year, "year");
+    return this.#withText(calendar, "calendar", (pointer, len) =>
+      toNumber(fn(pointer, len, y), "hc_era_new_year"));
   }
 
   /**

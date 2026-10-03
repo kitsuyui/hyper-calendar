@@ -171,6 +171,10 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a line | `hc_kumbhs_in_year_by_sky` | `year` −1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and an ayanāṃśa not known `HC_ERROR_UNKNOWN` |
 | a line | `hc_tithis_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000, and on `surya-siddhanta` −1 132 604 through 2 519 973; any other is `HC_ERROR_OUT_OF_RANGE`, and a day or morrow without a sunrise `HC_ERROR_NO_DATA` |
 | a line | `hc_tithi_at`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor` | `unix_seconds` −62 167 219 200 through 93 305 366 399, the years −1000 to 3000, and on `surya-siddhanta` for `hc_tithi_at` −159 992 668 800 through 155 590 156 799, the days of Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_janmashtami` | `year` 1700 through 2299, the Gregorian years whose Śrāvaṇa lies in the Śaka years 1622 to 2221 of the Rashtriya Panchang's calendar; any other is `HC_ERROR_OUT_OF_RANGE`, a reading or an ayanāṃśa not known `HC_ERROR_UNKNOWN`, and a place beyond 65° of latitude `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_vaishnava_day`, `hc_vishti_free_span` | `saka_year` 1622 through 2221 and `month` 1 through 12; a tithi outside 1 to 30 is `HC_ERROR_INVALID_DATE`, any other year or month, a month the year lacks (Mārgaśīrṣa of Śaka 1885 at the Central Station) included, and a place beyond 65° of latitude, `HC_ERROR_OUT_OF_RANGE`, and an ayanāṃśa not known `HC_ERROR_UNKNOWN` |
+| a line | `hc_rahu_at` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and an ayanāṃśa not known `HC_ERROR_UNKNOWN` |
+| a line | `hc_rahu_ingresses` | `from_unix_seconds` and `to_unix_seconds` −93 724 128 000 through 32 535 216 000 (the span `[from, to)` ends within the years −1000 to 3000), at most 3 155 760 000 apart, a hundred Julian years; a `to` not after the `from` writes nothing; any other is `HC_ERROR_OUT_OF_RANGE`, and an ayanāṃśa not known `HC_ERROR_UNKNOWN` |
 | a line | `hc_zassetsu_in_year`, `hc_seasonal_days_in_year` | `year` −1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and a meridian not read `HC_ERROR_UNKNOWN` |
 | a line | `hc_pentad_in_tradition` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and a tradition not listed `HC_ERROR_UNKNOWN` |
 | a line | `hc_gmat_from_gmt`, `hc_gmt_from_gmat` | `fixed` −3 652 424 999 through 3 652 424 634, the Gregorian years −9 999 999 to 9 999 999, with whole seconds up to 86 400 and attoseconds below 10¹⁸; 23:59:60, which neither reckoning shifts, and any other are `HC_ERROR_OUT_OF_RANGE` |
@@ -188,6 +192,7 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a line | `hc_format_number` | every `value` the system writes: from 1 for the Hebrew numerals, every `int64_t` for a positional system; any other is `HC_ERROR_OUT_OF_RANGE`, and a system not named `HC_ERROR_UNKNOWN` |
 | an integer | `hc_parse_number` | text in the system's notation whose value fits an `int64_t`; any other is `HC_ERROR_MALFORMED` or `HC_ERROR_OUT_OF_RANGE`, and a system not named `HC_ERROR_UNKNOWN` |
 | a place in the cycle, 1 through 7 | `hc_hebrew_sabbatical_cycle_year` | `hebrew_year` 1 through 9999; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a fixed day | `hc_era_new_year` | `year` of the era's own count: `vikram-samvat-kartikadi` 1757 through 2356, `rajyabhisheka-saka` 27 through 626 and `saptarshi` 4776 through 5375 over the Rashtriya Panchang's months, and `gupta` −3419 through 6580, `valabhi` −3418 through 6581, `kalachuri` −3347 through 6652 and `lakshmana-sena` −4218 through 5781 over the *Sūrya Siddhānta*'s, Kali Yuga 1 to 10 000; any other year is `HC_ERROR_OUT_OF_RANGE`, and an era not named `HC_ERROR_UNKNOWN` |
 | a fixed day | `hc_hebrew_yahrzeit`, `hc_hebrew_birthday` | `death_fixed` and `birth_fixed` −1 373 427 through 2 278 650 and `hebrew_year` 1 through 9999, the Hebrew years 1 through 9999; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a mission sol, from 0 or 1 | `hc_mission_sol` | the instants from the midnight that began the mission's landing sol through 100 Julian years after J2000.0 (2100-01-01T12:00 TT); an earlier instant, or one not finite, is `HC_ERROR_OUT_OF_RANGE`, a mission whose operators published no sol numbering `HC_ERROR_NO_DATA`, and a mission the table does not carry `HC_ERROR_UNKNOWN` |
 | a line | `hc_relative_time` | every `then_unix` and `now_unix` less than an `int64_t` of seconds apart; two further apart are `HC_ERROR_OUT_OF_RANGE`, and a style not named `HC_ERROR_UNKNOWN` |
@@ -334,7 +339,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-286 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+293 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -421,6 +426,13 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_ayanamsas(char *buffer, size_t capacity, size_t *written);` | `calendars` | Every named ayanāṃśa, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_ayanamsa_at(int64_t unix_seconds, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `calendars` | A named ayanāṃśa's value at a POSIX timestamp, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_ayanamsa_from_anchor(int64_t unix_seconds, double anchor_julian_date, double degrees_at_anchor, char *buffer, size_t capacity, size_t *written);` | `calendars` | The value at a POSIX timestamp of an ayanāṃśa the caller anchors, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_festival_readings(char *buffer, size_t capacity, size_t *written);` | `calendars` | The two readings of a festival's day where the sects part, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_janmashtami(int64_t year, const char *reading, double latitude, double longitude, double elevation, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `calendars` | The day of Kṛṣṇa Janmāṣṭamī in a Gregorian year at a place by a reading, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_vaishnava_day(int64_t saka_year, uint32_t month, uint32_t tithi, double latitude, double longitude, double elevation, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `calendars` | The Vaiṣṇava day of a tithi of a month of a Śaka year at a place, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_vishti_free_span(int64_t saka_year, uint32_t month, uint32_t tithi, double latitude, double longitude, double elevation, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `calendars` | The part of a tithi that Bhadra, the karaṇa Viṣṭi, does not cover, for a tithi of a month of a Śaka year at a place, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_rahu_at(int64_t unix_seconds, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `calendars` | Rāhu and Ketu at a POSIX timestamp, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_rahu_ingresses(int64_t from, int64_t to, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `calendars` | The entries of the mean node into the sidereal signs in a span of POSIX timestamps, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_era_new_year(const char *calendar, int64_t year, int64_t *out_fixed);` | `calendars` | The first day of a year of a historical Indian era over the lunisolar months, written to the out-parameter `out_fixed`. |
 | `HcStatus hc_hindu_lunar_date(const char *sky, int64_t fixed, double latitude, double longitude, double elevation, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The Hindu lunisolar date of a fixed day at a place, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_surya_siddhanta_at(int64_t unix_seconds, char *buffer, size_t capacity, size_t *written);` | `calendars` | The *Sūrya Siddhānta*'s Sun and Moon at a POSIX timestamp, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_surya_siddhanta_sunrise(int64_t fixed, double latitude, double longitude, char *buffer, size_t capacity, size_t *written);` | `calendars` | The *Sūrya Siddhānta*'s sunrise on a fixed day at a place, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
@@ -935,6 +947,26 @@ age by a named count, `chinese-age`, `lichun-age`, `new-year-day-age` or
 `year-age`, and `hc_chinese_almanac_solar_terms(year, buffer, capacity,
 written)` the module's lines of the Qing almanac's term days of a year of
 1645–1733.
+
+`hc_festival_readings(buffer, capacity, written)` writes the module's two
+lines of the Smārta and Vaiṣṇava readings of a festival's day, `smarta` and
+`vaishnava`; `hc_janmashtami(year, reading, latitude, longitude, elevation,
+ayanamsa, buffer, capacity, written)` the module's line of the day of Kṛṣṇa
+Janmāṣṭamī in a Gregorian year at a place by one of them;
+`hc_vaishnava_day(saka_year, month, tithi, latitude, longitude, elevation,
+ayanamsa, buffer, capacity, written)` the line of the first day whose sunrise
+carries a tithi of an amānta month of a Śaka year; and
+`hc_vishti_free_span(saka_year, month, tithi, latitude, longitude, elevation,
+ayanamsa, buffer, capacity, written)` the line of the part of a tithi Bhadra does
+not cover. `hc_rahu_at(unix_seconds, ayanamsa, buffer, capacity, written)` and
+`hc_rahu_ingresses(from_unix_seconds, to_unix_seconds, ayanamsa, buffer,
+capacity, written)` write the module's line of the mean Rāhu and Ketu at an
+instant and its lines of the node's entries into the sidereal signs in a span, and
+`hc_era_new_year(calendar, year, out_fixed)` the fixed day on which a year of
+`vikram-samvat-kartikadi`, `rajyabhisheka-saka`, `saptarshi`, `gupta`, `valabhi`,
+`kalachuri` or `lakshmana-sena` begins. A null `reading`, `ayanamsa` or
+`calendar` is `HC_ERROR_NULL_POINTER`, and a name not carried
+`HC_ERROR_UNKNOWN`.
 
 `hc_kalam(convention, fixed, latitude, longitude, elevation, locale,
 buffer, capacity, written)` writes the module's three lines of Rāhu kālam,

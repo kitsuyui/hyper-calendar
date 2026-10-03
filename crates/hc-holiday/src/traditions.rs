@@ -78,14 +78,15 @@ use crate::computus::offsets::{
     TRINITY_SUNDAY, WHIT_MONDAY,
 };
 use crate::hindu::{
-    AKSHAYA_TRITIYA, ANANT_CHATURDASHI, BUDDHA_PURNIMA, DIWALI, DURGA_ASHTAMI, GANESH_CHATURTHI,
-    GURU_GOBIND_SINGH_PARKASH, GURU_NANAK_JAYANTI, GURU_PURNIMA, HOLA_MOHALLA, HOLI, HOLIKA_DAHAN,
-    JANMASHTAMI, MAHA_SHIVARATRI, MAHAVIR_JAYANTI, MAKAR_SANKRANTI, MESHA_SANKRANTI,
-    NARAKA_CHATURDASHI, NAVARATRI, RAKSHA_BANDHAN, RAMA_NAVAMI, SAMVATSARI, UGADI, VIJAYA_DASHAMI,
+    AKSHAYA_TRITIYA, ANANT_CHATURDASHI, BUDDHA_PURNIMA, DIWALI, DRIK_HOLI, DRIK_HOLI_FIRST,
+    DRIK_HOLI_LAST, DURGA_ASHTAMI, GANESH_CHATURTHI, GURU_GOBIND_SINGH_PARKASH, GURU_NANAK_JAYANTI,
+    GURU_PURNIMA, HOLA_MOHALLA, HOLI, HOLIKA_DAHAN, JANMASHTAMI, MAHA_SHIVARATRI, MAHAVIR_JAYANTI,
+    MAKAR_SANKRANTI, MESHA_SANKRANTI, NARAKA_CHATURDASHI, NAVARATRI, RAKSHA_BANDHAN, RAMA_NAVAMI,
+    SAMVATSARI, UGADI, VIJAYA_DASHAMI,
 };
 use crate::rule::{
-    CalendarSystem, Days, HolidayRule, Kind, Listing, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
-    Subdivisions, TibetanDayRule, TibetanMonth, dated, joined,
+    CalendarSystem, Confidence, Days, HolidayRule, Kind, Listing, Rule, RuleSet, SATURDAY_SUNDAY,
+    SourceDate, Subdivisions, TibetanDayRule, TibetanMonth, dated, joined,
 };
 
 /// 清明, the fifth solar term.
@@ -899,11 +900,33 @@ pub static BAHAI: RuleSet = RuleSet {
 // Hinduism
 // ─────────────────────────────────────────────────────────────────────────
 
+/// Holikā Dahana and Holī as Drik Panchang's pages give them for 2015 to
+/// 2036, exactly, and as the rules of [`crate::hindu`] have them before and
+/// after, approximately: the rules part from the pages in three of the 22
+/// years.
+const HOLIKA_DAHAN_ROWS: [HolidayRule; 3] = feast("Holika Dahan", "होलिका दहन", HOLIKA_DAHAN)
+    .read_in(
+        DRIK_HOLI.named("dahan"),
+        DRIK_HOLI_FIRST,
+        DRIK_HOLI_LAST,
+        Confidence::Exact,
+    );
+const HOLI_ROWS: [HolidayRule; 3] = feast("Holi", "होली", HOLI).read_in(
+    DRIK_HOLI.named("holi"),
+    DRIK_HOLI_FIRST,
+    DRIK_HOLI_LAST,
+    Confidence::Exact,
+);
+
 static HINDU_RULES: &[HolidayRule] = &[
     feast("Makar Sankranti", "मकर संक्रांति", MAKAR_SANKRANTI),
     feast("Maha Shivaratri", "महाशिवरात्रि", MAHA_SHIVARATRI),
-    feast("Holika Dahan", "होलिका दहन", HOLIKA_DAHAN),
-    feast("Holi", "होली", HOLI),
+    HOLIKA_DAHAN_ROWS[0],
+    HOLIKA_DAHAN_ROWS[1],
+    HOLIKA_DAHAN_ROWS[2],
+    HOLI_ROWS[0],
+    HOLI_ROWS[1],
+    HOLI_ROWS[2],
     feast("Ugadi", "उगादि", UGADI),
     feast("Rama Navami", "राम नवमी", RAMA_NAVAMI),
     feast("Mahavir Jayanti", "महावीर जयंती", MAHAVIR_JAYANTI),
@@ -1341,7 +1364,7 @@ static CHINESE_FOLK_RULES: &[HolidayRule] = &[
 /// 清明 from 1645, when the 時憲曆 shortened the interval from the winter
 /// solstice, and 105 days after the solstice before it, beside the
 /// festivals of the year. The 寒食 of the years before 1645 is
-/// [`Confidence::Approximate`](crate::Confidence::Approximate): its
+/// [`Confidence::Approximate`]: its
 /// solstice is the one this library computes, and the calendars of those
 /// years reckoned their own, which is not modelled here.
 ///

@@ -2411,7 +2411,7 @@ describe("the Hindu date and the crescent", () => {
       const date = hc.hinduLunarDate(sky, autumn, 35.654_444, 139.744_722, 0, "hi");
       assert.deepEqual(
         [date.sakaYear, date.month, date.tithi, date.monthName, date.sakaEra, date.vikramaEra, date.localeUsed],
-        [1948, 6, 16, "भाद्रपद", "शक", "Vikrama Samvat", "hi"],
+        [1948, 6, 16, "भाद्रपद", "शक", "विक्रम संवत", "hi"],
         sky,
       );
     }
@@ -3726,16 +3726,86 @@ describe("the tithi and the ayanāṃśas", () => {
     assert.ok(table.length >= 8);
     const crc = table.find((row) => row.id === "lahiri-crc-1955");
     assert.deepEqual([crc?.anchorJulianDate, crc?.anchorDegrees], [2_435_553.5, 23.25]);
+    // The Committee's printed value and the Rashtriya Panchang's are true
+    // ones (mean plus nutation), the Swiss Ephemeris's and Drik's mean.
+    assert.deepEqual(
+      ["lahiri", "lahiri-drik", "lahiri-crc-1955", "lahiri-rashtriya"].map(
+        (id) => table.find((row) => row.id === id)?.kind,
+      ),
+      ["mean", "mean", "true", "true"],
+    );
     // Drik Panchang prints its Lahiri as 24.213067 on 1 January 2025.
     const drik = hc.ayanamsaAt(Date.UTC(2025, 0, 1) / 1000, "lahiri-drik");
     assert.ok(Math.abs(drik.degrees - 24.213_067) < 3e-4, String(drik.degrees));
     assert.equal(drik.name, "Lahiri (Drik Panchang)");
+    assert.equal(drik.kind, "mean");
+    // 23°15′0″ on 21 March 1956 is the Committee's true value.
+    const committee = hc.ayanamsaAt(Date.UTC(1956, 2, 21) / 1000, "lahiri-crc-1955");
+    assert.ok(Math.abs(committee.degrees - 23.25) < 1e-6, String(committee.degrees));
+    assert.equal(committee.kind, "true");
     // The Calendar Reform Committee's value is read back at its own date.
     const custom = hc.ayanamsaFromAnchor(Date.UTC(1956, 2, 21) / 1000, 2_435_553.5, 23.25);
     assert.ok(Math.abs(custom.degrees - 23.25) < 1e-6);
     assert.deepEqual([custom.id, custom.name], ["custom", "custom"]);
     refused(() => hc.ayanamsaAt(0, /** @type {any} */ ("mars")), "unknown");
     refused(() => hc.ayanamsaFromAnchor(0, Number.NaN, 1), "out-of-range");
+  });
+});
+
+describe("the Smārta and Vaiṣṇava readings, Rāhu and the eras' new years", () => {
+  // Drik Panchang's ISKCON Janmashtami for Tokyo, 16 August 2025
+  // (`drik-iskcon-janmashtami`); the Rashtriya Panchang keeps the 15th.
+  const TOKYO = [35.6894, 139.6917, 0];
+  const STATION = [23.2, 82.5, 0];
+
+  test("the two readings are listed and read", () => {
+    const readings = hc.festivalReadings();
+    assert.deepEqual(readings.map((row) => row.id), ["smarta", "vaishnava"]);
+    assert.ok(readings.every((row) => row.rule && row.source));
+    const vaishnava = hc.janmashtami(2025, "vaishnava", ...TOKYO, "lahiri");
+    assert.deepEqual(vaishnava.gregorian, [2025, 8, 16]);
+    assert.equal(vaishnava.reading, "vaishnava");
+    assert.ok([23, 24].includes(vaishnava.sunriseTithi));
+    const smarta = hc.janmashtami(2025, "smarta", ...STATION, "lahiri");
+    assert.deepEqual(smarta.gregorian, [2025, 8, 15]);
+    refused(() => hc.janmashtami(2025, /** @type {any} */ ("iskcon"), ...TOKYO, "lahiri"), "unknown");
+    refused(() => hc.janmashtami(2300, "smarta", ...TOKYO, "lahiri"), "out-of-range");
+  });
+
+  test("the Vaiṣṇava day of a tithi and the Viṣṭi-free span", () => {
+    const day = hc.vaishnavaDay(1947, 5, 23, ...TOKYO, "lahiri");
+    assert.deepEqual(day.gregorian, [2025, 8, 16]);
+    assert.equal(day.tithi, 23);
+    refused(() => hc.vaishnavaDay(1947, 5, 31, ...TOKYO, "lahiri"), "invalid-date");
+    refused(() => hc.vaishnavaDay(1947, 13, 1, ...TOKYO, "lahiri"), "out-of-range");
+    // Bhadra of Rakṣā Bandhana 2024 ended at 13:33 IST on 19 August, 08:03 UT
+    // (`onlinejyotish-rakhi-2024`, secondary).
+    const span = hc.vishtiFreeSpan(1946, 5, 15, ...STATION, "lahiri");
+    assert.ok(span.begins !== null && span.ends !== null && span.ends > span.begins);
+    assert.ok(Math.abs(span.begins - Date.UTC(2024, 7, 19, 8, 3) / 1000) <= 600, String(span.begins));
+  });
+
+  test("Rāhu and Ketu stand where Drik Panchang says", () => {
+    // The mean transit into Kumbha on 18 May 2025 at 16:30 IST (`drik-rahu-transit`).
+    const node = hc.rahuAt(Date.UTC(2025, 4, 19, 12) / 1000, "lahiri-drik");
+    assert.equal(node.node, "mean");
+    assert.deepEqual([node.rahu.sign, node.ketu.sign], ["kumbha", "simha"]);
+    assert.equal(node.rahu.number, 11);
+    const ingresses = hc.rahuIngresses(Date.UTC(2025, 0, 1) / 1000, Date.UTC(2026, 0, 1) / 1000, "lahiri-drik");
+    assert.equal(ingresses.length, 1);
+    assert.deepEqual([ingresses[0].into, ingresses[0].ketuInto], ["kumbha", "simha"]);
+    assert.ok(Math.abs(ingresses[0].moment - Date.UTC(2025, 4, 18, 11, 0) / 1000) <= 180);
+    refused(() => hc.rahuIngresses(0, 4_000_000_000, "lahiri"), "out-of-range");
+    refused(() => hc.rahuAt(0, /** @type {any} */ ("mars")), "unknown");
+  });
+
+  test("an era's new year is the day its year opens", () => {
+    // Kielhorn's first current Chedi year opens on 5 September 248 (Julian),
+    // the fixed day 90 463.
+    assert.equal(hc.eraNewYear("kalachuri", 1), 90_463);
+    assert.equal(hc.eraNewYear("lakshmana-sena", 907), hc.gregorianToFixed(2025, 10, 22));
+    refused(() => hc.eraNewYear(/** @type {any} */ ("hindu-lunar"), 1), "unknown");
+    refused(() => hc.eraNewYear("gupta", 100_000), "out-of-range");
   });
 });
 

@@ -269,8 +269,9 @@ pub const PUSHKARAM_BY_SKY_COLUMNS: usize = crate::reckoning_lines::PUSHKARAM_CO
 
 /// The lines of `hc_pushkaram_by_sky`: the twelve days of the *Ādi
 /// Pushkaram* of each river of a sidereal sign, for Jupiter's entry into the
-/// sign in a Gregorian year, found rather than given. No line where Jupiter
-/// makes no entry into the sign that year, which is most years.
+/// sign in a Gregorian year, found rather than given, the year of the entry's
+/// date at the meridian `meridian_name` names. No line where Jupiter makes no
+/// entry into the sign that year, which is most years.
 ///
 /// `rule` names which entry is reckoned where Jupiter enters, turns back and
 /// enters again, [`EntryRule::id`]: `pushkaram-final-entry`, the one the
@@ -301,7 +302,7 @@ pub fn pushkaram_by_sky_lines(
     if !(EARLIEST_YEAR..=LATEST_YEAR).contains(&year) {
         return Err(Refusal::OutOfRange);
     }
-    let (from, until) = year_span(year);
+    let (from, until) = year_span(year, meridian);
     let Some(entry) = jupiter::entry_into(sign, from, until, rule, ayanamsa) else {
         return Ok(String::new());
     };
@@ -310,12 +311,17 @@ pub fn pushkaram_by_sky_lines(
     Ok(out)
 }
 
-/// The moments a Gregorian year begins and ends at, as the Pushkaram's
-/// searches take them.
-fn year_span(year: i64) -> (Moment, Moment) {
+/// The moments a Gregorian year begins and ends at on the civil days of a
+/// meridian, as the Pushkaram's searches take them.
+///
+/// The year is the one the entry falls in by the meridian's own clock, the
+/// clock that cuts the twelve days of the Pushkaram: Jupiter's entry into
+/// Dhanus at 19:45 UT on 31 December 2149 is 01:15 on 1 January 2150 in
+/// India, and belongs to 2150 with the twelve days that follow it.
+fn year_span(year: i64, meridian: Meridian) -> (Moment, Moment) {
     (
-        Moment(new_year(year).0 as f64),
-        Moment(new_year(year + 1).0 as f64),
+        meridian.midnight(new_year(year)),
+        meridian.midnight(new_year(year + 1)),
     )
 }
 
@@ -346,7 +352,9 @@ pub const PUSHKARAMS_IN_YEAR_COLUMNS: usize = PUSHKARAM_BY_SKY_COLUMNS;
 
 /// The lines of `hc_pushkarams_in_year`: the twelve days of the *Ādi
 /// Pushkaram* of every river of every sidereal sign Jupiter enters in a
-/// Gregorian year, found rather than given, in the order of the entries.
+/// Gregorian year, the year of the entry's date at the meridian
+/// `meridian_name` names, found rather than given, in the order of the
+/// entries.
 /// No line in a year in which Jupiter enters no sign by the rule, which is
 /// a few years in twelve.
 ///
@@ -377,7 +385,7 @@ pub fn pushkarams_in_year_lines(
     if !(EARLIEST_YEAR..=LATEST_YEAR).contains(&year) {
         return Err(Refusal::OutOfRange);
     }
-    let (from, until) = year_span(year);
+    let (from, until) = year_span(year, meridian);
     let mut out = String::new();
     for entry in jupiter::entries_in(from, until, rule, ayanamsa) {
         pushkaram_entry_lines(&mut out, entry.to, entry, rule, place, meridian, locale);
@@ -911,6 +919,67 @@ mod tests {
             })
             .collect();
         assert!(moments[0] < moments[1]);
+    }
+
+    /// A year is the year of the entry's date at the meridian that cuts the
+    /// twelve days: Jupiter enters Dhanus at 19:45 UT on 31 December 2149,
+    /// which is 01:15 on 1 January 2150 in India, so the entry and its
+    /// twelve days, 1 to 12 January 2150, are those of 2150, and 2149 has
+    /// none; read at the Universal meridian the entry is 2149's.
+    #[test]
+    fn a_year_is_the_year_of_the_entry_at_the_meridian_of_the_days() {
+        let year_of = |year: i64, meridian: &str| {
+            pushkarams_in_year_lines(
+                year,
+                "lahiri",
+                "pushkaram-final-entry",
+                NEW_DELHI,
+                meridian,
+                "en",
+            )
+            .expect("lines")
+        };
+        let india_2149 = year_of(2149, "india");
+        let india_2150 = year_of(2150, "india");
+        let universal_2149 = year_of(2149, "universal");
+        assert!(india_2149.is_empty(), "{india_2149}");
+        assert!(!india_2150.is_empty());
+        assert!(!universal_2149.is_empty());
+        // The entry is the same instant, 31 December 2149 at 19:45 UT
+        // (column 13 of the line, in POSIX seconds).
+        let entry = |text: &str| -> i64 {
+            cells(text.lines().next().expect("a line"))[12]
+                .parse()
+                .expect("a number")
+        };
+        assert_eq!(entry(&india_2150), entry(&universal_2149));
+        let utc_day = entry(&india_2150) / 86_400 + 719_163;
+        assert_eq!(utc_day, to_fixed(2149, 12, 31).expect("a date").0);
+        // The by-sky lines for the sign agree with the year's.
+        let sign = blocks_of(&india_2150)[0].0.clone();
+        let by_sky = pushkaram_by_sky_lines(
+            &sign,
+            2150,
+            "lahiri",
+            "pushkaram-final-entry",
+            NEW_DELHI,
+            "india",
+            "en",
+        )
+        .expect("lines");
+        assert_eq!(by_sky, india_2150);
+        assert_eq!(
+            pushkaram_by_sky_lines(
+                &sign,
+                2149,
+                "lahiri",
+                "pushkaram-final-entry",
+                NEW_DELHI,
+                "india",
+                "en"
+            ),
+            Ok(String::new())
+        );
     }
 
     #[test]
