@@ -11,7 +11,8 @@ and the list is always named.
 ## There is no such thing as "the" birthstone for a month
 
 There is the American list adopted in Kansas City in August 1912 and revised in
-1952, 2002 and 2016. There is the British list the National Association of
+1952, 2002 and 2016, each carried as a list of its own (the lists of 1952 and
+2002 are derived from the changes the sources state, not read in full). There is the British list the National Association of
 Goldsmiths standardised in 1937, carried as the association printed it in 2007
 (`birthstones-uk-2007`). There is Japan's list of 1958, substantially
 revised on 20 December 2021 — ten stones added after sixty-three years, the most

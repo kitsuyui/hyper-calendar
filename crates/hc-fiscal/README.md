@@ -46,8 +46,8 @@ one piece of arithmetic then serves Bangkok, Tokyo and Tehran.
 | --- | --- |
 | `year_system` | the core type — a start in a named calendar, a labelling convention, a validity range. Given an `Rd` it yields the label and the position in the year; given a label it yields the span. |
 | `quarters` | quarters, halves and months *of the fiscal year*. Japan's Q1 is April–June; the United States federal Q1 is October–December. |
-| `countries` | 22 national tables, each with a source and a `sources_checked` date. Every other country is not yet carried: see "What it does not do". |
-| `academic` | 8 school and university years, each carrying how firmly it is fixed; every other country's is not yet carried. |
+| `countries` | 61 national tables, each with a source and a `sources_checked` date: 22 written out with their history and 39 (`countries::more`) read from one page or instrument each. Every other country is not yet carried: see "What it does not do". |
+| `academic` | 8 school and university years, each carrying how firmly it is fixed and the first year the sources reach; every other country's is not yet carried. |
 | `retail` | 4-4-5, 4-5-4, 5-4-4 and the 52/53-week year, as named conventions. |
 
 Fiscal months generalise rather than special-case: fiscal month *n* runs from
@@ -103,12 +103,26 @@ example shows why the distinction matters — a Saturday year end in November
   17 July 2025 and 2026. Other years go through `hc-calendars-indic`'s
   reckoning, which missed one of those 48 months by a day.
 
+## The years a table reaches
+
+A system carries the year it was *established* (`valid_from`), before which a
+source says it did not exist and the answer is `outside-validity`, and the
+first year the sources read *reach* (`read_from`): every year between the
+two, and every year in an `unread` stretch, is a gap and not an answer
+(`FiscalError::NotRead`, the line status `gap`; ADR 0013). Japan's April year
+was established in 1886 and the 財政法 of 1947 is read from 1947, with the
+会計法 of 1889 reading 1890 to 1920, so 1930 is a gap; the United States'
+calendar-year system before the Act of 1842 is read only for 1842, so 1800 is
+a gap, and the July and October years of 1800 are absent. A system whose
+establishment no source gives has no `valid_from`.
+
 ## What it does not do
 
-* **Not carried: every country but the 22.** `countries::ALL` holds 22
+* **Not carried: every country but the 61.** `countries::ALL` holds 61
   national tables, and the holiday tables of `hc-holiday` hold 195 countries.
-  The other countries' fiscal and tax years are not yet done, and no source
-  for any of them has been read. A country's entry is a statute or a
+  The other countries' fiscal and tax years are not yet done: the surveys
+  read no page that states a government year for them, or none whose label
+  convention is evidenced. A country's entry is a statute or a
   ministry's publication read for that country, so the table grows by one
   value per country, as `docs/policy.md` §2 asks, and the roadmap row is in
   [`docs/calendars.md`](../../docs/calendars.md) ("Fiscal, tax and academic
@@ -121,16 +135,20 @@ example shows why the distinction matters — a Saturday year end in November
   quarter — 1 July to 30 September 1976, after FY1976 ended and before FY1977
   began — belongs to no fiscal year, and `FiscalProfile::at` returns `None` for
   every day in it. Sweden's eighteen-month 1995/96 budget year is likewise
-  outside both Swedish budget-year systems, so 1996 has no answer. England's 1751 and 1752
-  are outside both English ones.
+  outside the Swedish budget-year systems, so 1996 has no answer, and so are
+  the half year of 1 January to 30 June 1843 in the United States, Japan's
+  nine months of 明治18年度 and Egypt's half year of 1980. England's 1751 and
+  1752 are outside both English ones.
 * **It refuses quarters it cannot define.** The Ethiopic year is twelve
   thirty-day months plus Pagumen. No source says which quarter Pagumen falls
   in, so every period method returns `PeriodsNotDefined` for an
   Ethiopic-anchored system. The span and the day numbering still work.
 * **It does not assert a national academic year where there is none.** Every
-  academic entry carries an `Authority`; only Japan, France and New Zealand
-  claim `is_national_rule()`. The United States, Germany, Australia, India and
-  the United Kingdom record the modal choice with a note saying so.
+  academic entry carries an `Authority`; only Japan and France claim
+  `is_national_rule()`. The United States, Germany, Australia, India and the
+  United Kingdom record the modal choice with a note saying so, and New
+  Zealand's is `Unread`: the statute said to fix it was not read, and the
+  one page read says its term dates are set by individual schools.
 * **It holds no company's fiscal year.** Walmart reports to a fixed 31 January
   and Apple to the last Saturday of September; a filer's own year is a
   `WeekYearSystem` the caller writes out.

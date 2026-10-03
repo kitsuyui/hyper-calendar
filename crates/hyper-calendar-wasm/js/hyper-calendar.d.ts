@@ -4010,7 +4010,7 @@ export interface FiscalSystem {
   name: string;
   /** the name in the local language; empty where English is the local one */
   localName: string | null;
-  /** `statute`, `regulation`, `convention`, `per-region` or `per-institution` */
+  /** `statute`, `regulation`, `convention`, `per-region`, `per-institution` or `unread` */
   authority: string;
   /** `1` where that is a national rule and not a usual choice */
   national: boolean;
@@ -4022,7 +4022,7 @@ export interface FiscalSystem {
   startDay: number;
   /** `start-year` or `end-year`: Japan's 2024年度 begins in 2024, the United States' FY 2024 began on 1 October 2023 */
   labelConvention: string;
-  /** the first year label the system was in force, a label of its own calendar; empty where open */
+  /** the year label the system was established in, a label of its own calendar, before which it is absent; empty where no source read gives it */
   validFrom: number | null;
   /** the last; empty where it still is */
   validUntil: number | null;
@@ -4034,6 +4034,10 @@ export interface FiscalSystem {
   sourcesChecked: string;
   /** the statute, ministry or publication the entry came from */
   sources: string;
+  /** the first year label the sources read reach; every label of the system before it is a gap */
+  readFrom: number;
+  /** spans of labels after it that no source reaches either, `first-last` separated by `;`; empty where there are none */
+  unread: Array<{ first: number; last: number }>;
 }
 
 /** One line of `hc_fiscal_year_on`. */
@@ -4046,7 +4050,7 @@ export interface FiscalYearOfDay {
   kind: string;
   /** the English name */
   name: string;
-  /** `in-force`, `outside-validity` or `outside-calendar-range` */
+  /** `in-force`, `outside-validity`, `gap` or `outside-calendar-range` */
   status: string;
   /** the year label of the year the day is in */
   label: number | null;
@@ -4086,7 +4090,7 @@ export interface FiscalYearSpan {
   kind: string;
   /** the English name */
   name: string;
-  /** `in-force`, `outside-validity` or `outside-calendar-range` */
+  /** `in-force`, `outside-validity`, `gap` or `outside-calendar-range` */
   status: string;
   /** the label given */
   label: number;
@@ -4186,7 +4190,7 @@ export interface NameDayList {
   source: string;
   /** when the file was retrieved; for a gap when the survey was made */
   retrieved: string;
-  /** for a gap `licensed-for-a-fee`, `licence-unknown`, `sources-disagree-with-no-authority`, `method-unpublished` or `saints-not-names` */
+  /** for a gap `licensed-for-a-fee`, `licence-unknown`, `rights-reserved`, `no-keeper-found`, `not-yet-read` or `saints-not-names` */
   reason: string | null;
   /** for a gap the reasoning in full */
   explanation: string | null;

@@ -38,7 +38,7 @@
 //! | [`list`] | the shape of a list, the leap-day rules, the licence, and the two functions that read a list |
 //! | [`latvia`] | the traditional and extended lists of the Valsts valodas centrs, two editions each |
 //! | [`load`] | a text format for lists a caller supplies, for the lists this crate may not ship |
-//! | [`gaps`] | the seventeen lists, for eighteen countries, the crate declines to ship, each with its reason |
+//! | [`gaps`] | seventeen gaps, covering eighteen countries, the crate carries no list for, and one for the years before Latvia's first edition, each with its reason |
 //!
 //! # Licensing shapes what is vendored
 //!
@@ -58,7 +58,7 @@
 //! - **Pick a list.** [`in_force`] returns every list in force, since a
 //!   country may keep more than one; there is no `current()` returning one.
 //! - **Invent an authority.** Where publishers disagree and no body
-//!   chooses, the country is a [`gaps::Gap`].
+//!   chooses, or no keeper was found, the country is a [`gaps::Gap`].
 //! - **Translate or transliterate.** Names are the list's own spelling in
 //!   the list's own script, and a lookup is exact. There is no `hc-i18n`
 //!   dependency.

@@ -3,7 +3,7 @@
 //!
 //! Everything here reads [`hc_attributes`], which **reports what traditions
 //! claim and asserts none of them**: there is no "the birthstone of March",
-//! there are six lists of them, each with an authority, a date, a region and
+//! there are eight lists of them, each with an authority, a date, a region and
 //! the years it was current. So there is no export that returns one answer.
 //! Every line names its list, and a question about a month asks every list
 //! at once, which is usually the honest answer: they disagree in eleven
@@ -449,9 +449,9 @@ mod tests {
             .collect();
         assert!(!contested.is_empty());
         assert!(contested.iter().all(|row| !row[14].is_empty()));
-        // The birthstones alone are the six lists.
+        // The birthstones alone are the eight lists.
         let stones = authorities_lines("BIRTHSTONE").unwrap_or_default();
-        assert_eq!(stones.lines().count(), 6);
+        assert_eq!(stones.lines().count(), 8);
         assert!(
             stones
                 .lines()
@@ -469,12 +469,12 @@ mod tests {
     }
 
     #[test]
-    fn six_lists_answer_for_a_month_and_say_they_disagree() {
+    fn eight_lists_answer_for_a_month_and_say_they_disagree() {
         // January is garnet in every list: the one month the lists agree on
         // (hc-attributes: five centuries and three countries).
         let january = attributions_lines("birthstone", 1).unwrap_or_default();
         let table = rows(&january);
-        assert_eq!(table.len(), 6);
+        assert_eq!(table.len(), 8);
         assert!(table.iter().all(|row| row.len() == ATTRIBUTION_COLUMNS));
         assert!(table.iter().all(|row| row[5] == "garnet" && row[12] == "1"));
         // December differs: the American 2016 list has turquoise, zircon and
@@ -489,6 +489,21 @@ mod tests {
             .unwrap_or_default();
         assert_eq!(us[5], "turquoise;zircon;tanzanite");
         assert_eq!(us[6], "3");
+        // The revisions between 1912 and 2016: zircon replaced lapis lazuli
+        // in 1952 and tanzanite joined in 2002.
+        let stones_of = |id: &str| {
+            table
+                .iter()
+                .find(|row| row[1] == id)
+                .map(|row| row[5].to_string())
+                .unwrap_or_default()
+        };
+        assert_eq!(stones_of("birthstones-us-1912"), "turquoise;lapis lazuli");
+        assert_eq!(stones_of("birthstones-us-1952"), "turquoise;zircon");
+        assert_eq!(
+            stones_of("birthstones-us-2002"),
+            "turquoise;zircon;tanzanite"
+        );
         let jp = table
             .iter()
             .find(|row| row[1] == "birthstones-jp-2021")

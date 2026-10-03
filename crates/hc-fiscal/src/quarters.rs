@@ -315,6 +315,8 @@ mod tests {
             label,
             valid_from: None,
             valid_until: None,
+            read_from: 1900,
+            unread: &[],
             note: "",
         }
     }
@@ -522,6 +524,7 @@ mod tests {
     fn a_period_outside_the_validity_range_is_refused() {
         let bounded = YearSystem {
             valid_from: Some(1977),
+            read_from: 1977,
             ..US
         };
         assert_eq!(

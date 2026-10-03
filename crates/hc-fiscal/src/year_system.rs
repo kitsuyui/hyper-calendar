@@ -471,6 +471,11 @@ pub enum Authority {
     /// Set by each school, university or company individually. The entry is
     /// the modal choice, nothing more.
     PerInstitution,
+    /// A page read states the year, and the instrument that fixes it was not
+    /// read: a ministry's page, a reference work, a tax summary. The entry
+    /// does not say whether a statute, a regulation or a habit fixes the
+    /// year, and never answers that it is a national rule.
+    Unread,
 }
 
 impl Authority {
@@ -484,13 +489,15 @@ impl Authority {
             Self::Convention => "convention",
             Self::PerRegion => "per-region",
             Self::PerInstitution => "per-institution",
+            Self::Unread => "unread",
         }
     }
 
     /// Whether this system can honestly be asserted as a national answer.
     ///
     /// False for [`Authority::PerRegion`] and [`Authority::PerInstitution`],
-    /// where the entry records what is usual rather than what is required.
+    /// where the entry records what is usual rather than what is required,
+    /// and for [`Authority::Unread`], where nothing read says what fixes it.
     #[must_use]
     pub const fn is_national_rule(self) -> bool {
         matches!(self, Self::Statute | Self::Regulation)
@@ -505,6 +512,7 @@ impl Authority {
             Self::Convention => "convention",
             Self::PerRegion => "set per region",
             Self::PerInstitution => "set per institution",
+            Self::Unread => "stated by a page read; the instrument was not read",
         }
     }
 }
@@ -557,8 +565,10 @@ pub struct YearSystem {
     pub start: YearStart,
     /// Which calendar year the year is named after.
     pub label: LabelConvention,
-    /// The first label this system covers, or `None` when it reaches back
-    /// indefinitely.
+    /// The label of the year the system was **established**, before which a
+    /// source says it did not exist, or `None` when no source read gives the
+    /// year it began. Before it the system is absent
+    /// ([`FiscalError::OutsideValidity`]): that is an answer.
     ///
     /// **These are year labels of this system, not Gregorian years.** For
     /// Iran that means Solar Hijri years; for Ethiopia, Ethiopic ones. It is
@@ -566,15 +576,34 @@ pub struct YearSystem {
     /// number a caller ever has in hand.
     pub valid_from: Option<i64>,
     /// The last label this system covers, or `None` when it is still in
-    /// force.
+    /// force. After it the system is absent.
     pub valid_until: Option<i64>,
+    /// The first label the sources read **support**: the first whole year of
+    /// the earliest instrument, edition or page the entry was read from.
+    ///
+    /// Every label from the system's establishment up to this one is a gap,
+    /// not an answer ([`FiscalError::NotRead`]): the system may have been in
+    /// force and nothing read says what its year was. It is never earlier
+    /// than `valid_from` (ADR 0013).
+    pub read_from: i64,
+    /// Spans of labels, each inclusive, after `read_from` that no source read
+    /// reaches either: a stretch between two instruments read, the middle
+    /// instrument not among them. Like the years before `read_from`, they are
+    /// a gap ([`FiscalError::NotRead`]), and none of them lies before
+    /// `valid_from`.
+    pub unread: &'static [(i64, i64)],
     /// What the entry deliberately does not claim, or the historical detail
     /// that explains it. Empty when there is nothing to add.
     pub note: &'static str,
 }
 
 impl YearSystem {
-    /// Whether this system covers the year labelled `label`.
+    /// Whether this system was in force in the year labelled `label`: the
+    /// label is neither before the system's establishment nor after its
+    /// last year.
+    ///
+    /// It says nothing of whether the sources read reach that year; for
+    /// that, [`YearSystem::reads`].
     #[must_use]
     pub const fn covers(&self, label: i64) -> bool {
         if let Some(first) = self.valid_from
@@ -586,6 +615,25 @@ impl YearSystem {
             && label > last
         {
             return false;
+        }
+        true
+    }
+
+    /// Whether this system was in force in the year labelled `label` **and**
+    /// the sources read reach it: [`YearSystem::covers`], not before
+    /// [`YearSystem::read_from`] and not in one of [`YearSystem::unread`].
+    #[must_use]
+    pub const fn reads(&self, label: i64) -> bool {
+        if !self.covers(label) || label < self.read_from {
+            return false;
+        }
+        let mut index = 0;
+        while index < self.unread.len() {
+            let (first, last) = self.unread[index];
+            if label >= first && label <= last {
+                return false;
+            }
+            index += 1;
         }
         true
     }
@@ -659,13 +707,24 @@ impl YearSystem {
     /// # Errors
     ///
     /// Returns [`FiscalError::OutsideValidity`] when `label` falls outside
-    /// the range this system was in force, and [`FiscalError::Calendar`]
-    /// when a boundary cannot be computed.
+    /// the range this system was in force, [`FiscalError::NotRead`] when
+    /// the system was in force but the sources read do not reach that year,
+    /// and [`FiscalError::Calendar`] when a boundary cannot be computed.
     pub fn span(&self, label: i64) -> FiscalResult<FiscalSpan> {
+        self.check_read(label)?;
+        self.projected_span(label)
+    }
+
+    /// Refuses a label the system was not in force in, or was in force in
+    /// and no source read reaches.
+    fn check_read(&self, label: i64) -> FiscalResult<()> {
         if !self.covers(label) {
             return Err(FiscalError::OutsideValidity);
         }
-        self.projected_span(label)
+        if !self.reads(label) {
+            return Err(FiscalError::NotRead);
+        }
+        Ok(())
     }
 
     /// The label of the year containing `rd`, ignoring the validity range.
@@ -690,16 +749,14 @@ impl YearSystem {
     /// # Errors
     ///
     /// Returns [`FiscalError::OutsideValidity`] when the answer falls
-    /// outside the range this system was in force, and
-    /// [`FiscalError::Calendar`] when `rd` is outside the start calendar's
-    /// range.
+    /// outside the range this system was in force,
+    /// [`FiscalError::NotRead`] when the system was in force but the
+    /// sources read do not reach that year, and [`FiscalError::Calendar`]
+    /// when `rd` is outside the start calendar's range.
     pub fn label_at(&self, rd: Rd) -> FiscalResult<i64> {
         let label = self.projected_label_at(rd)?;
-        if self.covers(label) {
-            Ok(label)
-        } else {
-            Err(FiscalError::OutsideValidity)
-        }
+        self.check_read(label)?;
+        Ok(label)
     }
 
     /// Where `rd` sits inside its fiscal year.
@@ -807,6 +864,8 @@ mod tests {
         label: LabelConvention::LabelledByStartYear,
         valid_from: None,
         valid_until: None,
+        read_from: 1900,
+        unread: &[],
         note: "",
     };
 
@@ -821,6 +880,8 @@ mod tests {
         label: LabelConvention::LabelledByEndYear,
         valid_from: Some(1977),
         valid_until: None,
+        read_from: 1977,
+        unread: &[],
         note: "",
     };
 
@@ -945,6 +1006,41 @@ mod tests {
     }
 
     #[test]
+    fn a_year_the_system_was_in_force_in_but_no_source_reaches_is_a_gap() {
+        // Established in 1900, read from 1950, ended after 1999: three
+        // different answers, and none of them a guess.
+        let system = YearSystem {
+            valid_from: Some(1900),
+            valid_until: Some(1999),
+            read_from: 1950,
+            unread: &[(1970, 1974)],
+            ..JAPAN
+        };
+        // Before the establishment the year is absent: an answer.
+        assert_eq!(system.span(1899), Err(FiscalError::OutsideValidity));
+        assert!(!system.covers(1899) && !system.reads(1899));
+        // From the establishment to the first year read it is a gap.
+        assert_eq!(system.span(1900), Err(FiscalError::NotRead));
+        assert_eq!(system.span(1949), Err(FiscalError::NotRead));
+        assert!(system.covers(1949) && !system.reads(1949));
+        assert_eq!(system.label_at(greg(1949, 6, 1)), Err(FiscalError::NotRead));
+        assert_eq!(system.locate(greg(1949, 6, 1)), Err(FiscalError::NotRead));
+        // From the first year read it is answered, up to the last year.
+        assert!(system.reads(1950) && system.span(1950).is_ok());
+        assert_eq!(system.label_at(greg(1960, 6, 1)), Ok(1960));
+        // A stretch between two instruments read is a gap in the middle.
+        assert_eq!(system.span(1969).map(|span| span.label), Ok(1969));
+        assert_eq!(system.span(1970), Err(FiscalError::NotRead));
+        assert_eq!(system.span(1974), Err(FiscalError::NotRead));
+        assert!(!system.reads(1972) && system.reads(1975));
+        assert!(system.span(1999).is_ok());
+        // After the last year the system is absent again.
+        assert_eq!(system.span(2000), Err(FiscalError::OutsideValidity));
+        // The rule can still be projected through a gap when asked for.
+        assert!(system.projected_span(1949).is_ok());
+    }
+
+    #[test]
     fn a_date_before_the_system_existed_has_no_label() {
         assert_eq!(
             US.label_at(greg(1960, 3, 1)),
@@ -986,6 +1082,8 @@ mod tests {
             label: LabelConvention::LabelledByStartYear,
             valid_from: None,
             valid_until: None,
+            read_from: 1900,
+            unread: &[],
             note: "",
         };
         assert!(germany.is_calendar_year());
@@ -1059,6 +1157,8 @@ mod tests {
             label: LabelConvention::LabelledByStartYear,
             valid_from: None,
             valid_until: None,
+            read_from: 1900,
+            unread: &[],
             note: "",
         };
         assert_eq!(
@@ -1098,6 +1198,8 @@ mod tests {
         assert!(!Authority::Convention.is_national_rule());
         assert!(!Authority::PerRegion.is_national_rule());
         assert!(!Authority::PerInstitution.is_national_rule());
+        assert!(!Authority::Unread.is_national_rule());
+        assert_eq!(Authority::Unread.id(), "unread");
     }
 
     #[test]

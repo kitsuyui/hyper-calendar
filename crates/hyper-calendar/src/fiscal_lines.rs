@@ -14,7 +14,10 @@
 //! A year is never answered for a label outside the span a system was in
 //! force: such a system's line says `outside-validity` and carries no
 //! label, and a day the start's calendar does not reach says
-//! `outside-calendar-range`. The lines say what the tables say, with the
+//! `outside-calendar-range`. A year the system was in force in but the
+//! sources read do not reach is a `gap`: the system's line says so, and the
+//! first year the sources do reach is the `read_from` cell of
+//! [`profiles_lines`] (ADR 0013). The lines say what the tables say, with the
 //! authority, the check date and the source; they assert none of them.
 
 use alloc::string::String;
@@ -29,7 +32,7 @@ use hc_fiscal::{FiscalError, SourceDate, SystemKind, YearSystem};
 use crate::boundary::{Answer, Line, Refusal};
 
 /// How many columns a line of [`profiles_lines`] has.
-pub const PROFILE_COLUMNS: usize = 18;
+pub const PROFILE_COLUMNS: usize = 20;
 
 /// How many columns a line of [`year_on_lines`] has.
 pub const YEAR_ON_COLUMNS: usize = 18;
@@ -120,6 +123,18 @@ fn entries() -> alloc::vec::Vec<Entry> {
     out
 }
 
+/// The spans of labels no source reaches, as `first-last;first-last`.
+fn unread_text(system: &YearSystem) -> String {
+    let mut out = String::new();
+    for &(first, last) in system.unread {
+        if !out.is_empty() {
+            out.push(';');
+        }
+        out.push_str(&alloc::format!("{first}-{last}"));
+    }
+    out
+}
+
 /// A check date as `YYYY-MM-DD`.
 fn date_text(date: SourceDate) -> String {
     alloc::format!("{:04}-{:02}-{:02}", date.year, date.month, date.day)
@@ -167,14 +182,20 @@ fn selected(country: &str, kind: &str) -> Answer<alloc::vec::Vec<Entry>> {
 /// `personal-tax`, `corporate-default` or `academic`), the English name, the
 /// name in the local language (empty where English is the local one), the
 /// authority that fixes it (`statute`, `regulation`, `convention`,
-/// `per-region` or `per-institution`), `1` where that is a national rule and
+/// `per-region`, `per-institution` or `unread`, which is a page read that
+/// states the year and an instrument that was not), `1` where that is a national
+/// rule and
 /// not a usual choice, the calendar the start is dated in (`gregory`,
 /// `persian`, `ethiopic`, `buddhist` or `indian`), the start's month and day
 /// in it, how the year is named (`start-year` or `end-year`), the first and
 /// last year label the system was in force (empty where it is open), `1`
 /// where the start calendar is an approximation of the astronomical rule, what
 /// the entry deliberately does not claim, the date the sources were last
-/// checked, and the sources.
+/// checked, the sources, the first year label the sources read reach, and the
+/// spans of year labels after it that no source reaches either, as
+/// `first-last` separated by `;` (empty where there are none). A year label of
+/// the system between its first year and the first year read, or in one of
+/// those spans, is a gap, not an answer.
 ///
 /// A validity bound is a label of the system's own calendar: Iran's are
 /// Solar Hijri years and Nepal's Bikram Sambat. Nepal is in a build whose
@@ -204,7 +225,9 @@ pub fn profiles_lines() -> String {
             .flag(system.start.calendar.is_approximate())
             .cell(system.note)
             .value(date_text(entry.checked))
-            .cell(entry.sources);
+            .cell(entry.sources)
+            .value(system.read_from)
+            .cell(&unread_text(system));
         line.end();
     }
     out
@@ -222,9 +245,10 @@ pub fn profiles_lines() -> String {
 ///
 /// The status is `in-force`, or `outside-validity` where the system was not
 /// in force in the year the day falls in (the United States' October year
-/// had not begun in 1970) or `outside-calendar-range` where the start's
-/// calendar does not reach the day; the cells after the status are then
-/// empty. `kind` is empty for every kind the country has, or one of
+/// had not begun in 1970), or `gap` where it was in force but the sources
+/// read do not reach that year, or `outside-calendar-range` where the
+/// start's calendar does not reach the day; the cells after the status are
+/// then empty. `kind` is empty for every kind the country has, or one of
 /// [`SystemKind::id`]'s.
 ///
 /// # Errors
@@ -269,6 +293,7 @@ pub fn year_on_lines(country: &str, kind: &str, fixed: i64) -> Answer<String> {
             Err(error) => {
                 let status = match error {
                     FiscalError::OutsideValidity => "outside-validity",
+                    FiscalError::NotRead => "gap",
                     FiscalError::Calendar(_) => "outside-calendar-range",
                     other => return Err(refusal(other)),
                 };
@@ -290,7 +315,8 @@ pub fn year_on_lines(country: &str, kind: &str, fixed: i64) -> Answer<String> {
 /// fixed day of the year, and how many days it has.
 ///
 /// The status is `in-force`, `outside-validity` where the system was not in
-/// force in that year (and the cells after it are empty) or
+/// force in that year, `gap` where it was in force but the sources read do
+/// not reach that year (the cells after the label are empty in both) or
 /// `outside-calendar-range` where the start's calendar does not reach it. The
 /// label is the system's own: a label of Iran's is a Solar Hijri year, a
 /// label of Japan's 年度 the Gregorian year it begins in, and a label of
@@ -322,6 +348,7 @@ pub fn year_span_lines(country: &str, kind: &str, label: i64) -> Answer<String> 
             Err(error) => {
                 let status = match error {
                     FiscalError::OutsideValidity => "outside-validity",
+                    FiscalError::NotRead => "gap",
                     FiscalError::Calendar(_) => "outside-calendar-range",
                     other => return Err(refusal(other)),
                 };
@@ -468,7 +495,7 @@ mod tests {
         // calendar and is named for the year it starts in; the 財政法 第十一条.
         let government = japan
             .iter()
-            .find(|row| row[3] == "government")
+            .find(|row| row[4] == "Japanese national fiscal year")
             .copied()
             .cloned()
             .unwrap_or_default();
@@ -477,6 +504,23 @@ mod tests {
         assert_eq!(government[7], "1");
         assert_eq!(&government[8..12], ["gregory", "4", "1", "start-year"]);
         assert!(government[17].contains("財政法"), "{}", government[17]);
+        // The April year was established in 1886 and read from then; 1921 to
+        // 1946 are a stretch no source read reaches.
+        assert_eq!(&government[12..14], ["1886", ""]);
+        assert_eq!(&government[18..], ["1886", "1921-1946"]);
+        // The July year before it, and the nine months of 明治18年度 between.
+        let july = japan
+            .iter()
+            .find(|row| row[4] == "Japanese national fiscal year, July basis")
+            .copied()
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(
+            &july[8..14],
+            ["gregory", "7", "1", "start-year", "1875", "1884"]
+        );
+        assert_eq!(july[6], "unread");
+        assert_eq!(july[7], "0");
         // The United States' federal year is named for the year it ends in.
         let us = table
             .iter()
@@ -492,7 +536,12 @@ mod tests {
         // 1 November 2023: Tokyo is in 2023年度 and Washington in FY 2024.
         let day = fixed(2023, 11, 1);
         let text = year_on_lines("JP", "government", day).unwrap_or_default();
-        let japan = rows(&text);
+        let all = rows(&text);
+        // The July year of 1875 to 1884 is a system of its own, and is not
+        // in force in 2023.
+        assert_eq!(all.len(), 2);
+        assert_eq!(all[0][4], "outside-validity");
+        let japan: alloc::vec::Vec<_> = all.into_iter().skip(1).collect();
         assert_eq!(japan.len(), 1);
         assert_eq!(japan[0].len(), YEAR_ON_COLUMNS);
         assert_eq!(
@@ -563,12 +612,82 @@ mod tests {
     }
 
     #[test]
+    fn a_year_no_source_reaches_is_a_gap_and_not_an_answer() {
+        // The United States' federal year was the calendar year until the Act
+        // of 1842, which the Treasury's letter of 15 December 1842 dates: the
+        // first July year is FY 1844. A day of 1800 is in no July or October
+        // year, and the calendar-year system, read from 1842, is a gap.
+        let text = year_on_lines("US", "government", fixed(1800, 6, 1)).expect("lines");
+        let table = rows(&text);
+        let status = |name: &str| {
+            table
+                .iter()
+                .find(|row| row[3] == name)
+                .map(|row| row[4])
+                .unwrap_or_default()
+        };
+        assert_eq!(
+            status("United States federal fiscal year"),
+            "outside-validity"
+        );
+        assert_eq!(
+            status("United States federal fiscal year, July basis"),
+            "outside-validity"
+        );
+        assert_eq!(
+            status("United States federal fiscal year, calendar-year basis"),
+            "gap"
+        );
+        let gap = table
+            .iter()
+            .find(|row| row[4] == "gap")
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(gap.len(), YEAR_ON_COLUMNS);
+        assert!(gap[5..14].iter().all(|cell| cell.is_empty()), "{gap:?}");
+        // Japan's April year, 1921 to 1946, was not read: a gap.
+        let text = year_on_lines("JP", "government", fixed(1930, 6, 1)).expect("lines");
+        let japan = rows(&text);
+        let april = japan
+            .iter()
+            .find(|row| row[3] == "Japanese national fiscal year")
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(april[4], "gap");
+        // Iran's year is read from 1350, and 1975 is 1354.
+        let text = year_on_lines("IR", "government", fixed(1975, 6, 1)).expect("lines");
+        let iran = rows(&text);
+        assert_eq!((iran[0][4], iran[0][5]), ("in-force", "1354"));
+        // The same through a label.
+        let text = year_span_lines("US", "government", 1800).expect("lines");
+        let by_label = rows(&text);
+        assert!(
+            by_label
+                .iter()
+                .any(|row| row[4] == "gap" && row[5] == "1800" && row[6].is_empty()),
+            "{by_label:?}"
+        );
+        let text = year_span_lines("US", "government", 1844).expect("lines");
+        let by_label = rows(&text);
+        let july = by_label
+            .iter()
+            .find(|row| row[4] == "in-force")
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(july[6], fixed(1843, 7, 1).to_string());
+        assert_eq!(july[7], fixed(1844, 6, 30).to_string());
+    }
+
+    #[test]
     fn a_label_has_its_span_in_the_systems_own_calendar() {
         // Japan's 2024年度 runs 1 April 2024 to 31 March 2025.
         let text = year_span_lines("JP", "government", 2024).unwrap_or_default();
-        let japan = rows(&text);
+        let japan: alloc::vec::Vec<_> = rows(&text)
+            .into_iter()
+            .filter(|row| row[4] == "in-force")
+            .collect();
+        assert_eq!(japan.len(), 1);
         assert_eq!(japan[0].len(), YEAR_SPAN_COLUMNS);
-        assert_eq!(japan[0][4], "in-force");
         assert_eq!(japan[0][6], fixed(2024, 4, 1).to_string());
         assert_eq!(japan[0][7], fixed(2025, 3, 31).to_string());
         assert_eq!(japan[0][8], "365");

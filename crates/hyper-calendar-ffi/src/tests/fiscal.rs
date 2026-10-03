@@ -12,11 +12,11 @@ fn hc_fiscal_profiles_crosses_the_boundary() {
     });
     assert!(!text.is_empty());
     assert!(
-        text.lines().all(|line| line.split('\t').count() == 18),
+        text.lines().all(|line| line.split('\t').count() == 20),
         "{text}"
     );
     let first = row(text.lines().next().unwrap_or_default());
-    assert_eq!(first[0], "AU");
+    assert_eq!(first[0], "AO");
 }
 
 #[test]
@@ -36,7 +36,15 @@ fn hc_fiscal_year_on_crosses_the_boundary() {
         text.lines().all(|line| line.split('\t').count() == 18),
         "{text}"
     );
-    let first = row(text.lines().next().unwrap_or_default());
+    // The July year of 1875 to 1884 is a system of its own and is not in
+    // force in 2024; the April year is.
+    let all: Vec<Vec<String>> = text.lines().map(row).collect();
+    assert_eq!(all[0][4], "outside-validity");
+    let first = all
+        .iter()
+        .find(|line| line[4] == "in-force")
+        .cloned()
+        .unwrap_or_default();
     assert_eq!(first[0], "JP");
     assert_eq!(first[2], "government");
     assert_eq!(first[4], "in-force");
@@ -85,7 +93,12 @@ fn hc_fiscal_year_span_crosses_the_boundary() {
         text.lines().all(|line| line.split('\t').count() == 9),
         "{text}"
     );
-    let first = row(text.lines().next().unwrap_or_default());
+    let all: Vec<Vec<String>> = text.lines().map(row).collect();
+    let first = all
+        .iter()
+        .find(|line| line[4] == "in-force")
+        .cloned()
+        .unwrap_or_default();
     assert_eq!(first[0], "JP");
     assert_eq!(first[4], "in-force");
     assert_eq!(first[5], "2024");

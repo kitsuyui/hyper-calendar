@@ -8334,7 +8334,12 @@ macro_rules! exports {
             /// NUL-terminated UTF-8 lines in a caller-owned buffer.
             ///
             /// A validity bound is a label of the system's own calendar: Iran's are Solar Hijri
-            /// years and Nepal's Bikram Sambat. Nepal is in a build that has the `calendars` layer
+            /// years and Nepal's Bikram Sambat. `valid from` is the year the system was
+            /// established, before which it is absent; `read from` is the first year the sources
+            /// read reach, and every label of the system between the two, or inside one of the
+            /// `unread` spans (`first-last`, separated by `;`), is a gap and not an answer. The
+            /// authority `unread` is a page read that states the year with the instrument that
+            /// fixes it not read. Nepal is in a build that has the `calendars` layer
             /// too, since its year starts on 1 Shrawan of the Bikram Sambat; in a build without it
             /// the country is absent, which `hc_fiscal_year_on` reports as `HC_ERROR_UNKNOWN`. No
             /// label convention is a default: the year is named for the year it starts in, or for
@@ -8342,7 +8347,8 @@ macro_rules! exports {
             ///
             /// One line each, the cells tab-separated: country, country name, table, kind, name,
             /// local name, authority, national, start calendar, start month, start day, label
-            /// convention, valid from, valid until, approximate, note, sources checked, sources.
+            /// convention, valid from, valid until, approximate, note, sources checked, sources, read
+            /// from, unread.
             ///
             /// Writes the required length, including the terminator, into `written`.
         }
@@ -8351,7 +8357,12 @@ macro_rules! exports {
             /// UTF-8 lines, returning the byte length written.
             ///
             /// A validity bound is a label of the system's own calendar: Iran's are Solar Hijri
-            /// years and Nepal's Bikram Sambat. Nepal is in a build that has the `calendars` layer
+            /// years and Nepal's Bikram Sambat. `valid from` is the year the system was
+            /// established, before which it is absent; `read from` is the first year the sources
+            /// read reach, and every label of the system between the two, or inside one of the
+            /// `unread` spans (`first-last`, separated by `;`), is a gap and not an answer. The
+            /// authority `unread` is a page read that states the year with the instrument that
+            /// fixes it not read. Nepal is in a build that has the `calendars` layer
             /// too, since its year starts on 1 Shrawan of the Bikram Sambat; in a build without it
             /// the country is absent, which `hc_fiscal_year_on` reports as `HC_ERR_UNKNOWN`. No
             /// label convention is a default: the year is named for the year it starts in, or for
@@ -8359,7 +8370,8 @@ macro_rules! exports {
             ///
             /// One line each, the cells tab-separated: country, country name, table, kind, name,
             /// local name, authority, national, start calendar, start month, start day, label
-            /// convention, valid from, valid until, approximate, note, sources checked, sources.
+            /// convention, valid from, valid until, approximate, note, sources checked, sources, read
+            /// from, unread.
             ///
             /// A null `buffer` returns the length the text needs.
         }
@@ -8372,8 +8384,10 @@ macro_rules! exports {
             ///
             /// One line each. The status is `in-force`, or `outside-validity` where the system was
             /// not in force in the year the day falls in (the United States' October year had not
-            /// begun in 1970), or `outside-calendar-range` where the start's calendar does not
-            /// reach the day; the cells after the status are then empty. A country the tables do
+            /// begun in 1970), or `gap` where it was in force and the sources read do not reach
+            /// that year (the `read from` and `unread` cells of `hc_fiscal_profiles`), or
+            /// `outside-calendar-range` where the start's calendar does not reach the day; the
+            /// cells after the status are then empty. A country the tables do
             /// not carry, or a kind that is not one of the four, is `HC_ERROR_UNKNOWN`; a country
             /// that has no system of the kind asked is `HC_ERROR_NO_DATA`; a fixed day beyond the
             /// Gregorian years ±9 999 999 is `HC_ERROR_OUT_OF_RANGE`.
@@ -8394,8 +8408,10 @@ macro_rules! exports {
             ///
             /// One line each. The status is `in-force`, or `outside-validity` where the system was
             /// not in force in the year the day falls in (the United States' October year had not
-            /// begun in 1970), or `outside-calendar-range` where the start's calendar does not
-            /// reach the day; the cells after the status are then empty. A country the tables do
+            /// begun in 1970), or `gap` where it was in force and the sources read do not reach
+            /// that year (the `read from` and `unread` cells of `hc_fiscal_profiles`), or
+            /// `outside-calendar-range` where the start's calendar does not reach the day; the
+            /// cells after the status are then empty. A country the tables do
             /// not carry, or a kind that is not one of the four, is `HC_ERR_UNKNOWN`; a country
             /// that has no system of the kind asked is `HC_ERR_NO_DATA`; a fixed day beyond the
             /// Gregorian years ±9 999 999 is `HC_ERR_OUT_OF_RANGE`.
@@ -8423,9 +8439,10 @@ macro_rules! exports {
             /// One line each. The label is the system's own: a label of Iran's is a Solar Hijri
             /// year, a label of Japan's 年度 the Gregorian year it begins in, and a label of the
             /// United States' fiscal year the one it ends in. The status is `in-force`,
-            /// `outside-validity` where the system was not in force in that year (the cells after
-            /// the label are then empty) or `outside-calendar-range` where the start's calendar
-            /// does not reach it. A country the tables do not carry, or a kind that is not one of
+            /// `outside-validity` where the system was not in force in that year, `gap` where it
+            /// was and the sources read do not reach that year (the cells after the label are
+            /// empty in both) or `outside-calendar-range` where the start's calendar does not
+            /// reach it. A country the tables do not carry, or a kind that is not one of
             /// the four, is `HC_ERROR_UNKNOWN`; a country with no system of the kind asked is
             /// `HC_ERROR_NO_DATA`.
             ///
@@ -8446,9 +8463,10 @@ macro_rules! exports {
             /// One line each. The label is the system's own: a label of Iran's is a Solar Hijri
             /// year, a label of Japan's 年度 the Gregorian year it begins in, and a label of the
             /// United States' fiscal year the one it ends in. The status is `in-force`,
-            /// `outside-validity` where the system was not in force in that year (the cells after
-            /// the label are then empty) or `outside-calendar-range` where the start's calendar
-            /// does not reach it. A country the tables do not carry, or a kind that is not one of
+            /// `outside-validity` where the system was not in force in that year, `gap` where it
+            /// was and the sources read do not reach that year (the cells after the label are
+            /// empty in both) or `outside-calendar-range` where the start's calendar does not
+            /// reach it. A country the tables do not carry, or a kind that is not one of
             /// the four, is `HC_ERR_UNKNOWN`; a country with no system of the kind asked is
             /// `HC_ERR_NO_DATA`.
             ///
@@ -8671,7 +8689,7 @@ macro_rules! exports {
             /// Every attribution list the crate ships, with what it declines to ship, as
             /// NUL-terminated UTF-8 lines in a caller-owned buffer.
             ///
-            /// There is no "the birthstone of March": there are six lists, each with an authority,
+            /// There is no "the birthstone of March": there are eight lists, each with an authority,
             /// a date, a region and the years it was current, and they disagree in eleven months
             /// out of twelve. A gap is a subject the crate declined to ship, such as Japan's
             /// day-by-day 誕生花 or Robert Graves's "Celtic tree calendar"; its columns about a list
@@ -8691,7 +8709,7 @@ macro_rules! exports {
             /// Every attribution list the crate ships, with what it declines to ship, as UTF-8
             /// lines, returning the byte length written.
             ///
-            /// There is no "the birthstone of March": there are six lists, each with an authority,
+            /// There is no "the birthstone of March": there are eight lists, each with an authority,
             /// a date, a region and the years it was current, and they disagree in eleven months
             /// out of twelve. A gap is a subject the crate declined to ship, such as Japan's
             /// day-by-day 誕生花 or Robert Graves's "Celtic tree calendar"; its columns about a list

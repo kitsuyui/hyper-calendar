@@ -24,6 +24,15 @@ pub enum FiscalError {
     /// the October system for FY1970 is a question about a system that did
     /// not exist yet, and the July system is the one that answers it.
     OutsideValidity,
+    /// The system was in force in the year labelled, but the sources read
+    /// do not reach it: the year is a gap, not an answer (ADR 0013).
+    ///
+    /// The United States' calendar-year federal year was in force in 1800,
+    /// and no page read reaches that year: that is not an absence of the
+    /// year, only that nothing read says what it was. A system is absent
+    /// ([`FiscalError::OutsideValidity`]) only where a source says it did not
+    /// exist.
+    NotRead,
     /// The system's start calendar does not divide a year into twelve months
     /// of equal standing, so fiscal months, quarters and halves are not
     /// defined for it.
@@ -45,6 +54,9 @@ impl fmt::Display for FiscalError {
             Self::OutsideValidity => {
                 f.write_str("year label outside the range this system was in force")
             }
+            Self::NotRead => f.write_str(
+                "the system was in force in that year but the sources read do not reach it",
+            ),
             Self::PeriodsNotDefined => {
                 f.write_str("this start calendar has no twelve equal months, so fiscal months, quarters and halves are undefined")
             }
@@ -90,6 +102,7 @@ mod tests {
         let messages: BTreeSet<_> = [
             FiscalError::Calendar(CalendarError::BeforeEpoch),
             FiscalError::OutsideValidity,
+            FiscalError::NotRead,
             FiscalError::PeriodsNotDefined,
             FiscalError::NoSystemInForce,
             FiscalError::Overflow,
@@ -97,6 +110,6 @@ mod tests {
         .iter()
         .map(ToString::to_string)
         .collect();
-        assert_eq!(messages.len(), 5);
+        assert_eq!(messages.len(), 6);
     }
 }

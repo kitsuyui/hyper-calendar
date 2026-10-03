@@ -766,7 +766,7 @@ export const COLUMNS = Object.freeze({
   rates: Object.freeze(["id", "kind", "hertz numerator", "hertz denominator"]),
   framePeriod: Object.freeze(["rate", "kind", "hertz numerator", "hertz denominator", "period numerator", "period denominator", "count numerator", "count denominator", "unit", "whole", "whole flicks"]),
   tempo: Object.freeze(["bpm numerator", "bpm denominator", "beat numerator", "beat denominator", "note fraction numerator", "note fraction denominator", "note numerator", "note denominator", "midi microseconds", "midi exact"]),
-  fiscalProfiles: Object.freeze(["country", "country name", "table", "kind", "name", "local name", "authority", "national", "start calendar", "start month", "start day", "label convention", "valid from", "valid until", "approximate", "note", "sources checked", "sources"]),
+  fiscalProfiles: Object.freeze(["country", "country name", "table", "kind", "name", "local name", "authority", "national", "start calendar", "start month", "start day", "label convention", "valid from", "valid until", "approximate", "note", "sources checked", "sources", "read from", "unread"]),
   fiscalYearOn: Object.freeze(["country", "table", "kind", "name", "status", "label", "first", "last", "day of year", "days in year", "weekday", "month", "quarter", "half", "start calendar", "label convention", "approximate", "sources checked"]),
   fiscalYearSpan: Object.freeze(["country", "table", "kind", "name", "status", "label", "first", "last", "days"]),
   weekYearSystems: Object.freeze(["id", "name", "weekday", "month", "anchor rule", "label convention", "shape", "note", "source", "sources checked"]),
@@ -1284,7 +1284,7 @@ function tempo(cells) {
  * @returns {import("./hyper-calendar.d.ts").FiscalSystem}
  */
 function fiscalProfiles(cells) {
-  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17] = cells;
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19] = cells;
   return {
     country: c0,
     countryName: c1,
@@ -1304,7 +1304,23 @@ function fiscalProfiles(cells) {
     note: c15,
     sourcesChecked: c16,
     sources: c17,
+    readFrom: integer(c18, "read from"),
+    unread: unreadSpans(c19),
   };
+}
+
+/**
+ * The `first-last` spans of the `unread` cell of `hc_fiscal_profiles`.
+ *
+ * @param {string} cell
+ * @returns {Array<{first: number, last: number}>}
+ */
+function unreadSpans(cell) {
+  if (cell === "") return [];
+  return cell.split(";").map((span) => {
+    const [first, last] = span.split("-");
+    return { first: integer(first, "unread"), last: integer(last, "unread") };
+  });
 }
 
 /**
@@ -10118,7 +10134,11 @@ export class HyperCalendar {
   /**
    * Every fiscal, tax and academic year system the crate carries, country by country:
    * `hc_fiscal_profiles`. A validity bound is a label of the system's own calendar: Iran's are
-   * Solar Hijri years and Nepal's Bikram Sambat. Nepal is in a build that has the `calendars`
+   * Solar Hijri years and Nepal's Bikram Sambat. `valid from` is the year the system was
+   * established, before which it is absent; `read from` is the first year the sources read
+   * reach, and every label of the system between the two, or inside one of the `unread` spans,
+   * is a gap and not an answer. The authority `unread` is a page read that states the year with
+   * the instrument that fixes it not read. Nepal is in a build that has the `calendars`
    * layer too, since its year starts on 1 Shrawan of the Bikram Sambat; in a build without it
    * the country is absent, which `hc_fiscal_year_on` reports as `unknown`. No label convention
    * is a default: the year is named for the year it starts in, or for the one it ends in, and
@@ -10135,9 +10155,10 @@ export class HyperCalendar {
   /**
    * What the year systems of a country say a fixed day is: `hc_fiscal_year_on`. One line each.
    * The status is `in-force`, or `outside-validity` where the system was not in force in the
-   * year the day falls in (the United States' October year had not begun in 1970), or
-   * `outside-calendar-range` where the start's calendar does not reach the day; the cells
-   * after the status are then empty. A country the tables do not carry, or a kind that is not
+   * year the day falls in (the United States' October year had not begun in 1970), or `gap`
+   * where it was in force and the sources read do not reach that year (the `read from` and
+   * `unread` cells of `hc_fiscal_profiles`), or `outside-calendar-range` where the start's
+   * calendar does not reach the day; the cells after the status are then empty. A country the tables do not carry, or a kind that is not
    * one of the four, is `unknown`; a country that has no system of the kind asked is `no-
    * data`; a fixed day beyond the Gregorian years ±9 999 999 is `out-of-range`.
    *
@@ -10160,8 +10181,9 @@ export class HyperCalendar {
    * `hc_fiscal_year_span`. One line each. The label is the system's own: a label of Iran's is
    * a Solar Hijri year, a label of Japan's 年度 the Gregorian year it begins in, and a label of
    * the United States' fiscal year the one it ends in. The status is `in-force`, `outside-
-   * validity` where the system was not in force in that year (the cells after the label are
-   * then empty) or `outside-calendar-range` where the start's calendar does not reach it. A
+   * validity` where the system was not in force in that year, `gap` where it was and the
+   * sources read do not reach that year (the cells after the label are empty in both) or
+   * `outside-calendar-range` where the start's calendar does not reach it. A
    * country the tables do not carry, or a kind that is not one of the four, is `unknown`; a
    * country with no system of the kind asked is `no-data`.
    *
@@ -10274,7 +10296,7 @@ export class HyperCalendar {
 
   /**
    * Every attribution list the crate ships, with what it declines to ship:
-   * `hc_attribution_authorities`. There is no "the birthstone of March": there are six lists,
+   * `hc_attribution_authorities`. There is no "the birthstone of March": there are eight lists,
    * each with an authority, a date, a region and the years it was current, and they disagree
    * in eleven months out of twelve. A gap is a subject the crate declined to ship, such as
    * Japan's day-by-day 誕生花 or Robert Graves's "Celtic tree calendar"; its columns about a list

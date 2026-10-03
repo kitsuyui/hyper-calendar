@@ -1,14 +1,15 @@
-//! Birthstones by month — six lists, six authorities, no default.
+//! Birthstones by month — eight lists, eight authorities, no default.
 //!
 //! **There is no such thing as "the" birthstone for a month.** There is the
-//! American list, which has been revised three times since 1912; the British
+//! American list, which has been revised three times since 1912 and is carried
+//! as each of its four forms; the British
 //! list the National Association of Goldsmiths standardised in 1937, carried
 //! as the association printed it in 2007; Japan's list of 1958, substantially revised in 2021; and
 //! the older Western stones that all three replaced. They disagree, the
 //! disagreements are recent and documented, and this module's job is to make
 //! them visible rather than to pick a winner.
 //!
-//! So there is no `birthstone(month)` function here. There are six tables,
+//! So there is no `birthstone(month)` function here. There are eight tables,
 //! each naming its authority, and [`all_for_month`] which asks them all at
 //! once. `docs/policy.md` §5 is the reason: competing conventions get names,
 //! not parameters, because a parameter can be forgotten and a default is a
@@ -25,13 +26,15 @@
 //! # Ok::<(), hc_calendar::CalendarError>(())
 //! ```
 //!
-//! # What the six lists are
+//! # What the eight lists are
 //!
 //! | Table | Authority | Date |
 //! |---|---|---|
 //! | [`BIRTHSTONES_TRADITIONAL`] | none; Kunz's reconstruction of 15th–20th century usage | 1913 (recorded) |
 //! | [`BIRTHSTONES_US_1912`] | National Association of Jewelers | August 1912 |
-//! | [`BIRTHSTONES_US_2016`] | Jewelers of America / AGTA, as the GIA prints it | 1912, rev. 1952, 2002, 2016 |
+//! | [`BIRTHSTONES_US_1952`] | Jewelry Industry Council of America (Jewelers of America, per one source) | 1952, from the stated changes |
+//! | [`BIRTHSTONES_US_2002`] | American Gem Trade Association (Jewelers of America, per one source) | 2002, from the stated change |
+//! | [`BIRTHSTONES_US_2016`] | Jewelers of America and the American Gem Trade Association | 2016 |
 //! | [`BIRTHSTONES_UK`] | National Association of Goldsmiths, as its web page printed the list | 1937, as printed in 2007 |
 //! | [`BIRTHSTONES_JP_1958`] | 全国宝石商協同組合 | 1958 |
 //! | [`BIRTHSTONES_JP_2021`] | 全国宝石卸商協同組合, with JJA and YJA | 1958, rev. 20 December 2021 |
@@ -102,8 +105,8 @@ pub static BIRTHSTONES_TRADITIONAL: MonthTable = MonthTable::new(
 ///
 /// The National Association of Jewelers — now Jewelers of America — met in
 /// Kansas City and adopted a standard list, printed in Kunz (1913),
-/// pp. 319–320. Three later revisions changed it; [`BIRTHSTONES_US_2016`] is
-/// where it ended up.
+/// pp. 319–320. Three later revisions changed it: [`BIRTHSTONES_US_1952`],
+/// [`BIRTHSTONES_US_2002`] and [`BIRTHSTONES_US_2016`] is where it ended up.
 ///
 /// Three differences from the modern American list are worth keeping: March
 /// led with bloodstone rather than aquamarine, August led with sardonyx
@@ -121,7 +124,10 @@ pub static BIRTHSTONES_US_1912: MonthTable = MonthTable::new(
         provenance: Provenance::Promulgated,
         source: "George F. Kunz, The Curious Lore of Precious Stones (Lippincott, 1913; kunz1913), \
                  pp. 317, 319–320",
-        caveat: Some("Superseded in 1952. Shipped so the revisions can be measured."),
+        caveat: Some(
+            "Superseded in 1952, by the year the revision was made: no page read says in \
+             which month of 1952 it took effect. Shipped so the revisions can be measured.",
+        ),
     },
     [
         &["garnet"],
@@ -139,21 +145,122 @@ pub static BIRTHSTONES_US_1912: MonthTable = MonthTable::new(
     ],
 );
 
-/// The current American list: 1912, revised 1952, 2002 and 2016.
+/// The American list after the revision of 1952: the list of 1912 and the
+/// changes the sources state, **not a list any source prints in full**.
 ///
-/// Jewelers of America's account of the revision of 1952 adds alexandrite
-/// to June, citrine to November and tourmaline to October and puts zircon
-/// in December; Wikipedia names the Jewelry Industry Council of America and
-/// adds that December's lapis lazuli was replaced and that March's primary
-/// and alternative were swapped. The table of 1912 above already has
-/// tourmaline in October, as Kunz prints it, so the two accounts of October
-/// are not reconciled here. The American Gem Trade Association added tanzanite to
-/// December in 2002 and, with Jewelers of America, spinel to August in 2016.
-/// The entries here follow the Gemological Institute of America's published
-/// chart, which is what the trade currently prints.
+/// No page read prints this list. Wikipedia, citing Knuth (2007, not read),
+/// says the Jewelry Industry Council of America revised the list in 1952,
+/// that alexandrite was added to June, citrine to November and zircon to
+/// December in place of lapis lazuli, and that March's primary and
+/// alternative stones were swapped; National Jeweler (2016) credits Jewelers
+/// of America and has the same four stones added; the International Gem
+/// Society and Geology.com repeat it. The sources also say tourmaline was
+/// added to October, but Kunz's table of 1912 already names it as October's
+/// alternate stone, so the entry for October is the 1912 one. Of August the
+/// sources say nothing, so it is 1912's, sardonyx first: no page read says
+/// when peridot came to lead it. The table is those changes applied to
+/// [`BIRTHSTONES_US_1912`] and is carried because a gap from 1952 to 2015
+/// would leave two thirds of a century with no American list at all; the
+/// swap of March's stones rests on one secondary page.
+pub static BIRTHSTONES_US_1952: MonthTable = MonthTable::new(
+    Authority {
+        id: "birthstones-us-1952",
+        english_name: "American birthstones, 1952 revision",
+        body: Some("Jewelry Industry Council of America"),
+        region: Region::UNITED_STATES,
+        established: Some(AttributionDate::year_month(1912, 8)),
+        revised: Some(AttributionDate::year(1952)),
+        validity: Validity::between(1952, 2001),
+        provenance: Provenance::Promulgated,
+        source: "The changes as Wikipedia, \"Birthstone\" (citing Knuth 2007, not read), the \
+                 International Gem Society, \"History of Birthstones\", National Jeweler, \
+                 \"Rocks On: The Evolution of the Birthstone List\" (2016) and Geology.com, \
+                 \"Birthstones by Month\" give them, applied to the list of Kunz (1913; \
+                 kunz1913); no page read prints the list of 1952, read 2026-10-04",
+        caveat: Some(
+            "Derived: the list of 1912 with the changes the sources state, not a list a page \
+             prints. The sources disagree on the body (the Jewelry Industry Council of \
+             America, per Wikipedia; Jewelers of America, per National Jeweler) and give no \
+             month for the revision; the order of the stones in June, October, November and \
+             December and the August entry are the table's, and the swap of March's stones \
+             is one secondary page's.",
+        ),
+    },
+    [
+        &["garnet"],
+        &["amethyst"],
+        &["aquamarine", "bloodstone"],
+        &["diamond"],
+        &["emerald"],
+        &["pearl", "moonstone", "alexandrite"],
+        &["ruby"],
+        &["sardonyx", "peridot"],
+        &["sapphire"],
+        &["opal", "tourmaline"],
+        &["topaz", "citrine"],
+        &["turquoise", "zircon"],
+    ],
+);
+
+/// The American list after the revision of 2002: the list of 1952 with
+/// tanzanite for December, **not a list any source prints in full**.
 ///
-/// Three revisions in a century is the reason [`Validity::is_current`] means
-/// "still current as far as this crate knows" and not "settled".
+/// Wikipedia says the American Gem Trade Association chose tanzanite as a
+/// December birthstone in 2002, "the first change to their birthstone list
+/// since 1912" (citing a JCK article of 2007 that was not read), and National
+/// Jeweler says Jewelers of America updated the list for tanzanite, "the last
+/// gem to join before spinel". The only change stated is December's. The
+/// table is the list of 1952 with it applied.
+pub static BIRTHSTONES_US_2002: MonthTable = MonthTable::new(
+    Authority {
+        id: "birthstones-us-2002",
+        english_name: "American birthstones, 2002 revision",
+        body: Some("American Gem Trade Association"),
+        region: Region::UNITED_STATES,
+        established: Some(AttributionDate::year_month(1912, 8)),
+        revised: Some(AttributionDate::year(2002)),
+        validity: Validity::between(2002, 2015),
+        provenance: Provenance::Promulgated,
+        source: "The change as Wikipedia, \"Tanzanite\" and \"Birthstone\" (citing JCK, 12 \
+                 November 2007, not read) and National Jeweler, \"JA, AGTA Add Spinel as August \
+                 Birthstone\" (2016) give it, applied to the list of 1952; no page read prints \
+                 the list of 2002, read 2026-10-04",
+        caveat: Some(
+            "Derived: the list of 1952 with tanzanite for December. The sources disagree on \
+             the body (the American Gem Trade Association, per Wikipedia; Jewelers of America, \
+             per National Jeweler), and a retailer page that gives October 2002 is the only \
+             one that dates the month.",
+        ),
+    },
+    [
+        &["garnet"],
+        &["amethyst"],
+        &["aquamarine", "bloodstone"],
+        &["diamond"],
+        &["emerald"],
+        &["pearl", "moonstone", "alexandrite"],
+        &["ruby"],
+        &["sardonyx", "peridot"],
+        &["sapphire"],
+        &["opal", "tourmaline"],
+        &["topaz", "citrine"],
+        &["turquoise", "zircon", "tanzanite"],
+    ],
+);
+
+/// The current American list, as of the revision of 2016.
+///
+/// Jewelers of America and the American Gem Trade Association announced on
+/// 2 June 2016 that spinel joined peridot for August, to be launched to
+/// consumers in July (National Jeweler). The entries here follow Wikipedia's
+/// and Geology.com's tables and the American Gem Society's chart; the
+/// Gemological Institute of America's page, read on 2026-10-04, names peridot
+/// and spinel for August and not sardonyx, and its order of June and December
+/// differs. Earlier revisions are [`BIRTHSTONES_US_1952`] and
+/// [`BIRTHSTONES_US_2002`].
+///
+/// Four forms of one list in a century is the reason [`Validity::is_current`]
+/// means "still current as far as this crate knows" and not "settled".
 pub static BIRTHSTONES_US_2016: MonthTable = MonthTable::new(
     Authority {
         id: "birthstones-us-2016",
@@ -164,10 +271,11 @@ pub static BIRTHSTONES_US_2016: MonthTable = MonthTable::new(
         revised: Some(AttributionDate::year(2016)),
         validity: Validity::since(2016),
         provenance: Provenance::Promulgated,
-        source: "Gemological Institute of America, \"Birthstones by Month\", \
-                 https://www.gia.edu/birthstones (the page served on 2026-09-26 did not \
-                 render its chart, so it was not re-read that day); spinel added per National Jeweler, \
-                 \"JA, AGTA Add Spinel as August Birthstone\" (2016); tanzanite per Grande & \
+        source: "Gemological Institute of America, \"Birthstones\", https://www.gia.edu/birthstones \
+                 (read 2026-10-04; its August is peridot and spinel); American Gem Society, \
+                 \"Birthstones\" (read 2026-10-04); Wikipedia, \"Birthstone\" and Geology.com, \
+                 \"Birthstones by Month\" (secondary); spinel added per National Jeweler, \"JA, \
+                 AGTA Add Spinel as August Birthstone\" (2016); tanzanite per Grande & \
                  Augustyn, Gems and Gemstones (Univ. of Chicago Press, 2009), p. 335",
         caveat: None,
     },
@@ -345,18 +453,21 @@ pub static BIRTHSTONES_JP_2021: MonthTable = MonthTable::new(
 /// Iterating this is how a caller asks "whose?" without having to know the
 /// list of names in advance, and how a new authority becomes available to
 /// every caller at once.
-pub static ALL: [&MonthTable; 6] = [
+pub static ALL: [&MonthTable; 8] = [
     &BIRTHSTONES_TRADITIONAL,
     &BIRTHSTONES_US_1912,
     &BIRTHSTONES_UK,
     &BIRTHSTONES_JP_1958,
+    &BIRTHSTONES_US_1952,
+    &BIRTHSTONES_US_2002,
     &BIRTHSTONES_US_2016,
     &BIRTHSTONES_JP_2021,
 ];
 
 /// The authorities that are current rather than superseded.
 ///
-/// [`BIRTHSTONES_TRADITIONAL`], [`BIRTHSTONES_US_1912`] and
+/// [`BIRTHSTONES_TRADITIONAL`], [`BIRTHSTONES_US_1912`],
+/// [`BIRTHSTONES_US_1952`], [`BIRTHSTONES_US_2002`] and
 /// [`BIRTHSTONES_JP_1958`] have closed validity spans; the other three do
 /// not.
 pub fn current() -> impl Iterator<Item = &'static MonthTable> {
@@ -507,7 +618,7 @@ mod tests {
     /// January is garnet everywhere and always has been. Every other month
     /// is contested by somebody.
     #[test]
-    fn january_is_the_only_month_all_six_authorities_agree_on() {
+    fn january_is_the_only_month_all_eight_authorities_agree_on() {
         assert_eq!(authorities_agree(Month::regular(1)), Ok(true));
         for ordinal in 2..=12u8 {
             assert_eq!(
@@ -551,16 +662,73 @@ mod tests {
         // modern one; that is what the 1952 revision did.
         for added in ["alexandrite", "citrine", "zircon"] {
             assert!(!BIRTHSTONES_US_1912.names(added), "{added}");
+            assert!(BIRTHSTONES_US_1952.names(added), "{added}");
             assert!(BIRTHSTONES_US_2016.names(added), "{added}");
         }
         assert!(BIRTHSTONES_US_1912.names("lapis lazuli"));
+        assert!(!BIRTHSTONES_US_1952.names("lapis lazuli"));
         assert!(!BIRTHSTONES_US_2016.names("lapis lazuli"));
+        // The sources say March's primary and alternative stones were
+        // swapped (Wikipedia, citing Knuth 2007).
+        let march = Month::regular(3);
+        assert_eq!(
+            stones(&BIRTHSTONES_US_1912, march),
+            Ok(&["bloodstone", "aquamarine"][..])
+        );
+        assert_eq!(
+            stones(&BIRTHSTONES_US_1952, march),
+            Ok(&["aquamarine", "bloodstone"][..])
+        );
+    }
+
+    /// The 1952 list is the 1912 list with the stated changes and the 2002
+    /// list is the 1952 list with tanzanite: eleven months stay as they
+    /// were, and a month a source names as changed is the only one that is not.
+    #[test]
+    fn the_intermediate_american_lists_are_the_stated_changes_and_nothing_more() {
+        let changed_in_1952: [u8; 4] = [3, 6, 11, 12];
+        for ordinal in 1..=12u8 {
+            let month = Month::regular(ordinal);
+            let (old, new) = (
+                stones(&BIRTHSTONES_US_1912, month).unwrap(),
+                stones(&BIRTHSTONES_US_1952, month).unwrap(),
+            );
+            assert_eq!(old != new, changed_in_1952.contains(&ordinal), "{ordinal}");
+            let december = ordinal == 12;
+            let (before, after) = (
+                stones(&BIRTHSTONES_US_1952, month).unwrap(),
+                stones(&BIRTHSTONES_US_2002, month).unwrap(),
+            );
+            assert_eq!(before != after, december, "{ordinal}");
+        }
+        // October keeps Kunz's opal and tourmaline: the sources' "tourmaline
+        // was added in 1952" is not carried, since 1912 had it as the
+        // alternate stone.
+        assert_eq!(
+            stones(&BIRTHSTONES_US_1912, Month::regular(10)),
+            stones(&BIRTHSTONES_US_1952, Month::regular(10))
+        );
+        // The three American lists after 1912 follow one another year by
+        // year, with no gap, to the list of 2016.
+        let spans = [
+            BIRTHSTONES_US_1912.authority().validity,
+            BIRTHSTONES_US_1952.authority().validity,
+            BIRTHSTONES_US_2002.authority().validity,
+            BIRTHSTONES_US_2016.authority().validity,
+        ];
+        for year in 1912..2030 {
+            let holding = spans.iter().filter(|span| span.contains(year)).count();
+            assert_eq!(holding, 1, "{year}");
+        }
     }
 
     #[test]
     fn tanzanite_reached_december_in_2002_and_spinel_august_in_2016() {
         assert!(!BIRTHSTONES_US_1912.names("tanzanite"));
         assert!(!BIRTHSTONES_US_1912.names("spinel"));
+        assert!(!BIRTHSTONES_US_1952.names("tanzanite"));
+        assert!(BIRTHSTONES_US_2002.names("tanzanite"));
+        assert!(!BIRTHSTONES_US_2002.names("spinel"));
         let december: [usize; 1] = [11];
         let august: [usize; 1] = [7];
         assert!(BIRTHSTONES_US_2016.keys_naming("tanzanite").eq(december));
@@ -678,7 +846,7 @@ mod tests {
     }
 
     #[test]
-    fn three_of_the_six_lists_are_superseded_and_three_are_current() {
+    fn five_of_the_eight_lists_are_superseded_and_three_are_current() {
         assert_eq!(current().count(), 3);
         for table in current() {
             assert!(table.authority().validity.is_current());
@@ -686,6 +854,8 @@ mod tests {
         for superseded in [
             &BIRTHSTONES_TRADITIONAL,
             &BIRTHSTONES_US_1912,
+            &BIRTHSTONES_US_1952,
+            &BIRTHSTONES_US_2002,
             &BIRTHSTONES_JP_1958,
         ] {
             assert!(!superseded.authority().validity.is_current());
@@ -707,6 +877,9 @@ mod tests {
     fn the_validity_spans_place_each_list_in_the_years_it_was_current() {
         assert!(BIRTHSTONES_US_1912.authority().validity.contains(1930));
         assert!(!BIRTHSTONES_US_1912.authority().validity.contains(1960));
+        assert!(BIRTHSTONES_US_1952.authority().validity.contains(1960));
+        assert!(BIRTHSTONES_US_2002.authority().validity.contains(2010));
+        assert!(BIRTHSTONES_US_2016.authority().validity.contains(2020));
         assert!(BIRTHSTONES_JP_1958.authority().validity.contains(2000));
         assert!(!BIRTHSTONES_JP_1958.authority().validity.contains(2025));
         assert!(BIRTHSTONES_JP_2021.authority().validity.contains(2025));
