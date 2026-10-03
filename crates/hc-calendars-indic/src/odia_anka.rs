@@ -603,12 +603,14 @@ mod tests {
         let end = ANKA.new_year(71).expect("in range");
         let mut intercalary = alloc::vec::Vec::new();
         // Every day in a release build; in a debug one every eleventh, with
-        // each Suniā, where the anka turns, and the day before it.
+        // each Suniā, where the anka turns, and the day before it, in a build
+        // instrumented for coverage too: the adhika month below lasts thirty
+        // days, which a sparser step could pass over.
         let openings: alloc::vec::Vec<i64> = (67..=71)
             .filter_map(|anka| ANKA.new_year(anka).ok())
             .map(|rd| rd.0)
             .collect();
-        for day in crate::sweep_days(start.0, end.0 - 1, 11, &openings) {
+        for day in crate::sweep_days_dense(start.0, end.0 - 1, 11, &openings) {
             let rd = Rd(day);
             let date = ANKA.from_fixed(rd).expect("in range");
             assert_eq!(ANKA.to_fixed(date), Ok(rd), "{date:?}");

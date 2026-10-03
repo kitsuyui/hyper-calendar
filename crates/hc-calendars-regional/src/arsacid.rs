@@ -313,7 +313,13 @@ mod tests {
         for kind in [(false, false), (true, false), (true, true)] {
             assert!((2..=MAX_YEAR).any(|year| ended(year) == kind));
         }
-        let years: alloc::vec::Vec<i64> = (MIN_YEAR..=MAX_YEAR).collect();
+        // A build instrumented for coverage takes every seventh year and
+        // the last, the first being one of them.
+        let mut years: alloc::vec::Vec<i64> = (MIN_YEAR..=MAX_YEAR)
+            .step_by(hc_core::sweep::year_step())
+            .chain([MAX_YEAR])
+            .collect();
+        years.dedup();
         crate::check_days(&years, |year| {
             let opening = to_fixed(year, Month::regular(1), 1).unwrap();
             assert_eq!(

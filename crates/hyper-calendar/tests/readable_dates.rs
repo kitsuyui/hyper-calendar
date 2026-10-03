@@ -122,7 +122,9 @@ fn fault(
 /// Every calendar's sample days in every locale: every pairing in a
 /// release build, and in a debug build a staggered share of them that
 /// still renders every calendar in every locale, and the first and last
-/// days of its range and its own language in full (`locale_sample`).
+/// days of its range and its own language in full; the instrumented
+/// coverage build renders a sparser share, and the ends of the range in
+/// every third locale and its own (`locale_sample`).
 #[test]
 fn no_formatted_date_holds_a_raw_extra_field_or_era_code() {
     let registry = hyper_calendar::registry();
@@ -160,7 +162,8 @@ fn no_formatted_date_holds_a_raw_extra_field_or_era_code() {
                 }
                 let ends = Some(*day) == meta.earliest || Some(*day) == meta.latest;
                 for (position, requested) in locales.iter().enumerate() {
-                    if !locale_sample::paired(index, dates.len(), position, locales.len(), ends) {
+                    let full = ends && locale_sample::locale_rendered(position, locales.len());
+                    if !locale_sample::paired(index, dates.len(), position, locales.len(), full) {
                         continue;
                     }
                     rendered.insert((meta.id.0, position));
@@ -207,7 +210,9 @@ fn no_formatted_date_holds_a_raw_extra_field_or_era_code() {
 /// name in the calendar's own words, as the Burmese half *waning* writes
 /// the phase *waning*. Every calendar is checked in every locale, so each
 /// template that writes an extra — a notation's `{extra:FIELD}`, a
-/// locale's `{sexagenary}` — is covered, and every flag.
+/// locale's `{sexagenary}` — is covered, and every flag. A build
+/// instrumented for coverage renders every third locale and the last
+/// (`locale_sample::locale_rendered`).
 #[test]
 fn the_in_date_flag_says_whether_the_date_depends_on_the_field() {
     let registry = hyper_calendar::registry();
@@ -229,7 +234,10 @@ fn the_in_date_flag_says_whether_the_date_depends_on_the_field() {
                 let Ok(fields) = calendar.fixed_to_fields(day) else {
                     continue;
                 };
-                for requested in &locales {
+                for (position, requested) in locales.iter().enumerate() {
+                    if !locale_sample::locale_rendered(position, locales.len()) {
+                        continue;
+                    }
                     let locale = label::locale_for(calendar, requested.as_ref());
                     let (text, marked) = label::date_marking(calendar, &fields, &locale);
                     let own = |name: &str, value: i64| {
@@ -292,6 +300,13 @@ fn every_flag_reads_as_words() {
     use std::collections::BTreeMap;
 
     let registry = hyper_calendar::registry();
+    // Every 61st day, and every 183rd in a build instrumented for coverage,
+    // which still sees each flag at both its values.
+    let step = if hyper_calendar::hc_core::sweep::INSTRUMENTED {
+        183
+    } else {
+        61
+    };
     let mut seen: BTreeMap<(&str, &str), BTreeSet<i64>> = BTreeMap::new();
     for meta in registry.metas() {
         let calendar = registry.get(meta.id).expect("registered");
@@ -299,7 +314,7 @@ fn every_flag_reads_as_words() {
             .chain(683_734..683_736)
             .chain(739_970..739_992)
             .chain(740_508..740_518);
-        for day in (730_120..742_120).step_by(61).chain(turning) {
+        for day in (730_120..742_120).step_by(step).chain(turning) {
             let Ok(fields) = calendar.fixed_to_fields(meta.sample_day(Rd(day))) else {
                 continue;
             };

@@ -15,11 +15,14 @@ testExecutionTime:
   # Higher than a single-crate project would need, deliberately. This suite's
   # main evidence is exhaustive: every conversion round-trips over its whole
   # range. This job's run is an instrumented debug build, so the longest of
-  # those sweeps take a fixed sample of their days and, where the years'
-  # boundaries cost more than the days, every k-th year with k prime to the
-  # calendar's cycle; the `sweeps` job of test.yml walks every day in
-  # release mode (docs/policy.md §7). The tests that render every calendar
-  # in every locale render a staggered share of the pairings, likewise.
+  # those sweeps take a fixed sample of their days, about a third as many as
+  # the plain debug `Test` job's, and, where the years' boundaries cost more
+  # than the days, every k-th year with k prime to the calendar's cycle;
+  # the `sweeps` job of test.yml walks every day in release mode
+  # (docs/policy.md §7). The tests that render every calendar in every
+  # locale render a staggered share of the pairings, likewise, one in 47.
+  # These samples are taken under `cfg(coverage)` and nowhere else
+  # (`hc_core::sweep`).
   # Under llvm-cov instrumentation the suite runs three to five times slower
   # than a plain `cargo test`, and slower still on several threads, which
   # contend for the coverage counters: so this job runs one test at a time
@@ -28,7 +31,9 @@ testExecutionTime:
   # The threshold exists to catch a test that has started hanging, not to
   # pressure the sweeps into being sampled further. If it is exceeded, check
   # which crate grew before lowering the coverage, and do not raise the
-  # limit to fit a test that should not be that slow.
+  # limit to fit a test that should not be that slow:
+  # `scripts/coverage-times.sh` times each test binary and test as this job
+  # runs them.
   #
   # It is thirty minutes because the instrumented time sits inside a shared
   # runner's variance: the plain `Test` job holds between five and six and a
@@ -38,6 +43,15 @@ testExecutionTime:
   # test at a time, two runs of nearly the same code measured 14m52s and
   # 31m38s, on runners one twice as fast as the other. The job's own
   # `timeout-minutes` is the guard against a hang.
+  #
+  # What is to be kept in hand is a quarter of the limit on a slow runner.
+  # On a fourteen-core desktop the test binaries take nine minutes in all
+  # (`scripts/coverage-times.sh`), and a slow runner has taken 1.8 times
+  # the desktop's figure for the whole job, build included: the run of
+  # 3 October 2026, whose suite took 17 minutes there, 30m12s. Nine minutes
+  # at that ratio is sixteen, so the job stays under twenty-two and a half.
+  # A suite that grows past twelve minutes on the desktop has used that
+  # margin up.
   acceptable: 30min
 diff:
   datastores:

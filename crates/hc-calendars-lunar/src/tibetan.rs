@@ -1607,7 +1607,9 @@ mod tests {
         // coverage job runs instrumented, takes every 319th day, a stride
         // prime to 7 and to 30 so that every weekday and every day of the
         // month is visited, and every New Year with the day before it, where
-        // the year's months turn (docs/policy.md §7). The three conventions
+        // the year's months turn (docs/policy.md §7); a build instrumented
+        // for coverage a third as many of the days and the New Year of every
+        // seventh year. The three conventions
         // of the true date are walked the same way: each moves some days of
         // its version, so none rests on the version's sweep.
         for calendar in VERSIONS.into_iter().chain(CONVENTIONS) {
@@ -1615,6 +1617,7 @@ mod tests {
             let (first, last) = (calendar.earliest().0, calendar.latest().0);
             let new_years: alloc::vec::Vec<i64> = if cfg!(debug_assertions) {
                 (MIN_YEAR..=MAX_YEAR)
+                    .step_by(hc_core::sweep::year_step())
                     .map(|year| calendar.new_year(year).unwrap().0)
                     .chain([last + 1])
                     .collect()

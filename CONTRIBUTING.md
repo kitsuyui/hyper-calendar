@@ -47,7 +47,11 @@ calendar's arithmetic ([`docs/policy.md`](docs/policy.md) §7). CI runs that
 command in shards, side by side;
 [`scripts/release-shards.sh`](scripts/release-shards.sh) says how they are
 cut, and `scripts/release-shards.sh --plan` which shard runs each test binary,
-or which tests of a binary split between two shards by name.
+or which tests of a binary split between two shards by name. The coverage
+job's instrumented build samples sparser still, and has a time limit
+(`.octocov.yml`): [`scripts/coverage-times.sh`](scripts/coverage-times.sh) times
+each test binary and test as that job runs them, which is where to look when a
+new test or a larger sweep makes it slow.
 
 All of these must pass. `unwrap()` and `expect()` are deny-level lints outside
 tests — see [`docs/policy.md`](docs/policy.md) §8.

@@ -463,11 +463,14 @@ mod tests {
         // Every day of the 3.65 million in a release build, spread over the
         // machine's threads; a debug build, which the coverage job runs
         // instrumented, takes every 37th day and every Meṣa 1 of the ten
-        // thousand years with the day before it (docs/policy.md §7).
+        // thousand years with the day before it (docs/policy.md §7); a build
+        // instrumented for coverage takes a third as many of the days and the
+        // opening of every seventh year.
         let calendar = SiddhantaSolarCalendar::UJJAIN;
         let (first, last) = (NAMED_RANGE.1.0, NAMED_RANGE.2.0);
         let openings: alloc::vec::Vec<i64> = if cfg!(debug_assertions) {
             (MIN_YEAR..=MAX_YEAR)
+                .step_by(hc_core::sweep::year_step())
                 .map(|year| calendar.month_start(year, 1).expect("in range").0)
                 .chain([last + 1])
                 .collect()

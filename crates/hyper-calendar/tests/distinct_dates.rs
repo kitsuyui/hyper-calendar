@@ -50,11 +50,17 @@ const CALENDARS: &[(&str, &[Option<&str>])] = &[
 /// The days a build walks: every day in a release build; in a debug build
 /// two consecutive years in every seven, and the last two, so that a late
 /// Tagu and the Tagu a year before it, which carry one year number, are
-/// both walked.
+/// both walked. A build instrumented for coverage takes two years in every
+/// thirteen.
 fn days() -> Vec<i64> {
+    let step = if hyper_calendar::hc_core::sweep::INSTRUMENTED {
+        13
+    } else {
+        7
+    };
     let years: Vec<i64> = if cfg!(debug_assertions) {
         (1950..=2050)
-            .step_by(7)
+            .step_by(step)
             .chain([2049])
             .flat_map(|year| [year, year + 1])
             .collect()

@@ -88,7 +88,9 @@
 extern crate alloc;
 
 /// How far apart the days of a day-by-day sweep in this crate's tests are:
-/// every day in a release build, every `sampled`th in a debug build.
+/// every day in a release build, every `sampled`th in a debug build, and
+/// about a third as many of those in a build instrumented for coverage
+/// (`hc_core::sweep::thinned`).
 ///
 /// The full sweeps take minutes under the coverage job's instrumentation,
 /// so a debug or coverage run takes a fixed, deterministic sample of them
@@ -96,7 +98,11 @@ extern crate alloc;
 /// are checked in full either way (docs/policy.md §7).
 #[cfg(test)]
 pub(crate) const fn sweep_stride(sampled: usize) -> usize {
-    if cfg!(debug_assertions) { sampled } else { 1 }
+    if cfg!(debug_assertions) {
+        hc_core::sweep::thinned(sampled)
+    } else {
+        1
+    }
 }
 
 /// The days of a day-by-day sweep over `first..=last` in this crate's
@@ -339,11 +345,14 @@ mod tests {
         // build takes the three days either side of each and every
         // twentieth day of the rest; at every fifth day this window was the
         // costliest part of the test there.
+        // A build instrumented for coverage takes the day either side of
+        // each, with the sparser sample of the rest.
         let era_sampled = if sampled == 1 { 1 } else { 4 * sampled };
+        let near = if hc_core::sweep::INSTRUMENTED { 1 } else { 3 };
         for era in crate::nengo::stream(crate::nengo::Court::Unified) {
             let Some(start) = era.start else { continue };
             for offset in
-                (-40..=40).filter(|offset: &i64| offset.abs() <= 3 || offset % era_sampled == 0)
+                (-40..=40).filter(|offset: &i64| offset.abs() <= near || offset % era_sampled == 0)
             {
                 let rd = Rd(start.0 + offset);
                 if rd < first || rd > last || crate::nengo::is_nanbokucho(rd) {
@@ -376,9 +385,11 @@ mod tests {
         // The Gregorian half in full: it is what callers actually ask for.
         // A debug build takes every seventeenth day, and each 1 January and
         // the day before it, where the year of the era turns
-        // (`crate::sweep_days`).
-        let new_years =
-            (1_874..=2_100).map(|year| gregorian::to_fixed(year, 1, 1).expect("a date").0);
+        // (`crate::sweep_days`); a build instrumented for coverage a
+        // third as many days, and every seventh year's 1 January.
+        let new_years = (1_874..=2_100)
+            .step_by(hc_core::sweep::year_step())
+            .map(|year| gregorian::to_fixed(year, 1, 1).expect("a date").0);
         for rd in crate::sweep_days(crate::japanese::GREGORIAN_ADOPTION.0, last.0, 17, new_years) {
             check_japanese_day(Rd(rd));
         }
@@ -392,7 +403,11 @@ mod tests {
             if !crate::nengo::is_nanbokucho(day) {
                 check_japanese_day(day);
             }
-            rd += if sampled == 1 { 31 } else { 157 };
+            rd += if sampled == 1 {
+                31
+            } else {
+                hc_core::sweep::thinned(157) as i64
+            };
         }
     }
 

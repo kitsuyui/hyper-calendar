@@ -749,13 +749,16 @@ mod tests {
         // release build, spread over the machine's threads: about 0.9 ms a
         // day, three minutes of one core. A debug build, which the coverage
         // job runs instrumented, takes every 211th day and every Chaitra
-        // śukla 1 with the day before it (docs/policy.md §7).
+        // śukla 1 with the day before it (docs/policy.md §7); a build
+        // instrumented for coverage takes a third as many of the days and the
+        // opening of every seventh year.
         let (first, last) = (
             RASHTRIYA.earliest().unwrap().0,
             RASHTRIYA.latest().unwrap().0,
         );
         let openings: alloc::vec::Vec<i64> = if cfg!(debug_assertions) {
             (MIN_YEAR..=MAX_YEAR)
+                .step_by(hc_core::sweep::year_step())
                 .map(|year| RASHTRIYA.new_year(year).unwrap().0)
                 .chain([last + 1])
                 .collect()

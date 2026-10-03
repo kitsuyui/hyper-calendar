@@ -658,8 +658,14 @@ fn the_systems_own_conjunction_tables_do_worse_than_the_true_conjunction() {
     }
 }
 
-/// How many times sparser the day-by-day sweep is in a debug build.
-const SAMPLED: i64 = if cfg!(debug_assertions) { 17 } else { 1 };
+/// How many times sparser the day-by-day sweep is in a debug build, and
+/// in a build instrumented for coverage a prime about three times as
+/// sparse (`hc_core::sweep::thinned`).
+const SAMPLED: i64 = if cfg!(debug_assertions) {
+    hc_core::sweep::thinned(17) as i64
+} else {
+    1
+};
 
 #[test]
 fn every_day_of_every_system_round_trips() {

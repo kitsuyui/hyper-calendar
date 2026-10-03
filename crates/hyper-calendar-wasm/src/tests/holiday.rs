@@ -297,32 +297,36 @@ fn a_day_with_no_year_is_refused() {
 fn one_day_across_every_table_is_what_the_years_say() {
     // The call evaluates each table for the day alone, through one
     // memo for all of them; the lines must be the ones the tables'
-    // whole years give, each evaluated on its own.
-    for (month, day) in [(1, 1), (2, 17), (3, 8), (6, 15), (9, 25), (11, 8)] {
-        let fixed = hc_gregorian_to_fixed(2026, month, day);
-        let text =
-            read_lines(|buffer, capacity| unsafe { hc_holidays_on(fixed, buffer, capacity) });
-        let mut expected = String::new();
-        let day = hc::hc_holiday::Rd(fixed);
-        for table in hc::holiday_lines::tables() {
-            let year = hc::hc_holiday::HolidayCalendar::for_year(table, None, 2026);
-            hc::holiday_lines::push_day_lines(&mut expected, table, &year, day);
-            for region in table.regions() {
-                let regional = hc::hc_holiday::HolidayCalendar::for_year(table, Some(region), 2026);
+    // whole years give, each evaluated on its own. A year's table does not
+    // depend on the day, so each is evaluated once for all the days.
+    let days = [(1, 1), (2, 17), (3, 8), (6, 15), (9, 25), (11, 8)];
+    let days: Vec<(u32, u32, i64)> = days
+        .into_iter()
+        .map(|(month, day)| (month, day, hc_gregorian_to_fixed(2026, month, day)))
+        .collect();
+    let mut expected = vec![String::new(); days.len()];
+    for table in hc::holiday_lines::tables() {
+        let year = hc::hc_holiday::HolidayCalendar::for_year(table, None, 2026);
+        for (text, (_, _, fixed)) in expected.iter_mut().zip(&days) {
+            let day = hc::hc_holiday::Rd(*fixed);
+            hc::holiday_lines::push_day_lines(text, table, &year, day);
+        }
+        for region in table.regions() {
+            let regional = hc::hc_holiday::HolidayCalendar::for_year(table, Some(region), 2026);
+            for (text, (_, _, fixed)) in expected.iter_mut().zip(&days) {
+                let day = hc::hc_holiday::Rd(*fixed);
                 hc::holiday_lines::push_region_day_lines(
-                    &mut expected,
-                    table,
-                    region,
-                    &regional,
-                    &year,
-                    day,
+                    text, table, region, &regional, &year, day,
                 );
             }
-            for group in table.groups() {
-                let scope = hc::hc_holiday::Scope::group(group.id);
-                let grouped = hc::hc_holiday::HolidayCalendar::for_year_scoped(table, scope, 2026);
+        }
+        for group in table.groups() {
+            let scope = hc::hc_holiday::Scope::group(group.id);
+            let grouped = hc::hc_holiday::HolidayCalendar::for_year_scoped(table, scope, 2026);
+            for (text, (_, _, fixed)) in expected.iter_mut().zip(&days) {
+                let day = hc::hc_holiday::Rd(*fixed);
                 hc::holiday_lines::push_scoped_day_lines(
-                    &mut expected,
+                    text,
                     table,
                     scope,
                     &grouped,
@@ -330,21 +334,18 @@ fn one_day_across_every_table_is_what_the_years_say() {
                     day,
                 );
             }
-            for (region, group) in table.region_groups() {
-                let scope = hc::hc_holiday::Scope::new(Some(region), Some(group.id));
-                let both = hc::hc_holiday::HolidayCalendar::for_year_scoped(table, scope, 2026);
-                let regional = hc::hc_holiday::HolidayCalendar::for_year_scoped(
-                    table,
-                    scope.for_everyone(),
-                    2026,
-                );
-                let grouped = hc::hc_holiday::HolidayCalendar::for_year_scoped(
-                    table,
-                    scope.nationwide(),
-                    2026,
-                );
+        }
+        for (region, group) in table.region_groups() {
+            let scope = hc::hc_holiday::Scope::new(Some(region), Some(group.id));
+            let both = hc::hc_holiday::HolidayCalendar::for_year_scoped(table, scope, 2026);
+            let regional =
+                hc::hc_holiday::HolidayCalendar::for_year_scoped(table, scope.for_everyone(), 2026);
+            let grouped =
+                hc::hc_holiday::HolidayCalendar::for_year_scoped(table, scope.nationwide(), 2026);
+            for (text, (_, _, fixed)) in expected.iter_mut().zip(&days) {
+                let day = hc::hc_holiday::Rd(*fixed);
                 hc::holiday_lines::push_scoped_day_lines(
-                    &mut expected,
+                    text,
                     table,
                     scope,
                     &both,
@@ -353,6 +354,10 @@ fn one_day_across_every_table_is_what_the_years_say() {
                 );
             }
         }
+    }
+    for (expected, (month, day, fixed)) in expected.into_iter().zip(days) {
+        let text =
+            read_lines(|buffer, capacity| unsafe { hc_holidays_on(fixed, buffer, capacity) });
         assert_eq!(text, expected, "2026-{month:02}-{day:02}");
     }
 }

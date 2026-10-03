@@ -26,6 +26,16 @@ fn own_on(region: Option<&str>, year: i64, month: u8, day: u8) -> Vec<Holiday> {
         .collect()
 }
 
+/// The years from `first` to 2026 that a test over every state and year
+/// reads: all of them, and in a build instrumented for coverage every third
+/// and the last, 2026, each of which builds a state's whole table anew
+/// (docs/policy.md §7).
+fn listed_years(first: i64) -> impl Iterator<Item = i64> {
+    (first..=2026).filter(move |year| {
+        !hc_core::sweep::INSTRUMENTED || (year - first) % 3 == 0 || *year == 2026
+    })
+}
+
 /// The twenty-eight states and union territories carried.
 const STATES: &[&str] = &[
     "IN-UP", "IN-MH", "IN-BR", "IN-WB", "IN-MP", "IN-TN", "IN-RJ", "IN-KA", "IN-GJ", "IN-AP",
@@ -138,7 +148,7 @@ fn the_states_are_carried_for_2019_to_2026_and_are_a_gap_before_and_after() {
         );
         let gaps: Vec<&str> = before.gaps().iter().map(|gap| gap.name).collect();
         assert!(gaps.contains(&GAP), "{region} {}: {gaps:?}", first - 1);
-        for year in first..=2026 {
+        for year in listed_years(first) {
             let calendar = HolidayCalendar::for_year(&INDIA, Some(region), year);
             let own = calendar
                 .in_year(year)
@@ -180,7 +190,7 @@ fn no_state_day_falls_on_a_sunday_but_the_one_the_list_has() {
         ["Beh Dienkhlam"]
     );
     for region in STATES {
-        for year in 2019..=2026 {
+        for year in listed_years(2019) {
             let calendar = HolidayCalendar::for_year(&INDIA, Some(region), year);
             for holiday in calendar.in_year(year) {
                 if !holiday.regions.is_empty() && holiday.date != listed {

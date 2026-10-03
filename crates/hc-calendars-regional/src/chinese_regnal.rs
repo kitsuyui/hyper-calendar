@@ -724,8 +724,11 @@ mod tests {
         // The two readings agree to the abdication, and the court's years
         // round-trip: every day in a release build; in a debug build every
         // 37th and each lunar New Year with the day before it, where the
-        // era year turns (docs/policy.md §7).
+        // era year turns (docs/policy.md §7); a build instrumented for
+        // coverage takes a third as many days and the New Year of every
+        // seventh year.
         let new_years: Vec<i64> = (1_645..=1_924)
+            .step_by(hc_core::sweep::year_step())
             .map(|year| {
                 chinese::PARAMETERS
                     .to_fixed(year + YEAR_OFFSET, Month::regular(1), 1)
@@ -806,6 +809,7 @@ mod tests {
         let calendar = ChineseRegnalCalendar;
         // Each lunar New Year, where the era year turns, and the day before.
         let new_years: Vec<i64> = (1_645..=1_912)
+            .step_by(hc_core::sweep::year_step())
             .map(|year| {
                 chinese::PARAMETERS
                     .to_fixed(year + YEAR_OFFSET, Month::regular(1), 1)
@@ -819,7 +823,11 @@ mod tests {
         // 19th day in a release build, every 37th in a debug one, and the
         // New Years and the days before them in both: in a debug build, the
         // same days as the round trip, so each is converted once.
-        let stride = if cfg!(debug_assertions) { 37 } else { 19 };
+        let stride = if cfg!(debug_assertions) {
+            crate::sweep_stride(37) as i64
+        } else {
+            19
+        };
         let boundary = |rd: i64| {
             new_years.binary_search(&rd).is_ok() || new_years.binary_search(&(rd + 1)).is_ok()
         };

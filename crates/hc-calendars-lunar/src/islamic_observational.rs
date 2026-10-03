@@ -1487,7 +1487,10 @@ mod tests {
         // machine's threads: about a millisecond a day, a minute of one core
         // for each calendar. A debug build, which the coverage job runs
         // instrumented, takes every 101st day and every 1 Muḥarram with the
-        // day before it (docs/policy.md §7). The Saudi rule is judged at
+        // day before it (docs/policy.md §7), and a build instrumented for
+        // coverage a third as many of the days and the 1 Muḥarram of every
+        // seventh year.
+        // The Saudi rule is judged at
         // sunset on conjunction and moonset, a criterion of its own shape.
         for calendar in [
             IslamicObservationalCalendar::CAIRO_RD,
@@ -1498,6 +1501,7 @@ mod tests {
                 // the month back, asking the same evenings again.
                 hc_core::memo::scope(|| {
                     (FIRST_YEAR..=LAST_YEAR)
+                        .step_by(hc_core::sweep::year_step())
                         .filter_map(|year| calendar.compose(year, 1, 1).ok())
                         .map(|day| day.0)
                         .collect()
@@ -1506,7 +1510,8 @@ mod tests {
                 alloc::vec::Vec::new()
             };
             if cfg!(debug_assertions) {
-                assert_eq!(openings.len(), (LAST_YEAR - FIRST_YEAR) as usize);
+                let years = (FIRST_YEAR..=LAST_YEAR).step_by(hc_core::sweep::year_step());
+                assert_eq!(openings.len(), years.count() - 1);
             }
             let mut days: alloc::vec::Vec<i64> =
                 crate::sweep_days(EARLIEST.0, LATEST.0, 101, openings.iter().copied())

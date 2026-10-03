@@ -21,6 +21,79 @@
 /// instrumented sweep on one thread.
 pub const INSTRUMENTED: bool = cfg!(coverage);
 
+/// How many times sparser than a debug build's sample an instrumented
+/// build's sample of days is, before [`thinned`] rounds it up to a prime.
+pub const COVERAGE_THINNING: usize = 3;
+
+/// The first prime of at least `n`.
+const fn prime_from(n: usize) -> usize {
+    let mut candidate = if n < 2 { 2 } else { n };
+    loop {
+        let mut divisor = 2;
+        let mut prime = true;
+        while divisor * divisor <= candidate {
+            if candidate % divisor == 0 {
+                prime = false;
+                break;
+            }
+            divisor += 1;
+        }
+        if prime {
+            return candidate;
+        }
+        candidate += 1;
+    }
+}
+
+/// The step between the days of a sweep that a debug build samples every
+/// `sampled`th day of, in a build that is instrumented for coverage: the
+/// first prime of at least three times as many ([`COVERAGE_THINNING`]), and
+/// `sampled` itself in any other build.
+///
+/// A prime, like the strides the sweeps choose, shares no factor with a
+/// cycle of days (the week, the thirty-day month, the sixty-day cycle), so
+/// that the sample still visits every weekday and every day of the month.
+/// The coverage job runs the debug build's tests one at a time under
+/// instrumentation, and the release-mode job and the plain debug job keep
+/// the sample they have (docs/policy.md §7).
+pub const fn thinned(sampled: usize) -> usize {
+    if INSTRUMENTED {
+        prime_from(sampled * COVERAGE_THINNING)
+    } else {
+        sampled
+    }
+}
+
+/// The step between the years of a year-by-year sweep that a debug build
+/// samples every `sampled`th year of, in a build that is instrumented for
+/// coverage: the first prime of at least twice as many, so that the step
+/// is prime to the cycles the years run in (the nineteen-year Metonic
+/// cycle, the thirty-year Hijri cycle, the sixty-year sexagenary cycle)
+/// unless the cycle is that prime. In any other build it is `sampled`.
+pub const fn thinned_year_step(sampled: usize) -> usize {
+    if INSTRUMENTED {
+        prime_from(sampled * 2)
+    } else {
+        sampled
+    }
+}
+
+/// How many years apart the year boundaries are that a sweep checks in a
+/// build instrumented for coverage, where a debug build checks every
+/// year's: [`COVERAGE_YEAR_STEP`]. See [`year_step`].
+pub const COVERAGE_YEAR_STEP: usize = 7;
+
+/// The step between the years whose boundaries, the days a year or a
+/// cycle begins, a sweep checks besides its sampled days: 1 in a build that
+/// is not instrumented for coverage, and [`COVERAGE_YEAR_STEP`] in one that
+/// is. Seven is prime to the cycles the years run in, the nineteen-year
+/// Metonic cycle, the thirty-year Hijri cycle and the sixty-year sexagenary
+/// cycle among them, so that the years still hold each kind of boundary the
+/// sweep is about: leap years, common years and the exceptions.
+pub const fn year_step() -> usize {
+    if INSTRUMENTED { COVERAGE_YEAR_STEP } else { 1 }
+}
+
 /// Defines `check_days(days, check)` in the invoking crate's tests: run
 /// `check` on each of `days`, spread over the machine's threads.
 ///
@@ -104,6 +177,33 @@ macro_rules! check_days_in_parallel {
 #[cfg(all(test, feature = "std"))]
 mod tests {
     crate::check_days_in_parallel!();
+
+    #[test]
+    fn a_thinned_stride_is_a_prime_at_least_the_thinned_one() {
+        use super::{COVERAGE_THINNING, INSTRUMENTED, prime_from, thinned, thinned_year_step};
+        assert_eq!(prime_from(0), 2);
+        assert_eq!(prime_from(1), 2);
+        assert_eq!(prime_from(24), 29);
+        assert_eq!(prime_from(37), 37);
+        assert_eq!(prime_from(1_000), 1_009);
+        for sampled in [1, 3, 7, 11, 97, 101, 319, 776, 1_013] {
+            let (days, years) = (thinned(sampled), thinned_year_step(sampled));
+            if INSTRUMENTED {
+                assert!(days >= sampled * COVERAGE_THINNING && prime_from(days) == days);
+                assert!(years >= sampled * 2 && prime_from(years) == years);
+                // Days prime to the weekly, monthly, sexagenary and Metonic
+                // cycles, years to the last three.
+                for cycle in [7, 19, 30, 60] {
+                    assert!(days % cycle != 0, "{sampled}: {days}");
+                }
+                for cycle in [19, 30, 60] {
+                    assert!(years % cycle != 0, "{sampled}: {years}");
+                }
+            } else {
+                assert_eq!((days, years), (sampled, sampled));
+            }
+        }
+    }
 
     #[test]
     fn a_short_list_is_spread_over_every_thread_and_a_long_one_taken_256_at_a_time() {

@@ -790,7 +790,8 @@ mod tests {
     /// Every day of 1900–2100 round-trips under both rules: every day in a
     /// release build, spread over the machine's threads; in a debug build
     /// every 101st day and every 1 Muḥarram with the day before it
-    /// (docs/policy.md §7).
+    /// (docs/policy.md §7); in a build instrumented for coverage a third as
+    /// many of the days and the 1 Muḥarram of every seventh year.
     #[test]
     fn every_day_of_1900_to_2100_round_trips_under_both_rules() {
         use crate::islamic_observational::{FIRST_YEAR, LAST_YEAR};
@@ -803,6 +804,7 @@ mod tests {
                 // the month back, asking the same evenings again.
                 hc_core::memo::scope(|| {
                     (FIRST_YEAR..=LAST_YEAR)
+                        .step_by(hc_core::sweep::year_step())
                         .filter_map(|year| calendar.compose(year, 1, 1).ok())
                         .map(|day| day.0)
                         .collect()
@@ -811,9 +813,10 @@ mod tests {
                 alloc::vec::Vec::new()
             };
             // Every year's 1 Muḥarram but the first's, which falls before
-            // 1900, is in the sample.
+            // 1900, is in the sample, or every seventh year's.
             if cfg!(debug_assertions) {
-                assert_eq!(openings.len(), (LAST_YEAR - FIRST_YEAR) as usize);
+                let years = (FIRST_YEAR..=LAST_YEAR).step_by(hc_core::sweep::year_step());
+                assert_eq!(openings.len(), years.count() - 1);
             }
             let mut days: alloc::vec::Vec<i64> =
                 crate::sweep_days(EARLIEST.0, LATEST.0, 101, openings.iter().copied())

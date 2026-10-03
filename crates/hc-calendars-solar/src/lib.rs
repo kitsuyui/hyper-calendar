@@ -65,7 +65,9 @@
 extern crate alloc;
 
 /// How far apart the days of a day-by-day sweep in this crate's tests are:
-/// every day in a release build, every `sampled`th in a debug build.
+/// every day in a release build, every `sampled`th in a debug build, and
+/// about a third as many of those in a build instrumented for coverage
+/// (`hc_core::sweep::thinned`).
 ///
 /// The full sweeps take minutes under the coverage job's instrumentation,
 /// so a debug or coverage run takes a fixed, deterministic sample of them
@@ -73,7 +75,11 @@ extern crate alloc;
 /// are checked in full either way (docs/policy.md §7).
 #[cfg(test)]
 pub(crate) const fn sweep_stride(sampled: usize) -> usize {
-    if cfg!(debug_assertions) { sampled } else { 1 }
+    if cfg!(debug_assertions) {
+        hc_core::sweep::thinned(sampled)
+    } else {
+        1
+    }
 }
 
 /// The days of a day-by-day sweep over `first..=last` in this crate's
