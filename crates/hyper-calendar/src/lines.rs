@@ -83,11 +83,7 @@ pub const MAX_CALENDAR_UNITS: usize = 100_000;
 /// a tag that does not parse.
 #[must_use]
 pub fn requested_locale(tag: &str) -> Option<Locale> {
-    if tag == NATIVE {
-        None
-    } else {
-        Some(Locale::parse(tag).unwrap_or(Locale::ROOT))
-    }
+    Locale::requested(tag)
 }
 
 /// The locale a calendar is rendered in for a tag.
@@ -841,6 +837,16 @@ mod tests {
     /// What `describe_day` writes for a calendar, `parse_date` reads back:
     /// the same cells, and the fixed day after them; a text that is not
     /// one day is a line with the refusal's code and name.
+    /// The word that asks for no locale in particular is one word in the
+    /// library and in the boundary's two constants.
+    #[test]
+    fn the_native_tag_is_one_word_across_the_library() {
+        assert_eq!(NATIVE, Locale::NATIVE_TAG);
+        assert_eq!(crate::boundary::NATIVE, Locale::NATIVE_TAG);
+        assert_eq!(requested_locale(NATIVE), None);
+    }
+
+    #[cfg(feature = "regional")]
     #[test]
     fn a_described_date_reads_back_as_its_line() {
         let today = day(2026, 9, 28);

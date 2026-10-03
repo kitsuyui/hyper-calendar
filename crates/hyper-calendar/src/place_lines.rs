@@ -21,17 +21,6 @@ use crate::boundary::{Answer, Line, Refusal};
 /// [`place_name`] has.
 pub const PLACE_COLUMNS: usize = 6;
 
-/// The locale a tag asks for: `None` for `native`, which names no one
-/// locale and asks for English, and the root locale, which reaches
-/// English too, for a tag that does not parse.
-fn requested_locale(tag: &str) -> Option<Locale> {
-    if tag == "native" {
-        None
-    } else {
-        Some(Locale::parse(tag).unwrap_or(Locale::ROOT))
-    }
-}
-
 /// The status cell of a municipality's line: not a CLDR code, so none of
 /// CLDR's validity statuses.
 const MUNICIPAL: &str = "municipal";
@@ -74,7 +63,7 @@ fn push_lines(
     locale: &str,
     mut municipal: core::iter::Peekable<impl Iterator<Item = &'static str>>,
 ) {
-    let requested = requested_locale(locale);
+    let requested = Locale::requested(locale);
     for NamedPlace {
         place,
         name,
@@ -174,7 +163,7 @@ pub fn place_name(code: &str, locale: &str) -> Answer<String> {
         );
     } else {
         let code = municipal_names::code_of(code).ok_or(Refusal::Unknown)?;
-        push_municipal(&mut out, code, requested_locale(locale).as_ref());
+        push_municipal(&mut out, code, Locale::requested(locale).as_ref());
     }
     Ok(out)
 }

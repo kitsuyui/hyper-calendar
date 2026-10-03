@@ -29,7 +29,7 @@ use hc_tz::UtcOffset;
 
 use crate::error::{ErrorKind, FormatError, FormatResult, ParseResult};
 use crate::scan::Scanner;
-use crate::value::{OffsetDateTime, ZoneInfo, write_fixed};
+use crate::value::{OffsetDateTime, ZoneInfo, check_leap_second, leap_second_error, write_fixed};
 
 /// The month abbreviations RFC 5322 defines. They are English and fixed, and
 /// no locale may change them: a `Date:` header is protocol, not prose.
@@ -139,8 +139,10 @@ pub fn parse(text: &str) -> ParseResult<OffsetDateTime> {
         .map_err(|_| Scanner::error_at(ErrorKind::OutOfRange("date"), day_start))?;
     let time = civil_time(hour, minute, second)
         .ok_or_else(|| Scanner::error_at(ErrorKind::OutOfRange("time"), hour_start))?;
+    let local = CivilDateTime::new(day_number, time);
+    check_leap_second(local, zone).map_err(|error| leap_second_error(error, hour_start))?;
     Ok(OffsetDateTime {
-        local: CivilDateTime::new(day_number, time),
+        local,
         zone,
         written_as_end_of_day: false,
     })
@@ -159,8 +161,9 @@ fn civil_time(hour: u8, minute: u8, second: u8) -> Option<CivilTime> {
 ///
 /// # Errors
 ///
-/// [`FormatError::Unrepresentable`] when the value carries no zone or its
-/// year is outside `0000..=9999`, and [`FormatError::Sink`] when the sink
+/// [`FormatError::Unrepresentable`] when the value carries no zone, its
+/// year is outside `0000..=9999`, or its offset has seconds, which the
+/// zone's `+hhmm` has no digits for, and [`FormatError::Sink`] when the sink
 /// refuses.
 pub fn write<W: fmt::Write>(out: &mut W, value: OffsetDateTime) -> FormatResult<()> {
     let (year, month, day) = gregorian::from_fixed(value.local.day)
@@ -245,6 +248,12 @@ fn write_zone<W: fmt::Write>(out: &mut W, zone: ZoneInfo) -> FormatResult<()> {
         ZoneInfo::Zulu => UtcOffset::UTC,
         ZoneInfo::Offset(offset) => offset,
     };
+    // RFC 5322 §3.3's zone is `+hhmm`: it has no digits for seconds.
+    if offset.abs_seconds() != 0 {
+        return Err(FormatError::Unrepresentable(
+            "an RFC 5322 offset with seconds",
+        ));
+    }
     out.write_char(if offset.is_negative() { '-' } else { '+' })?;
     write_fixed(out, u64::from(offset.abs_hours()), 2)?;
     write_fixed(out, u64::from(offset.abs_minutes()), 2)?;
@@ -364,6 +373,25 @@ mod tests {
         let mut out = String::new();
         write(&mut out, value).unwrap();
         out
+    }
+
+    #[test]
+    fn a_second_60_is_read_only_on_a_day_that_ended_in_a_leap_second() {
+        // 2015-06-30 ended in a leap second and 2015-12-31 did not
+        // (`hc_core::leap`, from the IANA `leap-seconds.list`).
+        assert!(parse("30 Jun 2015 23:59:60 +0000").is_ok());
+        assert!(parse("30 Jun 2015 23:59:60 GMT").is_ok());
+        for text in [
+            "31 Dec 2015 23:59:60 +0000",
+            "30 Jun 2015 23:59:60 +0100",
+            "30 Jun 2015 23:59:60 EST",
+        ] {
+            assert_eq!(
+                parse(text).unwrap_err().kind(),
+                ErrorKind::Invalid("a leap second that UTC did not insert"),
+                "{text}"
+            );
+        }
     }
 
     #[test]

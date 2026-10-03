@@ -458,6 +458,90 @@ fn the_twin_check_catches_a_missing_twin_and_a_stale_row() {
     assert!(!twin_table_problems(&wasm, &ffi, &[bare]).is_empty());
 }
 
+/// The twins that sit in another layer on the two surfaces, each with its
+/// reason: the WebAssembly module's `civil` layer is the one a page paints
+/// with, and its size is measured, so the 128-bit arithmetic of the TAI
+/// bridge is in `timestamps`; the C library's `civil` feature is its default
+/// and carries them.
+const LAYER_DIFFERENCES: &[(&str, &str, &str)] = &[
+    ("hc_tai_from_unix", "timestamps", "civil"),
+    ("hc_utc_from_tai", "timestamps", "civil"),
+];
+
+/// The twins whose features differ, and are not in [`LAYER_DIFFERENCES`] with
+/// the features they differ by, and the entries of [`LAYER_DIFFERENCES`]
+/// that no longer differ.
+fn layer_problems(wasm: &[Export], ffi: &[Export], allowed: &[(&str, &str, &str)]) -> Vec<String> {
+    let mut problems = Vec::new();
+    for export in wasm {
+        let Some(twin) = ffi.iter().find(|other| other.name == export.name) else {
+            continue;
+        };
+        let listed = allowed.iter().find(|(name, _, _)| *name == export.name);
+        match listed {
+            None if export.feature != twin.feature => problems.push(format!(
+                "`{}` is in `{}` in the WebAssembly module and `{}` in the C library",
+                export.name, export.feature, twin.feature
+            )),
+            Some((_, wasm_feature, ffi_feature))
+                if (*wasm_feature, *ffi_feature)
+                    != (export.feature.as_str(), twin.feature.as_str()) =>
+            {
+                problems.push(format!(
+                    "`{}` is allowed to differ as `{wasm_feature}` and `{ffi_feature}`, and is `{}` and `{}`",
+                    export.name, export.feature, twin.feature
+                ));
+            }
+            _ => {}
+        }
+    }
+    for (name, _, _) in allowed {
+        if !wasm.iter().any(|export| export.name == *name) {
+            problems.push(format!(
+                "{name} is in the layer differences and not exported"
+            ));
+        }
+    }
+    problems
+}
+
+#[test]
+fn a_twin_is_in_the_same_layer_on_both_surfaces_or_has_a_reason() {
+    let problems = layer_problems(&exports(Side::Wasm), &exports(Side::C), LAYER_DIFFERENCES);
+    assert!(problems.is_empty(), "{}", problems.join("\n"));
+}
+
+#[test]
+fn the_layer_check_catches_a_difference_and_a_stale_allowance() {
+    let export = |name: &str, feature: &str| Export {
+        name: name.to_owned(),
+        params: Vec::new(),
+        returns: None,
+        docs: Vec::new(),
+        feature: feature.to_owned(),
+        is_unsafe: false,
+    };
+    let wasm = [export("hc_a", "civil"), export("hc_b", "timestamps")];
+    let ffi = [export("hc_a", "civil"), export("hc_b", "civil")];
+    assert!(layer_problems(&wasm, &ffi, &[("hc_b", "timestamps", "civil")]).is_empty());
+    assert_eq!(layer_problems(&wasm, &ffi, &[]).len(), 1);
+    // The allowance names features the twins no longer have.
+    assert_eq!(
+        layer_problems(&wasm, &ffi, &[("hc_b", "civil", "civil")]).len(),
+        1
+    );
+    // An allowance for an export that is gone.
+    assert_eq!(
+        layer_problems(
+            &wasm,
+            &ffi,
+            &[("hc_b", "timestamps", "civil"), ("hc_z", "civil", "civil")]
+        )
+        .len(),
+        1
+    );
+}
+
 /// The text of every Rust file of a boundary crate's tests: `src/tests.rs`
 /// and the files under `src/tests/`.
 fn boundary_tests(crate_dir: &str) -> String {
@@ -475,23 +559,57 @@ fn boundary_tests(crate_dir: &str) -> String {
     text
 }
 
-/// Whether `name` occurs in `text` as a whole identifier.
-fn names_identifier(text: &str, name: &str) -> bool {
-    let word = |byte: u8| byte.is_ascii_alphanumeric() || byte == b'_';
+/// `text` with its comments and its string literals blanked, so that a
+/// name written only in a comment or in a message is not a call.
+fn code_only(text: &str) -> String {
     let bytes = text.as_bytes();
-    text.match_indices(name).any(|(at, _)| {
+    let mut out = String::with_capacity(text.len());
+    let mut at = 0;
+    while at < bytes.len() {
+        let rest = &text[at..];
+        if rest.starts_with("//") {
+            let end = rest.find('\n').unwrap_or(rest.len());
+            at += end;
+        } else if rest.starts_with("/*") {
+            let end = rest.find("*/").map_or(rest.len(), |end| end + 2);
+            at += end;
+        } else if bytes[at] == b'"' {
+            at += 1;
+            while at < bytes.len() && bytes[at] != b'"' {
+                at += if bytes[at] == b'\\' { 2 } else { 1 };
+            }
+            at += 1;
+            out.push(' ');
+        } else {
+            let Some(character) = rest.chars().next() else {
+                break;
+            };
+            out.push(character);
+            at += character.len_utf8();
+        }
+    }
+    out
+}
+
+/// Whether `text` calls `name`: the whole identifier followed by an opening
+/// parenthesis, in code, not in a comment or a string.
+fn calls_function(text: &str, name: &str) -> bool {
+    let word = |byte: u8| byte.is_ascii_alphanumeric() || byte == b'_';
+    let code = code_only(text);
+    let bytes = code.as_bytes();
+    code.match_indices(name).any(|(at, _)| {
         let before = at == 0 || !word(bytes[at - 1]);
-        let after = bytes.get(at + name.len()).is_none_or(|byte| !word(*byte));
-        before && after
+        let rest = code[at + name.len()..].trim_start();
+        before && rest.starts_with('(')
     })
 }
 
-/// The exports no test of the boundary crate names.
+/// The exports no test of the boundary crate calls.
 fn unnamed_exports(side: Side, crate_dir: &str) -> Vec<String> {
     let tests = boundary_tests(crate_dir);
     exports(side)
         .into_iter()
-        .filter(|export| !names_identifier(&tests, &export.name))
+        .filter(|export| !calls_function(&tests, &export.name))
         .map(|export| export.name)
         .collect()
 }
@@ -512,12 +630,21 @@ fn every_export_is_named_by_a_test_of_its_boundary() {
 }
 
 #[test]
-fn the_identifier_check_matches_whole_names_only() {
-    assert!(names_identifier("hc_a(1)", "hc_a"));
-    assert!(names_identifier("x = hc_a;", "hc_a"));
-    assert!(!names_identifier("hc_a_b(1)", "hc_a"));
-    assert!(!names_identifier("my_hc_a(1)", "hc_a"));
-    assert!(names_identifier("hc_a_b(1) hc_a", "hc_a"));
+fn the_call_check_matches_whole_names_called_in_code_only() {
+    assert!(calls_function("hc_a(1)", "hc_a"));
+    assert!(calls_function("unsafe { hc_a (1) }", "hc_a"));
+    assert!(calls_function("hc_a_b(1) hc_a(2)", "hc_a"));
+    assert!(!calls_function("hc_a_b(1)", "hc_a"));
+    assert!(!calls_function("my_hc_a(1)", "hc_a"));
+    // Named but not called.
+    assert!(!calls_function("x = hc_a;", "hc_a"));
+    // In a comment or in a string.
+    assert!(!calls_function("// hc_a(1)\nlet x = 1;", "hc_a"));
+    assert!(!calls_function("/* hc_a(1) */ let x = 1;", "hc_a"));
+    assert!(!calls_function("/// hc_a(1) is checked\nfn f() {}", "hc_a"));
+    assert!(!calls_function(r#"assert!(x, "hc_a(1)")"#, "hc_a"));
+    assert!(!calls_function(r#"let s = "say \"hc_a(1)\"";"#, "hc_a"));
+    assert!(calls_function("let s = \"x\"; hc_a(1);", "hc_a"));
 }
 
 /// The rows of the ranges table after `heading`: the names in each row's

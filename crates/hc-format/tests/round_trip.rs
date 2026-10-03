@@ -585,7 +585,8 @@ fn rfc_3339_round_trips_over_the_whole_posix_range_it_can_express() {
         let day = 693_596 + generator.below(120_000) as i64; // 1900-01-01 onwards
         let (year, month, dom) = gregorian::from_fixed(Rd(day)).unwrap();
         let seconds = generator.below(86_400) as u32;
-        let offset_quarters = generator.below(50 * 4 + 1) as i32 - 25 * 4;
+        // RFC 3339's `time-numoffset` has an hour of 00 through 23.
+        let offset_quarters = generator.below(2 * 95 + 1) as i32 - 95;
         let zone = match generator.below(3) {
             0 => ZoneInfo::Zulu,
             1 => ZoneInfo::UnknownLocalOffset,

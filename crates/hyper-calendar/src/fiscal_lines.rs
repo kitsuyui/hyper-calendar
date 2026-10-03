@@ -162,6 +162,16 @@ fn selected(country: &str, kind: &str) -> Answer<alloc::vec::Vec<Entry>> {
         .iter()
         .any(|entry| hc_core::catalogue::matches(country, entry.code))
     {
+        // A country whose table needs the `indic` feature is carried by the
+        // crate and not built here: no data, where a code no table has is
+        // unknown.
+        if cfg!(not(feature = "indic"))
+            && countries::NEEDS_INDIC
+                .iter()
+                .any(|code| hc_core::catalogue::matches(country, code))
+        {
+            return Err(Refusal::NoData);
+        }
         return Err(Refusal::Unknown);
     }
     let chosen: alloc::vec::Vec<Entry> = all
@@ -201,7 +211,8 @@ fn selected(country: &str, kind: &str) -> Answer<alloc::vec::Vec<Entry>> {
 /// Solar Hijri years and Nepal's Bikram Sambat. Nepal is in a build whose
 /// facade has `indic` as well as `fiscal`, since its year starts on 1 Shrawan
 /// of the Bikram Sambat; in a build without it the country is absent, which
-/// [`year_on_lines`] reports as `Refusal::Unknown`.
+/// [`year_on_lines`] and [`year_span_lines`] report as `Refusal::NoData`,
+/// where a code no table has is `Refusal::Unknown`.
 #[must_use]
 pub fn profiles_lines() -> String {
     let mut out = String::new();
@@ -255,7 +266,8 @@ pub fn profiles_lines() -> String {
 ///
 /// [`Refusal::Unknown`] for a country the tables do not carry and a kind that
 /// is not one of the four, [`Refusal::NoData`] for a country that has no
-/// system of the kind asked, and [`Refusal::OutOfRange`] for a fixed day
+/// system of the kind asked, or whose table needs the `indic` feature and the
+/// build has not got it (Nepal's), and [`Refusal::OutOfRange`] for a fixed day
 /// beyond the Gregorian years ±9 999 999.
 pub fn year_on_lines(country: &str, kind: &str, fixed: i64) -> Answer<String> {
     let day = Rd(fixed);
@@ -326,7 +338,8 @@ pub fn year_on_lines(country: &str, kind: &str, fixed: i64) -> Answer<String> {
 ///
 /// [`Refusal::Unknown`] for a country the tables do not carry and a kind that
 /// is not one of the four, [`Refusal::NoData`] for a country that has no
-/// system of the kind asked, and [`Refusal::OutOfRange`] for a label whose
+/// system of the kind asked or whose table needs the `indic` feature and the
+/// build has not got it (Nepal's), and [`Refusal::OutOfRange`] for a label whose
 /// year is not one an `i64` of days reaches.
 pub fn year_span_lines(country: &str, kind: &str, label: i64) -> Answer<String> {
     let mut out = String::new();
@@ -604,6 +617,20 @@ mod tests {
         assert!(table.iter().any(|row| row[4] == "in-force"), "{table:?}");
         assert_eq!(year_on_lines("XX", "", 0), Err(Refusal::Unknown));
         assert_eq!(year_on_lines("JP", "tax-ish", 0), Err(Refusal::Unknown));
+        // Nepal's year starts on 1 Shrawan of the Bikram Sambat, which the
+        // `indic` feature carries: without it the table is not built, which
+        // is no data, and not a code no table has.
+        if cfg!(feature = "indic") {
+            assert!(year_on_lines("NP", "", fixed(2026, 9, 28)).is_ok());
+            assert!(year_span_lines("np", "", 2083).is_ok());
+        } else {
+            assert_eq!(
+                year_on_lines("NP", "", fixed(2026, 9, 28)),
+                Err(Refusal::NoData)
+            );
+            assert_eq!(year_span_lines("np", "", 2083), Err(Refusal::NoData));
+            assert!(!profiles_lines().lines().any(|row| row.starts_with("NP\t")));
+        }
         assert_eq!(
             year_on_lines("JP", "personal-tax", 739_000),
             Err(Refusal::NoData)

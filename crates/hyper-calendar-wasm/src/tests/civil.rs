@@ -166,24 +166,33 @@ fn every_timestamp_has_a_fixed_day_above_the_floor() {
 fn the_leap_second_question_refuses_a_day_with_no_i64_bounds() {
     // The first whole day of the range, and the part-day before it.
     let first_whole = -9_223_372_036_854_720_000;
-    assert_eq!(hc_day_has_leap_second(first_whole), 0);
-    assert_eq!(hc_day_has_leap_second(first_whole - 1), HC_ERR_OUT_OF_RANGE);
-    assert_eq!(hc_day_has_leap_second(i64::MIN), HC_ERR_OUT_OF_RANGE);
+    assert_eq!(hc_day_has_leap_second(first_whole, 0), 0);
+    assert_eq!(
+        hc_day_has_leap_second(first_whole - 1, 0),
+        HC_ERR_OUT_OF_RANGE
+    );
+    assert_eq!(hc_day_has_leap_second(i64::MIN, 0), HC_ERR_OUT_OF_RANGE);
     // The last day whose end is an i64, and the part-day after it.
     let last_end = 9_223_372_036_854_720_000;
-    assert_eq!(hc_day_has_leap_second(last_end - 1), 0);
-    assert_eq!(hc_day_has_leap_second(last_end), HC_ERR_OUT_OF_RANGE);
-    assert_eq!(hc_day_has_leap_second(i64::MAX), HC_ERR_OUT_OF_RANGE);
+    assert_eq!(hc_day_has_leap_second(last_end - 1, 0), 0);
+    assert_eq!(hc_day_has_leap_second(last_end, 0), HC_ERR_OUT_OF_RANGE);
+    assert_eq!(hc_day_has_leap_second(i64::MAX, 0), HC_ERR_OUT_OF_RANGE);
 }
 
 #[test]
 fn the_leap_second_table_is_reachable() {
     assert_eq!(hc_tai_minus_utc(1_700_000_000, 1), 37);
-    assert_eq!(hc_day_has_leap_second(1_483_142_400), 1);
-    assert_eq!(hc_day_has_leap_second(1_483_228_800), 0);
+    assert_eq!(hc_day_has_leap_second(1_483_142_400, 1), 1);
+    assert_eq!(hc_day_has_leap_second(1_483_228_800, 1), 0);
     // Past the announced table the strict policy refuses.
     assert!(hc_tai_minus_utc(4_000_000_000, 1) <= HC_ERR_FLOOR);
     assert_eq!(hc_tai_minus_utc(4_000_000_000, 0), 37);
+    // 2027-06-30, past the table's validity (2027-06-28), is not announced:
+    // refused under `strict`, and answered no, as the last offset holds, when
+    // it is not.
+    assert_eq!(hc_day_has_leap_second(1_814_313_600, 1), HC_ERR_NO_DATA);
+    assert_eq!(hc_day_has_leap_second(1_814_313_600, 0), 0);
+    assert_eq!(hc_day_has_leap_second(1_814_054_400, 1), 0);
 }
 
 #[test]

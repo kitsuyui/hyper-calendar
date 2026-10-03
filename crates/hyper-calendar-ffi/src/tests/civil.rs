@@ -223,12 +223,23 @@ fn the_leap_second_survives_the_boundary() {
     // 2016-12-31 ends with an inserted second.
     let mut has_leap = 0;
     assert_eq!(
-        unsafe { hc_day_has_leap_second(1_483_142_400, &mut has_leap) },
+        unsafe { hc_day_has_leap_second(1_483_142_400, 1, &mut has_leap) },
         HC_OK
     );
     assert_eq!(has_leap, 1);
     assert_eq!(
-        unsafe { hc_day_has_leap_second(1_483_228_800, &mut has_leap) },
+        unsafe { hc_day_has_leap_second(1_483_228_800, 1, &mut has_leap) },
+        HC_OK
+    );
+    assert_eq!(has_leap, 0);
+    // 2027-06-30 is past the table's validity (2027-06-28): refused under
+    // `strict`, and answered no, as the last offset holds, when it is not.
+    assert_eq!(
+        unsafe { hc_day_has_leap_second(1_814_313_600, 1, &mut has_leap) },
+        HC_ERROR_NO_DATA
+    );
+    assert_eq!(
+        unsafe { hc_day_has_leap_second(1_814_313_600, 0, &mut has_leap) },
         HC_OK
     );
     assert_eq!(has_leap, 0);
@@ -238,7 +249,7 @@ fn the_leap_second_survives_the_boundary() {
 fn the_leap_second_question_refuses_a_day_with_no_int64_bounds() {
     let ask = |unix: i64| {
         let mut has_leap = 7;
-        match unsafe { hc_day_has_leap_second(unix, &mut has_leap) } {
+        match unsafe { hc_day_has_leap_second(unix, 0, &mut has_leap) } {
             HC_OK => Ok(has_leap),
             status => Err(status),
         }

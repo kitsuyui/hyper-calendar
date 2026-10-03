@@ -182,7 +182,18 @@ conversion monotonic and exact on the published segments.
 
 `hc_tai_minus_utc` still answers in whole seconds, as its name and type say,
 the floor in the rate era (9 for 9.89 s); the fraction is in `hc_tai_from_unix`,
-whose TAI second and attoseconds give it to the attosecond.
+whose TAI second and attoseconds give it to the attosecond, and in
+`hc_tai_minus_utc_exact(unix_seconds, attoseconds)`, which writes `TAI − UTC`
+itself as whole seconds and attoseconds (8.000 082 s at POSIX 0, 9.892 241 97 s
+in the last second of 1971). The offset there depends on the attoseconds too,
+by 3·10⁻⁸ s in a second. `hc_utc_from_tai` takes a whole TAI second and
+returns a whole UTC second, so in the rate era it reads the floor and loses
+the fraction: TAI 8 s is 82 µs before POSIX 0, and it reads −1.
+`hc_utc_from_tai_exact(tai_seconds, tai_attoseconds)` writes the POSIX second,
+the attoseconds into it and the leap flag: TAI 8 s is POSIX −1 s and
+999 918 000 002 459 999 attoseconds, and TAI 63 072 008 s is 63 071 998 s and
+107 758 056 767 258 296 attoseconds, the published relation by exact rational
+arithmetic (`scripts/rate-era-pins.py`).
 
 ### The end of the table is a real boundary
 
@@ -191,6 +202,11 @@ Past the announced validity, `LeapPolicy::Strict` returns `AfterModelEnd`.
 `LeapPolicy::Extrapolate` will hold the last value, but the caller has to ask
 for it — because that answer is a forecast, and the difference matters to
 anyone scheduling across the boundary.
+
+`hc_day_has_leap_second` takes the same `strict` flag: past the table's
+validity a day is refused under it, and otherwise answered no, as the last
+offset holds. Before 1961 and through the rate era no day ended in an
+inserted second, and none is refused.
 
 The CGPM resolved in 2022 to stop inserting leap seconds by 2035. That
 changes the table's future, not its past. The table is data, so a change in

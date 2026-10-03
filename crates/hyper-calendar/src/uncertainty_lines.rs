@@ -49,9 +49,6 @@ pub const UNCERTAIN_OP_COLUMNS: usize = 5;
 /// How many columns a line of [`interval_line`] has.
 pub const INTERVAL_COLUMNS: usize = 11;
 
-/// The seconds in a day, which EDTF counts days by.
-const SECONDS_PER_DAY: i128 = 86_400;
-
 /// The refusal an error of the library is: text that is not EDTF is
 /// [`Refusal::Malformed`], arithmetic that left the range of the type
 /// [`Refusal::Overflow`], and every other a value out of range.
@@ -102,11 +99,7 @@ const fn fuzzy_id(instant: &FuzzyInstant) -> &'static str {
 /// The fixed day an instant counted in 86 400-second days from the 1970
 /// epoch falls on.
 fn day_of(instant: hc_core::Instant<hc_core::Tai>) -> i128 {
-    instant
-        .since_epoch()
-        .whole_seconds()
-        .div_euclid(SECONDS_PER_DAY)
-        + i128::from(RD_OF_UNIX_EPOCH)
+    instant.since_epoch().days_and_seconds().0 + i128::from(RD_OF_UNIX_EPOCH)
 }
 
 /// The cells every part of an EDTF value shares, from the third: its text,
@@ -262,7 +255,7 @@ pub fn edtf_lines(text: &str) -> Answer<String> {
         .value_or_empty(last)
         .cell(fuzzy_id(&support))
         .value_or_empty(estimate.map(|instant| instant.since_epoch().whole_seconds()))
-        .value_or_empty(span.map(|width| width.whole_seconds() / SECONDS_PER_DAY));
+        .value_or_empty(span.map(|width| width.days_and_seconds().0));
     line.end();
     match &value {
         EdtfValue::Interval { start, end } => {

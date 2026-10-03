@@ -269,6 +269,20 @@ pub fn tai_minus_utc_at(unix_seconds: i64, policy: LeapPolicy) -> TimeResult<Dur
     offset_at(unix_seconds, 0, policy)
 }
 
+/// `TAI - UTC` at a POSIX instant, with its sub-second part.
+///
+/// From 1972 this is [`tai_minus_utc_at`]. From 1961 to 1971 the offset
+/// moves by 1.5·10⁻⁸ s in a second or less (see [`leap::RATE_ERA`]), so it
+/// is a function of the attoseconds too, and the whole-second form reads it
+/// at the start of the second.
+///
+/// # Errors
+///
+/// See [`tai_minus_utc_at`].
+pub fn tai_minus_utc_at_instant(unix: UnixTime, policy: LeapPolicy) -> TimeResult<Duration> {
+    offset_at(unix.seconds(), unix.subsec_attos(), policy)
+}
+
 /// Convert a UTC instant to its TAI reading.
 ///
 /// # Errors
@@ -409,6 +423,36 @@ mod tests {
     fn the_offset_is_ten_seconds_at_the_start_of_the_integer_era() {
         let offset = tai_minus_utc_at(63_072_000, STRICT).unwrap();
         assert_eq!(offset, Duration::from_secs(10));
+    }
+
+    /// The USNO `tai-utc.dat` line in force from 1968-02-01 to 1971-12-31 is
+    /// `4.2131700 s + (MJD − 39126) × 0.002592 s`, which the table of
+    /// `leap::RATE_ERA` carries. 1970-01-01 is MJD 40587: 4.213 17 s +
+    /// 1461 × 0.002 592 s = 8.000 082 s. The drift is 3·10⁻⁸ s in a second, so
+    /// half a second later it is 15 ns more, and the last second of 1971,
+    /// MJD 40587 + 63 071 999/86 400, has 4.213 17 s + 189 302 399 × 3·10⁻⁸ s
+    /// = 9.892 241 97 s.
+    #[test]
+    fn the_offset_in_the_rate_era_depends_on_the_attoseconds() {
+        let at = |seconds, attos| {
+            tai_minus_utc_at_instant(UnixTime::new(seconds, attos).unwrap(), STRICT).unwrap()
+        };
+        assert_eq!(at(0, 0), Duration::from_attos(8_000_082_000_000_000_000));
+        assert_eq!(
+            at(0, 500_000_000_000_000_000),
+            Duration::from_attos(8_000_082_015_000_000_000)
+        );
+        assert_eq!(
+            at(63_071_999, 0),
+            Duration::from_attos(9_892_241_970_000_000_000)
+        );
+        // The whole-second form is the offset at the start of the second.
+        assert_eq!(tai_minus_utc_at(0, STRICT).unwrap(), at(0, 0));
+        // From 1972 it is a whole number of seconds whatever the attoseconds.
+        assert_eq!(
+            at(1_700_000_000, 123_000_000_000_000_000),
+            Duration::from_secs(37)
+        );
     }
 
     #[test]

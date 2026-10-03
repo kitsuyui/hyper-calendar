@@ -69,7 +69,7 @@ renders into its own buffer. `String`-returning conveniences sit behind the
 | Time `14:30:05`, `14:30`, `14` | yes | yes | |
 | Fraction on any component, `14.5`, `14:30,5`, `14:30:05.123456789` | yes | yes | Both the `.` and the `,` decimal mark. |
 | `24:00` end of day | yes | yes | Kept distinct from `00:00` of the next day. |
-| `23:59:60` leap second | yes | yes | Only at `23:59`; see below. |
+| `23:59:60` leap second | yes | yes | Only at `23:59`, in UTC, on a day the leap-second table says ended in an inserted second; see below. |
 | Zone `Z`, `+09`, `+09:00`, `+0900`, `+09:00:00`, `+090000` | yes | yes | |
 | Unqualified local time | yes | yes | Stays unqualified. It is not UTC. |
 | Duration `P3Y6M4DT12H30M5S`, `PT0.5S`, `P1W` | yes | yes | |
@@ -105,10 +105,14 @@ what they are.
   error. Both ends must be complete.
 * **Not carried: `--` as an interval separator.** ISO 8601 permits it where
   `/` cannot be used. Not yet done; `/` is always available here.
-* **Leap seconds outside `23:59`.** A positive leap second is inserted at the
-  end of a UTC day, so `23:59:60Z` is real; the same physical second read in
-  Tokyo is `08:59:60`, which `hc_calendar::CivilTime` cannot hold. Rather
-  than silently shifting it, `hc-format` refuses it and says so.
+* **Leap seconds outside `23:59`, or on a day with none.** A positive leap
+  second is inserted at the end of a UTC day, so `23:59:60Z` is real on the
+  27 days `hc_core::leap` lists, from 1972-06-30 to 2016-12-31; the same
+  physical second read in Tokyo is `08:59:60`, which `hc_calendar::CivilTime`
+  cannot hold. Rather than silently shifting it, `hc-format` refuses it and
+  says so, as it refuses `23:59:60` in any zone but UTC, on a day the table
+  says had none, and, as no one has announced them, on a day past the
+  table's validity.
 * **More than 18 fractional digits.** An attosecond is this library's
   resolution. Truncating further digits would produce a value that no longer
   round-trips, so it is an error instead.
@@ -121,7 +125,8 @@ what they are.
 ## RFC 3339
 
 Stricter than ISO 8601 in every direction: no basic format, no reduced
-accuracy, no expanded years, no `24:00`, a mandatory zone. It is looser in
+accuracy, no expanded years, no `24:00`, no week or ordinal date, an offset
+of an hour 00 to 23 and no seconds, a mandatory zone. It is looser in
 three ways, all of which are honoured: the lowercase `t` and `z`, the space
 separator of §5.6's note, and `-00:00`.
 
@@ -141,7 +146,9 @@ and folding whitespace between every pair of tokens, nested arbitrarily.
 The writer emits none of that: four-digit year, numeric offset, seconds
 always present, day-of-week derived from the date rather than copied from the
 input. `write_imf_fixdate` produces the HTTP `Date` shape with the literal
-`GMT`.
+`GMT`. The zone is `+hhmm`, with no digits for seconds, so an offset with
+seconds, which would write another instant than the one the wall clock
+names, is refused; `iso8601::write` and `rfc3339::write` refuse it too.
 
 ## Patterns
 

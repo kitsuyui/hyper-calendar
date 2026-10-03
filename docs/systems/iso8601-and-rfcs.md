@@ -162,10 +162,11 @@ places. The library's reading is in the last column.
 | The hour 24 | ISO 8601:2004 yes, ISO 8601-1:2019 no, Amd 1:2022 yes; RFC 3339 and the W3C profile no | `24:00` accepted under `Strictness::ISO`, kept apart from `00:00`; refused by `FULL` and `RFC_3339` |
 | Basic format | ISO 8601 yes; RFC 3339 no; W3C no | `ISO` yes; `FULL` and `RFC_3339` no |
 | Reduced accuracy | ISO 8601 yes; W3C `YYYY`, `YYYY-MM` and a time to the minute; RFC 3339 none | `ISO` yes; `FULL` and `RFC_3339` no |
-| Week and ordinal dates | ISO 8601 yes; RFC 3339 "not permitted" [wikipedia-iso-8601] | accepted under all three presets (see Accuracy) |
+| Week and ordinal dates | ISO 8601 yes; RFC 3339 "not permitted" [wikipedia-iso-8601] | `ISO` and `FULL` yes; `RFC_3339` no |
 | Date and time separator | ISO 8601 `T`; RFC 3339 `T`, `t` or, by its note, a space | `ISO` `T` only; `RFC_3339` `T`, `t` or a space |
 | Date and time in one format | ISO 8601 the same format for both; RFC 3339 Appendix A "permits mixtures" | mixtures accepted under all three presets (see Accuracy) |
-| A leap second away from UTC | RFC 3339: shifted by the offset | a second 60 only at `23:59`, in any zone (see Accuracy) |
+| A leap second | RFC 3339: only at the end of a month in which a leap second occurs, shifted by the offset | a second 60 only at `23:59` and in UTC, on a day the leap-second table says ended in an inserted second; in a zone that is not UTC it is refused, and `1990-12-31T15:59:60-08:00` with it (see Accuracy) |
+| The offset | RFC 3339: `+hh:mm`, an hour 00-23, no seconds | `RFC_3339` the same; the ISO presets read an hour above 23 and seconds |
 | A fraction | ISO 8601 no limit, comma or dot; RFC 3339 dot and `1*DIGIT`; W3C leaves the digits to the adopting standard | at most 18 digits, a comma only where the preset allows |
 | The year before 1900 | RFC 5322 "1900 or later"; ISO 8601 `0000`-`1582` by agreement | read with no flag for the agreement: RFC 5322 from 0001, ISO from 0000 |
 | Zone words of an email | RFC 5322: `UT`, `GMT`, the US zones; others `-0000`; `UTC` unlisted | `UTC` read as `+0000`, the rest as the RFC |
@@ -196,7 +197,12 @@ nine hours ahead of UTC.
   themselves.
 - The leap second: `1990-12-31T23:59:60Z`, from RFC 3339 §5.8, parses and
   its POSIX timestamp is 662,688,000, the same as `1991-01-01T00:00:00Z`,
-  because POSIX time has no second 60.
+  because POSIX time has no second 60. The day is checked against the
+  leap-second table (`hc_core::leap`, from the IANA `leap-seconds.list`
+  [iana-leap-seconds-list]): 1990-12-31 is one of the 27 days that ended in
+  an inserted second, and `2026-09-21T23:59:60Z`, `2016-06-30T23:59:60Z` and
+  `2015-12-31T23:59:60Z` are refused, as is every second 60 after the table's
+  validity, 2027-06-28, which no one has announced.
 - Durations: `P3Y6M4DT12H30M5S` has years and months and refuses to become a
   span; `PT1.5H` is 5,400 s, `P1W` 604,800 s and `PT0.5S` is
   500,000,000,000,000,000 attoseconds. `P0003-06-04T12:30:05` is the same
@@ -293,8 +299,10 @@ Not carried, with the reason each time:
   two examples of `P2M` above, and no rule for a month that is short.
 - More than 18 fractional digits: the library's resolution is an
   attosecond; RFC 3339's `1*DIGIT` and ISO 8601's "no limit" admit more.
-- A leap second away from the end of a UTC day, in a zone with an offset:
-  not yet done. `hc_calendar::CivilTime` holds a second 60 only at 23:59.
+- A leap second read at a zone's wall clock, as RFC 3339 §5.8's
+  `1990-12-31T15:59:60-08:00`: not yet done, and refused. `hc_calendar::CivilTime` holds a
+  second 60 only at 23:59, so a reading the zone shifts to another hour has
+  no value to be.
 - Offsets with hours above 25: RFC 2822 gives the range as -9959 to +9959
   [rfc2822], and RFC 5322 constrains only the last two digits [rfc5322].
   Not yet done; `hc_tz::UtcOffset` stops at 25:59:59.
@@ -317,15 +325,23 @@ The library refuses these, and says what and where:
   the ISO presets; mixing separators inside the date, the time or the week
   date; `24:00` with a non-zero part; an hour above 24; a month 13, a 30th of
   February, a day 366 in a common year, a week 53 in a 52-week year, a
-  weekday 8; a leap second outside `23:59`; a second above 60; an offset
-  with minutes or seconds above 59 or beyond 25:59:59.
+  weekday 8; a leap second outside `23:59`, in a zone that is not UTC, on a
+  day the table says did not end in one or past the table; a second above 60;
+  an offset with minutes or seconds above 59 or beyond 25:59:59.
 - Duration components out of order, a second `T`, a fraction on a component
   that is not the last, a number of more than 18 digits, `P` alone, an
   interval of two durations or of more than two parts, a repetition count of
   more than 18 digits or a sign.
 - Under `RFC_3339`: the basic format, the date without a time, a time
   without a zone, the minutes of the time dropped, the hour-only offset, a
-  comma, the hour 24 and an expanded year.
+  comma, the hour 24, an expanded year, a week date or an ordinal date, an
+  offset hour above 23 and seconds in an offset.
+- In writing: an offset with seconds, which ISO 8601's, RFC 3339's and
+  RFC 5322's offsets have no digits for, is refused by `iso8601::write`,
+  `rfc3339::write` and `rfc2822::write` where the wall clock written from
+  the whole offset would read back at another instant; `hc_format_datetime`
+  answers `HC_ERR_OUT_OF_RANGE` for it in every syntax but `python`, whose
+  `isoformat` writes `+05:30:15`.
 - In `rfc2822::parse`: an unknown month name, a day beyond the month, an
   hour above 23, a minute above 59, a second 60 away from 23:59, a year of
   fewer than two or more than nine digits, an offset minute above 59, an
@@ -362,26 +378,17 @@ the four-digit forms of RFC 3339 and RFC 5322 are limited to 0000 to 9999.
   timestamps Python gives for the same instants.
 
 **Departures from the text.** Each is the behaviour of the code against the
-text read. No test asserts the behaviour the text asks for in any of them; `a_leap_second_anywhere_but_midnight_is_refused` asserts
-the present behaviour for a reading in UTC, where it is right.
+text read. The leap second at a zone's wall clock, the first below, is not
+done; the tests that assert the behaviour the text asks for in the others
+are named under Code.
 
-- **RFC 3339 reads week and ordinal dates.** `rfc3339::parse` of
-  `2026-W39-1T14:30:05Z` and of `2026-264T14:30:05Z` returns
-  `2026-09-21T14:30:05Z`. RFC 3339's `full-date` is the calendar date
-  [rfc3339], and [wikipedia-iso-8601] says week numbers and ordinal days are
-  not permitted. The crate README says the profile is stricter "in every
-  direction"; no `Strictness` field refuses them.
-- **RFC 3339 reads offsets the grammar forbids.** The offset hour of §5.6 is
-  00-23. `rfc3339::parse` of `2026-09-21T14:30:05+24:00` and `+25:59` returns
-  a value; `+26:00` is refused only because `hc_tz::UtcOffset` stops at
-  25:59:59.
 - **The leap second is in the wrong place for an offset.** RFC 3339 shifts
-  the leap second by the offset. The parser accepts the second 60 only at
-  `23:59`, in any zone. It therefore refuses §5.8's own
-  `1990-12-31T15:59:60-08:00`, and accepts `1972-06-30T23:59:60+09:00`,
-  which names 15:00:00 UTC, with the leap-second flag set on
-  `to_utc_instant`. The README gives the limit of `CivilTime` as the
-  reason for the refusal, and does not mention the acceptance.
+  the leap second by the offset, so that `1990-12-31T15:59:60-08:00` is the
+  second of `1990-12-31T23:59:60Z`. The parser reads a second 60 only at
+  `23:59` and in UTC, and refuses §5.8's own `1990-12-31T15:59:60-08:00`:
+  `CivilTime` holds the second 60 only there. A second 60 at an offset on any
+  other reading, `1972-06-30T23:59:60+09:00`, which names 14:59:60 UTC and
+  was once read as an inserted second, is refused.
 - **The two formats mix across the date and the time.** The `ISO` preset
   reads `2026-09-21T143005` and `20260921T14:30:05+09:00`.
   [wikipedia-iso-8601] says both must use the same format; RFC 3339
@@ -447,6 +454,10 @@ the present behaviour for a reading in UTC, where it is right.
   range, `-0000` and the obsolete forms. Read as HTML on 2026-10-03.
 - [rfc9110]: Fielding, Nottingham and Reschke (eds.), June 2022, §5.6.7, the
   HTTP date and its two obsolete formats. Read as HTML on 2026-10-03.
+- [iana-leap-seconds-list]: the 27 UTC days that ended in an inserted
+  second, and the table's expiry, 2027-06-28, which `hc_core::leap` carries
+  and the leap second of a text is checked against. The file was read on
+  2026-09-26; see `docs/time-scales.md`.
 - Not read: ISO 8601-1:2019, ISO 8601-1:2019/Amd 1:2022 and ISO 8601-2:2019,
   which ISO sells; every rule of ISO 8601 above is cited from
   [wikipedia-iso-8601] instead. ISO's own overview page of ISO 8601 answered
@@ -466,12 +477,18 @@ The tests that anchor it: in `iso8601.rs`,
 `a_month_accuracy_date_has_no_basic_spelling`,
 `iso_8601_forbids_the_negative_zero_offset`,
 `twenty_four_hundred_survives_a_round_trip`,
-`a_leap_second_anywhere_but_midnight_is_refused` and
+`a_leap_second_anywhere_but_midnight_is_refused`,
+`a_second_60_with_a_zone_is_read_only_on_a_day_that_ended_in_one` and
 `an_hours_only_offset_is_iso_but_not_rfc_3339`; in `rfc3339.rs`,
 `plus_zero_and_minus_zero_name_the_same_instant_and_different_facts`,
-`the_1972_leap_second_parses_and_round_trips` and
+`the_1972_leap_second_parses_and_round_trips`,
+`a_second_60_is_read_only_on_a_day_that_ended_in_a_leap_second`,
+`a_second_60_at_a_non_zero_offset_is_refused`,
+`the_profile_refuses_what_its_grammar_has_no_production_for`,
+`an_offset_with_seconds_has_no_rfc_3339_spelling` and
 `rfc_3339_refuses_the_basic_format`; in `rfc2822.rs`,
 `obsolete_two_digit_years_follow_the_rule_in_section_four_point_three`,
+`a_second_60_is_read_only_on_a_day_that_ended_in_a_leap_second`,
 `an_unrecognised_or_military_zone_means_the_offset_is_unknown` and
 `the_weekday_is_derived_from_the_date_not_copied_from_the_text`; in
 `iso8601/duration.rs`, `a_nominal_duration_refuses_to_become_a_span` and

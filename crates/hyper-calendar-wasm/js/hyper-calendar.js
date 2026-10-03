@@ -69,6 +69,8 @@ export const METHODS = Object.freeze([
   { method: "excel1900Day", export: "hc_excel_1900_day", feature: "timestamps" },
   { method: "taiFromUnix", export: "hc_tai_from_unix", feature: "timestamps" },
   { method: "utcFromTai", export: "hc_utc_from_tai", feature: "timestamps" },
+  { method: "taiMinusUtcExact", export: "hc_tai_minus_utc_exact", feature: "timestamps" },
+  { method: "utcFromTaiExact", export: "hc_utc_from_tai_exact", feature: "timestamps" },
   { method: "tai64PosixPlus10Encode", export: "hc_tai64_posix_plus_10_encode", feature: "timestamps" },
   { method: "tai64PosixPlus10Decode", export: "hc_tai64_posix_plus_10_decode", feature: "timestamps" },
   { method: "uuidTimestamp", export: "hc_uuid_timestamp", feature: "timestamps" },
@@ -551,6 +553,8 @@ export const COLUMNS = Object.freeze({
   approximateDuration: Object.freeze(["phrase", "hedge", "unit", "count", "locale used"]),
   zoneName: Object.freeze(["name", "field", "zone", "offset", "daylight"]),
   utcFromTai: Object.freeze(["unix seconds", "leap second"]),
+  taiMinusUtcExact: Object.freeze(["seconds", "attoseconds"]),
+  utcFromTaiExact: Object.freeze(["unix seconds", "attoseconds", "leap second"]),
   tai64PosixPlus10: Object.freeze(["format", "unix seconds", "attoseconds"]),
   uuidTimestamp: Object.freeze(["version", "timestamp", "unix seconds", "attoseconds"]),
   ntpResolve: Object.freeze(["era", "era offset", "fraction", "unix seconds", "attoseconds"]),
@@ -2758,6 +2762,32 @@ function utcLabel(cells) {
 }
 
 /**
+ * The one line of `hc_tai_minus_utc_exact`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").TaiMinusUtc}
+ */
+function taiMinusUtc(cells) {
+  const [seconds, attoseconds] = cells;
+  return { seconds: bigInteger(seconds, "seconds"), attoseconds: bigInteger(attoseconds, "attoseconds") };
+}
+
+/**
+ * The one line of `hc_utc_from_tai_exact`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").UtcInstantLabel}
+ */
+function utcInstantLabel(cells) {
+  const [unixSeconds, attoseconds, leapSecond] = cells;
+  return {
+    unixSeconds: bigInteger(unixSeconds, "unix seconds"),
+    attoseconds: bigInteger(attoseconds, "attoseconds"),
+    leapSecond: flag(leapSecond, "leap second"),
+  };
+}
+
+/**
  * The one line of `hc_tai64_posix_plus_10_decode`.
  *
  * @param {string[]} cells
@@ -4798,14 +4828,17 @@ export class HyperCalendar {
 
   /**
    * Whether the UTC day containing a POSIX timestamp ends with an inserted
-   * leap second.
+   * leap second. A day past the announced leap-second table has not been
+   * announced: `strict` refuses it with `no-data`, and otherwise the answer
+   * is false, as the last published offset holds.
    *
    * @param {number | bigint} unixSeconds
+   * @param {boolean} [strict]
    * @returns {boolean}
    */
-  dayHasLeapSecond(unixSeconds) {
+  dayHasLeapSecond(unixSeconds, strict = false) {
     const fn = this.#export("hc_day_has_leap_second");
-    return toNumber(fn(toI64(unixSeconds, "unixSeconds")), "hc_day_has_leap_second") === 1;
+    return toNumber(fn(toI64(unixSeconds, "unixSeconds"), strict ? 1 : 0), "hc_day_has_leap_second") === 1;
   }
 
   /**
@@ -4871,6 +4904,49 @@ export class HyperCalendar {
     const seconds = toI64(taiSeconds, "taiSeconds");
     const text = this.#text("hc_utc_from_tai", (buffer, capacity) => fn(seconds, strict ? 1 : 0, buffer, capacity), true);
     return utcLabel(this.#oneLine("hc_utc_from_tai", text, COLUMNS.utcFromTai));
+  }
+
+  /**
+   * `TAI - UTC` at a POSIX instant, exactly: whole seconds and the
+   * attoseconds after them. From 1972 it is a whole number of seconds;
+   * from 1961 to 1971 it is not, and moves by 3·10⁻⁸ s in a second, so the
+   * answer depends on `attoseconds`, where {@link HyperCalendar#taiMinusUtc}
+   * gives the floor at the start of the second. `strict` refuses before
+   * 1961 and past the announced leap-second table with `no-data`.
+   *
+   * @param {number | bigint} unixSeconds
+   * @param {number | bigint} [attoseconds]
+   * @param {boolean} [strict]
+   * @returns {import("./hyper-calendar.d.ts").TaiMinusUtc}
+   */
+  taiMinusUtcExact(unixSeconds, attoseconds = 0, strict = false) {
+    const fn = this.#export("hc_tai_minus_utc_exact");
+    const seconds = toI64(unixSeconds, "unixSeconds");
+    const attos = toU64(attoseconds, "attoseconds");
+    const text = this.#text("hc_tai_minus_utc_exact", (buffer, capacity) => fn(seconds, attos, strict ? 1 : 0, buffer, capacity), true);
+    return taiMinusUtc(this.#oneLine("hc_tai_minus_utc_exact", text, COLUMNS.taiMinusUtcExact));
+  }
+
+  /**
+   * A TAI instant as a UTC label, exactly: the POSIX second, the
+   * attoseconds into it, and whether it is an inserted leap second, named
+   * by the POSIX second after it. From 1961 to 1971 the UTC reading of a
+   * whole TAI second is not a whole second: TAI 8 s is POSIX −1 s and
+   * 0.999 918 s, which {@link HyperCalendar#utcFromTai} reads as −1 and
+   * loses the fraction of. `strict` refuses before 1961 and past the
+   * announced leap-second table with `no-data`.
+   *
+   * @param {number | bigint} taiSeconds
+   * @param {number | bigint} [taiAttoseconds]
+   * @param {boolean} [strict]
+   * @returns {import("./hyper-calendar.d.ts").UtcInstantLabel}
+   */
+  utcFromTaiExact(taiSeconds, taiAttoseconds = 0, strict = false) {
+    const fn = this.#export("hc_utc_from_tai_exact");
+    const seconds = toI64(taiSeconds, "taiSeconds");
+    const attos = toU64(taiAttoseconds, "taiAttoseconds");
+    const text = this.#text("hc_utc_from_tai_exact", (buffer, capacity) => fn(seconds, attos, strict ? 1 : 0, buffer, capacity), true);
+    return utcInstantLabel(this.#oneLine("hc_utc_from_tai_exact", text, COLUMNS.utcFromTaiExact));
   }
 
 
@@ -10163,7 +10239,8 @@ export class HyperCalendar {
    * data`; a fixed day beyond the Gregorian years ±9 999 999 is `out-of-range`.
    *
    * @param {string} country
-   * @param {string} [kind]
+   * @param {string} kind `government`, `personal-tax`, `corporate-default` or `academic`, or
+   *   the empty string for every kind the country has
    * @param {number | bigint} fixed
    * @returns {import("./hyper-calendar.d.ts").FiscalYearOfDay[]}
    */
@@ -10188,7 +10265,8 @@ export class HyperCalendar {
    * country with no system of the kind asked is `no-data`.
    *
    * @param {string} country
-   * @param {string} [kind]
+   * @param {string} kind `government`, `personal-tax`, `corporate-default` or `academic`, or
+   *   the empty string for every kind the country has
    * @param {number | bigint} label
    * @returns {import("./hyper-calendar.d.ts").FiscalYearSpan[]}
    */

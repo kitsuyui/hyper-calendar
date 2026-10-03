@@ -97,20 +97,6 @@ pub fn almanac_cycles_line(fixed: i64, meridian_name: &str) -> Answer<String> {
 /// How many columns [`almanac_day_lines`] writes.
 pub const ALMANAC_DAY_COLUMNS: usize = 8;
 
-/// The tag that asks for no locale in particular, which for the almanac
-/// is its own language, Japanese.
-const NATIVE: &str = "native";
-
-/// The locale a tag asks for: `None` for [`NATIVE`], the root locale for a
-/// tag that does not parse.
-fn requested_locale(tag: &str) -> Option<Locale> {
-    if tag == NATIVE {
-        None
-    } else {
-        Some(Locale::parse(tag).unwrap_or(Locale::ROOT))
-    }
-}
-
 /// One line: the kind and identifier, the name in the locale and the tag
 /// that answered, the almanac's own Japanese name, the Hepburn reading,
 /// whether the almanac counts the day auspicious, and whether it prints
@@ -196,7 +182,7 @@ fn push_star(out: &mut String, kind: &str, star: NineStar, locale: Option<&Local
 pub fn almanac_day_lines(fixed: i64, meridian_name: &str, locale: &str) -> Answer<String> {
     let meridian = meridian(meridian_name)?;
     let day = day_in_era(fixed)?;
-    let requested = requested_locale(locale);
+    let requested = Locale::requested(locale);
     let locale = requested.as_ref();
     let notes = day_notes(day, meridian);
     let mut out = String::new();

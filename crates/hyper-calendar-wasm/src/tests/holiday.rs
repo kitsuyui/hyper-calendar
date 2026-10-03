@@ -689,25 +689,36 @@ fn beyond(
     buffer: *mut u8,
     capacity: usize,
 ) -> i64 {
-    let call = if forward {
-        hc_holiday_next
-    } else {
-        hc_holiday_previous
-    };
     unsafe {
-        call(
-            code.as_ptr(),
-            code.len(),
-            region.as_ptr(),
-            region.len(),
-            core::ptr::null(),
-            0,
-            kind.as_ptr(),
-            kind.len(),
-            fixed,
-            buffer,
-            capacity,
-        )
+        if forward {
+            hc_holiday_next(
+                code.as_ptr(),
+                code.len(),
+                region.as_ptr(),
+                region.len(),
+                core::ptr::null(),
+                0,
+                kind.as_ptr(),
+                kind.len(),
+                fixed,
+                buffer,
+                capacity,
+            )
+        } else {
+            hc_holiday_previous(
+                code.as_ptr(),
+                code.len(),
+                region.as_ptr(),
+                region.len(),
+                core::ptr::null(),
+                0,
+                kind.as_ptr(),
+                kind.len(),
+                fixed,
+                buffer,
+                capacity,
+            )
+        }
     }
 }
 

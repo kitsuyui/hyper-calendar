@@ -3249,6 +3249,18 @@ pub fn is_region_code(code: &str) -> bool {
         && parts.next().is_none()
 }
 
+/// ISO 3166-2 subdivisions that Unicode CLDR 48's list of subdivisions
+/// (`common/validity/subdivision.xml`) does not hold: the six outlying areas
+/// of the United States, which ISO 3166-2:US lists beside the states and the
+/// District of Columbia [wikipedia-iso-3166-2-us]. A facade that tells a
+/// subdivision no table has read, which is a gap, from a code that names no
+/// subdivision, which is refused, knows these as subdivisions too. This is
+/// not a list of every code ISO 3166-2 has and CLDR lacks: the ISO list
+/// itself, whose Online Browsing Platform needs a script, was not read, and
+/// only the United States' page was.
+pub const ISO_SUBDIVISIONS_BEYOND_CLDR: [&str; 6] =
+    ["US-AS", "US-GU", "US-MP", "US-PR", "US-UM", "US-VI"];
+
 /// Whether the region `code` is `scoped` or lies within it: the same code,
 /// matched as every identifier is, or a municipality of that subdivision
 /// ([`region_parent`]).

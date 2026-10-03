@@ -262,6 +262,8 @@ test("the time-scale lines read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.taiInstant], COLUMNS.tai64.slice(1));
   assert.deepEqual([...COLUMNS.utcFromTai], columnsAfter("### The TAI–UTC bridge"));
   assert.match(README, /`hc_tai_from_unix` writes one line of two cells, the TAI\s+seconds and the attoseconds/);
+  assert.deepEqual([...COLUMNS.taiMinusUtcExact], columnsAfter("### The exact bridge"));
+  assert.deepEqual([...COLUMNS.utcFromTaiExact], columnsAfter("`hc_utc_from_tai_exact` writes one line of three:"));
   assert.deepEqual([...COLUMNS.tai64PosixPlus10], columnsAfter("### TAI64 labels on a POSIX clock"));
   assert.deepEqual([...COLUMNS.uuidTimestamp], columnsAfter("### UUID timestamps"));
   assert.deepEqual([...COLUMNS.ntpResolve], columnsAfter("### NTP eras"));

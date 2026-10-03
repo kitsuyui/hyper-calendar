@@ -97,3 +97,83 @@ test("the embedded declarations carry everything the binding exports", () => {
     assert.ok(embedded.has(name), `hyper-calendar.embedded.d.ts lacks ${name}`);
   }
 });
+
+/**
+ * Every parameter list the declarations write that puts a required
+ * parameter after an optional one: TypeScript's error 1016, which a consumer
+ * who compiles the declarations without `skipLibCheck` meets. A list is the
+ * text between a `(` and its `)` whose top-level, comma-separated pieces are
+ * all `name: type` or `name?: type`, so that a parenthesised type is not
+ * read as one; a rest parameter ends the check.
+ *
+ * `tsc` is not run: it is not a dependency of this repository, and nothing
+ * here may fetch one. This is the rule it applies, held as text.
+ *
+ * @param {string} text
+ * @returns {string[]} the offending parameter lists
+ */
+export function requiredAfterOptional(text) {
+  /** How the character at `at` changes the depth: brackets open and close it, `=>` does not. */
+  const nesting = (source, at) => {
+    const character = source[at];
+    if ("([{<".includes(character)) return 1;
+    if (character === ">" && source[at - 1] === "=") return 0;
+    return ")]}>".includes(character) ? -1 : 0;
+  };
+  const bad = [];
+  const parameter = /^\s*(\.\.\.)?[A-Za-z_$][\w$]*(\?)?\s*:/;
+  for (let open = text.indexOf("("); open >= 0; open = text.indexOf("(", open + 1)) {
+    let close = -1;
+    let depth = 0;
+    for (let at = open; at < text.length; at += 1) {
+      depth += nesting(text, at);
+      if (depth === 0) {
+        close = at;
+        break;
+      }
+    }
+    if (close < 0) continue;
+    const inside = text.slice(open + 1, close);
+    const pieces = [];
+    let piece = "";
+    depth = 0;
+    for (let at = 0; at < inside.length; at += 1) {
+      depth += nesting(inside, at);
+      if (inside[at] === "," && depth === 0) {
+        pieces.push(piece);
+        piece = "";
+      } else {
+        piece += inside[at];
+      }
+    }
+    pieces.push(piece);
+    const listed = pieces.filter((each) => each.trim().length > 0);
+    if (listed.length === 0 || !listed.every((each) => parameter.test(each))) continue;
+    let optional = false;
+    for (const each of listed) {
+      const found = parameter.exec(each);
+      if (found[1]) break;
+      if (found[2]) optional = true;
+      else if (optional) {
+        bad.push(`(${text.slice(open + 1, close).trim()})`);
+        break;
+      }
+    }
+  }
+  return bad;
+}
+
+test("the declarations put no required parameter after an optional one", () => {
+  assert.deepEqual(requiredAfterOptional(TYPES), []);
+  assert.deepEqual(requiredAfterOptional(EMBEDDED), []);
+});
+
+test("the check finds the error it holds the declarations to", () => {
+  assert.deepEqual(requiredAfterOptional("f(country: string, kind?: string, fixed: number | bigint): void;"), [
+    "(country: string, kind?: string, fixed: number | bigint)",
+  ]);
+  assert.deepEqual(requiredAfterOptional("f(a?: string, ...rest: number[]): void; g(a: (string | number)[], b?: (x: number) => void): void;"), []);
+  assert.deepEqual(requiredAfterOptional("f(a: string, b?: string, c?: number): void;"), []);
+  assert.equal(requiredAfterOptional("g(callback: (x?: number, y: string) => void): void;").length, 1);
+  assert.equal(requiredAfterOptional("g(a?: (x: number) => void, b: string): void;").length, 1);
+});

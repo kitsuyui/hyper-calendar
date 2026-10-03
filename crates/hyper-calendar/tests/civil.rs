@@ -6,6 +6,8 @@
 //! oracle rather than a restatement of our own arithmetic, so the anchors
 //! below were produced by running CPython and are quoted as its output.
 
+#![cfg(feature = "civil")]
+
 use hyper_calendar::civil::{Date, DateTime, Time, TimeDelta};
 
 /// `(year, month, day, toordinal(), isoweekday())`, from CPython.

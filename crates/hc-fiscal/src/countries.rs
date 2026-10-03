@@ -1421,6 +1421,12 @@ pub static NEPAL: FiscalProfile = FiscalProfile {
               notices for 2080–2083 BS, for the month lengths, read 2026-10-04",
 };
 
+/// The codes of the countries whose table needs the `indic` feature, whose
+/// calendar dates their year's start: [`ALL`] has them only when it is on.
+/// A caller that asks for one in a build without it can say that the table
+/// exists and is not built, which is not what a code no table has is.
+pub const NEEDS_INDIC: &[&str] = &["NP"];
+
 /// Every country table in this crate, in ISO 3166-1 alpha-2 order.
 pub static ALL: &[&FiscalProfile] = &[
     &ANGOLA,
@@ -1999,6 +2005,13 @@ mod tests {
         }
         // Nepal's profile needs the Bikram Sambat calendar of `indic`.
         assert_eq!(ALL.len(), 60 + usize::from(cfg!(feature = "indic")));
+        for code in NEEDS_INDIC {
+            assert_eq!(
+                ALL.iter().any(|profile| profile.code == *code),
+                cfg!(feature = "indic"),
+                "{code}"
+            );
+        }
     }
 
     #[test]

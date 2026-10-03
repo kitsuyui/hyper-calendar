@@ -75,7 +75,9 @@ out of range is `out-of-range`, never an unrecognised number.
 | seconds | `hc_tai_minus_utc` | every `unix_seconds`; under `strict`, 1961 through the end of the announced leap-second table, and `HC_ERR_NO_DATA` outside it |
 | a byte length | `hc_tai_from_unix` | every `unix_seconds` up to 9 223 372 036 854 775 770, `i64::MAX − 37`: TAI runs ahead of UTC, so a later one has no TAI second an `i64` holds and is `HC_ERR_OUT_OF_RANGE`; under `strict`, 1961 through the end of the announced table, else `HC_ERR_NO_DATA` |
 | a byte length | `hc_utc_from_tai` | every `tai_seconds`; under `strict`, as for `hc_tai_from_unix` |
-| 1 or 0 | `hc_day_has_leap_second` | `unix_seconds` −9 223 372 036 854 720 000 through 9 223 372 036 854 719 999, the whole days of the `i64` range; the part-days at its two ends begin or end where no `i64` reaches, and are `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_tai_minus_utc_exact` | every `unix_seconds`, with `attoseconds` below 10¹⁸ (`HC_ERR_OUT_OF_RANGE` from there); under `strict`, as for `hc_tai_from_unix` |
+| a byte length | `hc_utc_from_tai_exact` | every `tai_seconds`, with `tai_attoseconds` below 10¹⁸ (`HC_ERR_OUT_OF_RANGE` from there); under `strict`, as for `hc_tai_from_unix` |
+| 1 or 0 | `hc_day_has_leap_second` | `unix_seconds` −9 223 372 036 854 720 000 through 9 223 372 036 854 719 999, the whole days of the `i64` range; the part-days at its two ends begin or end where no `i64` reaches, and are `HC_ERR_OUT_OF_RANGE`; under `strict`, a day past the announced leap-second table is `HC_ERR_NO_DATA` |
 | 1 or 0 | `hc_holiday_is_day_off`, `hc_holiday_is_weekend` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERR_OUT_OF_RANGE`, as is a day on which the region's weekend law was not read; for `hc_holiday_is_day_off` a day a gap of the day's year leaves open is `HC_ERR_NO_DATA` |
 | a byte length | `hc_holiday_next`, `hc_holiday_previous` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERR_OUT_OF_RANGE`; the search reaches sixteen years, and a gap that could hide a nearer entry, or no entry of the kinds within the reach, is `HC_ERR_NO_DATA` |
 | a fixed day | `hc_holiday_add_business_days` | `fixed` −3 652 424 999 through 3 652 424 634 and `count` −36 500 through 36 500, a walk that stays in the years −9 999 999 to 9 999 999; any other is `HC_ERR_OUT_OF_RANGE`, as is a walk that reaches a day whose weekend law was not read, a walk that reaches a day a gap leaves open is `HC_ERR_NO_DATA`, and a code that names no table `HC_ERR_UNKNOWN` |
@@ -135,11 +137,11 @@ out of range is `out-of-range`, never an unrecognised number.
 | a byte length | `hc_surya_siddhanta_at`, `hc_barhaspatya_year_at` | `unix_seconds` −159 992 668 800 through 155 590 156 799, the days of Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_barhaspatya_year` | `saka` −3178 through 6821, the expired Śaka years of Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_kumbh_yogas`, `hc_pushkaram_rivers`, `hc_pushkaram_rules` | no `i64` input: the same lines every call |
-| a byte length | `hc_jupiter_stations` | `from_unix_seconds` and `to_unix_seconds` within the years −1000 to 3000, −62 167 219 200 through 93 305 366 399, and no more than a hundred Julian years apart; any other is `HC_ERR_OUT_OF_RANGE`, a `to` not after `from` an empty answer |
+| a byte length | `hc_jupiter_stations` | `from_unix_seconds` −93 724 128 000 through 32 535 215 999 and `to_unix_seconds` up to 32 535 216 000, the span `[from, to)` within the years −1000 to 3000, and no more than a hundred Julian years apart; any other is `HC_ERR_OUT_OF_RANGE`, a `to` not after `from` an empty answer |
 | a byte length | `hc_kumbhs_in_year_by_sky` | `year` −1000 through 3000; any other is `HC_ERR_OUT_OF_RANGE`, and an ayanāṃśa not known `HC_ERR_UNKNOWN` |
 | a byte length | `hc_ayanamsas` | no `i64` input: the same lines every call |
 | a byte length | `hc_tithis_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000, and on `surya-siddhanta` −1 132 604 through 2 519 973, Kali Yuga 1 to 10 000 less the last day, whose morrow's sunrise is read; any other is `HC_ERR_OUT_OF_RANGE`, a place beyond 65° of latitude too on `surya-siddhanta`, and a day or morrow without a sunrise `HC_ERR_NO_DATA` |
-| a byte length | `hc_tithi_at`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor` | `unix_seconds` −62 167 219 200 through 93 305 366 399, the years −1000 to 3000, and on `surya-siddhanta` for `hc_tithi_at` −159 992 668 800 through 155 590 156 799, the days of Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_tithi_at`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000, and on `surya-siddhanta` for `hc_tithi_at` −159 992 668 800 through 155 590 156 799, the days of Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_festival_readings` | no `i64` input: the same lines every call |
 | a byte length | `hc_janmashtami` | `year` 1700 through 2299, the Gregorian years whose Śrāvaṇa lies in the Śaka years 1622 to 2221 of the Rashtriya Panchang's calendar; any other is `HC_ERR_OUT_OF_RANGE`, a reading or an ayanāṃśa not known `HC_ERR_UNKNOWN`, and a place beyond 65° of latitude `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_vaishnava_day`, `hc_vishti_free_span` | `saka_year` 1622 through 2221 and `month` 1 through 12; a tithi outside 1 to 30 is `HC_ERR_INVALID_DATE`, any other year or month, a month the year lacks (Mārgaśīrṣa of Śaka 1885 at the Central Station) included, and a place beyond 65° of latitude, `HC_ERR_OUT_OF_RANGE`, and an ayanāṃśa not known `HC_ERR_UNKNOWN` |
@@ -338,10 +340,11 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `version()` | `hc_version` | a string |
 | `gregorianToFixed(year, month, day)` | `hc_gregorian_to_fixed` | a fixed day number |
 | `gregorianYear(fixed)`, `gregorianMonth(fixed)`, `gregorianDay(fixed)`, `weekday(fixed)`, `dayOfYear(fixed)` | `hc_gregorian_year`, `hc_gregorian_month`, `hc_gregorian_day`, `hc_weekday`, `hc_day_of_year` | a number |
-| `isLeapYear(fixed)`, `dayHasLeapSecond(unixSeconds)` | `hc_is_leap_year`, `hc_day_has_leap_second` | a boolean |
+| `isLeapYear(fixed)`, `dayHasLeapSecond(unixSeconds, strict)` | `hc_is_leap_year`, `hc_day_has_leap_second` | a boolean |
 | `fixedFromUnix(unixSeconds)`, `unixFromFixed(fixed)`, `taiMinusUtc(unixSeconds, strict)` | `hc_fixed_from_unix`, `hc_unix_from_fixed`, `hc_tai_minus_utc` | a number |
 | `formatIsoDate(fixed)`, `parseIsoDate(text)` | `hc_format_iso_date`, `hc_parse_iso_date` | a string; a fixed day number |
 | `taiFromUnix(unixSeconds, strict)`, `utcFromTai(taiSeconds, strict)` | `hc_tai_from_unix`, `hc_utc_from_tai` | a `TaiInstant`; a `UtcLabel` |
+| `taiMinusUtcExact(unixSeconds, attoseconds, strict)`, `utcFromTaiExact(taiSeconds, taiAttoseconds, strict)` | `hc_tai_minus_utc_exact`, `hc_utc_from_tai_exact` | a `TaiMinusUtc`; a `UtcInstantLabel` |
 | `tai64Encode(taiSeconds, attoseconds, format)`, `tai64Decode(hex)` | `hc_tai64_encode`, `hc_tai64_decode` | a string; a `Tai64Label` |
 | `gnssWeek(numbering, taiSeconds, attoseconds)`, `gnssToTai(numbering, week, towSeconds, towAttoseconds)`, `gnssResolveWeek(numbering, broadcast, rule, referenceTaiSeconds)` | `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week` | a `GnssWeek`; a `TaiInstant`; a number |
 | `glonassDate(taiSeconds, attoseconds, strict)` | `hc_glonass_date` | a `GlonassDate` |
@@ -602,15 +605,16 @@ before it loads the holiday tables. CI holds each to that:
 [`scripts/layer-tests.sh`](../../scripts/layer-tests.sh) builds every layer
 [`scripts/layers.sh`](../../scripts/layers.sh) lists for `wasm32` alone,
 and runs this crate's and the C library's tests with that feature alone,
-one job a layer.
+and the facade's own, with the facade features the layer turns on and every
+warning an error, one job a layer.
 
 | Feature | Exports | Brings in | Bytes | Size |
 | --- | --- | --- | ---: | ---: |
 | `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, TAI − UTC and leap seconds | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 39,243 | 38 KiB |
-| `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_uuid_timestamp_encode`, `hc_ntp_encode`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`, `hc_tt_bipm`, `hc_dotnet_ticks_from_unix`, `hc_unix_from_dotnet_ticks`, `hc_six_hour_clock`, `hc_civil_from_six_hour_clock`, `hc_french_decimal_time`, `hc_civil_from_french_decimal_time`: POSIX time to and from TAI, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, Julian and Besselian epochs, TT(BIPM) from a caller's series, .NET ticks, and the Ethiopian and Swahili six-hour clocks | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time`, `epoch_notation`, `tt_bipm` and `dotnet`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` and `east_african_hours` | 125,507 | 123 KiB |
+| `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai_minus_utc_exact`, `hc_utc_from_tai_exact`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_uuid_timestamp_encode`, `hc_ntp_encode`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`, `hc_tt_bipm`, `hc_dotnet_ticks_from_unix`, `hc_unix_from_dotnet_ticks`, `hc_six_hour_clock`, `hc_civil_from_six_hour_clock`, `hc_french_decimal_time`, `hc_civil_from_french_decimal_time`: POSIX time to and from TAI, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, Julian and Besselian epochs, TT(BIPM) from a caller's series, .NET ticks, and the Ethiopian and Swahili six-hour clocks | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time`, `epoch_notation`, `tt_bipm` and `dotnet`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` and `east_african_hours` | 125,507 | 123 KiB |
 | `time-codes` | `hc_ccsds_decode`, `hc_ccsds_encode`, `hc_ccsds_decode_from_epoch`, `hc_ccsds_encode_from_epoch`, `hc_ccsds_ascii_parse`, `hc_ccsds_ascii_format`, `hc_radio_decode`, `hc_radio_encode`, `hc_jjy_call_sign_decode`, `hc_jjy_call_sign_encode`, `hc_irig_decode`, `hc_irig_encode`, `hc_irig_formats`, `hc_irig_frame_start`: the CCSDS time codes, binary and ASCII, the long-wave radio time codes of JJY, DCF77 and WWVB, and the IRIG serial time codes, read and written; a layer of its own so that `timestamps` stays small | nothing beyond `civil`'s crates: `hc-core`'s `ccsds`, `hc-format`'s `ccsds`, `radio` and `irig` | 116,418 | 114 KiB |
-| `calendars` | `hc_describe_day`, `hc_day_extras`, `hc_calendar_units`, `hc_parse_date`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_day_period`, `hc_format_number`, `hc_parse_number`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_gregorian_adoption`, `hc_naming_period_on`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale, and a date written in one read back; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_at`, `hc_nakshatra_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_ioc_olympiad_on`, `hc_babylonian_regnal_year`, `hc_equinox_new_year_margin`, `hc_shmuel_tekufah`, `hc_day_name`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_chinese_age`, `hc_chinese_almanac_solar_terms`, `hc_asian_day`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_rounichi`, `hc_mansion_undertakings`, `hc_almanac_person_days`, `hc_tibetan_almanac_day`, `hc_tibetan_planets`, `hc_bhutanese_winter_solstice`, `hc_tibetan_festival_day`; `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`: the northern year's name, the choghadiya, Panchak, the Kumbh and Pushkaram conditions, the folk days and the night watches, each named in a locale; `hc_tithi_at`, `hc_tithis_of_day`, `hc_ayanamsas`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor`, `hc_festival_readings`, `hc_janmashtami`, `hc_vaishnava_day`, `hc_vishti_free_span`, `hc_rahu_at`, `hc_rahu_ingresses`, `hc_era_new_year`, `hc_era_table`, `hc_olympic_games`, `hc_kumbh_yogas`, `hc_pushkaram_rivers`: the tithi with its span, the repeated and skipped ones, the named ayanāṃśas and a value of one, the Smārta and Vaiṣṇava readings of Janmāṣṭamī, Rāhu and Ketu, and the new years of the Indian eras, the eras of three tables, the Olympic Games, and the Kumbh conditions and the Pushkaram rivers | every `hc-calendars-*` crate, `hc-astro`, `hc-almanac`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 1,549,696 | 1.48 MiB |
-| `holiday` | `hc_holiday_is_day_off`, `hc_holiday_add_business_days`, `hc_holiday_business_days_between`, `hc_holiday_is_weekend`, `hc_holiday_next`, `hc_holiday_previous`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_holiday_groups`, `hc_holidays_on_in`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_roman_1960_office_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 2,443,973 | 2.33 MiB |
+| `calendars` | `hc_describe_day`, `hc_day_extras`, `hc_calendar_units`, `hc_parse_date`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_day_period`, `hc_format_number`, `hc_parse_number`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_gregorian_adoption`, `hc_naming_period_on`, `hc_locale_chain`, `hc_locale_info`, `hc_plural_category`, `hc_names`, `hc_case`, `hc_isolate`, `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_tithi_at`, `hc_tithis_of_day`, `hc_ayanamsas`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor`, `hc_festival_readings`, `hc_janmashtami`, `hc_vaishnava_day`, `hc_vishti_free_span`, `hc_rahu_at`, `hc_rahu_ingresses`, `hc_era_new_year`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_ioc_olympiad_on`, `hc_olympic_games`, `hc_era_table`, `hc_babylonian_regnal_year`, `hc_equinox_new_year_margin`, `hc_shmuel_tekufah`, `hc_day_name`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_chinese_age`, `hc_chinese_almanac_solar_terms`, `hc_hebrew_sabbatical_cycle_year`, `hc_asian_day`, `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_kalam`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_at`, `hc_nakshatra_of_day`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_rounichi`, `hc_mansion_undertakings`, `hc_almanac_person_days`, `hc_tibetan_almanac_day`, `hc_tibetan_planets`, `hc_bhutanese_winter_solstice`, `hc_tibetan_festival_day`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_kumbh_yogas`, `hc_pushkaram_rivers`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale, and a date written in one read back; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_at`, `hc_nakshatra_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_ioc_olympiad_on`, `hc_babylonian_regnal_year`, `hc_equinox_new_year_margin`, `hc_shmuel_tekufah`, `hc_day_name`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_chinese_age`, `hc_chinese_almanac_solar_terms`, `hc_asian_day`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_rounichi`, `hc_mansion_undertakings`, `hc_almanac_person_days`, `hc_tibetan_almanac_day`, `hc_tibetan_planets`, `hc_bhutanese_winter_solstice`, `hc_tibetan_festival_day`; `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`: the northern year's name, the choghadiya, Panchak, the Kumbh and Pushkaram conditions, the folk days and the night watches, each named in a locale; `hc_tithi_at`, `hc_tithis_of_day`, `hc_ayanamsas`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor`, `hc_festival_readings`, `hc_janmashtami`, `hc_vaishnava_day`, `hc_vishti_free_span`, `hc_rahu_at`, `hc_rahu_ingresses`, `hc_era_new_year`, `hc_era_table`, `hc_olympic_games`, `hc_kumbh_yogas`, `hc_pushkaram_rivers`: the tithi with its span, the repeated and skipped ones, the named ayanāṃśas and a value of one, the Smārta and Vaiṣṇava readings of Janmāṣṭamī, Rāhu and Ketu, and the new years of the Indian eras, the eras of three tables, the Olympic Games, and the Kumbh conditions and the Pushkaram rivers | every `hc-calendars-*` crate, `hc-astro`, `hc-almanac`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 1,520,268 | 1.45 MiB |
+| `holiday` | `hc_holiday_is_day_off`, `hc_holiday_add_business_days`, `hc_holiday_business_days_between`, `hc_holiday_is_weekend`, `hc_holiday_next`, `hc_holiday_previous`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_holiday_groups`, `hc_holidays_on_in`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_roman_1960_office_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 2,441,344 | 2.33 MiB |
 | `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day`, `hc_plum_rains`, `hc_pentad_traditions`, `hc_pentad_in_tradition`, `hc_zassetsu_in_year`, `hc_seasonal_days_in_year` | `hc-seasons`, `hc-astro` | 124,575 | 122 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals`, `hc_planck_units`, `hc_bp_convert`, `hc_deep_convert`, `hc_deep_compare` | `hc-deep-time`, `hc-uncertainty` | 197,595 | 193 KiB |
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zone_offset`, `hc_zones`, `hc_zone_location`: the day and the offset by a zone's rules, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` or `zone-names` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 101,054 | 99 KiB |
@@ -682,7 +686,7 @@ not pass CI.
 
 ### Exports
 
-297 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+299 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -700,7 +704,7 @@ not pass CI.
 | `hc_day_of_year(fixed: i64) -> i64` | `civil` | The 1-based day of the year on a fixed day, or an error sentinel. |
 | `hc_is_leap_year(fixed: i64) -> i64` | `civil` | Whether the Gregorian year on a fixed day is a leap year: 1, 0, or an error sentinel. |
 | `hc_fixed_from_unix(unix_seconds: i64) -> i64` | `civil` | The fixed day a POSIX timestamp falls on, in UTC. |
-| `hc_day_has_leap_second(unix_seconds: i64) -> i64` | `civil` | Whether the UTC day containing a POSIX timestamp ends with an inserted leap second: 1, 0, or an error sentinel. |
+| `hc_day_has_leap_second(unix_seconds: i64, strict: i32) -> i64` | `civil` | Whether the UTC day containing a POSIX timestamp ends with an inserted leap second: 1, 0, or an error sentinel. |
 | `hc_unix_from_fixed(fixed: i64) -> i64` | `civil` | The POSIX timestamp of midnight UTC on a fixed day. |
 | `hc_tai64_decode(hex: *const u8, hex_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | A TAI64, TAI64N or TAI64NA label in hexadecimal read back, as one UTF-8 line, returning the byte length written. |
 | `hc_gnss_week(numbering: *const u8, numbering_len: usize, tai_seconds: i64, attoseconds: u64, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The GNSS week and time of week of a TAI instant, as one UTF-8 line, returning the byte length written. |
@@ -718,6 +722,8 @@ not pass CI.
 | `hc_fat_encode(fixed: i64, seconds_of_day: u32, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The FAT date and time words of a fixed day and a time of day, as one UTF-8 line, returning the byte length written. |
 | `hc_epoch_from_tt(notation: *const u8, notation_len: usize, tt_seconds: i64, attoseconds: u64, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The Julian or Besselian epoch of a TT instant, as one UTF-8 line, returning the byte length written. |
 | `hc_tt_from_epoch(notation: *const u8, notation_len: usize, year: f64, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The TT instant of a Julian or Besselian epoch, as one UTF-8 line, returning the byte length written. |
+| `hc_tai_minus_utc_exact(unix_seconds: i64, attoseconds: u64, strict: i32, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | `TAI - UTC` at a POSIX instant, exactly, as one UTF-8 line, returning the byte length written. |
+| `hc_utc_from_tai_exact(tai_seconds: i64, tai_attoseconds: u64, strict: i32, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The UTC label of a TAI instant, exactly, as one UTF-8 line, returning the byte length written. |
 | `hc_tai64_encode(tai_seconds: i64, attoseconds: u64, format: *const u8, format_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | A TAI instant as a TAI64, TAI64N or TAI64NA label in lower-case hexadecimal, as one UTF-8 line, returning the byte length written. |
 | `hc_gnss_resolve_week(numbering: *const u8, numbering_len: usize, broadcast: u32, rule: *const u8, rule_len: usize, reference_tai_seconds: i64) -> i64` | `timestamps` | The full GNSS week a broadcast week names, by a rollover rule and a reference instant, or an error sentinel. |
 | `hc_tai64_posix_plus_10_encode(unix_seconds: i64, attoseconds: u64, format: *const u8, format_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | A POSIX instant as a TAI64 or TAI64N label in the `tai64-posix-plus-10` convention, in lower-case hexadecimal, as one UTF-8 line, returning the byte length written. |
@@ -1016,6 +1022,12 @@ fails when an export has neither a twin of its name nor a row here.
 | The Gregorian date of a fixed day | `hc_gregorian_year`, `hc_gregorian_month`, `hc_gregorian_day` | `hc_gregorian_from_fixed` | A WebAssembly export returns one `i64`, so the three fields are three exports; the C entry point writes all three through out-parameters in one call. |
 | A block of the module's memory | `hc_alloc`, `hc_free` | — | A page has to put text into the module's linear memory before a call can read it. A C caller owns its own memory and passes pointers to it, so the C library allocates nothing. |
 
+Two twins are in another layer on the two surfaces: `hc_tai_from_unix` and
+`hc_utc_from_tai` are in `timestamps` here, whose 128-bit arithmetic would
+grow `civil`, the layer a page paints with, by a sixth, and in `civil` in the
+C library, whose default feature it is. The same test holds every other twin
+to one layer on both.
+
 ## Date-times, durations and intervals
 
 `hc_parse_iso_date` and `hc_format_iso_date` are the `civil` layer's, and
@@ -1033,9 +1045,13 @@ the same day, and RFC 5322's appendix was not (its section for the date
 below could not be confirmed).
 
 A text that is not in the syntax is `HC_ERR_MALFORMED`; a date or a time
-that does not exist, 31 February or `24:00:01`, `HC_ERR_INVALID_DATE`; a value
-the library cannot hold `HC_ERR_OUT_OF_RANGE`; a syntax, form or precision
-not named `HC_ERR_UNKNOWN`. The library will not take an unqualified local
+that does not exist, 31 February or `24:00:01`, `HC_ERR_INVALID_DATE`, as is a
+`23:59:60` in a zone that is not UTC or on a day the leap-second table says did
+not end in an inserted second (the second 60 falls at 23:59:60 UTC, on the 27
+days from 1972-06-30 to 2016-12-31 that ended in one; a reading with no zone
+names no instant and is let through); a value the library cannot hold, and a
+`23:59:60` past the table's validity, whose day no one has announced,
+`HC_ERR_OUT_OF_RANGE`; a syntax, form or precision not named `HC_ERR_UNKNOWN`. The library will not take an unqualified local
 time for UTC: `2026-09-21T14:30:05` is a reading on somebody's wall clock,
 the same text 14 hours apart in Auckland and Honolulu, and the line that
 reads it has no offset and no instant.
@@ -1048,7 +1064,8 @@ capacity)` reads a date-time and writes a *reading* in one line. `syntax` is
 extended, ordinal and week dates, `24:00`, `23:59:60`, a decimal fraction of
 the lowest component); `iso8601-full`, complete extended values with a zone
 only; `rfc3339`, the internet profile, whose lower-case `t` and `z`, space and
-`-00:00` are read; `rfc2822`, email and HTTP dates, obsolete syntax included;
+`-00:00` are read, and which has a calendar date only, an offset hour of 00
+through 23 and no seconds in an offset; `rfc2822`, email and HTTP dates, obsolete syntax included;
 `python`, `datetime.fromisoformat` of Python 3.13, a date alone being
 midnight; and `auto`, which tells an ISO date-time from an email date by its
 letters. A date alone, or one of reduced accuracy, names no reading and is
@@ -1088,7 +1105,11 @@ which a time is truncated, never rounded; RFC 3339 has no `hours` or
 `minutes`, RFC 2822 and HTTP no sub-second digits, Python no `nanoseconds`,
 and a precision a syntax has not is `HC_ERR_UNKNOWN`. An offset beyond
 ±25:59:59, attoseconds of 10¹⁸ or more and, for RFC 3339, RFC 2822 and HTTP,
-a year outside 0000 to 9999 are `HC_ERR_OUT_OF_RANGE`.
+a year outside 0000 to 9999 are `HC_ERR_OUT_OF_RANGE`, and so is an offset
+with seconds in every syntax but `python`: ISO 8601's, RFC 3339's and RFC
+5322's offsets have no digits for them, and the wall clock of the whole offset
+written with the minutes alone would read back at another instant, 15 s off
+for `+05:30:15`. `python` writes `+05:30:15`, as `datetime.isoformat` does.
 
 | # | Column | Holds |
 | --- | --- | --- |
@@ -1399,6 +1420,37 @@ zero.
 table with `HC_ERR_NO_DATA`, as for `hc_tai_minus_utc`. The last second of
 2016 is the anchor: 23:59:59 UTC was TAI + 36 s, so TAI second
 1 483 228 836 is 23:59:60 and writes `1483228800` and `1`.
+
+### The exact bridge
+
+`hc_tai_minus_utc_exact(unix_seconds, attoseconds, strict, buffer,
+capacity)` and `hc_utc_from_tai_exact(tai_seconds, tai_attoseconds, strict,
+buffer, capacity)` are the whole-second `hc_tai_minus_utc` and
+`hc_utc_from_tai` with the fraction kept. From 1972 `TAI − UTC` is a whole
+number of seconds and the two agree. From 1961 to 1971 it is not: it is a
+straight line in time within each of thirteen segments (`docs/time-scales.md`),
+8.000 082 s at POSIX 0 and rising by 3·10⁻⁸ s in a second, so the offset
+depends on the attoseconds, and the UTC reading of a whole TAI second is not a
+whole second. `hc_tai_minus_utc` gives the floor at the start of the second,
+8, and `hc_utc_from_tai` of the whole second 8 reads −1 and loses the fraction;
+`hc_utc_from_tai_exact(8, 0, …)` is the POSIX second −1 and
+999 918 000 002 459 999 attoseconds into it. Both take attoseconds below
+10¹⁸ (`HC_ERR_OUT_OF_RANGE` otherwise) and `strict` as for `hc_tai_from_unix`.
+
+`hc_tai_minus_utc_exact` writes one line of two cells:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | seconds | the whole seconds of `TAI − UTC` |
+| 2 | attoseconds | the attoseconds after them, 0 to 10¹⁸ − 1 |
+
+`hc_utc_from_tai_exact` writes one line of three:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | unix seconds | the POSIX second, or for a leap second the one after it |
+| 2 | attoseconds | the attoseconds into that second, 0 to 10¹⁸ − 1 |
+| 3 | leap second | `1` when the instant is in an inserted `23:59:60`, else `0` |
 
 ### TAI64 labels on a POSIX clock
 
@@ -6853,7 +6905,8 @@ an answer. The authority `unread` is a page read that states the year with the
 instrument that fixes it not read. Nepal is in a build that has the
 `calendars` layer too, since its year starts on 1 Shrawan of the Bikram
 Sambat; in a build without it the country is absent, which
-`hc_fiscal_year_on` reports as `HC_ERR_UNKNOWN`. No label convention is a
+`hc_fiscal_year_on` and `hc_fiscal_year_span` report as `HC_ERR_NO_DATA`,
+where a code no table has is `HC_ERR_UNKNOWN`. No label convention is a
 default: the year is named for the year it starts in, or for the one it ends
 in, and every line says which.
 

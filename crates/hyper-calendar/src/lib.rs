@@ -34,6 +34,7 @@
 //! | `name-days` | [`hc_name_days`] | Name-day lists by authority and edition |
 //! | `tz` | [`hc_tz`] | Time zones |
 //! | `place-names` | [`hc_i18n`]'s `place_names` | Territory and subdivision names |
+//! | `subdivision-codes` | [`hc_i18n`]'s `place_names` | The ISO 3166-2 codes CLDR names, without names; `holiday` has them |
 //! | `humanize` | [`hc_humanize`] | "3 days ago" |
 //! | `holiday` | [`hc_holiday`] | Holidays and observances |
 //! | `uncertainty` | [`hc_uncertainty`] | Significant figures, fuzzy dates, EDTF |

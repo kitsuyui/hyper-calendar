@@ -1112,6 +1112,8 @@ export const COLUMNS: {
   readonly approximateDuration: ReadonlyArray<string>;
   readonly zoneName: ReadonlyArray<string>;
   readonly utcFromTai: ReadonlyArray<string>;
+  readonly taiMinusUtcExact: ReadonlyArray<string>;
+  readonly utcFromTaiExact: ReadonlyArray<string>;
   readonly tai64PosixPlus10: ReadonlyArray<string>;
   readonly uuidTimestamp: ReadonlyArray<string>;
   readonly ntpResolve: ReadonlyArray<string>;
@@ -2448,6 +2450,23 @@ export interface UtcLabel {
   /** The POSIX second; for a leap second, the one after it. */
   unixSeconds: bigint;
   /** Whether the TAI second is an inserted `23:59:60`. */
+  leapSecond: boolean;
+}
+
+/** The one line of `hc_tai_minus_utc_exact`: `TAI - UTC` as whole seconds and the attoseconds after them. */
+export interface TaiMinusUtc {
+  seconds: bigint;
+  /** 0 to 10¹⁸ − 1; not zero from 1961 to 1971, when the offset was not whole. */
+  attoseconds: bigint;
+}
+
+/** The one line of `hc_utc_from_tai_exact`: a TAI instant as a UTC label. */
+export interface UtcInstantLabel {
+  /** The POSIX second; for a leap second, the one after it. */
+  unixSeconds: bigint;
+  /** The attoseconds into the second, 0 to 10¹⁸ − 1. */
+  attoseconds: bigint;
+  /** Whether the instant falls in an inserted `23:59:60`. */
   leapSecond: boolean;
 }
 
@@ -4421,8 +4440,11 @@ export class HyperCalendar {
    * `no-data`; otherwise the last published value holds.
    */
   taiMinusUtc(unixSeconds: number | bigint, strict?: boolean): number;
-  /** `hc_day_has_leap_second`. */
-  dayHasLeapSecond(unixSeconds: number | bigint): boolean;
+  /**
+   * `hc_day_has_leap_second`. A day past the announced leap-second table is
+   * `no-data` under `strict`, and false otherwise.
+   */
+  dayHasLeapSecond(unixSeconds: number | bigint, strict?: boolean): boolean;
   /**
    * `hc_unix_from_fixed`: midnight UTC on a fixed day. A day before
    * −104 165 947 503, whose midnight would read as a sentinel, or after
@@ -4439,6 +4461,17 @@ export class HyperCalendar {
   taiFromUnix(unixSeconds: number | bigint, strict?: boolean): TaiInstant;
   /** `hc_utc_from_tai`: a whole TAI second's POSIX second, and whether it is a leap second. */
   utcFromTai(taiSeconds: number | bigint, strict?: boolean): UtcLabel;
+  /**
+   * `hc_tai_minus_utc_exact`: `TAI - UTC` at a POSIX instant as whole seconds and attoseconds;
+   * not a whole number of seconds from 1961 to 1971. `strict` refuses outside the leap-second
+   * table with `no-data`.
+   */
+  taiMinusUtcExact(unixSeconds: number | bigint, attoseconds?: number | bigint, strict?: boolean): TaiMinusUtc;
+  /**
+   * `hc_utc_from_tai_exact`: a TAI instant's POSIX second, the attoseconds into it, and whether it
+   * is a leap second. `strict` refuses outside the leap-second table with `no-data`.
+   */
+  utcFromTaiExact(taiSeconds: number | bigint, taiAttoseconds?: number | bigint, strict?: boolean): UtcInstantLabel;
   /** `hc_tai64_encode`: the label in lower-case hexadecimal; an unknown format is `unknown`. */
   tai64Encode(taiSeconds: number | bigint, attoseconds: number | bigint, format: Tai64Format): string;
   /** `hc_tai64_decode`; text that is not 16, 24 or 32 hex digits is `malformed`. */
@@ -5176,9 +5209,9 @@ export class HyperCalendar {
   /** `hc_fiscal_profiles`: every fiscal, tax and academic year system the crate carries, country by country. */
   fiscalProfiles(): FiscalSystem[];
   /** `hc_fiscal_year_on`: what the year systems of a country say a fixed day is. */
-  fiscalYearOn(country: string, kind?: string, fixed: number | bigint): FiscalYearOfDay[];
+  fiscalYearOn(country: string, kind: string, fixed: number | bigint): FiscalYearOfDay[];
   /** `hc_fiscal_year_span`: the span of the year a label names in each year system of a country. */
-  fiscalYearSpan(country: string, kind?: string, label: number | bigint): FiscalYearSpan[];
+  fiscalYearSpan(country: string, kind: string, label: number | bigint): FiscalYearSpan[];
   /** `hc_week_year_systems`: every named year of whole weeks. */
   weekYearSystems(): WeekYearSystem[];
   /** `hc_week_year_on`: where a fixed day is in a year of whole weeks. */
