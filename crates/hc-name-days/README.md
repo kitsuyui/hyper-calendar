@@ -185,16 +185,18 @@ Lent, Спасовден on Ascension. That arithmetic is `hc_holiday::computus`
 is not duplicated here; the rules are recorded in `gaps::GREECE` and
 `gaps::BULGARIA` so that nothing is lost until they are carried.
 
-## What this crate deliberately does not do
+## What it does not carry
 
-- **Pick a list.** `in_force` returns every list in force in a year.
-- **Extrapolate an edition.** Outside its validity, an edition is an error.
-- **Invent an authority.** Where nobody publishes the list, the country is
-  a gap.
-- **Translate or transliterate.** Names are the list's spelling in the
-  list's script; a lookup is exact; diminutives are separate entries where
-  the authority prints them and absent where it does not. No `hc-i18n`.
-- **Ship what it may not.** A `Licence` that does not permit
+- **No single list.** `in_force` returns every list in force in a year
+  (policy §5).
+- **No extrapolated edition.** Outside its validity, an edition is an error
+  (policy §4).
+- **No invented authority.** Where nobody publishes the list, the country is
+  a gap (policy §10).
+- **Translation and transliteration are `hc-i18n`'s.** Names are the list's
+  spelling in the list's script; a lookup is exact; diminutives are separate
+  entries where the authority prints them and absent where it does not.
+- **No list its licence does not allow.** A `Licence` that does not permit
   redistribution never reaches a `const`.
 
 ## Accuracy

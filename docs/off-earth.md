@@ -104,9 +104,11 @@ A worldline answers questions such as these:
 - A ship's clock and a planetary clock compared as `Instant`s, with
   `hc-uncertainty` carrying the error through when the inputs are uncertain
 
-### What it is not
+### What it does not carry
 
-It has no general-relativistic field solver, no numerical spacetime, and no
-rotating or charged black holes. The geometry is Schwarzschild's, for a
-non-rotating mass, plus flat-space special relativity. Anything beyond that
-belongs in a physics package.
+Not carried: a general-relativistic field solver, a numerical spacetime, and
+rotating or charged black holes. They are not yet done, and no source for a
+model of any of them has been read. The geometry is Schwarzschild's, for a
+non-rotating mass, plus flat-space special relativity. The roadmap row for
+each is under "Relativistic clocks" in [calendars.md](calendars.md), and the
+system is written up in [systems/relativity.md](systems/relativity.md).

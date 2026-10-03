@@ -36,20 +36,27 @@
 //! assert!((now.orders_of_magnitude_between(planck).unwrap() - 60.9).abs() < 0.1);
 //! ```
 //!
-//! # What this crate deliberately does not do
+//! # What this crate does not carry
 //!
-//! It is not a cosmology solver and not a physics engine. It carries published
-//! values and does arithmetic on them with the error bars intact; computing a
-//! value from a cosmological model is the caller's job.
+//! **Not carried: a cosmology solver.** The crate carries published values
+//! and does arithmetic on them with the error bars intact. The integration
+//! that produced the early cosmic ages was run once, offline, and
+//! [`universe`] documents its inputs and its result; computing a value from
+//! a cosmological model is not yet done.
 //!
-//! It does not calibrate radiocarbon dates. Turning an uncalibrated
-//! radiocarbon age into a calendar year needs IntCal20 and its marine and
-//! southern-hemisphere companions, which are large datasets with their own
-//! release cadence. [`archaeology`] models the *distinction* and refuses the
-//! conversion rather than pretending the two are the same thing.
+//! **Not carried: radiocarbon calibration.** Turning an uncalibrated
+//! radiocarbon age into a calendar year needs the IntCal20 curve and its
+//! marine and southern-hemisphere companions, none of which is carried.
+//! [`archaeology`] models the *distinction* and refuses the conversion
+//! rather than pretending the two are the same thing (policy §4).
 //!
-//! It does not know about calendars. Everything here is a span in SI seconds,
-//! or a count of years before a stated epoch.
+//! **Not carried: the archaeological periods of any region but Southwest
+//! Asia and Europe.** The period table names its region in every entry, and
+//! no other region's sequence has been added yet.
+//!
+//! Calendars are not here either. Everything here is a span in SI seconds,
+//! or a count of years before a stated epoch, and a calendar year becomes a
+//! fixed day in `hc-calendar`.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]

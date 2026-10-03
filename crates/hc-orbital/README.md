@@ -76,13 +76,16 @@ eccentricity.
 - The future half of the span is unmeasured (the 1991 table stops at 1950)
   and is given the past's figures.
 
-## What it deliberately does not do
+## What it does not carry
 
-- **No later solution.** Berger & Loutre 1991 and Laskar et al. 2004 are
-  the successors; the latter is the modern reference and is data by the
-  megabyte. Either would be a second named solution, not a parameter.
-- **No calendar dates.** Insolation is asked for at a solar longitude, not
-  a date; the 365-day mean-anomaly convention Berger's program uses for
-  dates is not a calendar and is left out.
-- **No mid-month tables.** The convention (λ = 0°, 30°, … for March,
-  April, …) is documented and the longitudes are the caller's to pass.
+- **Not carried: a later solution.** Berger & Loutre 1991 and Laskar et al.
+  2004 are the successors; the latter is the modern reference and is
+  distributed as tables of megabytes. Not yet done; either would be a
+  second named solution, not a parameter (policy §5).
+- **Calendar dates are `hc-astro`'s.** Insolation is asked for at a solar
+  longitude, not a date; the 365-day mean-anomaly convention Berger's
+  program uses for dates is not a calendar, and `hc-astro` gives the
+  present-day date of a longitude.
+- **Not carried: mid-month tables.** The convention (λ = 0°, 30°, … for
+  March, April, …) is documented and the longitudes are the caller's to
+  pass; not yet done.

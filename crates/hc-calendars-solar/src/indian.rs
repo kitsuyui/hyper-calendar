@@ -13,7 +13,7 @@
 //! * Chaitra has 30 days, or 31 in those same leap years; Vaisakha to
 //!   Bhadra have 31; Asvina to Phalguna have 30.
 //!
-//! # What this deliberately does not do
+//! # What it does not carry
 //!
 //! This is the *civil* calendar, not the religious one. The many regional
 //! Hindu calendars — lunisolar, with tithis, adhika months and sunrise-based

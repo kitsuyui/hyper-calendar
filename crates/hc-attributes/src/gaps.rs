@@ -1,4 +1,4 @@
-//! What this crate deliberately does not ship, and why.
+//! What this crate does not ship, and why.
 //!
 //! A crate about disputed attributions has to be able to say "there is no
 //! answer" as clearly as it says "here are six". `hc_almanac::rules` does it

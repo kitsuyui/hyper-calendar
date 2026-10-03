@@ -30,7 +30,7 @@
 //!
 //! When parsing, `%E` and `%O` read as the unmodified conversion does.
 //!
-//! # Deliberate gaps
+//! # Gaps
 //!
 //! * `%U` and `%W` fix a date when parsing only together with a year and a
 //!   weekday (`%a`, `%A`, `%u` or `%w`), which is Python's rule; on their

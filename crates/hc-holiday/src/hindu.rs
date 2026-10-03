@@ -27,11 +27,13 @@
 //! which the 2027 list names "Janmashtami (Vaishnav)" and the 2025 list
 //! "Janmashtami" — and the India table carries those lists'
 //! days for the years read, 2025 to 2027 (`dopt-holidays-2025-2027`). No
-//! source read states the Vaiṣṇava rule, and two parting years of one
-//! list are no anchor to fit one to, so it is not registered as a
+//! source read states the Vaiṣṇava rule. `hc_calendars_indic::vaishnava`
+//! computes Śrāvaṇa kṛṣṇa 8 at sunrise, and gives the day each list names
+//! in every year from 2017 to 2027, but it is not yet registered as a
 //! convention of its own (`docs/policy.md` §5). The same lists keep Holī
 //! a day after [`HOLI`] in 2026 and 2027 and Guru Nānak's birthday a day
 //! after [`GURU_NANAK_JAYANTI`] in 2027, by a rule not read either.
+//! `docs/systems/hindu-festivals.md` is the system document.
 //!
 //! # Two Deepavalis
 //!

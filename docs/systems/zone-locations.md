@@ -177,8 +177,8 @@ The root name of step 2 is `root.xml`'s value, else the derived name.
   from `pt`, its parent, rather than from root.
 - **Not carried.** The zones' rules, beyond `hc-tz`'s eighteen built-in
   zones: `hc_zone_location` says where a zone is, not what its clocks
-  read. The `provisional` and `unconfirmed` exemplar cities. The
-  exemplar cities of the regional and added locales of `docs/i18n.md`
+  read. The `provisional` and `unconfirmed` exemplar cities, which CLDR
+  does not stand behind. The exemplar cities of the regional and added locales of `docs/i18n.md`
   (`en-GB`, `mn`, `shi-Latn` and the rest), which reach their parents'
   or English's. The metazone names (`Japan Standard Time`) and CLDR's
   other time zone names and formats are carried with the pattern fields

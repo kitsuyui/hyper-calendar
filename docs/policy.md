@@ -453,7 +453,9 @@ The document says, in six fixed sections:
 
 - what the system is in the world;
 - how it works, with a worked example the reader can follow by hand;
-- what this library carries of it, and what it deliberately does not;
+- what this library carries of it, and what it does not yet carry and why
+  (no source found or read, or not yet done; an exclusion is a design
+  choice only where this document makes it one);
 - how well the implementation agrees with the published reference, and how
   that was measured;
 - where every statement comes from;

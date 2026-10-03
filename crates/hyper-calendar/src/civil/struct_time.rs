@@ -28,6 +28,7 @@
 
 use hc_calendar::{CalendarError, CalendarResult, Rd};
 use hc_calendars_solar::gregorian;
+use hc_core::duration::days_and_seconds;
 
 use super::{Date, DateTime, Time};
 
@@ -103,8 +104,7 @@ impl StructTime {
     ///
     /// [`CalendarError`] when the day is outside the Gregorian range.
     pub fn gmtime(seconds: i64) -> CalendarResult<Self> {
-        let days = seconds.div_euclid(86_400);
-        let of_day = seconds.rem_euclid(86_400);
+        let (days, of_day) = days_and_seconds(seconds);
         let date = Date::from_fixed(Rd(EPOCH
             .checked_add(days)
             .ok_or(CalendarError::Overflow)?))?;

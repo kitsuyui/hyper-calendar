@@ -27,6 +27,7 @@ use core::fmt;
 
 use hc_calendar::{CivilDateTime, CivilTime, Rd, gregorian};
 use hc_core::UnixTime;
+use hc_core::duration::SECONDS_PER_DAY;
 
 pub mod dcf77;
 pub mod jjy;
@@ -316,7 +317,7 @@ fn unix_of(reading: CivilDateTime, offset_hours: i64) -> FrameResult<UnixTime> {
     let seconds = reading
         .day
         .to_unix_days()
-        .checked_mul(86_400)
+        .checked_mul(SECONDS_PER_DAY)
         .and_then(|start| {
             start.checked_add(
                 i64::from(reading.time.hour()) * 3_600 + i64::from(reading.time.minute()) * 60

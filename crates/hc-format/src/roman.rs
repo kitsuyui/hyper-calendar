@@ -48,11 +48,12 @@
 //! disagreement and a silent one, which is the kind policy §5 exists for:
 //! each gets a name rather than one being the default.
 //!
-//! # What this does not do
+//! # What it does not carry
 //!
-//! It does not touch the *republican* calendar before 45 BC, whose
+//! Not carried: the *republican* calendar before 45 BC, whose
 //! intercalations were political and are still disputed. That limit belongs
-//! to the calendar and `hc_calendars_solar::roman` states it.
+//! to the calendar, not to this formatter: `hc_calendars_solar::roman`
+//! states it, and the roadmap lists `roman-republican` as researching.
 
 use core::fmt;
 

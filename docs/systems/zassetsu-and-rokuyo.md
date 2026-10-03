@@ -180,17 +180,36 @@ eighth month [wikipedia-ja-rokuyo].
   a day at a meridian.
 - **`hc_almanac::moon_viewing`**: `mid_autumn_moon` and
   `thirteenth_night`, each for a year at a meridian.
-- **Not carried, deliberately.** The 貞享 reading of 入梅, which took the next
-  壬 day when 芒種 was a 壬 day, and the 1844 reading of 半夏生, the 夏至
-  instant plus two seventy-seconds of the year: each is superseded, and no
-  almanac date from the years they were printed was read to anchor a test.
-  平気, and so every pre-1844 placing of these days. 出梅, which the almanacs
-  did not print. The Chinese and Korean 雜節; China's 三伏 and 數九 are in
-  `san_fu`. The 天保暦's solstice-and-equinox rule, which no numbering
-  satisfies in 2033–34. A 六曜 before 1873 that any almanac printed: the
-  answers there are the modern rule over the 天保暦's rules, continued
-  before 1844.
-  The other 暦注, which are `hc-almanac`'s.
+
+Not carried:
+
+- **The 貞享 reading of 入梅.** It took the next 壬 day when 芒種 was a 壬
+  day, in the almanacs of 1686 to 1739. No almanac date from those years
+  was read to anchor a test, so `classical_nyubai` carries only the 元文五年暦's
+  rule. Not yet done.
+- **The 1844 reading of 半夏生.** The 夏至 instant plus two seventy-seconds
+  of the year, which the 暦Wiki gives for the almanac of 1844
+  [nao-rekiwiki-72ko]. No date from it was read to anchor a test. Not yet
+  done.
+- **平気, and so every pre-1844 placing of these days.** The equal division
+  of the year in time is not carried for the terms either; see
+  [solar-terms-and-pentads.md](solar-terms-and-pentads.md).
+  `hc-calendars-lunar` places the twelve 中気 of each historical Japanese
+  system by it for the months, and no function here takes that. Not yet
+  done.
+- **出梅.** The almanacs did not print it. The Chinese almanac's is
+  `meiyu`'s.
+- **Korea's 雜節, and the Chinese ones beyond 三伏 and 數九.** China's 三伏 and
+  數九 are in `san_fu`. Not yet done.
+- **The 天保暦's solstice-and-equinox rule.** No numbering satisfies it in
+  2033–34, and the calendar carries the 時憲暦 rule, which gives 案1.
+  案2 and 案3 are not carried; each would be a calendar under its own name
+  (policy §5). Not yet done.
+- **A 六曜 before 1873 as an almanac printed it.** No almanac of those
+  years was read. The answers there are the modern rule over the 天保暦's
+  rules, continued before 1844.
+
+The other 暦注 are `hc-almanac`'s.
 
 ## Accuracy
 

@@ -173,24 +173,26 @@ Unit lengths are the Gregorian means used by CLDR and ICU: 365.2425 days per
 year, 31 556 952 s, which divides exactly by 12 and by 4 so that the month
 and quarter means are exact integers too. A day is the nominal 86 400 s.
 
-## What it deliberately does not do
+## What it does not carry
 
 - **It does not format dates or times.** That is `hc-format`. The
   exceptions are `calendar_relative::write_clock_time`, a documented `H:MM`
   convenience so that *yesterday at 15:05* works end to end, with no hour
   cycle and no day period; and `natural::Natural::naturalday`, which hands
   a day to `hc-format`'s `strftime` as Python's `humanize` does.
-- **It does not know what "now" is.** Every entry point takes both ends, or a
-  span, from the caller. A humaniser that read a clock could not be tested.
-- **It does not do calendar arithmetic on months.** A bare span has no
+- **It does not know what "now" is** (policy §13). Every entry point takes
+  both ends, or a span, from the caller. A humaniser that read a clock could
+  not be tested.
+- **A bare span is not anchored to a calendar month.** A span has no
   calendar to anchor a month to, so the default duration component set is
   days, hours, minutes and seconds. Weeks, months and quarters are available
   through `with_units` for callers who know what they are asking for.
-- **It has no compact-notation plural operands** (`c`/`e`), inherited from
-  `hc-i18n`, and no gendered agreement. Weekday phrases avoid agreement by
-  periphrasis where a language inflects the demonstrative — Russian says
-  *понедельник на прошлой неделе* rather than *в прошлый понедельник*,
-  because the latter is wrong for *среда*.
+- **Not carried: compact-notation plural operands (`c`/`e`).** Not yet done,
+  and inherited from `hc-i18n`.
+- **Not carried: gendered agreement.** Not yet done. Weekday phrases avoid
+  agreement by periphrasis where a language inflects the demonstrative —
+  Russian says *понедельник на прошлой неделе* rather than *в прошлый
+  понедельник*, because the latter is wrong for *среда*.
 
 ### Known gaps
 

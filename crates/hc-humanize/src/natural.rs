@@ -1,6 +1,8 @@
 //! The functions of Python's `humanize` package, with its thresholds, its
 //! arithmetic and its phrasing.
 //!
+//! The system is written up in `docs/systems/natural-time.md`.
+//!
 //! The rest of this crate phrases time the way CLDR does. This module
 //! phrases it the way the Python `humanize` package does — *a moment*,
 //! *an hour*, *1 year, 3 months*, *2 days, 1 hour and 33.12 seconds*, *1.2

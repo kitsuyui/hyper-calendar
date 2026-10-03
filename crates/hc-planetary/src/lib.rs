@@ -42,14 +42,14 @@
 //! assert_eq!(moment.mars_year(), 31);
 //! ```
 //!
-//! # What this crate is not
+//! # What this crate does not carry
 //!
-//! It is not an ephemeris and carries no planetary position model beyond
-//! Mars's own orbit. It does not do relativity: a clock on the Moon ticks at a
-//! different rate from one on Earth, and that is `hc-relativity`'s subject,
-//! not this one's. It does not invent standards — where a timekeeping system
-//! has not been agreed, this crate says so and stops, which is the whole
-//! content of [`moon`]'s position on Coordinated Lunar Time.
+//! A planetary position model beyond Mars's own orbit is not carried, and not
+//! yet done. Relativity is `hc-relativity`'s subject: a clock on the Moon
+//! ticks at a different rate from one on Earth. This crate does not invent
+//! standards — where a timekeeping system has not been agreed, this crate
+//! says so and stops, which is the whole content of [`moon`]'s position on
+//! Coordinated Lunar Time.
 //!
 //! # Accuracy
 //!

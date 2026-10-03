@@ -347,14 +347,17 @@ Not carried:
 - Unicode normalisation: the reader compares code points, so a
   decomposed *ü* does not match a composed one. This needs tables the
   workspace does not have (policy §9).
-- Prefix matches of names (*Sept*, *Se*).
+- Prefix matches of names (*Sept*, *Se*): not yet done.
 - Dates in a pattern other than the locale's own, such as *09/05/02*.
   UTS #35 resolves these by heuristics, and the reader does not guess.
-- Times of day and zones.
+- Times of day and zones: not yet done by this reader, which reads one
+  day. `hc-format`'s ISO 8601, RFC 3339, RFC 2822 and pattern parsers read
+  a time with its zone.
 - The Chinese calendar's year in Japanese, which CLDR 48 `ja.xml` writes
   by its stem and branch alone, "U年", and the Korean long date, "U년 MMM
   d일", which does the same: `year-not-written`.
-- Hebrew numerals with dots over the letters, or with לפ״ק after the year.
+- Hebrew numerals with dots over the letters, or with לפ״ק after the year:
+  not yet done.
 
 ## Accuracy
 

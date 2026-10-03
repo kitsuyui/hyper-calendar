@@ -151,14 +151,17 @@ prose:
 | Aaron's breastplate as a month list | The Hebrew gem names have no settled identification; Josephus gave two lists himself. |
 | The "Celtic tree calendar" | Robert Graves's construction in *The White Goddess* (1948). Not a Celtic survival, and thirteen months rather than twelve. |
 
-## What this crate deliberately does not do
+## What it does not carry
 
-- **Pick a default.** No function returns "the" anything.
-- **Average two lists.** Where publishers disagree within one country, both are
-  shipped, or the disagreement goes in `gaps`.
-- **Invent an authority.** See the Japanese 誕生花 gap above.
-- **Launder a modern invention.** See the Celtic tree calendar.
-- **Duplicate a neighbour.** Japan's 和風月名 (睦月…師走) are `hc-i18n`'s and stay
+- **No default.** No function returns "the" anything: competing conventions
+  get names (policy §5).
+- **No average of two lists.** Where publishers disagree within one country,
+  both are shipped, or the disagreement goes in `gaps` (policy §5).
+- **No invented authority.** See the Japanese 誕生花 gap above; a set no
+  authority defines is not carried (policy §10).
+- **No modern invention presented as tradition.** See the Celtic tree
+  calendar, which is recorded in `gaps` as Graves's of 1948.
+- **A neighbour's tables are the neighbour's.** Japan's 和風月名 (睦月…師走) are `hc-i18n`'s and stay
   there; the 七曜 as an almanac annotation are `hc-almanac`'s; 中秋の名月 and
   十三夜 are `hc-almanac`'s. Tests forbid the 和風月名 appearing here.
 

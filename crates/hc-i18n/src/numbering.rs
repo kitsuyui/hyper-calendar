@@ -14,13 +14,13 @@
 //! `common/supplemental/numberingSystems.xml` (`cldr48-supplemental`), so a
 //! `-u-nu-` extension value can be looked up directly.
 //!
-//! # What is deliberately absent
+//! # What is not carried
 //!
-//! No grouping separators, no decimal separator, no sign other than an
-//! ASCII hyphen, no currency and no rule-based spellout of ordinals: a
+//! Not carried, and not yet done: grouping separators, a decimal separator,
+//! a sign other than an ASCII hyphen, currency, rule-based spellout of
+//! ordinals, and the Chinese counting-rod and `hanidays` systems. A
 //! calendar field is an integer, and the surrounding pattern is
-//! `hc-format`'s problem. The Chinese counting-rod and `hanidays` systems
-//! are not implemented here.
+//! `hc-format`'s, so no calendar date needs the first five.
 //!
 //! Greek alphabetic numerals, `grek` in capitals and `greklow` in small
 //! letters, are a fourth kind, spelled as CLDR 48's `%greek-upper` and

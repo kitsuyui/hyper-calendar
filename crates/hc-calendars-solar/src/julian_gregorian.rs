@@ -5,7 +5,7 @@
 //! with the decree or act behind each and which of those were read, the
 //! dropped days and the unbroken week, a British date of 1752 worked by
 //! hand across the gap, the Swedish exception as a calendar of its own, and
-//! the polities deliberately not carried. This page summarises it and
+//! the polities not carried. This page summarises it and
 //! states the code's own facts.
 //!
 //! Neither [`crate::julian`] nor [`crate::gregorian`] tells you what was
@@ -129,10 +129,11 @@ impl Adoption {
 /// Fourteen well-known national and provincial adoptions of the Gregorian
 /// calendar.
 ///
-/// The list is deliberately small and explicitly incomplete: over fifty
-/// polities reformed at over twenty different moments, and several did so
-/// twice. These are the ones a reader of European or Russian sources meets
-/// most often, in chronological order.
+/// The list is small and incomplete: over fifty polities reformed at over
+/// twenty different moments, and several did so twice, and the others are
+/// not yet carried (`docs/systems/gregorian-reform.md` says which, and why
+/// each one is not). These are the ones a reader of European or Russian
+/// sources meets most often, in chronological order.
 pub const ADOPTIONS: [Adoption; 14] = [
     Adoption {
         id: "julian-gregorian-catholic",

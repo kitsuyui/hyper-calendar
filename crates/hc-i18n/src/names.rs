@@ -83,8 +83,8 @@ pub enum NameContext {
 
 /// The two day periods a 12-hour clock needs.
 ///
-/// CLDR defines finer periods (morning1, afternoon2, …) that vary by locale
-/// and by hour; those are out of scope here.
+/// CLDR's finer periods (midnight, noon, morning1, afternoon2, …) vary by
+/// locale and by hour; they are [`crate::day_periods`]'s, not this type's.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum DayPeriod {
     /// Before noon.

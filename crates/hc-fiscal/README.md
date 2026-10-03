@@ -46,8 +46,8 @@ one piece of arithmetic then serves Bangkok, Tokyo and Tehran.
 | --- | --- |
 | `year_system` | the core type — a start in a named calendar, a labelling convention, a validity range. Given an `Rd` it yields the label and the position in the year; given a label it yields the span. |
 | `quarters` | quarters, halves and months *of the fiscal year*. Japan's Q1 is April–June; the United States federal Q1 is October–December. |
-| `countries` | 22 national tables, each with a source and a `sources_checked` date. |
-| `academic` | 8 school and university years, each carrying how firmly it is fixed. |
+| `countries` | 22 national tables, each with a source and a `sources_checked` date. Every other country is not yet carried: see "What it does not do". |
+| `academic` | 8 school and university years, each carrying how firmly it is fixed; every other country's is not yet carried. |
 | `retail` | 4-4-5, 4-5-4, 5-4-4 and the 52/53-week year, as named conventions. |
 
 Fiscal months generalise rather than special-case: fiscal month *n* runs from
@@ -58,9 +58,8 @@ to 5th, without a branch.
 
 ## Why the retail calendars live here
 
-`docs/observances.md` lists "4-4-5, 13-period retail" as out of scope for the
-holiday engine. That judgement is right and it is about holidays: a retail
-period is not an observance and names no day. But a 52/53-week year *is* a year
+A retail period is not an observance and names no day, so it has no place in
+the holiday engine of `hc-holiday`. But a 52/53-week year *is* a year
 that does not begin on 1 January, and it wants the same four things this crate
 already has — a start rule, a labelling convention, a validity range, and
 sub-periods counted from the year's own start. So it is here, and the
@@ -104,8 +103,20 @@ example shows why the distinction matters — a Saturday year end in November
   17 July 2025 and 2026. Other years go through `hc-calendars-indic`'s
   reckoning, which missed one of those 48 months by a day.
 
-## What it deliberately does not do
+## What it does not do
 
+* **Not carried: every country but the 22.** `countries::ALL` holds 22
+  national tables, and the holiday tables of `hc-holiday` hold 195 countries.
+  The other countries' fiscal and tax years are not yet done, and no source
+  for any of them has been read. A country's entry is a statute or a
+  ministry's publication read for that country, so the table grows by one
+  value per country, as `docs/policy.md` §2 asks, and the roadmap row is in
+  [`docs/calendars.md`](../../docs/calendars.md) ("Fiscal, tax and academic
+  years"). `by_code` of a country not in the table returns `None`: not that
+  the country has no fiscal year offset, which is the answer an entry with no
+  offset gives.
+* **Not carried: the academic years of every country but the 8.** The same
+  reason, and the same row.
 * **It leaves holes where history left them.** The United States' transition
   quarter — 1 July to 30 September 1976, after FY1976 ended and before FY1977
   began — belongs to no fiscal year, and `FiscalProfile::at` returns `None` for
@@ -120,7 +131,7 @@ example shows why the distinction matters — a Saturday year end in November
   academic entry carries an `Authority`; only Japan, France and New Zealand
   claim `is_national_rule()`. The United States, Germany, Australia, India and
   the United Kingdom record the modal choice with a note saying so.
-* **It knows no company's fiscal year.** Walmart reports to a fixed 31 January
+* **It holds no company's fiscal year.** Walmart reports to a fixed 31 January
   and Apple to the last Saturday of September; a filer's own year is a
   `WeekYearSystem` the caller writes out.
 * **It computes no business days or holidays.** That is `hc-holiday`. 31 March

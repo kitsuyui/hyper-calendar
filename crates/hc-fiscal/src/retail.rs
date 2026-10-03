@@ -10,13 +10,12 @@
 //!
 //! # Why this lives here and not in `hc-holiday`
 //!
-//! `docs/observances.md` lists "4-4-5, 13-period retail" under what the
-//! holiday engine will not do. That judgement is right and it is about
-//! holidays: a retail period is not an observance, it names no day, and no
-//! country legislates one. It is a *year that does not begin on 1 January*,
-//! which is exactly this crate's subject, and it shares this crate's
-//! machinery — a start rule, a labelling convention, a validity range, and
-//! sub-periods counted from the year's own start rather than from January.
+//! A retail period is not an observance, it names no day, and no country
+//! legislates one, so it has no place in the holiday engine of `hc-holiday`.
+//! It is a *year that does not begin on 1 January*, which is exactly this
+//! crate's subject, and it shares this crate's machinery — a start rule, a
+//! labelling convention, a validity range, and sub-periods counted from the
+//! year's own start rather than from January.
 //!
 //! # The two rules, both named
 //!

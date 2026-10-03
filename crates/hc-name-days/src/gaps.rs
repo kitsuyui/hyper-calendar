@@ -1,4 +1,4 @@
-//! What this crate deliberately does not ship, and why.
+//! What this crate does not ship, and why.
 //!
 //! Name days are kept in some twenty countries and this crate vendors one
 //! of them. A [`Gap`] is a country a caller might reasonably expect and

@@ -36,7 +36,7 @@ use hc_calendar::CivilDateTime;
 use hc_calendar::fixed::RD_OF_UNIX_EPOCH;
 use hc_calendar::{Rd, Weekday, gregorian};
 use hc_core::UnixTime;
-use hc_core::duration::days_and_seconds;
+use hc_core::duration::{SECONDS_PER_DAY, days_and_seconds};
 
 use crate::error::{TzError, TzResult};
 use crate::offset::UtcOffset;
@@ -75,12 +75,13 @@ pub const LAST_RULE_YEAR: i64 = hc_calendar::gregorian::MAX_YEAR - RULE_YEAR_MAR
 /// The first POSIX second the rules answer for: 00:00:00 UTC on 1 January
 /// of [`FIRST_RULE_YEAR`].
 pub const FIRST_RULE_SECOND: i64 =
-    (hc_calendar::gregorian::new_year(FIRST_RULE_YEAR).0 - RD_OF_UNIX_EPOCH) * 86_400;
+    (hc_calendar::gregorian::new_year(FIRST_RULE_YEAR).0 - RD_OF_UNIX_EPOCH) * SECONDS_PER_DAY;
 
 /// The last POSIX second the rules answer for: 23:59:59 UTC on 31 December
 /// of [`LAST_RULE_YEAR`].
 pub const LAST_RULE_SECOND: i64 =
-    (hc_calendar::gregorian::new_year(LAST_RULE_YEAR + 1).0 - RD_OF_UNIX_EPOCH) * 86_400 - 1;
+    (hc_calendar::gregorian::new_year(LAST_RULE_YEAR + 1).0 - RD_OF_UNIX_EPOCH) * SECONDS_PER_DAY
+        - 1;
 
 /// Whether an instant is one [`PosixTimeZone`]'s rules answer for, from
 /// [`FIRST_RULE_SECOND`] to [`LAST_RULE_SECOND`].
@@ -438,7 +439,7 @@ impl PosixTz {
         offset_in_force: UtcOffset,
     ) -> i64 {
         let day = transition.rule.fixed_day(year) - RD_OF_UNIX_EPOCH;
-        day.saturating_mul(86_400)
+        day.saturating_mul(SECONDS_PER_DAY)
             .saturating_add(i64::from(transition.time))
             .saturating_sub(i64::from(offset_in_force.seconds()))
     }

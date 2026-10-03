@@ -22,6 +22,7 @@ use alloc::string::String;
 
 use hc_calendar::{Rd, gregorian};
 use hc_core::UnixTime;
+use hc_core::duration::days_and_seconds;
 use hc_i18n::exemplar_cities::{self, ExemplarCity};
 use hc_tz::TimeZone;
 use hc_tz::location::{self, ZoneLocation};
@@ -429,8 +430,8 @@ fn zoned_line(
         // format flags the other way round for Ireland.
         let daylight = zone.is_summer_time_at(instant);
         let local = unix_seconds + i64::from(offset.seconds());
-        let day = Rd::from_unix_days(local.div_euclid(86_400));
-        let second = local.rem_euclid(86_400);
+        let (unix_day, second) = days_and_seconds(local);
+        let day = Rd::from_unix_days(unix_day);
         let time = hc_calendar::CivilTime::hms(
             (second / 3_600) as u8,
             (second / 60 % 60) as u8,

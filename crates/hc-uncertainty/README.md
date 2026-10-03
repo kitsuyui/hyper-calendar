@@ -60,28 +60,33 @@ Highlights:
 - EDTF round-trips: `parse(s).to_string() == s` for every supported form,
   covered by a test enumerating them.
 
-## What it deliberately does not do
+## What it does not carry
 
 - **No calendars.** Everything is expressed against `hc_core::Instant` and
   `hc_core::Duration`. Turning "the third century BC" into a pair of instants
   belongs to a calendar crate; EDTF's proleptic Gregorian dates are placed
   with `hc-calendar`'s arithmetic, not a copy of it.
-- **No Monte Carlo.** `Uncertain` is a linear approximation and says so. It
-  assumes independent inputs — `x.checked_add(x)` gives `σ√2`, not `2σ`; use
-  `scaled` when the correlation is total — and it degrades once `σ/|x|` passes
-  roughly 0.1. A wider `±` would not fix that; a distribution would, and that
-  is out of scope.
+- **Not carried: Monte Carlo, or any other distribution.** `Uncertain` is a
+  linear approximation and says so. It assumes independent inputs —
+  `x.checked_add(x)` gives `σ√2`, not `2σ`; use `scaled` when the correlation
+  is total — and it degrades once `σ/|x|` passes roughly 0.1. A wider `±`
+  would not fix that; a distribution would, and is not yet done.
 - **No tightening of interval arithmetic.** `A - A` is not zero. The
   dependency problem is inherent to the method, so there is no "simplify"
   operation that would pretend otherwise.
-- **No disjunctive fuzzy instant.** An EDTF set collapses to its hull, losing
-  the gaps, and `to_fuzzy_instant` documents that at the call site.
-- **EDTF gaps, rejected rather than half-parsed:** times of day
-  (`1985-04-12T23:20:30Z`), seasons and sub-year divisions (`2001-21`),
-  component-level qualification (`2004-06~-11`), and exponential years
-  (`Y17E7S3`). Seasons are left out because their boundaries are a convention
-  that differs by hemisphere and publisher; guessing one would be inventing
-  data.
+- **Not carried: a disjunctive fuzzy instant.** An EDTF set collapses to its
+  hull, losing the gaps, and `to_fuzzy_instant` documents that at the call
+  site. `FuzzyInstant` holds only intervals, and a set of them is not yet
+  done.
+- **Not carried: parts of EDTF**, rejected rather than half-parsed (policy §4):
+  - times of day (Level 0, `1985-04-12T23:20:30Z`), not yet done;
+  - seasons and sub-year divisions (`2001-21`, `2001-34`), whose boundaries
+    are conventions that differ by hemisphere and publisher: policy §5 would
+    give each its own name, none has been added, and no boundary is guessed;
+  - component-level qualification (Level 2, `2004-06~-11`), which implies a
+    support that is not an interval;
+  - exponential years and significant digits (Level 2, `Y17E7S3`), not yet
+    done.
 
 ## Accuracy claimed
 

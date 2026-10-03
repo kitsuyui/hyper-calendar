@@ -809,10 +809,9 @@ pub fn classical_shanichi(year: i64, season: HiganSeason, meridian: Meridian) ->
 /// 貞享三年暦 (1686), and at 80° from the 明治9年暦 (1876)
 /// (`nao-rekiwiki-zassetsu`). This is the reading printed from the 元文五年暦
 /// (1740), which takes 芒種 itself when it is a 壬 day. The 貞享 reading,
-/// which then took the next 壬 day, ten days later, is not carried: it was
-/// superseded by this one, and no almanac date of 1686–1739 was read to
-/// anchor a test of it. Japanese Wikipedia's 「入梅」 dates the 80° rule to
-/// 天保暦, 1844; the 暦Wiki's 明治9年暦 is the one followed here. It can
+/// which then took the next 壬 day, ten days later, is not carried yet: no
+/// almanac date of 1686–1739 was read to anchor a test of it. Japanese
+/// Wikipedia's 「入梅」 dates the 80° rule to 天保暦, 1844; the 暦Wiki's 明治9年暦 is the one followed here. It can
 /// differ from the modern rule by several days.
 #[must_use]
 pub fn classical_nyubai(year: i64, meridian: Meridian) -> Rd {
@@ -828,12 +827,13 @@ pub fn classical_nyubai(year: i64, meridian: Meridian) -> Rd {
 /// The count is inclusive, 「夏至から数えて11日目」, as Japanese Wikipedia's
 /// 「半夏生」 gives it (`wikipedia-ja-hangesho`, a secondary source). The
 /// 暦Wiki (`nao-rekiwiki-72ko`) describes the placing more exactly: before
-/// 天保暦 by 平気, a seventy-second of the year per pentad, which this crate
-/// does not carry; in the first 天保暦 almanac, of 1844, as the 夏至 instant
+/// 天保暦 by 平気, a seventy-second of the year per pentad, which is not
+/// carried yet; in the first 天保暦 almanac, of 1844, as the 夏至 instant
 /// plus two seventy-seconds of the year; and from 1848 at 100°, or at the
 /// second third of the interval from 夏至 to 小暑, which the almanacs of
-/// 1848–1872 do not tell apart. The 1844 reading is not carried: it was printed in one
-/// almanac year, and no date from it was read to anchor a test. The modern
+/// 1848–1872 do not tell apart. The 1844 reading is not carried yet: it was
+/// printed in one almanac year, and no date from it was read to anchor a
+/// test. The modern
 /// rule puts 半夏生 at 100° of solar longitude instead; the Sun is at its
 /// slowest near the June solstice and covers those ten degrees in about
 /// 10.5 days, so the two rules land on the same day rather more than half

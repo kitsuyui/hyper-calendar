@@ -4,11 +4,11 @@
 //! Varro dated it, 753 BC: AD 1 is AUC 754, and AUC 1 is the year beginning
 //! 1 January 753 BC in the proleptic Julian calendar.
 //!
-//! # What this deliberately does not do
+//! # What it does not carry
 //!
-//! Two large things, and it is worth being explicit about both.
+//! Two large things.
 //!
-//! * **It does not model the Roman republican calendar.** Before Caesar's
+//! * **Not carried: the Roman republican calendar.** Before Caesar's
 //!   reform of 45 BC the year had 355 days and an intercalary month,
 //!   *Mercedonius*, inserted at the discretion of the pontifices — who
 //!   inserted it late, early or not at all for political reasons, so that by
@@ -17,8 +17,8 @@
 //!   tabulated from inscriptions and the results are still disputed. What
 //!   this module gives for a year before AUC 709 is the *proleptic Julian*
 //!   date with an AUC year number, which is what modern editors mean when
-//!   they write one, not what a Roman would have written.
-//! * **It does not count days by kalends, nones and ides.** A Roman wrote
+//!   they write one, not what a Roman would have written. Not yet done.
+//! * **Not here: counting days by kalends, nones and ides.** A Roman wrote
 //!   *a.d. III Kal. Apr.*, counting backwards inclusively from the next
 //!   named day, not "30 March". That is a formatting question rather than a
 //!   calendar one, and it lives with the other presentation logic, in

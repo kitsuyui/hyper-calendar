@@ -70,17 +70,18 @@
 //!   `zone-names` feature CLDR's metazones and English's zone names, with
 //!   `localized-zone-names` every other carried locale's.
 //!
-//! # Scope
+//! # What it does not carry
 //!
-//! This is a *calendar* internationalisation crate, not a general one. It
-//! carries no collation, no message formatting, no number grouping or
-//! currency, no compact-notation plural operands (`c`/`e`), and no
-//! transliteration. Its data is a subset of CLDR, not a copy of it: the
-//! entries carried before the most-spoken languages are hand-checked, apart
-//! from their Gregorian months, weekdays, quarters and eras, which are
-//! generated into place from their CLDR 48 files, and those of the twelve
-//! locales added for them are generated from their files by CLDR's
-//! inheritance; see the crate README for the exact
+//! This is a *calendar* internationalisation crate: what a calendar date
+//! needs. Not carried: collation, message formatting, number grouping
+//! (beyond `hc-humanize`'s `Grouping`, which holds Python's separators for
+//! `intcomma`) and currency, compact-notation plural operands (`c`/`e`),
+//! and transliteration. Each is not yet done. Its data is a subset of CLDR,
+//! not a copy of it: the entries carried before the most-spoken languages
+//! are hand-checked, apart from their Gregorian months, weekdays, quarters
+//! and eras, which are generated into place from their CLDR 48 files, and
+//! those of the twelve locales added for them are generated from their
+//! files by CLDR's inheritance; see the crate README for the exact
 //! provenance and for what the subset leaves out.
 
 #![cfg_attr(not(feature = "std"), no_std)]

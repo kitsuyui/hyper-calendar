@@ -102,12 +102,13 @@ an argument, supplied by `hc-seasons`.
 | the year pillar | three conventions — 立春, the lunisolar new year, 1 January — as three named functions, since they disagree for days at a time |
 | the hour pillar | both schools of the 子 hour, named, since they give different pillars for the same instant |
 
-## What this crate deliberately does not do
+## What it does not carry
 
-- No astronomy. Nothing here computes a solstice, a new moon or a solar term.
-- No time zones. Pillars are computed from local civil time, and which local
-  time is `hc-tz`'s question.
-- No translation. The English names here — `jia`, `rat`, `wood` — are the
+- Astronomy is `hc-astro`'s, and the solar terms are `hc-seasons`'s. Nothing
+  here computes a solstice, a new moon or a solar term.
+- Time zones are `hc-tz`'s. Pillars are computed from local civil time, and
+  which local time is `hc-tz`'s question.
+- Translation is `hc-i18n`'s. The English names here — `jia`, `rat`, `wood` — are the
   library's convention for prose, not a locale; `hc-i18n` chooses what a
   locale writes, and falls back to a calendar's own names when it has none.
 

@@ -7,7 +7,7 @@
 
 use hc_calendar::fixed::RD_OF_UNIX_EPOCH;
 use hc_calendar::gregorian;
-use hc_core::duration::SECONDS_PER_DAY_F64;
+use hc_core::duration::{SECONDS_PER_DAY, SECONDS_PER_DAY_F64};
 use hc_core::epoch::J2000_TT_SECONDS;
 use hc_core::scale::TT_MINUS_TAI_SECONDS;
 use hc_core::{Duration, Instant, Tai, TimeResult};
@@ -78,7 +78,10 @@ pub(crate) const fn utc_unix_seconds(
         Ok(rd) => rd.0,
         Err(_) => panic!("a landing date that does not exist"),
     };
-    (day - RD_OF_UNIX_EPOCH) * 86_400 + hour as i64 * 3_600 + minute as i64 * 60 + second as i64
+    (day - RD_OF_UNIX_EPOCH) * SECONDS_PER_DAY
+        + hour as i64 * 3_600
+        + minute as i64 * 60
+        + second as i64
 }
 
 /// TT days from J2000.0 to a UTC instant given as a POSIX timestamp, when

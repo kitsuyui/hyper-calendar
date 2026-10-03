@@ -39,9 +39,9 @@
 //! The *tropical* one, measured from the March equinox, because that is what
 //! the Western lapidary tradition the list comes from meant. The sidereal
 //! signs of Indian astrology are about 24° behind and are a different
-//! division; `hc_seasons::zodiac` implements both, and this module
-//! deliberately does not offer the table against the sidereal signs, because
-//! Kunz's sources were not using them.
+//! division; `hc_seasons::zodiac` implements both, and this module does not
+//! offer the table against the sidereal signs, because Kunz's sources were
+//! not using them.
 //!
 //! The sign a day falls in comes from `hc-seasons`, so [`stones_on`] carries
 //! that crate's accuracy: a sign boundary within about ten minutes of local

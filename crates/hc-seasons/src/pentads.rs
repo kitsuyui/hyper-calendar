@@ -27,13 +27,14 @@
 //! default, because a library that picked one would be asserting something
 //! about its caller that it cannot know.
 //!
-//! # What this module does not claim
+//! # What is not carried
 //!
 //! The 5° division is the modern 定気 one: a pentad is an arc of the
 //! ecliptic, so its length in days varies from about 4.9 near perihelion to
-//! about 5.2 near aphelion. The older almanacs divided the year equally *in
-//! time* (平気), which gives different dates; this module does not yet take
-//! the 恒気 terms `hc-calendars-lunar` computes for the Japanese systems,
+//! about 5.2 near aphelion. **Not carried: 平気.** The older almanacs
+//! divided the year equally *in time*, which gives different dates;
+//! `hc-calendars-lunar` places the twelve 中気 of each Japanese system by
+//! that 恒気 rule for its own months, but this module does not yet take them,
 //! and the document says which almanacs those were.
 
 use hc_astro::solar::{seasonal_event, solar_longitude, solar_longitude_after};

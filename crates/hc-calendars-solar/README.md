@@ -87,7 +87,7 @@ file does not:
 `register_all(&mut CalendarRegistry)`, behind the `alloc` feature, inserts every
 calendar in the table.
 
-## What it deliberately does not do
+## What it does not carry
 
 The crate's boundary is arithmetic. A calendar whose rule is "every fourth
 year" belongs here; one whose rule is "the day the equinox falls at Tehran"
@@ -131,12 +131,13 @@ the Rattanakosin era until March 1913. `buddhist` keeps the modern year, and
 `buddhist::printed_year` and `buddhist::printed_to_fixed` convert between a
 day and the year a Thai document of the time printed for it.
 
-Smaller omissions, each documented in its module: the Roman republican
-calendar before 45 BC and the kalends/nones/ides counting, which is in
-`hc_format::roman` (`roman`); the year starts other than 1 January, which are
-`year_style` (`julian_gregorian`); the regional lunisolar Hindu calendars,
-which are in `hc-calendars-indic` (`indian`); the Alexandrian and Antiochene world eras
-(`byzantine`); month and weekday names in each *language*, which are locale
+Smaller things not carried, each documented in its module: the Roman
+republican calendar before 45 BC, not yet done (`roman`); the
+kalends/nones/ides counting, which is in `hc_format::roman` (`roman`); the
+year starts other than 1 January, which are `year_style`
+(`julian_gregorian`); the regional lunisolar Hindu calendars, which are in
+`hc-calendars-indic` (`indian`); the Alexandrian and Antiochene world eras,
+not yet done (`byzantine`); month and weekday names in each *language*, which are locale
 data and live in `hc-i18n`. A calendar whose months have one orthography that
 every language borrows — Coptic, Ethiopic, Egyptian, the two Armenian,
 Zoroastrian, Persian, Indian, Nanakshahi, Bangladeshi, Rumi, French
@@ -179,7 +180,7 @@ the decree or act behind each date and which of them were read — the bull,
 the British Act of 1750 and the Soviet decree of 1918 directly, the Serbian
 law of 1919 as a newspaper quotes it, the rest through secondary sources —
 the dropped days and the unbroken week, a British date of 1752 worked
-across the gap, and the polities deliberately not carried.
+across the gap, and the polities not carried.
 Each table entry is checked for internal consistency: the day after the
 last Julian date must be the first Gregorian one.
 

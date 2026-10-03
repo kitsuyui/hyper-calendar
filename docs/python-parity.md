@@ -353,8 +353,8 @@ this. English is `NaturalPhrases::ENGLISH`; a language is one more
 
 Things that are not `humanize` 4.16.0 here, and why:
 
-- **Behaviour the project's `main` changed after the release**, which the
-  next release will carry, is not carried: `naturaldelta` rounds the years of
+- **Not carried: behaviour the project's `main` changed after the release**,
+  which the next release will carry. `naturaldelta` rounds the years of
   a span of two or more (`round(days / 365)`, so 1000 days is 3 years where
   4.16.0 says 2); `fractional` folds a fraction that reduces to a whole
   number into the integer (`0.9999` is `1`, `0.0` is `0`, where 4.16.0
@@ -370,8 +370,9 @@ Things that are not `humanize` 4.16.0 here, and why:
   `return str(value)` paths for a value that is not a number do not exist
   (type errors here), and an `OverflowError` for a span beyond a
   `timedelta` is `HumanizeError::Overflow` beyond about 10²⁶ years.
-- **`intcomma`, `ordinal`, `apnumber` of a string** are not parsed from
-  text; a caller passes the number.
+- **Not carried: `intcomma`, `ordinal` and `apnumber` of a string.** The
+  arguments are typed, as in the item above, so a caller passes the number;
+  reading a number from text is not yet done.
 
 ## What is not carried yet, and why
 
@@ -381,5 +382,6 @@ Each is a follow-up, not a decision (policy §13):
   specified only by `calendar.py`'s source, which was not read.
 - `dateutil.rrule` and `dateutil.parser`: no source read; no engine.
 - Unicode decimal digits in `strptime`: no table of them is carried.
-- An aware time of day (`datetime.timetz`): a design question about the
-  type, not a gap in a rule.
+- An aware time of day (`datetime.timetz`): not yet done. No type holds a
+  time of day with a zone, and a time names no instant for a zone to answer
+  about, so `time()` and the zone beside it carry the same two facts.

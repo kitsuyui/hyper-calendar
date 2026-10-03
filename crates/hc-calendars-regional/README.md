@@ -333,30 +333,42 @@ inherits the `chinese` calendar's model, as that README describes.
   the Zapotec new years of the 1690s, and five Bakumatsu events
   whose 和暦 and Western dates are both in the standard histories.
 
-## Deliberate omissions
+## What it does not carry
 
-* No Japanese lunisolar calendar before Senmyō (862), as above.
-* No Thai lunar year before 2535 BE or after 2570 BE beyond the first six
-  months of 2571, and no *suriyayatra* arithmetic to extend it: a year is
+* **Not carried: a Japanese lunisolar calendar before Senmyō (862).** As
+  above. The constants of the four earlier systems were read, but the table
+  this crate measures itself against begins in 862 and the adoption dates
+  before then are contested by years (`hc-calendars-lunar`'s
+  `japanese_historical`, "What is missing").
+* **Not carried: a Thai lunar year before 2535 BE or after 2570 BE** beyond
+  the first six months of 2571, and no *suriyayatra* arithmetic to extend
+  it. The year types are data read off the published holy days; Eade's rule
+  is not used, for the reason in
+  [`docs/systems/thai-lunar.md`](../../docs/systems/thai-lunar.md); a year is
   added when Thailand publishes it.
-* No Khmer year before 1900 or after 2200, and no animal year or *sak*.
-  The change of the Chulasakarat year at the solar New Year is carried,
-  `khmer::laeung_sak` (*Laeung Sak*, to the second, as the announcements of
-  2022–2026 give it) and `lao::new_year_day` (Dupertuis's New Years of
-  1939–1988); the *Maha Songkran* moment and the days of the festival are
-  not, for want of the Cambodian *hora*'s rule for the true Sun. No Lao year
-  before 1301 or after 1401. No Sinhalese or Tai lunisolar calendar, and no
+* **Not carried: a Khmer year before 1900 or after 2200**, and the animal
+  year and the *sak*. The Khmer range begins at Tum's epoch, 1 January 1900;
+  nothing after 2200 has been done. The change of the Chulasakarat year at the
+  solar New Year is carried, `khmer::laeung_sak` (*Laeung Sak*, to the second,
+  as the announcements of 2022–2026 give it) and `lao::new_year_day`
+  (Dupertuis's New Years of 1939–1988); the *Maha Songkran* moment and the
+  days of the festival are not, for want of the Cambodian *hora*'s rule for
+  the true Sun. **A Lao year before 1301 or after 1401**, between two cases
+  Dupertuis leaves open. **A Sinhalese or Tai lunisolar calendar**, and the
   Buddhist Era of Sri Lanka: what each still needs is in `docs/calendars.md`.
 * No Javanese calendar proper here: the Sultan Agung lunar year, its
   *windu* and its *kurup* are `hc-calendars-lunar`'s `javanese`, beside
   the other lunar calendars. `tests/javanese.rs` holds its days to the
   pasaran and the Pawukon's *wuku* against R. Tanaya's tables
   ([`docs/systems/javanese.md`](../../docs/systems/javanese.md)).
-* No Maya "lord of the night" glyph cycle, no Maya or Aztec year bearer as
-  a field; the reasons are in
-  [`docs/systems/mesoamerican-counts.md`](../../docs/systems/mesoamerican-counts.md).
-* The Tibetan almanac's planets only under the Phugpa epoch of 1927, the
-  only one whose solar longitude Janson describes. Of its astrological
+* **Not carried: the Maya "lord of the night" glyph cycle, and the Maya and
+  Aztec year bearers as fields.** Not yet done; the year bearers are
+  derivable from what is carried, as
+  [`docs/systems/mesoamerican-counts.md`](../../docs/systems/mesoamerican-counts.md)
+  says.
+* **Not carried: the Tibetan almanac's planets under any epoch but the
+  Phugpa epoch of 1927**, the only one whose solar longitude Janson
+  describes. Of its astrological
   attributes the day's are carried — the lunar day's animal, element,
   trigram and number, the calendar day's trigram and its number by Janson
   and by Henning's almanacs, the Chinese mansion and the pair of elements

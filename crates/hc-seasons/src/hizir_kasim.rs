@@ -30,7 +30,8 @@
 //! 8 November, as here. The Rumi dates fall on 6 May and 8 November only
 //! from 1900 to 2099, and a count kept on the Rumi calendar is not
 //! carried. The Alevi Hızır fast
-//! is not carried: its conventions disagree.
+//! is not carried yet: its conventions disagree, and each would be carried
+//! under its own name (docs/policy.md §5).
 
 use hc_calendar::Rd;
 

@@ -135,8 +135,9 @@ Pentecost, 26 weeks before it, so 25 May begins week 8, and 7 June is the 10th S
     Last Sunday after the Epiphany" [cct-rcl, table]; which churches do
     is a choice the table leaves to each.
   - *The ordo*, the yearly directory of celebrations that makes the
-    day-by-day choice between a Sunday and a feast; see
-    `roman_calendar` for what that means and why it is out of scope.
+    day-by-day choice between a Sunday and a feast, for the calendar of
+    1970 and after: not yet done; see `roman_calendar` for what that means.
+    The ordo of the 1960 rubrics is `roman_calendar_1960::ordo`.
 
 ## Accuracy
 

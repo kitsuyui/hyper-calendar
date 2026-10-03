@@ -160,25 +160,28 @@ measurement.
   are *not* independent, and `timeline::span_between` says so where it
   overstates the error.
 
-## What it deliberately does not do
+## What it does not carry
 
-- **No cosmology solver.** The Friedmann integration that produced the early
-  ages was run once, offline, and its inputs and result are documented in
-  `universe`. The crate carries values; it does not recompute them.
-- **No radiocarbon calibration.** IntCal20, SHCal20 and Marine20 are large
-  datasets with their own release cadence, and a calibrated date is usually a
-  multi-modal distribution rather than a Gaussian. `archaeology` models the
-  distinction and refuses the conversion.
+- **Not carried: a cosmology solver.** The Friedmann integration that
+  produced the early ages was run once, offline, and its inputs and result are
+  documented in `universe`. The crate carries those values and does not
+  recompute them; a solver is not yet done.
+- **Not carried: radiocarbon calibration.** The IntCal20, SHCal20 and Marine20
+  curves are not carried, and a calibrated date is usually a multi-modal
+  distribution rather than a Gaussian.
+  `archaeology` models the distinction and refuses the conversion (policy
+  §4). Not yet done.
 - **No exact Planck-scale duration.** `DeepTime::to_duration` truncates below
-  one attosecond and drops the error bar entirely; the doc comment says so at
-  the call site.
+  one attosecond, the floor of `hc_core::Duration`, and drops the error bar
+  entirely; the doc comment says so at the call site.
 - **No calendars.** Everything is a span in SI seconds or a count of years
   before a stated datum. Turning a calendar year into a fixed day is
-  `hc-calendar`'s job.
-- **No regional archaeology beyond one sequence.** The period table is
-  Southwest Asian and European and every entry names its region, because the
-  Bronze Age begins eleven centuries apart in Anatolia and in Britain and never
-  at all in most of the Americas.
+  `hc-calendar`'s.
+- **Not carried: the archaeological periods of any region but Southwest Asia
+  and Europe.** The period table is Southwest Asian and European and every
+  entry names its region, since the Bronze Age begins eleven centuries apart
+  in Anatolia and in Britain and not at all in most of the Americas. No other
+  region's sequence has been added yet.
 
 ## Feature flags
 

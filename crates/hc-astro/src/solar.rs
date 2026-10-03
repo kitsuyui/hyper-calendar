@@ -1,6 +1,8 @@
 //! The Sun: apparent longitude, the search that solar terms are built on,
 //! and the equinoxes and solstices.
 //!
+//! The system is written up in `docs/systems/sun-and-moon.md`.
+//!
 //! The position is the Earth's from VSOP87 ([`crate::vsop87`]) turned
 //! around, brought to the FK5 frame, then given nutation in longitude and
 //! annual aberration — Meeus, *Astronomical Algorithms*, 2nd ed., chapter

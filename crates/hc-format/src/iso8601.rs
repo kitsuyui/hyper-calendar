@@ -1,5 +1,7 @@
 //! ISO 8601-1:2019 dates, times, date-times, durations and intervals.
 //!
+//! The system is written up in `docs/systems/iso8601-and-rfcs.md`.
+//!
 //! # What the standard actually is
 //!
 //! ISO 8601 is not one format. It is a family of them, and a library that
