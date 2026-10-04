@@ -2442,11 +2442,14 @@ formatted date and fixed day empty, and the error columns say why:
 registry order. `locale` is as for `hc_describe_day`; `today` is the fixed
 day the standing is judged on, because the module has no clock. The names
 are CLDR 48's, `localeDisplayNames/types/type[@key="calendar"]`, at its
-`approved` and `contributed` levels, and for a few calendars CLDR has no
-key for, a source's in the language: the Tibetan almanac's `tibetan`,
+`approved` and `contributed` levels, and for a calendar CLDR has no key
+for, a source's in the language: by hand, the Tibetan almanac's `tibetan`,
 `tibetan-tsurphu` and `mongolian` in `bo`, `ja`, `mn` and `zh`, 藏历,
-楚尔派 and 蒙古历 under `zh-Hans`; a calendar neither names in the locale
-has an empty name. No two rows share a name, in column 2 or in
+楚尔派 and 蒙古历 under `zh-Hans`; otherwise the title of the locale's own
+Wikipedia article on the calendar, read from the interlanguage links of
+the article about it, ビルマ暦 for `burmese` under `ja`. Nothing is
+translated: a calendar none names in the locale, because no edition of
+the language has an article on it, has an empty name. No two rows share a name, in column 2 or in
 column 3, so a reader can choose a calendar by what the page shows:
 calendars that differ only in a convention are named for it, the Maya
 counts for their correlation — `Maya long count (GMT, 584283)`,

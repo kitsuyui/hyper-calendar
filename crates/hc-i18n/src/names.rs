@@ -2199,8 +2199,14 @@ mod tests {
             calendar_display_name(&locale("ja-JP"), CalendarId("japanese")),
             Some("和暦")
         );
+        // German's Wikipedia names the haabʼ; no source names the GMT+2
+        // correlation of it in German, so that convention has no name.
         assert_eq!(
             calendar_display_name(&locale("de"), CalendarId("maya-haab")),
+            Some("Haab")
+        );
+        assert_eq!(
+            calendar_display_name(&locale("de"), CalendarId("maya-haab-gmt2")),
             None
         );
         assert_eq!(
@@ -2208,7 +2214,7 @@ mod tests {
             Some(("和暦", "ja"))
         );
         assert_eq!(
-            calendar_display_name_with_tag(&locale("de"), CalendarId("maya-haab")),
+            calendar_display_name_with_tag(&locale("de"), CalendarId("maya-haab-gmt2")),
             None
         );
         assert_eq!(sexagenary_joiner(&locale("en")), "-");

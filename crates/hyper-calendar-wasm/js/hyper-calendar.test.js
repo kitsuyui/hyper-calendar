@@ -639,6 +639,12 @@ describe("calendars and locales", () => {
       nativeLocales: ["ja"],
     });
     assert.deepEqual(ja.find((row) => row.id === "gregory")?.nativeLocales, []);
+    // A calendar CLDR has no key for is named by the Japanese Wikipedia's
+    // title, and one no source in Japanese names keeps the English name.
+    const burmese = ja.find((row) => row.id === "burmese");
+    assert.deepEqual([burmese?.name, burmese?.localeUsed], ["ビルマ暦", "ja"]);
+    const bhutan = ja.find((row) => row.id === "tibetan-bhutan");
+    assert.deepEqual([bhutan?.name, bhutan?.localeUsed, bhutan?.englishName], [null, null, "Tibetan (Bhutanese)"]);
     assert.equal(ja.find((row) => row.id === "chinese")?.crate, "hc-calendars-lunar");
     assert.equal(ja.find((row) => row.id === "hindu-lunar")?.crate, "hc-calendars-indic");
     const hebrew = hc.calendarList(NATIVE).find((row) => row.id === "hebrew");

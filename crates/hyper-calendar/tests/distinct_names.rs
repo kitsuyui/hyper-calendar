@@ -82,6 +82,31 @@ fn no_two_calendars_share_a_name_in_any_locale() {
     }
 }
 
+/// Every calendar has a name a page can show in English — its own English
+/// name, or English's CLDR name — and no locale's name for a calendar is
+/// the bare identifier, which is a key and not a word of any language.
+#[test]
+fn every_calendar_is_named_in_english_and_no_name_is_its_identifier() {
+    let registry = hyper_calendar::registry();
+    for (id, name) in shown(&lines::calendar_list(&registry, "en")) {
+        assert!(!name.is_empty(), "{id}: no name in English");
+        assert_ne!(id, name, "{id}: named by its identifier in English");
+    }
+    for data in LOCALES {
+        let locale = Locale::parse(data.tag).unwrap_or(Locale::ROOT);
+        for meta in registry.metas() {
+            if let Some(name) = names::calendar_display_name(&locale, meta.id) {
+                assert!(
+                    !name.is_empty() && name != meta.id.as_str(),
+                    "{}: {} is named {name:?}",
+                    data.tag,
+                    meta.id.as_str()
+                );
+            }
+        }
+    }
+}
+
 /// The same, read from `hc-i18n` directly: where a locale names two
 /// calendars, it names them differently.
 #[test]

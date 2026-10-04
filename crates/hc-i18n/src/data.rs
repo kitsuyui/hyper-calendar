@@ -96,8 +96,10 @@ use hc_calendar::{CalendarId, Weekday};
 mod cldr48_calendars;
 mod cldr48_locales;
 mod japanese_eras;
+mod wikipedia_calendar_names;
 
 pub use cldr48_locales::{DEFAULT_NUMBERING, OTHER_NUMBERING, PARENT_LOCALES, REGION_MIN_DAYS};
+pub use wikipedia_calendar_names::WIKIPEDIA_CALENDAR_NAMES;
 
 use crate::casing::CasingStyle;
 use crate::direction::Direction;
@@ -1121,8 +1123,11 @@ pub(super) const MN_MONGOLIAN: CalendarNames = calendar_entry(
 // a proposal the release does not stand behind, and is left out. That
 // leaves Coptic and Kabyle, whose every value is unconfirmed, and Tibetan,
 // Balinese, Yucatec Maya, Nahuatl and Mandaic, which have none or no file,
-// without a table. A calendar a locale has no CLDR name for is left
-// unnamed, never filled from another language [cldr48-calendar-names].
+// without a table. A calendar a locale has no CLDR name for is never
+// filled from another language [cldr48-calendar-names]: it takes the name
+// a source in the language gives, `crate::calendar_names` (by hand, and
+// the locale's own Wikipedia article's title, generated into
+// `wikipedia_calendar_names.rs`), else it stays unnamed.
 //
 // No two calendars share a name in a locale: a reader choosing a calendar
 // from a list has to be able to tell them apart, and the facade's
