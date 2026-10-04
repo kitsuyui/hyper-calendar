@@ -200,7 +200,10 @@ span of 10⁹ days and this library does not.
 
 `civil::StructTime` is `time.struct_time`: nine integers that are not checked
 when built (`calendar.timegm` is documented to take whatever they add up
-to), with `to_date_time` where a tuple that names no moment is refused.
+to), with `to_date_time` where a tuple that names no moment is refused. At
+the boundary `hc_gmtime`, `hc_timegm`, `hc_localtime` and `hc_mktime` are
+`gmtime`, `timegm`, `localtime` and `mktime`, a `struct_time` crossing as one
+line of its nine fields.
 
 | Python | hyper-calendar | Status | Note |
 | --- | --- | --- | --- |
@@ -218,7 +221,8 @@ to), with `to_date_time` where a tuple that names no moment is refused.
 ## calendar
 
 `civil::calendar` holds the functions of the module that work on a year, a
-month or a day.
+month or a day; at the boundary they are `hc_isleap`, `hc_leapdays`,
+`hc_calendar_weekday`, `hc_monthrange` and `hc_monthcalendar`.
 
 | Python | hyper-calendar | Status | Note |
 | --- | --- | --- | --- |

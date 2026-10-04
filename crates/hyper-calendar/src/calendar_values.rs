@@ -2,8 +2,9 @@
 //! about the lunar and regional calendars, written once: the modern
 //! Olympiad of a year, the Hebrew anniversaries of a day and a Hebrew
 //! year's place in the sabbatical cycle, the Chinese reckoned age and
-//! marriage augury, and how the calendar of the province of Asia writes a
-//! day, unnumbered days included.
+//! marriage augury, how the calendar of the province of Asia writes a
+//! day, unnumbered days included, and the day and the moment the year
+//! changes at the solar New Year of the Burmese, Khmer and Lao calendars.
 //!
 //! A Hebrew date crosses the boundary as the fixed day it names — the day
 //! whose daylight carries it; an event after sunset belongs to the next
@@ -23,9 +24,10 @@ use hc_calendars_regional::chinese_regnal::{self, Dynasty};
 use hc_calendars_regional::korean_regnal;
 use hc_calendars_regional::nengo::{self, Certainty, Court};
 use hc_calendars_regional::olympiad::{self, GamesStatus};
+use hc_calendars_regional::{burmese, khmer, lao};
 use hc_calendars_solar::asian::{AsianCalendar, WrittenDay};
 
-use crate::boundary::{Answer, Refusal, line};
+use crate::boundary::{Answer, Line, Refusal, line};
 
 /// The number of the modern Olympiad a Gregorian year belongs to, from 1
 /// for 1896–1899, by [`olympiad::ioc_olympiad`].
@@ -648,6 +650,87 @@ pub fn chinese_marriage_augury_line(chinese_year: i64) -> Answer<String> {
             .cell(&joined(|name| name.locale))
             .cell(&joined(|name| name.region.unwrap_or("")));
     }))
+}
+
+/// How many columns [`solar_new_year_line`] writes.
+pub const SOLAR_NEW_YEAR_COLUMNS: usize = 9;
+
+/// The line of `hc_solar_new_year`: the day and the moment at which the
+/// year changes at the solar New Year of a Southeast Asian calendar, in the
+/// calendar's own arithmetic — `burmese`, the *atat* moment of Thingyan
+/// that opens the Myanmar year ([`burmese::thingyan`]); `khmer`, the
+/// *Laeung Sak* at which the Jolak Sakaraj, the animal year and the *sak*
+/// change ([`khmer::laeung_sak`]); and `lao`, the New Year's day of
+/// Dupertuis's table ([`lao::new_year_day`]). `year` is the year as the
+/// calendar numbers it: the Myanmar Era for `burmese`, the Buddhist Era
+/// for `khmer` and the Chulasakarat for `lao`, as each calendar's own
+/// functions take it.
+///
+/// Tab-separated: the calendar; the year as given; the fixed day on which
+/// the new year begins by the country's clock (the day after *atat* for
+/// `burmese`, the *Laeung Sak* day for `khmer`, the table's day for `lao`);
+/// the seconds after midnight at which the year changes, which the Khmer
+/// announcements give to the second for the *Laeung Sak* and the Lao
+/// arithmetic gives as the same quantity, and which is empty for `burmese`,
+/// whose source states the *atat* moment as a Julian Date and no
+/// announcement of the clock time was read to hold it to; the Chulasakarat
+/// year that begins, empty for `burmese`, whose year is the one given; and,
+/// for `burmese`, the festival's days — *akyo*, the
+/// eve; *akya*, its first day; the last *akyat*; and *atat*, the day the
+/// old year ends — empty for the other two. The *Maha Songkran* moment at
+/// which the Khmer and Lao festivals begin, two to three days before the
+/// year changes, is not carried: the Cambodian *hora*'s rule for the true
+/// Sun (Roath Kim Soeun, *Pratitin Soryakkatik-Chankatik*) was not read,
+/// as `docs/systems/khmer-chhankitek.md` states. Thailand's Songkran is
+/// the three Gregorian days its holiday table lists, and Sri Lanka's
+/// *Aluth Avurudu* moment is not carried, the Ministry's *Avurudu Nekath
+/// Seettuwa* not having been read, as `docs/calendars.md` states.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for another calendar, and [`Refusal::OutOfRange`]
+/// for a year outside the calendar's: 1 to 3000 ME, 2444 to 2744 BE, and
+/// 1301 to 1401 CS.
+pub fn solar_new_year_line(calendar: &str, year: i64) -> Answer<String> {
+    let mut out = String::new();
+    let mut cells = Line::new(&mut out);
+    if hc_core::catalogue::matches(calendar, "burmese") {
+        if !(burmese::MIN_YEAR..=burmese::MAX_YEAR).contains(&year) {
+            return Err(Refusal::OutOfRange);
+        }
+        let festival = burmese::thingyan(year);
+        cells
+            .cell("burmese")
+            .value(year)
+            .value(festival.new_year.0)
+            .empties(2)
+            .value(festival.akyo.0)
+            .value(festival.akya.0)
+            .value(festival.last_akyat.0)
+            .value(festival.atat.0);
+    } else {
+        let change = if hc_core::catalogue::matches(calendar, "khmer") {
+            khmer::laeung_sak(year)
+        } else if hc_core::catalogue::matches(calendar, "lao") {
+            lao::new_year_day(year)
+        } else {
+            return Err(Refusal::Unknown);
+        }
+        .ok_or(Refusal::OutOfRange)?;
+        cells
+            .cell(if hc_core::catalogue::matches(calendar, "khmer") {
+                "khmer"
+            } else {
+                "lao"
+            })
+            .value(year)
+            .value(change.day.0)
+            .value(change.seconds)
+            .value(change.chulasakarat_year)
+            .empties(4);
+    }
+    cells.end();
+    Ok(out)
 }
 
 #[cfg(test)]

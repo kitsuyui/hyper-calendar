@@ -414,6 +414,18 @@ pub fn intervals(rank: GeologicRank, locale: &str) -> String {
     }
     out
 }
+/// The lines of `hc_geologic_intervals`: every interval of one rank of the
+/// geologic time scale, `rank` being 0 for the eons, 1 for the eras, 2 for
+/// the periods, 3 for the epochs and 4 for the ages ([`rank`]), youngest
+/// first, each a line of [`intervals`] in `locale`.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a rank the chart has no row of.
+pub fn intervals_line(rank_number: u32, locale: &str) -> Answer<String> {
+    let rank = rank(rank_number).ok_or(Refusal::Unknown)?;
+    Ok(intervals(rank, locale))
+}
 
 /// How many columns a line of [`planck_units_lines`] has.
 pub const PLANCK_UNIT_COLUMNS: usize = 10;

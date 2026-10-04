@@ -40,7 +40,8 @@ use hc_humanize::approximate::{ApproximateFormatter, ApproximatePolicy, approxim
 use hc_humanize::calendar_relative::{day_amount, write_clock_time};
 use hc_humanize::lookup::locale_data;
 use hc_humanize::natural::{
-    DeltaOptions, Gender, Grouping, Natural, NaturalPhrases, NaturalWords, PreciseUnit, SizeStyle,
+    ClampFormat, DeltaOptions, Gender, Grouping, Natural, NaturalPhrases, NaturalWords,
+    PreciseUnit, SizeStyle,
 };
 use hc_humanize::unit_choice::choose;
 use hc_humanize::{
@@ -452,6 +453,107 @@ pub fn naturallist_line(items: &str, _tag: &str) -> Answer<String> {
     natural_line(&Natural::english(), |natural, out| {
         natural.write_naturallist(out, &items)
     })
+}
+
+/// The `format` of `hc_clamp`: `display`, Python's `"{:}"`; `fixed:N`,
+/// `"{:.Nf}"`; or `percent:N`, `"{:.N%}"`, in any case.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for another word, [`Refusal::Malformed`] for a
+/// count that is not a number, and [`Refusal::OutOfRange`] for one above
+/// 255.
+pub fn clamp_format(name: &str) -> Answer<ClampFormat<'static>> {
+    let name = name.trim();
+    if hc_core::catalogue::matches(name, "display") {
+        return Ok(ClampFormat::Display);
+    }
+    let (word, decimals) = name.split_once(':').ok_or(Refusal::Unknown)?;
+    let decimals: u32 = decimals.trim().parse().map_err(|_| Refusal::Malformed)?;
+    let decimals = digits_of(decimals)?;
+    if hc_core::catalogue::matches(word, "fixed") {
+        Ok(ClampFormat::Fixed(decimals))
+    } else if hc_core::catalogue::matches(word, "percent") {
+        Ok(ClampFormat::Percent(decimals))
+    } else {
+        Err(Refusal::Unknown)
+    }
+}
+
+/// A bound of `hc_clamp`: none for no text, else a decimal number.
+///
+/// # Errors
+///
+/// [`Refusal::Malformed`] for text that is not a number.
+pub fn clamp_bound(text: Option<&str>) -> Answer<Option<f64>> {
+    match text.map(str::trim) {
+        None | Some("") => Ok(None),
+        Some(text) => text
+            .parse::<f64>()
+            .ok()
+            .filter(|value| value.is_finite())
+            .map(Some)
+            .ok_or(Refusal::Malformed),
+    }
+}
+
+/// The line of `hc_clamp`: `humanize`'s `clamp(value, format, floor, ceil,
+/// floor_token, ceil_token)` — the value written with the format, or,
+/// below `floor` or above `ceil`, the bound written the same way after its
+/// token, `<0.01`, `>99.00%`; then `en`, as `clamp` writes no word a
+/// catalogue translates. Python's `format` is a format string or a
+/// function; the three shapes a string takes here are [`clamp_format`]'s,
+/// and the function has no shape at a boundary, so a caller who needs one
+/// formats the value the line gives.
+///
+/// # Errors
+///
+/// As [`clamp_format`] and [`clamp_bound`]; a value that is not finite is
+/// written `NaN`, `+Inf` or `-Inf`, as [`fractional_line`] writes it.
+pub fn clamp_line(
+    value: f64,
+    format: &str,
+    floor: Option<&str>,
+    ceil: Option<&str>,
+    floor_token: &str,
+    ceil_token: &str,
+) -> Answer<String> {
+    let format = clamp_format(format)?;
+    let bounds = (clamp_bound(floor)?, clamp_bound(ceil)?);
+    natural_line(&Natural::english(), |natural, out| {
+        natural.write_clamp(out, value, format, bounds, (floor_token, ceil_token))
+    })
+}
+
+/// How many columns [`list_forms_line`] writes.
+pub const LIST_FORMS_COLUMNS: usize = 5;
+
+/// The line of `hc_list_forms`: the CLDR list patterns a style of
+/// `hc-humanize` joins the parts of a duration with, for a locale
+/// ([`hc_humanize::lookup::list_forms`]): the pattern for exactly two
+/// items, the one that joins the first item to the rest, the one for the
+/// middle and the one for the last, each with `{0}` and `{1}` where the
+/// items go (`{0} and {1}`, `{0}, {1}` for English's long style); then the
+/// tag of the data the locale resolved to. The `long` style takes CLDR's
+/// `standard` list, `short` its `unit` list and `narrow` its `unit-narrow`,
+/// each falling back to the wider where a locale has none.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a style [`relative_style`] does not name.
+pub fn list_forms_line(style: &str, tag: &str) -> Answer<String> {
+    let style = relative_style(style)?;
+    let locale = locale(tag);
+    let forms = hc_humanize::lookup::list_forms(&locale, style);
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.cell(forms.two)
+        .cell(forms.start)
+        .cell(forms.middle)
+        .cell(forms.end)
+        .cell(locale_data(&locale).tag);
+    line.end();
+    Ok(out)
 }
 
 /// The line of `hc_intword`: `humanize`'s `intword`, `12.4 thousand`,

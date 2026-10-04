@@ -293,3 +293,54 @@ fn the_nayin_line_crosses_the_boundary() {
         "{second}"
     );
 }
+
+/// The solar New Years the calendars' own anchors give: Thingyan of 1386
+/// ME ran from *akyo* on 13 April 2024 to the New Year on the 17th; the
+/// Khmer *Laeung Sak* of 2568 BE was 02:15:00 on 16 April 2024, as the New
+/// Year announcement gives it; and Dupertuis's worked example puts the Lao
+/// New Year of 1343 CS on 15 April 1981.
+#[test]
+fn the_solar_new_years_are_the_calendars_own() {
+    let line = |calendar: &str, year: i64| {
+        read_lines(|buffer, capacity| unsafe {
+            hc_solar_new_year(calendar.as_ptr(), calendar.len(), year, buffer, capacity)
+        })
+    };
+    let april = |day: u32| hc_gregorian_to_fixed(2024, 4, day).to_string();
+    assert_eq!(
+        line("burmese", 1386),
+        format!(
+            "burmese\t1386\t{}\t\t\t{}\t{}\t{}\t{}\n",
+            april(17),
+            april(13),
+            april(14),
+            april(15),
+            april(16)
+        )
+    );
+    assert_eq!(
+        line("KHMER", 2568),
+        format!("khmer\t2568\t{}\t8100\t1386\t\t\t\t\n", april(16))
+    );
+    assert_eq!(
+        line("lao", 1343),
+        format!(
+            "lao\t1343\t{}\t{}\t1343\t\t\t\t\n",
+            hc_gregorian_to_fixed(1981, 4, 15),
+            line("lao", 1343).split('\t').nth(3).expect("seconds")
+        )
+    );
+    let null = core::ptr::null_mut();
+    assert_eq!(
+        unsafe { hc_solar_new_year("khmer".as_ptr(), 5, 2443, null, 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_solar_new_year("burmese".as_ptr(), 7, 3001, null, 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_solar_new_year("thai-lunar".as_ptr(), 10, 2567, null, 0) },
+        HC_ERR_UNKNOWN
+    );
+}

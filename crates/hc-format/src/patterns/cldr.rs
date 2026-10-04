@@ -26,7 +26,7 @@
 //!
 //! `w`, `Y` and `W` count weeks by the locale's week rule, UTS #35 Part 4's
 //! "Week of Year": the locale's first day of the week (`-u-fw-` first) and
-//! CLDR 48's `minDays` for its region, `hc_i18n::week::WeekRule`; with no
+//! CLDR 48's `minDays` for its region, `hc_i18n::week::for_locale`; with no
 //! locale, ISO 8601's, Monday and four. `W` is 0 for a day before its
 //! month's first week. `e` and `c` already followed the first day.
 //!
@@ -72,7 +72,7 @@ use core::fmt;
 use hc_i18n::Locale;
 use hc_i18n::day_periods::{self, FlexibleDayPeriod};
 use hc_i18n::names::{self, DayPeriod, NameContext, NameWidth};
-use hc_i18n::week::WeekRule;
+use hc_i18n::week::{self, WeekRule};
 use hc_tz::{OffsetStyle, UtcOffset};
 
 use crate::error::{ErrorKind, FormatError, FormatResult, ParseResult};
@@ -463,12 +463,12 @@ fn match_extended_day_period(
 }
 
 /// The rule `w`, `Y` and `W` count weeks by: the locale's first day of the
-/// week and `minDays` ([`WeekRule::for_locale`], CLDR 48's `weekData`), and
+/// week and `minDays` ([`week::for_locale`], CLDR 48's `weekData`), and
 /// ISO 8601's, Monday and four days, with no locale: the `C` locale is
 /// POSIX's, and CLDR's root rule, Monday and one day, is not what a program
 /// that names no locale means by a week number.
 fn week_rule(locale: Option<&Locale>) -> WeekRule {
-    locale.map_or(WeekRule::ISO, WeekRule::for_locale)
+    locale.map_or(WeekRule::ISO, week::for_locale)
 }
 
 /// The weekday numbered from the locale's own first day of the week.
@@ -657,7 +657,7 @@ fn read_field(
         }
         'Y' => {
             fields.iso_year = Some(number(scanner, digits, 10, "year")?);
-            fields.week_rule = locale.map(WeekRule::for_locale);
+            fields.week_rule = locale.map(week::for_locale);
         }
         'u' => {
             let negative = scanner.peek() == Some(b'-');
@@ -683,7 +683,7 @@ fn read_field(
         }
         'w' => {
             fields.iso_week = Some(bounded(scanner, digits, 2, 1, 53, "week")? as u8);
-            fields.week_rule = locale.map(WeekRule::for_locale);
+            fields.week_rule = locale.map(week::for_locale);
         }
         'E' => {
             fields.iso_weekday = Some(

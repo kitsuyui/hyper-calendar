@@ -2673,6 +2673,20 @@ pub enum SubstituteDirection {
     NearestWorkingDay,
 }
 
+impl SubstituteDirection {
+    /// The word the direction is written as at the boundary: `forward`,
+    /// `backward`, `nearest` or `nearest-working-day`.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::Forward => "forward",
+            Self::Backward => "backward",
+            Self::Nearest => "nearest",
+            Self::NearestWorkingDay => "nearest-working-day",
+        }
+    }
+}
+
 /// A country's weekend-substitution law.
 ///
 /// The crate will not invent one of these. If a country's statute is not in

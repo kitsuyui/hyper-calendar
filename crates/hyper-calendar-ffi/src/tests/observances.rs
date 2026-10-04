@@ -73,7 +73,6 @@ fn the_tables_the_lectionary_and_easter_cross_the_boundary() {
         .split('\t')
         .collect();
     assert_eq!(japan[..5], ["JP", "country", "Japan", "Japan", "en"]);
-    assert_eq!(japan.len(), 14);
     assert!(japan[8].split(';').any(|code| code == "JP-13"), "{japan:?}");
     assert_eq!(
         japan[9..11],
@@ -84,6 +83,11 @@ fn the_tables_the_lectionary_and_easter_cross_the_boundary() {
         japan[13], "unread//1992-04-30/;6+7/1992-05-01//",
         "and keeps Saturday and Sunday from 1 May 1992"
     );
+    assert_eq!(
+        japan[14], "7/forward///1973/2006/;7/forward/skip-occupied//2007//",
+        "and moves a Sunday holiday to the Monday, past a holiday from 2007"
+    );
+    assert_eq!(japan.len(), 15);
     // A region with only a weekend law of its own is listed.
     let cells = |code: &str| -> Vec<&str> {
         english

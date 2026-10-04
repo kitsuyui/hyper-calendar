@@ -82,7 +82,12 @@ behind one interface.
 ## Cycles that are not calendars
 
 `weekday` holds the seven-day week and, as `DayCycle`, the weeks that are not
-seven days long. `cycle` holds the East Asian sexagenary cycle: the sixty
+seven days long. `week` holds the week rule, `WeekRule`: the first day of the
+week and the fewest days of a year or month that its first week must hold
+(UTS #35's `firstDay` and `minDays`), and from them the week of the year, the
+week-numbering year and the week of the month of a Gregorian day; ISO 8601's
+Monday and four days is `WeekRule::ISO`, which `hc-calendars-solar`'s ISO
+week date counts by, and `hc-i18n` reads a locale's pair from CLDR. `cycle` holds the East Asian sexagenary cycle: the sixty
 stem–branch pairs, the readings they are written in (a catalogue of nine —
 characters, pinyin with and without tones, the Japanese kun readings in kana
 and romanised, the romanised on readings, Hangul and its romanisation, and

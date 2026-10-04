@@ -23,9 +23,9 @@
 use core::cmp::Ordering;
 use core::fmt;
 
-use hc_core::epoch_notation::JULIAN_YEAR_SECONDS;
 use hc_core::{Duration, math};
 use hc_uncertainty::{MAX_FIGURES, Significant, Uncertain};
+use hc_units::unit::{self as units, Unit};
 
 use crate::constants;
 use crate::error::{DeepTimeError, DeepTimeResult};
@@ -101,32 +101,52 @@ impl DeepUnit {
         Self::Gigayear,
     ];
 
+    /// The exactly defined unit of `hc-units` whose length this is: every
+    /// unit but the Planck time, which is measured, and the kilo-, mega- and
+    /// gigayear, which `hc-units` does not carry and which are the Julian
+    /// year times a power of ten. The length of each is read from there, so
+    /// that the two crates cannot disagree about a yoctosecond or a day.
+    #[must_use]
+    pub const fn defined_unit(self) -> Option<Unit> {
+        Some(match self {
+            Self::PlanckTime | Self::Kiloyear | Self::Megayear | Self::Gigayear => return None,
+            Self::Yoctosecond => units::YOCTOSECOND,
+            Self::Zeptosecond => units::ZEPTOSECOND,
+            Self::Attosecond => units::ATTOSECOND,
+            Self::Femtosecond => units::FEMTOSECOND,
+            Self::Picosecond => units::PICOSECOND,
+            Self::Nanosecond => units::NANOSECOND,
+            Self::Microsecond => units::MICROSECOND,
+            Self::Millisecond => units::MILLISECOND,
+            Self::Second => units::SECOND,
+            Self::Minute => units::MINUTE,
+            Self::Hour => units::HOUR,
+            Self::Day => units::DAY,
+            Self::JulianYear => units::JULIAN_YEAR,
+        })
+    }
+
     /// How many seconds one of these is, as a central value.
     ///
     /// For every unit but [`DeepUnit::PlanckTime`] this factor is exact by
-    /// definition. For the Planck time it is the CODATA 2022 central value,
-    /// and [`DeepUnit::seconds_uncertain`] is the one that carries its error
-    /// bar.
+    /// definition, and is `hc-units`'s ([`DeepUnit::defined_unit`]): the
+    /// Julian year's 31 557 600 s, times 10³, 10⁶ or 10⁹ for the kilo-,
+    /// mega- and gigayear. For the Planck time it is the CODATA 2022 central
+    /// value, and [`DeepUnit::seconds_uncertain`] is the one that carries
+    /// its error bar.
     #[must_use]
     pub fn seconds(self) -> f64 {
+        let julian_years = |count: f64| units::JULIAN_YEAR.seconds.as_f64() * count;
         match self {
             Self::PlanckTime => constants::PLANCK_TIME.value,
-            Self::Yoctosecond => 1e-24,
-            Self::Zeptosecond => 1e-21,
-            Self::Attosecond => 1e-18,
-            Self::Femtosecond => 1e-15,
-            Self::Picosecond => 1e-12,
-            Self::Nanosecond => 1e-9,
-            Self::Microsecond => 1e-6,
-            Self::Millisecond => 1e-3,
-            Self::Second => 1.0,
-            Self::Minute => 60.0,
-            Self::Hour => 3600.0,
-            Self::Day => 86_400.0,
-            Self::JulianYear => JULIAN_YEAR_SECONDS,
-            Self::Kiloyear => JULIAN_YEAR_SECONDS * 1e3,
-            Self::Megayear => JULIAN_YEAR_SECONDS * 1e6,
-            Self::Gigayear => JULIAN_YEAR_SECONDS * 1e9,
+            Self::Kiloyear => julian_years(1e3),
+            Self::Megayear => julian_years(1e6),
+            Self::Gigayear => julian_years(1e9),
+            // Every other unit has one; the Planck time, which has none, is
+            // the arm above.
+            defined => defined
+                .defined_unit()
+                .map_or(constants::PLANCK_TIME.value, |unit| unit.seconds.as_f64()),
         }
     }
 
@@ -768,6 +788,33 @@ mod tests {
     #[test]
     fn a_gigayear_is_the_iau_julian_year_times_a_billion() {
         assert!(close(DeepUnit::Gigayear.seconds(), 3.155_76e16, 1e-12));
+    }
+
+    /// The lengths are `hc-units`'s, and the SI prefixes among them are
+    /// the powers of ten the literature writes.
+    #[test]
+    fn the_defined_lengths_are_hc_units_and_the_prefixes_are_powers_of_ten() {
+        for unit in DeepUnit::ALL {
+            if let Some(defined) = unit.defined_unit() {
+                assert_eq!(unit.seconds(), defined.seconds.as_f64(), "{unit:?}");
+                assert_eq!(unit.id(), defined.id, "{unit:?}");
+            }
+        }
+        for (unit, seconds) in [
+            (DeepUnit::Yoctosecond, 1e-24),
+            (DeepUnit::Zeptosecond, 1e-21),
+            (DeepUnit::Attosecond, 1e-18),
+            (DeepUnit::Femtosecond, 1e-15),
+            (DeepUnit::Picosecond, 1e-12),
+            (DeepUnit::Nanosecond, 1e-9),
+            (DeepUnit::Microsecond, 1e-6),
+            (DeepUnit::Millisecond, 1e-3),
+            (DeepUnit::Day, 86_400.0),
+            (DeepUnit::JulianYear, 31_557_600.0),
+            (DeepUnit::Gigayear, 3.155_76e16),
+        ] {
+            assert_eq!(unit.seconds(), seconds, "{unit:?}");
+        }
     }
 
     #[test]

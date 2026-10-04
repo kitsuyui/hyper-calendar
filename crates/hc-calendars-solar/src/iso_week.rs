@@ -15,7 +15,13 @@
 //! Gregorian year starts on a Thursday, or starts on a Wednesday and is a
 //! leap year — which this module derives rather than tabulates, by measuring
 //! the distance between two consecutive week-one Mondays.
+//!
+//! The arithmetic is [`WeekRule::ISO`]'s, `hc-calendar`'s week rule of
+//! Monday and four days, written once for every week number the workspace
+//! gives; this module adds the range checks, the week date and the
+//! calendar.
 
+use hc_calendar::week::WeekRule;
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, Weekday,
     YearKind,
@@ -75,21 +81,14 @@ pub fn week_one_start(year: i64) -> CalendarResult<Rd> {
 
 /// The Monday that opens week 1 of `year`, by the proleptic Gregorian rule
 /// and without a range check: 4 January is in week 1 by definition, so the
-/// Monday on or before it opens week 1.
+/// Monday on or before it opens week 1, which is [`WeekRule::ISO`]'s week 1.
 ///
 /// The arithmetic is that of [`hc_calendar::gregorian::new_year`], plain
 /// `i64`, which holds one year either side of the Gregorian range; it is
 /// not the range-checked [`gregorian::to_fixed`], which refuses the year
 /// after [`gregorian::MAX_YEAR`] that the end of the last ISO year needs.
 const fn raw_week_one_start(year: i64) -> Rd {
-    let new_year = hc_calendar::gregorian::new_year(year);
-    Weekday::Monday.on_or_before(Rd(new_year.0 + 3))
-}
-
-/// The Monday that opens week 1 of the year after `year`: where `year`'s
-/// last week ends.
-const fn next_week_one_start(year: i64) -> Rd {
-    raw_week_one_start(year + 1)
+    WeekRule::ISO.week_one_start(year)
 }
 
 /// The number of weeks in `year`, either 52 or 53.
@@ -99,9 +98,8 @@ const fn next_week_one_start(year: i64) -> Rd {
 /// Returns [`CalendarError::YearOutOfRange`] outside
 /// [`MIN_YEAR`]..=[`MAX_YEAR`].
 pub fn weeks_in_year(year: i64) -> CalendarResult<u8> {
-    let start = week_one_start(year)?;
-    let next = next_week_one_start(year);
-    Ok(((next.0 - start.0) / 7) as u8)
+    week_one_start(year)?;
+    Ok(WeekRule::ISO.weeks_in_year(year))
 }
 
 /// Whether `year` is a 53-week ISO year.
@@ -162,11 +160,8 @@ impl IsoWeekDate {
 /// Returns a [`CalendarError`] when the week date does not exist.
 pub fn to_fixed(year: i64, week: u8, weekday: u8) -> CalendarResult<Rd> {
     let date = IsoWeekDate::new(year, week, weekday)?;
-    let start = week_one_start(date.year)?;
-    Ok(Rd(start.0
-        + 7 * (i64::from(date.week) - 1)
-        + i64::from(date.weekday)
-        - 1))
+    let day_of_week = date.day_of_week().ok_or(CalendarError::DayOutOfRange)?;
+    Ok(WeekRule::ISO.to_fixed(date.year, date.week, day_of_week))
 }
 
 /// The ISO week date of a fixed day.
@@ -180,22 +175,14 @@ pub fn to_fixed(year: i64, week: u8, weekday: u8) -> CalendarResult<Rd> {
 /// Gregorian year of the day, so the year after the last one is read
 /// without a range check.
 pub fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
-    // The Gregorian year, which also checks the range. The ISO year is the
-    // same, one more when the day is on or after the next year's week 1, or
-    // one less when it is before this year's.
-    let gregorian_year = gregorian::year_from_fixed(rd)?;
-    let year = if rd >= next_week_one_start(gregorian_year) {
-        gregorian_year + 1
-    } else if rd >= raw_week_one_start(gregorian_year) {
-        gregorian_year
-    } else {
-        gregorian_year - 1
-    };
+    // The Gregorian year check is the range check; the rule then finds the
+    // ISO year, which is the same, one more when the day is on or after the
+    // next year's week 1, or one less when it is before this year's.
+    gregorian::year_from_fixed(rd)?;
+    let (year, week) = WeekRule::ISO.week_of_year(rd);
     if !(MIN_YEAR..=MAX_YEAR).contains(&year) {
         return Err(CalendarError::YearOutOfRange);
     }
-    let start = raw_week_one_start(year);
-    let week = ((rd.0 - start.0) / 7 + 1) as u8;
     let weekday = Weekday::from_rd(rd).iso_number();
     Ok((year, week, weekday))
 }

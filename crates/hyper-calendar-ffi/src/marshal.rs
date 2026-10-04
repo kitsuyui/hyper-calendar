@@ -143,6 +143,7 @@ pub(crate) const fn status(refusal: hc::boundary::Refusal) -> HcStatus {
 ///
 /// As [`write_text`].
 #[cfg(any(
+    feature = "civil",
     feature = "timestamps",
     feature = "time-codes",
     feature = "calendars",

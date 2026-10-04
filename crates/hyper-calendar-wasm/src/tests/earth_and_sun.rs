@@ -253,3 +253,96 @@ fn the_horizons_are_listed_and_each_rises_and_sets() {
         HC_ERR_OUT_OF_RANGE
     );
 }
+
+/// The USNO's "Complete Sun and Moon Data for One Day" for 31.78° N,
+/// 35.24° E on 1 January 2024: moonrise at 21:47 and moonset at 10:15,
+/// UT+2, so 19:47 and 08:15 UTC; the horizon reproduces each within the
+/// published minute.
+#[test]
+fn the_moon_rises_and_sets_when_the_usno_says() {
+    let day = hc_gregorian_to_fixed(2024, 1, 1);
+    let horizon = "usno";
+    let crossing = |rise: bool| {
+        let text = read_lines(|buffer, capacity| unsafe {
+            if rise {
+                hc_moonrise(
+                    horizon.as_ptr(),
+                    horizon.len(),
+                    day,
+                    31.78,
+                    35.24,
+                    740.0,
+                    buffer,
+                    capacity,
+                )
+            } else {
+                hc_moonset(
+                    horizon.as_ptr(),
+                    horizon.len(),
+                    day,
+                    31.78,
+                    35.24,
+                    740.0,
+                    buffer,
+                    capacity,
+                )
+            }
+        });
+        let cells: Vec<String> = text
+            .trim_end_matches('\n')
+            .split('\t')
+            .map(str::to_owned)
+            .collect();
+        assert_eq!(cells.len(), 3, "{text}");
+        cells
+    };
+    let rise = crossing(true);
+    let instant: i64 = rise[0].parse().expect("an instant");
+    assert!((instant - 1_704_138_420).abs() <= 35, "{rise:?}");
+    assert_eq!(rise[1..], ["", ""]);
+    let set = crossing(false);
+    let instant: i64 = set[0].parse().expect("an instant");
+    assert!((instant - 1_704_096_900).abs() <= 35, "{set:?}");
+    // The Moon skips a local day about once a month: of January 2024 at
+    // Jerusalem, exactly one day has no moonrise, written by name.
+    let mut missing = Vec::new();
+    for offset in 0..31 {
+        let text = read_lines(|buffer, capacity| unsafe {
+            hc_moonrise(
+                horizon.as_ptr(),
+                horizon.len(),
+                day + offset,
+                31.78,
+                35.24,
+                740.0,
+                buffer,
+                capacity,
+            )
+        });
+        if text.starts_with('\t') {
+            assert_eq!(text, format!("\tmoonrise\t{}\n", day + offset));
+            missing.push(offset);
+        }
+    }
+    assert_eq!(missing.len(), 1, "{missing:?}");
+    let null = core::ptr::null_mut();
+    assert_eq!(
+        unsafe { hc_moonrise("naoj".as_ptr(), 4, day, 0.0, 0.0, 0.0, null, 0) },
+        HC_ERR_UNKNOWN
+    );
+    assert_eq!(
+        unsafe {
+            hc_moonset(
+                horizon.as_ptr(),
+                horizon.len(),
+                day,
+                91.0,
+                0.0,
+                0.0,
+                null,
+                0,
+            )
+        },
+        HC_ERR_OUT_OF_RANGE
+    );
+}

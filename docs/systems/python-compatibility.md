@@ -210,15 +210,23 @@ every disagreement was either fixed or is listed in the parity document.
   `div_int_nearest`, `ratio`) and `wide.rs` (the 256-bit integer),
   `crates/hyper-calendar/src/civil.rs` (`Resolution`, the `TimeDelta`
   methods) and `civil/struct_time.rs` (`StructTime` and `calendar`); tests in
-  `crates/hyper-calendar/tests/python.rs` and `hc-core`'s `duration`.
+  `crates/hyper-calendar/tests/python.rs` and `hc-core`'s `duration`. The
+  boundary's `hc_gmtime`, `hc_timegm`, `hc_isleap`, `hc_leapdays`,
+  `hc_calendar_weekday`, `hc_monthrange` and `hc_monthcalendar` (`civil`),
+  and `hc_localtime` and `hc_mktime` (`tz`), are `python_lines.rs`. The
+  boundary's `hc_gmtime`, `hc_timegm`, `hc_isleap`, `hc_leapdays`,
+  `hc_calendar_weekday`, `hc_monthrange` and `hc_monthcalendar` (`civil`),
+  and `hc_localtime` and `hc_mktime` (`tz`), are `python_lines.rs`.
 - `NaturalPhrases::for_locale` and `NaturalWords` choose the catalogue for a
   locale (`crates/hc-humanize/src/natural.rs`; test
   `a_locale_is_served_by_the_first_catalogue_that_translates_the_words`).
 - The boundary's `natural` layer: `hc_apnumber`, `hc_fractional`,
   `hc_scientific`, `hc_metric`, `hc_naturalsize`, `hc_naturallist`,
   `hc_intword`, `hc_naturaldelta`, `hc_naturaltime`, `hc_precisedelta`,
-  `hc_naturalday`, `hc_naturaldate`, `hc_ordinal`, `hc_intcomma` and
-  `hc_intcomma_float`: `crates/hyper-calendar/src/exports.rs` and
-  `humanize_lines.rs`. `strptime` and `fromisoformat` cross the boundary as
+  `hc_naturalday`, `hc_naturaldate`, `hc_ordinal`, `hc_intcomma`,
+  `hc_intcomma_float` and `hc_clamp`, whose `format` is the three shapes a
+  Python format string takes (`display`, `fixed:N`, `percent:N`), the
+  function form having no shape at a boundary:
+  `crates/hyper-calendar/src/exports.rs` and `humanize_lines.rs`. `strptime` and `fromisoformat` cross the boundary as
   `hc_parse_pattern` and `hc_parse_datetime` with the syntax `python`, and
   `isoformat` as `hc_format_datetime` with it (`datetime_lines.rs`).

@@ -63,6 +63,7 @@ fn the_error_floor_is_far_below_any_real_day_number() {
 /// Call a line-writing export the way a page does: measure with a null
 /// buffer, refuse a buffer that is too small, then read the text.
 #[cfg(any(
+    feature = "civil",
     feature = "timestamps",
     feature = "time-codes",
     feature = "calendars",
@@ -112,6 +113,9 @@ mod civil_refusals;
 
 #[cfg(feature = "civil")]
 mod civil;
+
+#[cfg(feature = "civil")]
+mod python_time;
 
 #[cfg(feature = "calendars")]
 mod calendars;
@@ -257,6 +261,7 @@ fn the_plum_rains_of_2026_cross_the_boundary() {
 }
 
 #[cfg(any(
+    feature = "civil",
     feature = "timestamps",
     feature = "calendars",
     feature = "holiday",

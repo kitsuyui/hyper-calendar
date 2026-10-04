@@ -69,6 +69,7 @@ pub mod gregorian;
 pub mod time;
 pub mod traits;
 pub mod units;
+pub mod week;
 pub mod weekday;
 
 #[cfg(feature = "alloc")]

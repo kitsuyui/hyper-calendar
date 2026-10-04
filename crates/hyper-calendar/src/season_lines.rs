@@ -6,7 +6,9 @@
 //!   Chinese and Japanese names and the authority for each.
 //! * The pentad (候) in effect on a day, from
 //!   [`hc_seasons::pentads::pentad_in_effect`], with its name in the
-//!   Chinese and the Japanese tradition and the text each comes from.
+//!   Chinese and the Japanese tradition and the text each comes from; and
+//!   every pentad of a year, named by every tradition at once, from
+//!   [`hc_seasons::pentads::pentads_in_year`].
 //!
 //! * 寒食, the Cold Food Day, of a year under a named reckoning, from
 //!   [`hc_seasons::cold_food`], counted from a solar term.
@@ -185,6 +187,47 @@ pub fn pentad_in_tradition_line(
         .cell(tradition.id)
         .cell(tradition.authority);
     line.end();
+    Ok(out)
+}
+
+/// How many columns each line of [`pentads_in_year_lines`] writes: the
+/// index, the two days, and a name in each tradition of
+/// [`pentads::PENTAD_TRADITIONS`].
+pub const PENTADS_IN_YEAR_COLUMNS: usize = 3 + pentads::PENTAD_TRADITIONS.len();
+
+/// The lines of `hc_pentads_in_year`: every pentad that begins in a
+/// Gregorian year at a meridian, in date order, as
+/// [`pentads::pentads_in_year`] walks them — 71, 72 or 73 of them, the
+/// first 小寒初候 or 冬至末候 — one a line: the pentad's index from the first
+/// pentad of 春分 at 0 through 71, the fixed day it began at the meridian,
+/// the last fixed day before the next pentad begins, and its name in each
+/// tradition `hc_pentad_traditions` lists, one column a tradition in that
+/// order (`chinese`, `japanese`, `jokyo`, `senmyo`). The days are the ones
+/// `hc_pentad_in_effect` writes for a day of the pentad.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a meridian [`meridian`] does not read, and
+/// [`Refusal::OutOfRange`] for a year outside −1000 to 3000.
+pub fn pentads_in_year_lines(year: i64, meridian_name: &str) -> Answer<String> {
+    let meridian = meridian(meridian_name)?;
+    if !(EARLIEST_YEAR..=LATEST_YEAR).contains(&year) {
+        return Err(Refusal::OutOfRange);
+    }
+    let mut out = String::new();
+    for event in pentads::pentads_in_year(year, meridian) {
+        let next =
+            solar_longitude_after(event.pentad.next().solar_longitude_degrees(), event.moment);
+        let end = Rd(meridian.day_of(next).0 - 1);
+        let mut line = Line::new(&mut out);
+        line.value(event.pentad.index(TermOrder::SpringEquinoxFirst))
+            .value(event.day.0)
+            .value(end.0);
+        for tradition in pentads::PENTAD_TRADITIONS {
+            line.cell(event.pentad.name(*tradition));
+        }
+        line.end();
+    }
     Ok(out)
 }
 

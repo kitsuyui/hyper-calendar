@@ -180,3 +180,25 @@ fn the_thresholds_and_the_rounding_are_arguments() {
         HC_ERROR_UNKNOWN
     );
 }
+
+/// CLDR 48's English list patterns: the `standard` list for the long
+/// style.
+#[test]
+fn the_list_forms_are_cldrs() {
+    let line = read_lines(|buffer, capacity, written| unsafe {
+        hc_list_forms(c"long".as_ptr(), c"en".as_ptr(), buffer, capacity, written)
+    });
+    assert_eq!(line, "{0} and {1}\t{0}, {1}\t{0}, {1}\t{0}, and {1}\ten\n");
+    assert_eq!(
+        measured(|buffer, capacity, written| unsafe {
+            hc_list_forms(c"tiny".as_ptr(), c"en".as_ptr(), buffer, capacity, written)
+        }),
+        HC_ERROR_UNKNOWN
+    );
+    assert_eq!(
+        measured(|buffer, capacity, written| unsafe {
+            hc_list_forms(core::ptr::null(), c"en".as_ptr(), buffer, capacity, written)
+        }),
+        HC_ERROR_NULL_POINTER
+    );
+}

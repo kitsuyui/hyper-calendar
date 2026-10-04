@@ -385,3 +385,50 @@ fn the_nayin_line_crosses_the_boundary() {
         "{second}"
     );
 }
+
+/// The solar New Years the calendars' own anchors give: Thingyan of 1386
+/// ME ran from *akyo* on 13 April 2024 to the New Year on the 17th, and
+/// the Khmer *Laeung Sak* of 2568 BE was 02:15:00 on 16 April 2024.
+#[test]
+fn the_solar_new_years_are_the_calendars_own() {
+    let line = |calendar: &core::ffi::CStr, year: i64| {
+        read_lines(|buffer, capacity, written| unsafe {
+            hc_solar_new_year(calendar.as_ptr(), year, buffer, capacity, written)
+        })
+    };
+    let april = |day: u8| fixed(2024, 4, day).to_string();
+    assert_eq!(
+        line(c"burmese", 1386),
+        format!(
+            "burmese\t1386\t{}\t\t\t{}\t{}\t{}\t{}\n",
+            april(17),
+            april(13),
+            april(14),
+            april(15),
+            april(16)
+        )
+    );
+    assert_eq!(
+        line(c"khmer", 2568),
+        format!("khmer\t2568\t{}\t8100\t1386\t\t\t\t\n", april(16))
+    );
+    assert!(line(c"lao", 1343).starts_with(&format!("lao\t1343\t{}\t", fixed(1981, 4, 15))));
+    assert_eq!(
+        measured(|buffer, capacity, written| unsafe {
+            hc_solar_new_year(c"khmer".as_ptr(), 2443, buffer, capacity, written)
+        }),
+        HC_ERROR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        measured(|buffer, capacity, written| unsafe {
+            hc_solar_new_year(c"thai-lunar".as_ptr(), 2567, buffer, capacity, written)
+        }),
+        HC_ERROR_UNKNOWN
+    );
+    assert_eq!(
+        measured(|buffer, capacity, written| unsafe {
+            hc_solar_new_year(core::ptr::null(), 2567, buffer, capacity, written)
+        }),
+        HC_ERROR_NULL_POINTER
+    );
+}

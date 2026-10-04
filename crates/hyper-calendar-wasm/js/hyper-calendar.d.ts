@@ -1236,6 +1236,14 @@ export const COLUMNS: {
   readonly attributions: ReadonlyArray<string>;
   readonly attributionsOn: ReadonlyArray<string>;
   readonly harvestMoon: ReadonlyArray<string>;
+  readonly structTime: ReadonlyArray<string>;
+  readonly monthrange: ReadonlyArray<string>;
+  readonly monthcalendar: ReadonlyArray<string>;
+  readonly weekOfYear: ReadonlyArray<string>;
+  readonly solarNewYear: ReadonlyArray<string>;
+  readonly pentadsInYear: ReadonlyArray<string>;
+  readonly moonCrossing: ReadonlyArray<string>;
+  readonly listForms: ReadonlyArray<string>;
 };
 export const UNITS: readonly Unit[];
 export const NATIVE: "native";
@@ -1912,6 +1920,18 @@ export interface PentadTradition {
   authority: string;
   /** How many of its names carry an alternate reading the text prints beside them. */
   alternates: number;
+}
+
+/** One line of `hc_pentads_in_year`: a pentad of a Gregorian year, named by every tradition. */
+export interface PentadOfYear {
+  /** The first pentad of 春分 at 0 through 71. */
+  index: number;
+  /** The fixed day the pentad began at the meridian. */
+  begins: number;
+  /** The last fixed day before the next pentad begins. */
+  ends: number;
+  /** Its name in each tradition `pentadTraditions` lists. */
+  names: Record<PentadTraditionId, string>;
 }
 
 /** The one line of `hc_pentad_in_tradition`. */
@@ -3153,6 +3173,13 @@ export interface HolidayTable {
    * own has the one with no regions.
    */
   weekend: WeekendLaw[];
+  /**
+   * The table's weekend-substitution laws, in the table's order; empty for a
+   * table that states none, whose holidays stay on the weekend. Where several
+   * cover a day, the one for the nearest region wins, and a region with none
+   * of its own has the one with no regions.
+   */
+  substitution: SubstitutionLaw[];
 }
 
 /** A pair of column 12 of `hc_holiday_tables`: `CN-XJ:women` is `{ region: "CN-XJ", group: "women" }`. */
@@ -3174,6 +3201,29 @@ export interface WeekendLaw {
   /** The last day it is in force, `YYYY-MM-DD`; `null` for no last day. */
   last: string | null;
   /** The ISO 3166-2 codes of the regions it is the weekend of; empty for the whole table. */
+  regions: string[];
+}
+
+/** Which way a weekend substitute moves: the next working day, the last one before, the nearer of the two, or the nearer working day. */
+export type SubstituteDirection = "forward" | "backward" | "nearest" | "nearest-working-day";
+
+/** One weekend-substitution law of a holiday table: an entry of column 15 of `hc_holiday_tables`. */
+export interface SubstitutionLaw {
+  /** The weekdays that trigger a substitute, as ISO 8601 weekday numbers, Monday 1 to Sunday 7 (`[7]` for a Sunday). */
+  trigger: number[];
+  /** Which way the substitute moves. */
+  direction: SubstituteDirection;
+  /** Whether the search goes on past a day that is already a holiday: Japan's rule from 2007. */
+  skipOccupied: boolean;
+  /** Whether two holidays on one day earn a substitute too: South Korea's 대체공휴일. */
+  onCollision: boolean;
+  /** The weekdays, besides the trigger, a substitute may not land on: the Saturday of a Friday–Saturday weekend; empty for none. */
+  avoid: number[];
+  /** The first Gregorian year it is in force; `null` for no first year. */
+  first: number | null;
+  /** The last Gregorian year it is in force; `null` for no last year. */
+  last: number | null;
+  /** The ISO 3166-2 codes of the regions it is the law of; empty for the whole table. */
   regions: string[];
 }
 
@@ -3318,6 +3368,17 @@ export interface SolarCrossing {
   missing: MissingSolarEvent | null;
   /** The geometric altitude of the Sun's centre at the crossing, which the horizon and the height fix. */
   altitudeDegrees: number;
+}
+
+/** The crossing the Moon misses on a local day. */
+export type MissingMoonEventName = "moonrise" | "moonset";
+
+/** The one line of `hc_moonrise` or `hc_moonset`. */
+export interface MoonCrossing {
+  /** POSIX seconds of Universal Time, rounded down, or `null` when the Moon does not cross that day. */
+  instant: number | null;
+  /** The missing crossing and the local day, as a fixed day, it is missing on; `null` when the Moon crosses. */
+  missing: { event: MissingMoonEventName; day: number } | null;
 }
 
 /** The one line of `hc_hindu_lunar_date`. */
@@ -3485,6 +3546,85 @@ export interface NamingPeriodNames {
 export type NamingPeriodOn =
   | { state: "in-force" | "undecided"; period: NamingPeriodNames }
   | { state: "ordinary"; period: null };
+
+/** The calendars whose solar New Year `hc_solar_new_year` answers for. */
+export type SolarNewYearCalendar = "burmese" | "khmer" | "lao";
+
+/** The one line of `hc_solar_new_year`. */
+export interface SolarNewYear {
+  calendar: SolarNewYearCalendar;
+  /** The year as given, in the calendar's own count: ME, BE or CS. */
+  year: number;
+  /** The fixed day on which the new year begins by the country's clock. */
+  newYear: number;
+  /** The seconds after midnight at which the year changes; `null` for `burmese`, whose source gives no clock time. */
+  seconds: number | null;
+  /** The Chulasakarat year that begins; `null` for `burmese`. */
+  chulasakaratYear: number | null;
+  /** Thingyan's eve, as a fixed day; `null` but for `burmese`. */
+  akyo: number | null;
+  /** Thingyan's first day; `null` but for `burmese`. */
+  akya: number | null;
+  /** The last *akyat* day; `null` but for `burmese`. */
+  lastAkyat: number | null;
+  /** The *atat* day the old year ends on; `null` but for `burmese`. */
+  atat: number | null;
+}
+
+/** Python's `struct_time`: the one line of `hc_gmtime` and `hc_localtime`. */
+export interface StructTime {
+  year: number;
+  /** 1 to 12. */
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  /** 0 to 60. */
+  second: number;
+  /** Monday 0 to Sunday 6, as Python's `tm_wday`. */
+  weekday: number;
+  /** From 1, as Python's `tm_yday`. */
+  dayOfYear: number;
+  /** 0, 1, or −1 for unknown, as Python's `tm_isdst`. */
+  dst: number;
+}
+
+/** The one line of `hc_monthrange`. */
+export interface MonthRange {
+  /** The weekday of the first of the month, Monday 0 to Sunday 6. */
+  firstWeekday: number;
+  /** The days in the month, 28 to 31. */
+  days: number;
+}
+
+/** The one line of `hc_week_of_year`. */
+export interface WeekOfYear {
+  /** The week-numbering year, which may differ from the Gregorian year at either end. */
+  weekYear: number;
+  /** The week of that year, from 1. */
+  week: number;
+  /** 52 or 53. */
+  weeksInYear: number;
+  /** The week of the month, 1 for the month's first week and 0 for the days before it. */
+  weekOfMonth: number;
+}
+
+/** How `mktime` reads a wall-clock reading two instants name, or none: Python reads `tm_isdst` instead. */
+export type DisambiguationPolicy = "earliest" | "latest" | "reject" | "push-forward";
+
+/** The one line of `hc_list_forms`. */
+export interface ListForms {
+  /** The pattern for exactly two items: `{0} and {1}`. */
+  two: string;
+  /** The pattern that joins the first item to the rest. */
+  start: string;
+  /** The pattern for the middle. */
+  middle: string;
+  /** The pattern for the last item: `{0}, and {1}`. */
+  end: string;
+  /** The tag of the `hc-humanize` data the locale resolved to. */
+  localeUsed: string;
+}
 
 /** The one line of `hc_asian_day`. */
 export interface AsianDay {
@@ -4480,6 +4620,22 @@ export class HyperCalendar {
    * `unsafe-integer`.
    */
   unixFromFixed(fixed: number | bigint): number;
+  /** `hc_gmtime`: Python's `time.gmtime`. */
+  gmtime(unixSeconds: number | bigint): StructTime;
+  /** `hc_timegm`: Python's `calendar.timegm`; a month outside 1 to 12 is `invalid-date`. */
+  timegm(year: number | bigint, month: number | bigint, day: number | bigint, hour?: number | bigint, minute?: number | bigint, second?: number | bigint): number;
+  /** `hc_isleap`: Python's `calendar.isleap`. */
+  isleap(year: number | bigint): boolean;
+  /** `hc_leapdays`: Python's `calendar.leapdays`. */
+  leapdays(y1: number | bigint, y2: number | bigint): number;
+  /** `hc_calendar_weekday`: Python's `calendar.weekday`, Monday 0 to Sunday 6. */
+  calendarWeekday(year: number | bigint, month: number, day: number): number;
+  /** `hc_monthrange`: Python's `calendar.monthrange`. */
+  monthrange(year: number | bigint, month: number): MonthRange;
+  /** `hc_monthcalendar`: Python's `calendar.monthcalendar`, the week beginning on `firstWeekday`, Monday 0. */
+  monthcalendar(year: number | bigint, month: number, firstWeekday?: number): number[][];
+  /** `hc_week_of_year`: the week of the year under a week rule, ISO 8601's Monday and 4 by default. */
+  weekOfYear(fixed: number | bigint, firstWeekday?: number, minDays?: number): WeekOfYear;
   /** `hc_format_iso_date`. */
   formatIsoDate(fixed: number | bigint): string;
   /** `hc_parse_iso_date`; text that is not a date is `invalid-date`. */
@@ -4797,6 +4953,8 @@ export class HyperCalendar {
   hebrewSabbaticalCycleYear(hebrewYear: number | bigint): number;
   /** `hc_asian_day`; a day outside AD 4 to the Asian year 9999 is `out-of-range`. */
   asianDay(fixed: number | bigint): AsianDay;
+  /** `hc_solar_new_year`: the Burmese, Khmer or Lao solar New Year of a year in the calendar's own count. */
+  solarNewYear(calendar: SolarNewYearCalendar, year: number | bigint): SolarNewYear;
   /** `hc_kalam`: three lines, Rāhu kālam, Yamaganda and Gulika kālam. */
   kalam(
     convention: KalamConvention,
@@ -4935,6 +5093,8 @@ export class HyperCalendar {
   zassetsuInYear(year: number | bigint, meridian?: Meridian): ZassetsuDay[];
   /** `hc_seasonal_days_in_year`: the 伏, the nines, the dog days, the quarter days and the folk days of a year. */
   seasonalDaysInYear(year: number | bigint, meridian?: Meridian): SeasonalDay[];
+  /** `hc_pentads_in_year`: every pentad of a Gregorian year at a meridian, named by every tradition. */
+  pentadsInYear(year: number | bigint, meridian?: Meridian): PentadOfYear[];
   /** `hc_cold_food_day`; a reckoning nobody knows is `unknown`, a year outside −999 to 3000 `out-of-range`. */
   coldFoodDay(convention: ColdFoodConvention, year: number | bigint): number;
   /** `hc_plum_rains`: at `meridian`, `china` for the published days; a year outside −1000 to 3000 is `out-of-range`. */
@@ -4976,6 +5136,10 @@ export class HyperCalendar {
    * instants; outside them, `out-of-range`, and a zone nobody knows is `unknown`.
    */
   zoneOffset(zone: string, unixSeconds: number | bigint): ZoneOffset;
+  /** `hc_localtime`: Python's `time.localtime` in a zone. */
+  localtime(unixSeconds: number | bigint, zone: string): StructTime;
+  /** `hc_mktime`: Python's `time.mktime` in a zone, with a policy where Python reads `tm_isdst`. */
+  mktime(year: number | bigint, month: number | bigint, day: number | bigint, hour: number | bigint, minute: number | bigint, second: number | bigint, zone: string, policy?: DisambiguationPolicy): number;
 
   /** `hc_sky_at`; an instant outside −1000 through 3000 is `out-of-range`. */
   skyAt(unixSeconds: number | bigint): Sky;
@@ -5005,6 +5169,10 @@ export class HyperCalendar {
   sunrise(horizon: HorizonId, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): SolarCrossing;
   /** `hc_sunset`. */
   sunset(horizon: HorizonId, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): SolarCrossing;
+  /** `hc_moonrise`. */
+  moonrise(horizon: HorizonId, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): MoonCrossing;
+  /** `hc_moonset`. */
+  moonset(horizon: HorizonId, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): MoonCrossing;
   /** `hc_hjd_tt`: right ascension and declination in degrees, J2000. */
   hjdTt(ttJulianDate: number, rightAscension: number, declination: number): HeliocentricJulianDate;
   /** `hc_hjd_utc`; under `strict` a date outside the leap-second table is `no-data`. */
@@ -5163,6 +5331,8 @@ export class HyperCalendar {
   intcomma(digits: string | number | bigint, locale?: string): LocalizedNaturalText;
   /** `hc_intcomma_float`: a float with thousands separators, to `ndigits` places or as Python's `repr`. */
   intcommaFloat(value: number, ndigits?: number | null, locale?: string): LocalizedNaturalText;
+  /** `hc_clamp`: `humanize`'s `clamp`, with `format` as `display`, `fixed:N` or `percent:N`. */
+  clamp(value: number, format?: string, floor?: number | null, ceil?: number | null, floorToken?: string, ceilToken?: string): LocalizedNaturalText;
   /** `hc_unit_choice`: the unit a span is said in under a threshold table and a rounding. */
   unitChoice(seconds: number | bigint, thresholds?: ThresholdsName, rounding?: RoundingName): UnitChoice;
   /** `hc_relative_time_with`: `relativeTime` under a threshold table and a rounding. */
@@ -5183,6 +5353,8 @@ export class HyperCalendar {
     thresholds?: ThresholdsName,
     policy?: HedgePolicy,
   ): ApproximateDuration;
+  /** `hc_list_forms`: the CLDR list patterns a style joins a duration's parts with, in a locale. */
+  listForms(style?: RelativeStyle, locale?: string): ListForms;
   /** `hc_zone_name`: a zone's name at an instant, as a CLDR field writes it. */
   zoneName(zone: string, unixSeconds: number | bigint, locale?: string, field?: ZoneNameField): ZoneName;
   /** `hc_format_pattern`: an instant formatted in a zone by a CLDR or strftime pattern. */

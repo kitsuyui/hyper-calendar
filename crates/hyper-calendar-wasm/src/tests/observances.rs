@@ -75,7 +75,7 @@ fn every_table_is_described_in_the_order_of_the_codes() {
         .lines()
         .map(|line| line.split('\t').collect())
         .collect();
-    assert!(rows.iter().all(|row| row.len() == 14));
+    assert!(rows.iter().all(|row| row.len() == 15));
     assert_eq!(
         rows.iter().map(|row| row[0]).collect::<Vec<_>>(),
         codes.lines().collect::<Vec<_>>()
@@ -104,7 +104,8 @@ fn every_table_is_described_in_the_order_of_the_codes() {
             "",
             "",
             "",
-            "unread//2006-07-02/;6+7/2006-07-03//"
+            "unread//2006-07-02/;6+7/2006-07-03//",
+            "7/forward/skip-occupied+on-collision////"
         ]
     );
     let japanese = read_lines(|buffer, capacity| unsafe {
@@ -115,8 +116,36 @@ fn every_table_is_described_in_the_order_of_the_codes() {
         .find(|line| line.starts_with("HK\t"))
         .expect("HK");
     assert!(
-        hong_kong.ends_with("\t\t香港\t\t\t\t\t\tunread//2006-07-02/;6+7/2006-07-03//"),
+        hong_kong.ends_with(
+            "\t\t香港\t\t\t\t\t\tunread//2006-07-02/;6+7/2006-07-03//\t7/forward/skip-occupied+on-collision////"
+        ),
         "{hong_kong}"
+    );
+    // Column 15 is the substitution law beside the weekend it moves a
+    // holiday off: Japan's two 振替休日 rules, and Malaysia's Friday rule
+    // for Johor's decade, which avoids the Saturday.
+    let substitution = |code: &str| -> String {
+        japanese
+            .lines()
+            .find(|line| line.split('\t').next() == Some(code))
+            .expect("a table")
+            .split('\t')
+            .nth(14)
+            .expect("column 15")
+            .to_owned()
+    };
+    assert_eq!(
+        substitution("JP"),
+        "7/forward///1973/2006/;7/forward/skip-occupied//2007//"
+    );
+    assert!(
+        substitution("MY").contains(";5/forward/skip-occupied/6/2014/2024/MY-01;"),
+        "{}",
+        substitution("MY")
+    );
+    assert_eq!(
+        substitution("HK"),
+        "7/forward/skip-occupied+on-collision////"
     );
     assert_eq!(
         unsafe { hc_holiday_tables(core::ptr::null(), 1, core::ptr::null_mut(), 0) },

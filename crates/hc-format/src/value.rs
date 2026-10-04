@@ -177,6 +177,21 @@ pub enum YearStyle {
     Expanded(u8),
 }
 
+impl YearStyle {
+    /// The style a year is written in where nothing else decides it:
+    /// [`YearStyle::Plain`] inside `0000..=9999`, else the expanded form with
+    /// the digits [`hc_calendar::gregorian::expanded_year_digits`] gives, six
+    /// and more from a million, the one count the workspace writes.
+    #[must_use]
+    pub const fn for_year(year: i64) -> Self {
+        if hc_calendar::gregorian::is_four_digit_year(year) {
+            Self::Plain
+        } else {
+            Self::Expanded(hc_calendar::gregorian::expanded_year_digits(year))
+        }
+    }
+}
+
 /// A date, in whichever of ISO 8601's three namings the text used.
 ///
 /// Reduced accuracy is a first-class case: `2026` and `2026-09` are complete,
@@ -296,11 +311,7 @@ impl IsoDate {
     /// [`ValueError::Calendar`] outside the Gregorian module's range.
     pub fn from_fixed(rd: Rd) -> ValueResult<Self> {
         let (year, month, day) = gregorian::from_fixed(rd)?;
-        let year_style = if (0..=9_999).contains(&year) {
-            YearStyle::Plain
-        } else {
-            YearStyle::Expanded(expanded_digits(year))
-        };
+        let year_style = YearStyle::for_year(year);
         Ok(Self {
             parts: DateParts::Calendar {
                 year,
@@ -895,22 +906,6 @@ impl OffsetDateTime {
     }
 }
 
-/// The number of digits an expanded year needs, at least five.
-///
-/// ISO 8601 leaves the count to agreement; six is the customary choice and is
-/// what this uses for anything that fits, which covers every year the
-/// Gregorian module supports below a million.
-pub(crate) const fn expanded_digits(year: i64) -> u8 {
-    let magnitude = year.unsigned_abs();
-    let mut digits = 6u8;
-    let mut limit = 1_000_000u64;
-    while magnitude >= limit && digits < 18 {
-        digits += 1;
-        limit *= 10;
-    }
-    digits
-}
-
 /// Write a year in the requested spelling.
 pub(crate) fn write_year<W: fmt::Write>(
     out: &mut W,
@@ -1042,8 +1037,9 @@ mod tests {
 
     #[test]
     fn expanded_years_grow_only_as_far_as_they_must() {
-        assert_eq!(expanded_digits(2026), 6);
-        assert_eq!(expanded_digits(-1_000_000), 7);
+        assert_eq!(YearStyle::for_year(2026), YearStyle::Plain);
+        assert_eq!(YearStyle::for_year(12_345), YearStyle::Expanded(6));
+        assert_eq!(YearStyle::for_year(-1_000_000), YearStyle::Expanded(7));
     }
 
     #[test]

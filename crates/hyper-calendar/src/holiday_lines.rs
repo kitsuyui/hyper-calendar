@@ -44,7 +44,7 @@ use hc_i18n::place_names::{self, Alt, Draft};
 use crate::boundary::{Answer, Line, Refusal};
 
 /// How many columns [`holiday_tables`] writes.
-pub const HOLIDAY_TABLES_COLUMNS: usize = 14;
+pub const HOLIDAY_TABLES_COLUMNS: usize = 15;
 
 /// How many columns [`lectionary_line`] writes.
 pub const LECTIONARY_COLUMNS: usize = 7;
@@ -249,7 +249,10 @@ pub fn short_table_name(
 /// asked of the table that is not in it keeps the nationwide days and has
 /// a gap for its own. Column 14 is [`weekend_cell`]: the table's weekend
 /// laws, each with the days it keeps, the years it is in force and the
-/// regions it is the law of.
+/// regions it is the law of. Column 15 is [`substitution_cell`]: the
+/// table's weekend-substitution laws, each with the days that trigger it,
+/// the way the substitute moves, the years it is in force and the regions
+/// it is the law of, beside the weekend it moves a holiday off.
 #[must_use]
 pub fn holiday_tables(locale: &str) -> String {
     let requested = Locale::requested(locale);
@@ -280,7 +283,7 @@ pub fn holiday_tables(locale: &str) -> String {
             .collect();
         line.cell(&scoped.join(";"))
             .cell(&set.read_subdivisions().join(";"));
-        line.cell(&weekend_cell(set));
+        line.cell(&weekend_cell(set)).cell(&substitution_cell(set));
         line.end();
     }
     out
@@ -328,6 +331,78 @@ pub fn weekend_cell(set: &RuleSet) -> String {
         if let Some(year) = policy.valid_until {
             let (month, day) = policy.valid_until_day.unwrap_or((12, 31));
             out.push_str(&alloc::format!("{year:04}-{month:02}-{day:02}"));
+        }
+        out.push('/');
+        out.push_str(&policy.regions.join(","));
+    }
+    out
+}
+
+/// Column 15 of `hc_holiday_tables`: the weekend-substitution laws of a
+/// table, one entry for each of its [`SubstitutionPolicy`] values, in the
+/// table's order and separated by `;`. A table that states none writes
+/// nothing, and its holidays stay on the weekend ([`RuleSet::substitution`]
+/// is read only from a statute).
+///
+/// An entry is seven fields separated by `/`: the weekdays that trigger a
+/// substitute as ISO 8601 weekday numbers joined by `+`, Monday 1 to
+/// Sunday 7 (`7` for a Sunday, `6+7` for Saturday and Sunday); the way the
+/// substitute moves, [`SubstituteDirection::id`]'s `forward`, `backward`,
+/// `nearest` or `nearest-working-day`; the policy's flags joined by `+`,
+/// `skip-occupied` where the search goes past a day that is already a
+/// holiday and `on-collision` where two holidays on one day earn a third,
+/// empty for neither; the weekdays, besides the trigger, a substitute may
+/// not land on, joined by `+`, empty for none; the first Gregorian year it
+/// is in force; the last; and the regions it is the law of, ISO 3166-2
+/// codes joined by `,`. A year or the regions left empty is open: no first
+/// year, no last year, the whole table. Where several entries cover a day,
+/// the one for the nearest region wins, and a region with none of its own
+/// has the entry with no regions ([`RuleSet::substitution_in_region`], ADR
+/// 0015). Japan writes `7/forward///1973/2006/;7/forward/skip-occupied//2007//`:
+/// the 振替休日 of the 1973 amendment, to the following day, and the 2005
+/// amendment's, in force from 2007, to the nearest following day that is not
+/// a holiday.
+///
+/// [`SubstitutionPolicy`]: hc_holiday::rule::SubstitutionPolicy
+/// [`SubstituteDirection::id`]: hc_holiday::rule::SubstituteDirection::id
+#[must_use]
+pub fn substitution_cell(set: &RuleSet) -> String {
+    let mut out = String::new();
+    let days = |out: &mut String, days: &[Weekday]| {
+        for (position, day) in days.iter().enumerate() {
+            if position > 0 {
+                out.push('+');
+            }
+            out.push_str(&day.iso_number().to_string());
+        }
+    };
+    for (index, policy) in set.substitution.iter().enumerate() {
+        if index > 0 {
+            out.push(';');
+        }
+        days(&mut out, policy.trigger);
+        out.push('/');
+        out.push_str(policy.direction.id());
+        out.push('/');
+        let flags = [
+            (policy.skip_occupied, "skip-occupied"),
+            (policy.on_collision, "on-collision"),
+        ];
+        for (position, (_, flag)) in flags.iter().filter(|(set, _)| *set).enumerate() {
+            if position > 0 {
+                out.push('+');
+            }
+            out.push_str(flag);
+        }
+        out.push('/');
+        days(&mut out, policy.avoid);
+        out.push('/');
+        if let Some(year) = policy.valid_from {
+            out.push_str(&year.to_string());
+        }
+        out.push('/');
+        if let Some(year) = policy.valid_until {
+            out.push_str(&year.to_string());
         }
         out.push('/');
         out.push_str(&policy.regions.join(","));

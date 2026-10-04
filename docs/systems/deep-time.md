@@ -82,7 +82,9 @@ deviation, see [uncertainty.md](uncertainty.md)) with the figure count the
 source prints. It has 17 units: the Planck time, the SI prefixes from yocto to
 milli, the second, minute, hour and nominal day, the Julian year of 365.25 days
 of 86 400 s, and kilo-, mega- and gigayears of it. Every unit but the Planck
-time is exact by definition and rescales the standard deviation exactly; the
+time is exact by definition, its length read from `hc-units`'s catalogue
+(`DeepUnit::defined_unit`; the three year multiples are `hc-units`'s Julian
+year times a power of ten), and rescales the standard deviation exactly; the
 Planck time is CODATA's measurement and brings its own 1.1×10⁻⁵. At these
 ranges a difference carries no information (10¹⁷ s minus 10⁻⁴³ s is 10¹⁷ s), so
 the comparisons that mean anything are the logarithm of a ratio and the number

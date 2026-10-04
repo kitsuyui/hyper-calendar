@@ -14,12 +14,13 @@ keywords.workspace = true
 
 [features]
 default = ["std"]
-std = ["alloc", "hc-core/std", "hc-uncertainty/std"]
-alloc = ["hc-core/alloc", "hc-uncertainty/alloc"]
+std = ["alloc", "hc-core/std", "hc-uncertainty/std", "hc-units/std"]
+alloc = ["hc-core/alloc", "hc-uncertainty/alloc", "hc-units/alloc"]
 # Floating-point math for `no_std` builds: `hc-core` refuses to compile with
 # neither `std` nor `libm`.
-libm = ["hc-core/libm"]
+libm = ["hc-core/libm", "hc-units/libm"]
 
 [dependencies]
 hc-core = { workspace = true }
 hc-uncertainty = { workspace = true }
+hc-units = { workspace = true }

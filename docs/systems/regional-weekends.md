@@ -153,6 +153,26 @@ writes nothing keeps Saturday and Sunday. The JavaScript binding reads the
 column into `HolidayTable.weekend`, a list of `{ days, first, last,
 regions }` with `days` null for `unread`.
 
+Column 15 of `hc_holiday_tables` is the table's substitution laws beside the
+weekend, separated by `;`, each seven fields separated by `/`.
+
+| Field | Holds |
+| --- | --- |
+| trigger | the weekdays that trigger a substitute as ISO 8601 weekday numbers joined by `+` (`7` for a Sunday, `5` for a Friday) |
+| direction | `forward`, `backward`, `nearest` or `nearest-working-day`, as `SubstituteDirection::id` writes it |
+| flags | `skip-occupied` and `on-collision` joined by `+`, empty for neither |
+| avoid | the weekdays, besides the trigger, a substitute may not land on, joined by `+`, empty for none |
+| first | the first Gregorian year in force, empty for none |
+| last | the last Gregorian year in force, empty for none |
+| regions | the ISO 3166-2 codes it is the law of, joined by `,`, empty for the whole table |
+
+`MY` writes `6/forward/skip-occupied////`, the federal Saturday rule,
+`5/forward/skip-occupied/6/2014/2024/MY-01` for Johor's decade and
+`5/forward/skip-occupied/6/2014//MY-02` for Kedah, each avoiding the Saturday
+of its Friday–Saturday weekend, and `5/forward/skip-occupied/6/2014//MY-03,MY-11`
+for Kelantan and Terengganu. The same `region` selects the entry, the
+nearest region's first (`RuleSet::substitution_in_region`).
+
 The regions an entry names are listed in column 9 of the same line: a
 table's regions are `RuleSet::answered_regions`, the subdivisions its rules,
 its weekend laws and its substitution policies are scoped to, sorted and once

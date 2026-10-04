@@ -457,6 +457,61 @@ pub fn sunset_line(horizon_id: &str, fixed: i64, place: Location) -> Answer<Stri
     crossing_line(riseset::sunset_with, "sunset", horizon_id, fixed, place)
 }
 
+/// How many columns [`moonrise_line`] and [`moonset_line`] write.
+pub const MOON_CROSSING_COLUMNS: usize = 3;
+
+/// The line of a crossing of the horizon by the Moon's upper limb: the
+/// instant as whole POSIX seconds of Universal Time, rounded down, then
+/// the name of the missing event and the fixed day, both empty when the
+/// Moon crosses, and the first cell empty instead when it does not — which
+/// happens about once a month everywhere, the Moon rising some fifty
+/// minutes later each day and so skipping a local day.
+fn moon_crossing_line(
+    event: fn(Rd, Location, &Horizon) -> Option<hc_calendar::fixed::Moment>,
+    name: &str,
+    horizon_id: &str,
+    fixed: i64,
+    place: Location,
+) -> Answer<String> {
+    let horizon = horizon(horizon_id)?;
+    let day = day_in_era(fixed)?;
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    match event(day, place, &horizon) {
+        Some(moment) => line.value(unix_from_moment(moment)).empties(2),
+        None => line.empty().cell(name).value(day.0),
+    };
+    line.end();
+    Ok(out)
+}
+
+/// The line of `hc_moonrise`: the Moon's upper limb rising over a named
+/// horizon on a local day at a place, as whole POSIX seconds of Universal
+/// Time, rounded down; then `moonrise` and the day where the Moon does not
+/// rise that day, with the first cell empty instead. The horizon is read
+/// as `hc_sunrise` reads it, and its Moon rule — the limb's altitude
+/// scaled by the parallax, or the fixed depression a tradition states —
+/// is the one [`Horizon::lunar_limb_altitude_degrees`] applies. The local
+/// day runs from local mean midnight to local mean midnight, as
+/// [`hc_astro::riseset`]'s does.
+///
+/// # Errors
+///
+/// As [`sunrise_line`].
+pub fn moonrise_line(horizon_id: &str, fixed: i64, place: Location) -> Answer<String> {
+    moon_crossing_line(riseset::moonrise_with, "moonrise", horizon_id, fixed, place)
+}
+
+/// The line of `hc_moonset`: as [`moonrise_line`], for the upper limb's
+/// setting, with `moonset` as the missing event.
+///
+/// # Errors
+///
+/// As [`sunrise_line`].
+pub fn moonset_line(horizon_id: &str, fixed: i64, place: Location) -> Answer<String> {
+    moon_crossing_line(riseset::moonset_with, "moonset", horizon_id, fixed, place)
+}
+
 /// The Julian Date at which fixed day 0 begins, 1 721 424.5, from
 /// `hc-calendar`'s day counts.
 const JULIAN_DATE_OF_RD_ZERO: f64 = hc_calendar::fixed::JDN_OF_RD_ZERO as f64 - 0.5;

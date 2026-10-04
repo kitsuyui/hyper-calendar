@@ -35,7 +35,11 @@ fn listed() -> Vec<(String, Vec<String>)> {
         .lines()
         .map(|line| {
             let cells: Vec<&str> = line.split('\t').collect();
-            assert_eq!(cells.len(), 14, "{line}");
+            assert_eq!(
+                cells.len(),
+                hyper_calendar::holiday_lines::HOLIDAY_TABLES_COLUMNS,
+                "{line}"
+            );
             let regions = cells[8]
                 .split(';')
                 .filter(|code| !code.is_empty())

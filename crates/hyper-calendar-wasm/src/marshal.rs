@@ -105,6 +105,7 @@ pub(crate) unsafe fn emit(text: &str, buffer: *mut u8, capacity: usize) -> i64 {
 ///
 /// `buffer` must be writable for `capacity` bytes unless it is null.
 #[cfg(any(
+    feature = "civil",
     feature = "timestamps",
     feature = "time-codes",
     feature = "calendars",
@@ -158,6 +159,7 @@ pub(crate) const fn sentinel(refusal: hc::boundary::Refusal) -> i64 {
 ///
 /// As [`emit_or_measure`].
 #[cfg(any(
+    feature = "civil",
     feature = "timestamps",
     feature = "time-codes",
     feature = "calendars",
@@ -245,6 +247,7 @@ macro_rules! w_read {
 
 /// What the Safety section says of an argument of a kind.
 #[cfg(any(
+    feature = "civil",
     feature = "timestamps",
     feature = "time-codes",
     feature = "calendars",

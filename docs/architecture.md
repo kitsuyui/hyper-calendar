@@ -94,7 +94,7 @@ record.
 | `hc-calendar` | `Rd`, `CivilTime`, the `Calendar` trait, the registry | — |
 | `hc-uncertainty` | Significant figures, fuzzy dates, EDTF, intervals | *`hc-calendar`* (`edtf`) |
 | `hc-units` | Exact ratios, tempo and media rates | — |
-| `hc-deep-time` | Planck time to cosmology | `hc-uncertainty` |
+| `hc-deep-time` | Planck time to cosmology | `hc-uncertainty`, `hc-units` |
 | `hc-orbital` | Milankovitch orbital elements and insolation, Berger 1978 | `hc-uncertainty` |
 | `hc-relativity` | Lorentz transforms, Schwarzschild, worldlines | `hc-uncertainty` |
 | `hc-calendars-solar` | Gregorian, Julian, ISO, Coptic, … | — |

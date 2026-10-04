@@ -278,7 +278,9 @@ leap day: Jesth 2025 has 30 days, and the year 355.
   festival's first day is the *Maha Songkran* moment, which is not carried
   (below), and the day the year changes is `khmer::laeung_sak`.
 - **The change of the year at the solar New Year**, `khmer::laeung_sak(year)`
-  and `lao::new_year_day(year)`, over the quantities above:
+  and `lao::new_year_day(year)`, which the boundary's `hc_solar_new_year`
+  writes for `khmer` and `lao` with the day and the second, over the
+  quantities above:
   `southeast_asian::sak_change`. The day is `ahargana(y) + 232 742` as a
   fixed day, where *y* is the Chulasakarat year, and the time is the
   kammacabala's complement, 800 − κ parts of a day, each of 108 seconds,
