@@ -102,8 +102,9 @@ pub fn parse_iso(text: &str) -> ParseResult<IsoDateTime> {
 ///
 /// # Errors
 ///
-/// [`FormatError::Unrepresentable`] when the value carries no zone or its
-/// year is outside `0000..=9999`, both of which RFC 3339 has no spelling for.
+/// [`FormatError::Unrepresentable`] when the value carries no zone, its
+/// year is outside `0000..=9999`, or its offset has seconds, none of which
+/// RFC 3339 has a spelling for: its `time-numoffset` is `+hh:mm`.
 pub fn write<W: fmt::Write>(
     out: &mut W,
     value: OffsetDateTime,
@@ -237,6 +238,93 @@ mod tests {
         assert_eq!(instant.unix_seconds, 78_796_800);
     }
 
+    /// RFC 3339 §5.7 allows a second 60 at the end of June or December of
+    /// a year that had a leap second; the table `hc_core::leap` is built
+    /// from, the IANA `leap-seconds.list` (`iana-leap-seconds-list`), has
+    /// them at the ends of 27 UTC days, the last of them 2016-12-31.
+    #[test]
+    fn a_second_60_is_read_only_on_a_day_that_ended_in_a_leap_second() {
+        for text in [
+            "1972-06-30T23:59:60Z",
+            "2015-06-30T23:59:60Z",
+            "2016-12-31T23:59:60Z",
+            "2016-12-31T23:59:60.5+00:00",
+        ] {
+            assert!(parse(text).is_ok(), "{text}");
+        }
+        // An ordinary day, the last day of a half year that had none, the
+        // first second of the day after one, and the days after the table.
+        for text in [
+            "2026-09-21T23:59:60Z",
+            "2016-06-30T23:59:60Z",
+            "2015-12-31T23:59:60Z",
+            "2017-01-01T23:59:60Z",
+        ] {
+            let error = parse(text).unwrap_err();
+            assert_eq!(
+                error.kind(),
+                ErrorKind::Invalid("a leap second that UTC did not insert"),
+                "{text}"
+            );
+        }
+        let error = parse("2030-12-31T23:59:60Z").unwrap_err();
+        assert_eq!(
+            error.kind(),
+            ErrorKind::Unrepresentable("a leap second after the end of the leap-second table")
+        );
+    }
+
+    /// The second 60 falls at 23:59:60 UTC, which a zone east or west of UTC
+    /// reads at another hour; a reading `23:59:60` at an offset is therefore
+    /// no leap second, whatever the day.
+    #[test]
+    fn a_second_60_at_a_non_zero_offset_is_refused() {
+        for text in [
+            "2016-12-31T23:59:60+01:00",
+            "1972-06-30T23:59:60+09:00",
+            "2016-12-31T23:59:60-00:30",
+        ] {
+            assert_eq!(
+                parse(text).unwrap_err().kind(),
+                ErrorKind::Invalid("a leap second that UTC did not insert"),
+                "{text}"
+            );
+        }
+    }
+
+    /// RFC 3339 §5.6: `full-date` is `date-fullyear "-" date-month "-"
+    /// date-mday`, and `time-numoffset` is `("+" / "-") time-hour ":"
+    /// time-minute`, an hour of 00 through 23 and no seconds.
+    #[test]
+    fn the_profile_refuses_what_its_grammar_has_no_production_for() {
+        for (text, kind) in [
+            (
+                "2026-W39-1T14:30:05Z",
+                ErrorKind::Forbidden("a week date or an ordinal date"),
+            ),
+            (
+                "2026-264T14:30:05Z",
+                ErrorKind::Forbidden("a week date or an ordinal date"),
+            ),
+            (
+                "2026-09-21T14:30:05+24:00",
+                ErrorKind::OutOfRange("offset hours"),
+            ),
+            (
+                "2026-09-21T14:30:05+25:59",
+                ErrorKind::OutOfRange("offset hours"),
+            ),
+            (
+                "2026-09-21T14:30:05+05:30:15",
+                ErrorKind::Forbidden("seconds in a UTC offset"),
+            ),
+        ] {
+            assert_eq!(parse(text).unwrap_err().kind(), kind, "{text}");
+        }
+        assert!(parse("2026-09-21T14:30:05+23:59").is_ok());
+        assert!(parse("2026-09-21T14:30:05-23:59").is_ok());
+    }
+
     #[test]
     fn rfc_3339_refuses_the_basic_format() {
         let error = parse("20260921T143005Z").unwrap_err();
@@ -311,6 +399,45 @@ mod tests {
         assert_eq!(
             error,
             FormatError::Unrepresentable("an RFC 3339 timestamp with no offset")
+        );
+    }
+
+    /// RFC 3339 §5.8 gives Amsterdam in 1937, whose local time was 00:19:32
+    /// ahead of UTC, as `+00:20`: the grammar's `time-numoffset` is `+hh:mm`
+    /// and has no seconds. Writing the wall clock of the whole offset with
+    /// `+00:20` would read back 28 seconds off, so a writer refuses an offset
+    /// it cannot spell, and the caller rounds it, as the RFC does, and
+    /// computes the wall clock from the rounded one.
+    #[test]
+    fn an_offset_with_seconds_has_no_rfc_3339_spelling() {
+        let amsterdam = UtcOffset::from_seconds(19 * 60 + 32).unwrap();
+        let mut out = String::new();
+        let error = write_unix(
+            &mut out,
+            UnixTime::from_seconds(-1_041_379_200 + 43_200),
+            amsterdam,
+            SubsecondPrecision::Auto,
+        )
+        .unwrap_err();
+        assert_eq!(
+            error,
+            FormatError::Unrepresentable("an offset with more digits than the form has")
+        );
+        let rounded = UtcOffset::from_seconds(20 * 60).unwrap();
+        let mut out = String::new();
+        write_unix(
+            &mut out,
+            UnixTime::from_seconds(-1_041_379_200 + 43_200),
+            rounded,
+            SubsecondPrecision::Auto,
+        )
+        .unwrap();
+        assert_eq!(out, "1937-01-01T12:20:00+00:20");
+        // The RFC's own example reads back to the same instant.
+        let example = parse("1937-01-01T12:00:27.87+00:20").unwrap();
+        assert_eq!(
+            example.to_unix().unwrap().seconds(),
+            -1_041_379_200 + 43_200 - 1_200 + 27
         );
     }
 

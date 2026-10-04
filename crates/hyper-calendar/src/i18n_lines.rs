@@ -635,6 +635,7 @@ mod tests {
 
     /// The Japanese eras begin with the ones the locale data lists, and
     /// 令和 is among them under `ja`.
+    #[cfg(feature = "regional")]
     #[test]
     fn a_calendars_eras_are_listed() {
         let text = calendar_eras_lines("japanese", "ja").expect("listed");
@@ -814,13 +815,16 @@ mod tests {
                 .iter()
                 .all(|cells| cells.len() == NAMES_COLUMNS)
         );
-        let hebrew = names_lines("en", "hebrew", "wide", "format").expect("names");
-        assert!(
-            all_cells(&hebrew)
-                .iter()
-                .any(|cells| cells[0] == "month-in-leap-year" && cells[2] == "Adar II"),
-            "{hebrew}"
-        );
+        #[cfg(feature = "lunar")]
+        {
+            let hebrew = names_lines("en", "hebrew", "wide", "format").expect("names");
+            assert!(
+                all_cells(&hebrew)
+                    .iter()
+                    .any(|cells| cells[0] == "month-in-leap-year" && cells[2] == "Adar II"),
+                "{hebrew}"
+            );
+        }
         assert_eq!(
             names_lines("de", "gregory", "huge", "format"),
             Err(Refusal::Unknown)

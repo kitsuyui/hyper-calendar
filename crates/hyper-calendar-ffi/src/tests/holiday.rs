@@ -456,22 +456,30 @@ fn beyond(
     capacity: usize,
     written: *mut usize,
 ) -> HcStatus {
-    let call = if forward {
-        hc_holiday_next
-    } else {
-        hc_holiday_previous
-    };
     unsafe {
-        call(
-            code.as_ptr(),
-            region.as_ptr(),
-            core::ptr::null(),
-            kind.as_ptr(),
-            fixed,
-            buffer,
-            capacity,
-            written,
-        )
+        if forward {
+            hc_holiday_next(
+                code.as_ptr(),
+                region.as_ptr(),
+                core::ptr::null(),
+                kind.as_ptr(),
+                fixed,
+                buffer,
+                capacity,
+                written,
+            )
+        } else {
+            hc_holiday_previous(
+                code.as_ptr(),
+                region.as_ptr(),
+                core::ptr::null(),
+                kind.as_ptr(),
+                fixed,
+                buffer,
+                capacity,
+                written,
+            )
+        }
     }
 }
 

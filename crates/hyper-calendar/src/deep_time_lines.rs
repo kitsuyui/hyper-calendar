@@ -42,7 +42,7 @@ use hc_deep_time::{
 };
 use hc_uncertainty::Uncertain;
 
-use crate::boundary::{Answer, Line, Refusal};
+use crate::boundary::{Answer, Line, Refusal, out_of_range};
 
 /// How many columns every deep-time line has.
 pub const DEEP_TIME_COLUMNS: usize = 16;
@@ -426,12 +426,6 @@ pub const DEEP_CONVERT_COLUMNS: usize = 13;
 
 /// How many columns a line of [`deep_compare_line`] has.
 pub const DEEP_COMPARE_COLUMNS: usize = 12;
-
-/// Any error of the libraries below is out of range at the boundary: the
-/// arguments name no magnitude the crate can hold.
-fn out_of_range<E>(_: E) -> Refusal {
-    Refusal::OutOfRange
-}
 
 /// The CODATA constants the Planck units are built from, and the Planck
 /// units, one line each: the symbol, the name, the SI unit, the value, its

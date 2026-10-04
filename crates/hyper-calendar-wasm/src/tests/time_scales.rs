@@ -122,6 +122,61 @@ fn the_tai_bridge_writes_one_line_each_way() {
     );
 }
 
+/// From 1961 to 1971 `TAI − UTC` is not a whole number of seconds, and the
+/// exact exports say so where the whole-second ones floor. At POSIX 0 it is
+/// 8.000 082 s (the USNO line from 1968-02-01, 4.213 17 s + 1461 days ×
+/// 0.002 592 s), so POSIX 0 is TAI 8 s and 82 µs, and TAI 8 s is POSIX −1 s
+/// and 0.999 918 s, where `hc_utc_from_tai` of 8 reads −1 and loses the
+/// fraction.
+#[test]
+fn the_exact_bridge_writes_the_fraction_of_the_rate_era() {
+    let read = |call: &dyn Fn(*mut u8, usize) -> i64| {
+        let measured = call(core::ptr::null_mut(), 0);
+        let mut buffer = [0u8; 96];
+        let len = call(buffer.as_mut_ptr(), buffer.len());
+        assert_eq!(len, measured);
+        String::from_utf8(buffer[..len as usize].to_vec()).expect("UTF-8")
+    };
+    assert_eq!(
+        read(&|buffer, capacity| unsafe { hc_tai_minus_utc_exact(0, 0, 1, buffer, capacity) }),
+        "8\t82000000000000\n"
+    );
+    assert_eq!(
+        read(&|buffer, capacity| unsafe { hc_tai_from_unix(0, 1, buffer, capacity) }),
+        "8\t82000000000000\n"
+    );
+    let text =
+        read(&|buffer, capacity| unsafe { hc_utc_from_tai_exact(8, 0, 1, buffer, capacity) });
+    let cells: Vec<&str> = text.trim_end().split('\t').collect();
+    assert_eq!(cells[0], "-1");
+    let attoseconds: i128 = cells[1].parse().expect("attoseconds");
+    assert!((attoseconds - 999_918_000_002_459_999).abs() <= 1, "{text}");
+    assert_eq!(cells[2], "0");
+    assert_eq!(
+        read(&|buffer, capacity| unsafe {
+            hc_utc_from_tai_exact(1_483_228_836, 500_000_000_000_000_000, 1, buffer, capacity)
+        }),
+        "1483228800\t500000000000000000\t1\n"
+    );
+    let null = core::ptr::null_mut();
+    assert_eq!(
+        unsafe { hc_tai_minus_utc_exact(0, 1_000_000_000_000_000_000, 1, null, 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_utc_from_tai_exact(0, 1_000_000_000_000_000_000, 0, null, 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_tai_minus_utc_exact(4_000_000_000, 0, 1, null, 0) },
+        HC_ERR_NO_DATA
+    );
+    assert_eq!(
+        unsafe { hc_utc_from_tai_exact(-400_000_000, 0, 1, null, 0) },
+        HC_ERR_NO_DATA
+    );
+}
+
 /// POSIX 0 is `@400000000000000a` on daemontools' ordinary clock,
 /// which the true-TAI decoder reads as ten seconds after 1970 TAI.
 #[test]

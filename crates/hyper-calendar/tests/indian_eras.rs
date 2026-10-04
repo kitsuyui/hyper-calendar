@@ -4,7 +4,12 @@
 //! calendars' own are, and in Hindi each era under the name Hindi
 //! Wikipedia's "अब्द" article gives it (`wikipedia-hi-abda`).
 
-#![cfg(all(feature = "alloc", feature = "civil", feature = "indic"))]
+#![cfg(all(
+    feature = "alloc",
+    feature = "civil",
+    feature = "indic",
+    feature = "i18n"
+))]
 
 use hyper_calendar::hc_calendar::Rd;
 

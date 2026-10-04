@@ -42,10 +42,11 @@ use core::fmt;
 use hc_calendars_solar::{gregorian, iso_week};
 use hc_tz::{OffsetStyle, UtcOffset};
 
-use crate::error::{ErrorKind, ParseResult};
+use crate::error::{ErrorKind, ParseResult, ValueError};
 use crate::scan::Scanner;
 use crate::value::{
     DateParts, DecimalMark, Fraction, IsoDate, IsoDateTime, IsoTime, Style, YearStyle, ZoneInfo,
+    leap_second_error,
 };
 
 pub use duration::{DurationForm, IsoDuration};
@@ -73,6 +74,15 @@ pub struct Strictness {
     pub allow_end_of_day: bool,
     /// `23:59:60`, an inserted leap second.
     pub allow_leap_second: bool,
+    /// `2026-W39-1`, `2026-264` — a week date or an ordinal date, which
+    /// ISO 8601 has and RFC 3339's `full-date` does not.
+    pub allow_week_and_ordinal_dates: bool,
+    /// `+05:30:15` — seconds in a UTC offset, which ISO 8601-1:2019 and
+    /// RFC 3339's `time-numoffset` have no digits for.
+    pub allow_offset_seconds: bool,
+    /// `+24:00` — an offset whose hours are 24 or more, which a
+    /// two-digit `time-hour` of 00-23 does not name.
+    pub allow_offset_hours_over_23: bool,
     /// `-00:00`, which ISO 8601 forbids and RFC 3339 §4.3 gives a meaning to.
     pub allow_negative_zero_offset: bool,
     /// `2026-09-21 14:30:05` — a space where the standard writes `T`.
@@ -105,6 +115,9 @@ impl Strictness {
         allow_comma_decimal: true,
         allow_end_of_day: true,
         allow_leap_second: true,
+        allow_week_and_ordinal_dates: true,
+        allow_offset_seconds: true,
+        allow_offset_hours_over_23: true,
         allow_negative_zero_offset: false,
         allow_space_separator: false,
         allow_lowercase_designators: false,
@@ -127,6 +140,9 @@ impl Strictness {
         allow_comma_decimal: false,
         allow_end_of_day: false,
         allow_leap_second: true,
+        allow_week_and_ordinal_dates: true,
+        allow_offset_seconds: true,
+        allow_offset_hours_over_23: true,
         allow_negative_zero_offset: false,
         allow_space_separator: false,
         allow_lowercase_designators: false,
@@ -145,6 +161,9 @@ impl Strictness {
         allow_comma_decimal: false,
         allow_end_of_day: false,
         allow_leap_second: true,
+        allow_week_and_ordinal_dates: false,
+        allow_offset_seconds: false,
+        allow_offset_hours_over_23: false,
         allow_negative_zero_offset: true,
         allow_space_separator: true,
         allow_lowercase_designators: true,
@@ -208,6 +227,12 @@ pub fn parse_with(text: &str, strictness: Strictness) -> ParseResult<IsoDateTime
     }
     let value = scan_date_time(&mut scanner, &strictness)?;
     scanner.finish()?;
+    // A second 60 is a leap second only where UTC inserted one.
+    if value.time.is_some_and(|time| time.second == Some(60))
+        && let Err(error @ ValueError::Time(_)) = value.to_offset_date_time()
+    {
+        return Err(leap_second_error(error, text.len()));
+    }
     Ok(value)
 }
 
@@ -352,6 +377,11 @@ pub(crate) fn scan_date(
     };
     if !parts.names_a_day() && !strictness.allow_reduced_date {
         return Err(scanner.error(ErrorKind::Forbidden("a date of reduced accuracy")));
+    }
+    if !strictness.allow_week_and_ordinal_dates
+        && matches!(parts, DateParts::Ordinal { .. } | DateParts::Week { .. })
+    {
+        return Err(scanner.error(ErrorKind::Forbidden("a week date or an ordinal date")));
     }
     Ok(IsoDate {
         parts,
@@ -653,7 +683,14 @@ pub(crate) fn scan_offset(
     if !negative {
         scanner.advance(1);
     }
+    let hours_start = scanner.pos();
     let hours = scanner.take_digits(2)? as i32;
+    if hours > 23 && !strictness.allow_offset_hours_over_23 {
+        return Err(Scanner::error_at(
+            ErrorKind::OutOfRange("offset hours"),
+            hours_start,
+        ));
+    }
     let mut minutes = 0i32;
     let mut seconds = 0i32;
     let style;
@@ -663,6 +700,7 @@ pub(crate) fn scan_offset(
         check_offset_part(minutes, "offset minutes", start)?;
         if scanner.eat(b':') {
             let start = scanner.pos();
+            require_offset_seconds(strictness, start)?;
             seconds = scanner.take_digits(2)? as i32;
             check_offset_part(seconds, "offset seconds", start)?;
             style = OffsetStyle::ExtendedSeconds;
@@ -692,6 +730,7 @@ pub(crate) fn scan_offset(
                 minutes = scanner.take_digits(2)? as i32;
                 check_offset_part(minutes, "offset minutes", start)?;
                 let second_start = scanner.pos();
+                require_offset_seconds(strictness, second_start)?;
                 seconds = scanner.take_digits(2)? as i32;
                 check_offset_part(seconds, "offset seconds", second_start)?;
                 style = OffsetStyle::BasicSeconds;
@@ -807,6 +846,17 @@ fn check_second(
     } else {
         Err(Scanner::error_at(
             ErrorKind::Invalid("a leap second outside 23:59"),
+            at,
+        ))
+    }
+}
+
+fn require_offset_seconds(strictness: &Strictness, at: usize) -> ParseResult<()> {
+    if strictness.allow_offset_seconds {
+        Ok(())
+    } else {
+        Err(Scanner::error_at(
+            ErrorKind::Forbidden("seconds in a UTC offset"),
             at,
         ))
     }
@@ -966,6 +1016,20 @@ mod tests {
             ErrorKind::Invalid("24:00 with a non-zero component")
         );
         assert_eq!(error.offset(), 11);
+    }
+
+    #[test]
+    fn a_second_60_with_a_zone_is_read_only_on_a_day_that_ended_in_one() {
+        assert!(parse("2016-12-31T23:59:60Z").is_ok());
+        assert!(parse("20161231T235960Z").is_ok());
+        assert!(parse("2016-366T23:59:60Z").is_ok());
+        assert!(parse("2016-W52-6T23:59:60Z").is_ok());
+        assert!(parse("2016-12-30T23:59:60Z").is_err());
+        assert!(parse("2016-W52-7T23:59:60Z").is_err());
+        assert!(parse("2016-12-31T23:59:60+01:00").is_err());
+        // With no zone the reading is no instant, and the day cannot be
+        // told to have a leap second until a zone is given.
+        assert!(parse("2026-09-21T23:59:60").is_ok());
     }
 
     #[test]

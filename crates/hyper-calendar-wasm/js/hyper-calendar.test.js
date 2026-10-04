@@ -168,6 +168,9 @@ describe("civil", () => {
     assert.equal(hc.taiMinusUtc(1_700_000_000), 37);
     assert.equal(hc.dayHasLeapSecond(1_483_142_400), true);
     assert.equal(hc.dayHasLeapSecond(1_483_228_800), false);
+    // 2027-06-30 is past the table's validity, 2027-06-28.
+    assert.equal(hc.dayHasLeapSecond(1_814_313_600), false);
+    refused(() => hc.dayHasLeapSecond(1_814_313_600, true), "no-data");
     refused(() => hc.taiMinusUtc(4_000_000_000, true), "no-data");
     assert.equal(hc.taiMinusUtc(4_000_000_000, false), 37);
   });
@@ -1986,6 +1989,30 @@ describe("time scales and day counts", () => {
     assert.deepEqual(hc.utcFromTai(BigInt(newYear + 37)), { unixSeconds: BigInt(newYear), leapSecond: false });
     refused(() => hc.taiFromUnix(-400_000_000, true), "no-data");
     refused(() => hc.taiFromUnix(2n ** 63n - 1n), "out-of-range");
+  });
+
+  test("the exact bridge keeps the fraction of the rate era", () => {
+    // USNO's line from 1968-02-01: TAI − UTC = 4.213 17 s + (MJD − 39126) × 0.002 592 s,
+    // 8.000 082 s at POSIX 0 and 9.892 241 97 s in the last second of 1971.
+    assert.deepEqual(hc.taiMinusUtcExact(0), { seconds: 8n, attoseconds: 82_000_000_000_000n });
+    assert.deepEqual(hc.taiMinusUtcExact(0, 500_000_000_000_000_000n), { seconds: 8n, attoseconds: 82_015_000_000_000n });
+    assert.deepEqual(hc.taiMinusUtcExact(63_071_999), { seconds: 9n, attoseconds: 892_241_970_000_000_000n });
+    assert.deepEqual(hc.taiMinusUtcExact(1_700_000_000, 5, true), { seconds: 37n, attoseconds: 0n });
+    // The whole-second forms floor: TAI 8 s is POSIX −1 s and 0.999 918 s.
+    assert.equal(hc.utcFromTai(8).unixSeconds, -1n);
+    const exact = hc.utcFromTaiExact(8);
+    assert.equal(exact.unixSeconds, -1n);
+    assert.ok(exact.attoseconds >= 999_918_000_002_459_998n && exact.attoseconds <= 999_918_000_002_460_000n, `${exact.attoseconds}`);
+    assert.equal(exact.leapSecond, false);
+    assert.deepEqual(hc.utcFromTaiExact(1_483_228_836, 500_000_000_000_000_000n, true), {
+      unixSeconds: 1_483_228_800n,
+      attoseconds: 500_000_000_000_000_000n,
+      leapSecond: true,
+    });
+    refused(() => hc.taiMinusUtcExact(4_000_000_000, 0, true), "no-data");
+    refused(() => hc.utcFromTaiExact(-400_000_000, 0, true), "no-data");
+    refused(() => hc.taiMinusUtcExact(0, 10n ** 18n), "out-of-range");
+    refused(() => hc.utcFromTaiExact(0, 10n ** 18n), "out-of-range");
   });
 
   test("a label on a POSIX clock is 2⁶² + 10 + the POSIX second, daemontools' convention", () => {

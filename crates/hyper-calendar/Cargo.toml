@@ -119,6 +119,10 @@ localized-exemplar-cities = ["dep:hc-i18n", "hc-i18n/localized-exemplar-cities"]
 # nothing else turns on: `holiday` names its countries from its own,
 # smaller table.
 place-names = ["dep:hc-i18n", "hc-i18n/place-names"]
+# The ISO 3166-2 codes CLDR 48 names, with no name: about 39 kB, which
+# `holiday` carries to tell a subdivision no table has read from a
+# misspelling.
+subdivision-codes = ["dep:hc-i18n", "hc-i18n/subdivision-codes"]
 # ISO 8601 / RFC 3339 parsing and formatting (which brings in `hc-tz` and
 # `hc-i18n`, the crates its offsets and day periods are typed by); and, with `humanize`,
 # Python `humanize`'s `naturalday` and `naturaldate`, which write a day
@@ -145,6 +149,7 @@ holiday = [
     "dep:hc-holiday",
     "dep:hc-i18n",
     "hc-i18n/territories",
+    "subdivision-codes",
 ]
 # Jupiter's position, its entries into the sidereal signs, and the Kumbh
 # Mela and Pushkaram found from them, from the VSOP87B series for Jupiter:

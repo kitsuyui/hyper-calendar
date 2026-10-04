@@ -191,7 +191,7 @@ establishment in any source read, and its years before R are a gap.
 | IN | India | Government: 1 April, start year (E 1867, R 1868) |
 | IR | Iran | Government: 1 Farvardin on `persian-arithmetic-33`, start year (R 1350) |
 | JP | Japan | Government: 1 July, start year (E and R 1875, to 1884); 1 April, start year (E and R 1886, with 1921 to 1946 unread); the school year, 1 April (R 1947) |
-| NP | Nepal | Government: Shrawan 1 of the Bikram Sambat, start year (R 2083); needs the `indic` feature |
+| NP | Nepal | Government: Shrawan 1 of the Bikram Sambat, start year (R 2083); needs the `indic` feature; without the `indic` feature the facade's `hc_fiscal_year_on` and `hc_fiscal_year_span` answer `no-data` |
 | NZ | New Zealand | Government: 1 July, start year (R 2026); personal tax: 1 April, end year (R 2025) |
 | PK | Pakistan | Government: 1 July, start year (R 2026) |
 | RU | Russia | Government: 1 January, start year (R 2000) |

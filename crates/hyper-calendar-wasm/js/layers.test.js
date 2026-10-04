@@ -206,6 +206,8 @@ test("a method of another layer throws not-exported when called, not at load", (
     formatPattern: () => hc.formatPattern("Asia/Tokyo", 0, "ja", "cldr", "yyyy"),
     taiFromUnix: () => hc.taiFromUnix(1_700_000_000, true),
     utcFromTai: () => hc.utcFromTai(1_700_000_037, true),
+    taiMinusUtcExact: () => hc.taiMinusUtcExact(1_700_000_000, 0, true),
+    utcFromTaiExact: () => hc.utcFromTaiExact(1_700_000_037, 0, true),
     tai64PosixPlus10Encode: () => hc.tai64PosixPlus10Encode(0, 0, "tai64"),
     tai64PosixPlus10Decode: () => hc.tai64PosixPlus10Decode("400000000000000a"),
     uuidTimestamp: () => hc.uuidTimestamp("C232AB00-9414-11EC-B3C8-9F6BDECED846"),

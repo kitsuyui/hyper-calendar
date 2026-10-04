@@ -117,7 +117,7 @@ impl DayPeriod {
 /// truth for Japanese and Chinese month names, and where CLDR gives it only
 /// through `root.xml`'s numerals and Latin letters, which no reader of
 /// another script wants. It is *not* left empty where the file states its own
-/// letters: Russian's narrow month И, Swahili's narrow weekday T. The names
+/// letters: Russian's narrow month И. The names
 /// of the entries that follow CLDR are generated from its files, so that a
 /// width the file states is carried.
 #[derive(Debug, Clone, Copy)]

@@ -281,6 +281,22 @@ pub struct Locale {
 }
 
 impl Locale {
+    /// The tag a boundary writes to ask for no locale in particular, which
+    /// each export reads as its own kind's language, or as English.
+    pub const NATIVE_TAG: &'static str = "native";
+
+    /// The locale a boundary's tag asks for: `None` for [`Self::NATIVE_TAG`],
+    /// which names no one locale, and the root locale for a tag that does not
+    /// parse, which reaches English where the data has no other fallback.
+    #[must_use]
+    pub fn requested(tag: &str) -> Option<Self> {
+        if tag == Self::NATIVE_TAG {
+            None
+        } else {
+            Some(Self::parse(tag).unwrap_or(Self::ROOT))
+        }
+    }
+
     /// The root locale, `und`.
     ///
     /// CLDR calls it `root`; BCP 47 spells the same thing `und`. Parsing
@@ -866,6 +882,17 @@ mod tests {
             .fallback()
             .map(|locale| locale.to_string())
             .collect()
+    }
+
+    /// A boundary's tag: `native` names no one locale, a tag that does not
+    /// parse is the root locale, and any other is itself.
+    #[test]
+    fn a_boundary_tag_is_a_locale_or_native_or_the_root() {
+        assert_eq!(Locale::requested("native"), None);
+        assert_eq!(Locale::requested("not a tag"), Some(Locale::ROOT));
+        assert_eq!(Locale::requested(""), Some(Locale::ROOT));
+        assert_eq!(Locale::requested("ja-JP"), Locale::parse("ja-JP").ok());
+        assert_eq!(Locale::NATIVE_TAG, "native");
     }
 
     #[test]

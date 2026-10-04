@@ -6,6 +6,8 @@
 //! (CPython 3.14.7) to a case the documentation states a rule for.
 //! `docs/python-parity.md` is the full correspondence.
 
+#![cfg(feature = "civil")]
+
 use hyper_calendar::civil::{
     Date, DateTime, Replace, Resolution, StructTime, Time, TimeDelta, TimeDeltaParts, calendar,
 };
@@ -588,6 +590,7 @@ fn humanize_is_reachable_from_the_facade() {
 /// and "`time.gmtime()` and `calendar.timegm()` are each other's inverse".
 /// The documentation gives the second example at a moment it does not name;
 /// 993737835 is that moment (CPython 3.14.7 reads it back as the string).
+#[cfg(feature = "format")]
 #[test]
 fn gmtime_and_timegm_are_each_others_inverse() {
     let epoch = StructTime::gmtime(0).unwrap();
@@ -663,6 +666,7 @@ fn timegm_does_not_check_the_fields_below_the_month() {
 ///
 /// and "the day field is two characters long and is space padded if the day
 /// is a single digit, e.g.: `'Wed Jun  9 04:26:40 1993'`".
+#[cfg(feature = "format")]
 #[test]
 fn strptime_and_asctime_match_the_time_module_documentation() {
     let parsed = StructTime::strptime("30 Nov 00", "%d %b %y").unwrap();

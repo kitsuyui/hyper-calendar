@@ -245,6 +245,14 @@ impl fmt::Write for Escaping<'_> {
     }
 }
 
+/// Any error of a library below the boundary that means the arguments name
+/// no value it can hold: out of range, whatever the library's own error.
+/// `.map_err(out_of_range)` on a call whose every failure is that.
+#[must_use]
+pub fn out_of_range<E>(_: E) -> Refusal {
+    Refusal::OutOfRange
+}
+
 /// The cells of a line, its line break dropped: what a test reads back.
 #[cfg(test)]
 pub(crate) fn cells(line: &str) -> alloc::vec::Vec<&str> {

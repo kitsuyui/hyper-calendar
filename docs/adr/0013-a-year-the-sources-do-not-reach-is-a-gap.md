@@ -70,9 +70,12 @@ A rule carries both facts, and the engine reports the difference.
 - The boundary refuses a region the table's country has no subdivision for
   (`US-ZZ`, `JP-99`, `JP garbage`, `JP-14-130-5`) as unknown, as it
   refuses a group that is no group. A subdivision that exists and was not
-  read is the gap above, so a typo does not look like one.
-  The shape of a code is `hc_holiday::rule::is_region_code`, the
-  subdivisions are `hc_i18n::place_names`', and the facade joins them.
+  read is the gap above; a typo does not look like one. The shape of a
+  code is `hc_holiday::rule::is_region_code`, the subdivisions are
+  `hc_i18n::place_names`' codes, the `subdivision-codes` feature the facade's
+  `holiday` feature turns on, and the six outlying areas of the United States
+  that ISO 3166-2 lists and CLDR does not, `ISO_SUBDIVISIONS_BEYOND_CLDR`; the
+  facade joins them, so that every build of the layer answers one way.
 - `Rule::NO_DAY` is a day a text read does not keep. With `read_from` and
   a region, it says that the province's text of 2026 leaves a federal day
   out and that the texts before it were not read.

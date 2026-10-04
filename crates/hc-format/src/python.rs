@@ -53,7 +53,9 @@ use crate::error::{ErrorKind, FormatError, FormatResult, ParseError, ParseResult
 use crate::iso8601::{self, Strictness};
 use crate::patterns::{FormatContext, ParsedFields, strftime};
 use crate::scan::Scanner;
-use crate::value::{DateParts, IsoDate, IsoTime, OffsetDateTime, ZoneInfo};
+use crate::value::{
+    DateParts, IsoDate, IsoTime, OffsetDateTime, ZoneInfo, check_leap_second, leap_second_error,
+};
 
 /// What Python's `fromisoformat` accepts, as a [`Strictness`]. The ordinal
 /// date and the fraction of an hour or minute, which `Strictness` cannot
@@ -68,6 +70,9 @@ const PROFILE: Strictness = Strictness {
     allow_comma_decimal: true,
     allow_end_of_day: false,
     allow_leap_second: true,
+    allow_week_and_ordinal_dates: true,
+    allow_offset_seconds: true,
+    allow_offset_hours_over_23: true,
     allow_negative_zero_offset: true,
     allow_space_separator: false,
     allow_lowercase_designators: false,
@@ -157,8 +162,10 @@ pub fn parse_date_time(text: &str) -> ParseResult<OffsetDateTime> {
     scanner.advance(separator.len_utf8());
     let (time, zone) = scan_time_and_zone(&mut scanner)?;
     scanner.finish()?;
+    let local = CivilDateTime::new(day, time);
+    check_leap_second(local, zone).map_err(|error| leap_second_error(error, 0))?;
     Ok(OffsetDateTime {
-        local: CivilDateTime::new(day, time),
+        local,
         zone,
         written_as_end_of_day: false,
     })

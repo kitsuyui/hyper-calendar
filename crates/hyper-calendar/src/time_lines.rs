@@ -455,21 +455,23 @@ const fn policy(strict: bool) -> LeapPolicy {
 /// ([`leap::RATE_ERA`]), and that is neither a leap second nor an inserted
 /// second of any other kind. The same holds before 1961, when UTC did not
 /// exist. Past the table's validity, 2027-06-28, whether a day ends in one
-/// has not been announced, and the answer is no, as the last published
-/// offset is held there.
+/// has not been announced: under `strict` that is refused, and otherwise the
+/// answer is no, as the last published offset is held there, which is a
+/// forecast and so the caller's choice, as for [`tai_from_unix`].
 ///
 /// # Errors
 ///
 /// [`Refusal::OutOfRange`] for a timestamp in a day whose start or whose
-/// end is not an `i64` — the first and last part-days of the range.
-pub fn day_has_leap_second(unix_seconds: i64) -> Answer<bool> {
+/// end is not an `i64` — the first and last part-days of the range — and
+/// [`Refusal::NoData`] under `strict` for a day past the table's validity.
+pub fn day_has_leap_second(unix_seconds: i64, strict: bool) -> Answer<bool> {
     let (day, _) = days_and_seconds(unix_seconds);
     // The start of the day must be an `i64` too: the part-day at the bottom
     // of the range ends where one fits and starts where none does.
     seconds_in_days(day).ok_or(Refusal::OutOfRange)?;
     match leap::end_of_day_step(day) {
         Ok(step) => Ok(step > 0),
-        Err(TimeError::AfterModelEnd) => Ok(false),
+        Err(TimeError::AfterModelEnd) if !strict => Ok(false),
         Err(TimeError::Overflow) => Err(Refusal::OutOfRange),
         Err(error) => Err(error.into()),
     }
@@ -524,6 +526,87 @@ pub fn utc_from_tai_line(tai_seconds: i64, strict: bool) -> Answer<String> {
     let utc = utc_from_tai(tai_seconds, strict)?;
     Ok(line(|line| {
         line.value(utc.unix_seconds).flag(utc.leap_second);
+    }))
+}
+
+/// `TAI − UTC` at a POSIX instant, exactly: whole seconds and the attoseconds
+/// after them.
+///
+/// From 1972 a whole number of seconds; from 1961 to 1971 not, and a
+/// function of the attoseconds into the second (`hc_core::leap::RATE_ERA`).
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for attoseconds from 10¹⁸ and [`Refusal::NoData`]
+/// outside the leap-second table under `strict`, as for [`tai_from_unix`].
+pub fn tai_minus_utc_exact(
+    unix_seconds: i64,
+    attoseconds: u64,
+    strict: bool,
+) -> Answer<(i64, u64)> {
+    let unix = unix_instant(unix_seconds, attoseconds)?;
+    let offset = unix::tai_minus_utc_at_instant(unix, policy(strict))?;
+    let seconds = i64::try_from(offset.whole_seconds()).map_err(|_| Refusal::Overflow)?;
+    Ok((seconds, offset.subsec_attos()))
+}
+
+/// The line of `hc_tai_minus_utc_exact`: the whole seconds and the
+/// attoseconds of `TAI − UTC`.
+///
+/// # Errors
+///
+/// As [`tai_minus_utc_exact`].
+pub fn tai_minus_utc_exact_line(
+    unix_seconds: i64,
+    attoseconds: u64,
+    strict: bool,
+) -> Answer<String> {
+    let (seconds, attoseconds) = tai_minus_utc_exact(unix_seconds, attoseconds, strict)?;
+    Ok(line(|line| {
+        line.value(seconds).value(attoseconds);
+    }))
+}
+
+/// The UTC label of a TAI instant, whole seconds and attoseconds: the POSIX
+/// second and the attoseconds into it, and whether it is an inserted leap
+/// second, `23:59:60`, which POSIX time cannot express and names by the second
+/// that follows it.
+///
+/// From 1961 to 1971 the UTC reading of a whole TAI second is not a whole
+/// second: the relation is exact to the attosecond and the fraction is the
+/// answer's attoseconds ([`utc_from_tai`] reads the whole second only).
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for attoseconds from 10¹⁸, [`Refusal::NoData`]
+/// outside the leap-second table under `strict`, and [`Refusal::Overflow`]
+/// for a UTC second no `i64` holds.
+pub fn utc_from_tai_exact(tai_seconds: i64, attoseconds: u64, strict: bool) -> Answer<UtcInstant> {
+    if attoseconds >= hc_core::duration::ATTOS_PER_SEC {
+        return Err(Refusal::OutOfRange);
+    }
+    let reading = Duration::from_attos(
+        i128::from(tai_seconds) * i128::from(hc_core::duration::ATTOS_PER_SEC)
+            + i128::from(attoseconds),
+    );
+    Ok(unix::utc_from_tai(
+        Instant::<Tai>::from_epoch(reading),
+        policy(strict),
+    )?)
+}
+
+/// The line of `hc_utc_from_tai_exact`: the POSIX second, the attoseconds
+/// into it and `1` for an inserted leap second, else `0`.
+///
+/// # Errors
+///
+/// As [`utc_from_tai_exact`].
+pub fn utc_from_tai_exact_line(tai_seconds: i64, attoseconds: u64, strict: bool) -> Answer<String> {
+    let utc = utc_from_tai_exact(tai_seconds, attoseconds, strict)?;
+    Ok(line(|line| {
+        line.value(utc.unix_seconds)
+            .value(utc.subsec_attos)
+            .flag(utc.leap_second);
     }))
 }
 
@@ -1445,7 +1528,7 @@ mod tests {
         let last = unix_day(2030, 12, 31);
         let mut found: Vec<i64> = Vec::new();
         for day in first..=last {
-            if day_has_leap_second(day * 86_400 + 43_200) == Ok(true) {
+            if day_has_leap_second(day * 86_400 + 43_200, true) == Ok(true) {
                 found.push(day);
             }
         }
@@ -1457,7 +1540,7 @@ mod tests {
         for day in first..=unix_day(1972, 1, 1) {
             for second in [0, 43_200, 86_399] {
                 assert_eq!(
-                    day_has_leap_second(day * 86_400 + second),
+                    day_has_leap_second(day * 86_400 + second, true),
                     Ok(false),
                     "{day}"
                 );
@@ -1465,12 +1548,119 @@ mod tests {
         }
         // Before 1961 UTC did not exist, and past the table nothing is announced.
         assert_eq!(
-            day_has_leap_second(unix_day(1960, 12, 31) * 86_400),
+            day_has_leap_second(unix_day(1960, 12, 31) * 86_400, true),
+            Ok(false)
+        );
+        // The table is valid until 2027-06-28, the expiry of the IANA
+        // `leap-seconds.list` it was built from: the day before it is
+        // answered, 2027-06-30 is not announced.
+        assert_eq!(
+            day_has_leap_second(unix_day(2027, 6, 27) * 86_400, true),
             Ok(false)
         );
         assert_eq!(
-            day_has_leap_second(unix_day(2027, 6, 30) * 86_400),
+            day_has_leap_second(unix_day(2027, 6, 30) * 86_400, true),
+            Err(Refusal::NoData)
+        );
+        assert_eq!(
+            day_has_leap_second(unix_day(2027, 6, 30) * 86_400, false),
             Ok(false)
+        );
+    }
+
+    /// From 1961 to 1971 `TAI − UTC` is not a whole number of seconds and
+    /// the whole-second exports lose the fraction: the USNO line from
+    /// 1968-02-01 (`4.2131700 s + (MJD − 39126) × 0.002592 s`, which
+    /// `hc_core::leap::RATE_ERA` carries) gives 8.000 082 s at POSIX 0, so
+    /// the TAI reading is 8 s and 82 µs and TAI 8 s is 82 µs before POSIX 0,
+    /// where `utc_from_tai` of the whole second reads 1969-12-31T23:59:59
+    /// and no fraction. The inversion solves `TAI = UTC + 8.000 082 s +
+    /// 3·10⁻⁸·UTC` exactly: TAI 8 s is POSIX −1 s and 0.999 918 000 002 46 s,
+    /// and TAI 63 072 008 s, the figure of `docs/time-scales.md`, is POSIX
+    /// 63 071 998 s and 0.107 758 056 767 258 s (exact rational arithmetic on
+    /// the coefficients, `scripts/rate-era-pins.py`).
+    #[test]
+    fn the_exact_bridge_keeps_the_fraction_of_the_rate_era() {
+        let cells = |answer: Answer<String>| -> Vec<String> {
+            answer
+                .expect("a line")
+                .trim_end()
+                .split('\t')
+                .map(str::to_owned)
+                .collect()
+        };
+        // The whole-second forms floor.
+        assert_eq!(cells(tai_from_unix_line(0, true)), ["8", "82000000000000"]);
+        assert_eq!(
+            cells(tai_minus_utc_exact_line(0, 0, true)),
+            ["8", "82000000000000"]
+        );
+        assert_eq!(
+            cells(tai_minus_utc_exact_line(0, 500_000_000_000_000_000, true)),
+            ["8", "82015000000000"]
+        );
+        assert_eq!(
+            cells(tai_minus_utc_exact_line(63_071_999, 0, true)),
+            ["9", "892241970000000000"]
+        );
+        assert_eq!(utc_from_tai(8, true).map(|utc| utc.unix_seconds), Ok(-1));
+        // The exact forms do not.
+        let near = |cells: &[String], seconds: &str, attoseconds: i128, leap: &str| {
+            assert_eq!(cells[0], seconds, "{cells:?}");
+            let found: i128 = cells[1].parse().expect("attoseconds");
+            assert!((found - attoseconds).abs() <= 1, "{cells:?}");
+            assert_eq!(cells[2], leap);
+        };
+        near(
+            &cells(utc_from_tai_exact_line(8, 0, true)),
+            "-1",
+            999_918_000_002_459_999,
+            "0",
+        );
+        near(
+            &cells(utc_from_tai_exact_line(63_072_008, 0, true)),
+            "63071998",
+            107_758_056_767_258_296,
+            "0",
+        );
+        // From 1972 the offset is whole and the attoseconds pass through.
+        assert_eq!(
+            cells(utc_from_tai_exact_line(1_700_000_037, 5, true)),
+            ["1700000000", "5", "0"]
+        );
+        assert_eq!(
+            cells(tai_minus_utc_exact_line(1_700_000_000, 5, true)),
+            ["37", "0"]
+        );
+        // The leap second of 2016, with a fraction of a second.
+        assert_eq!(
+            cells(utc_from_tai_exact_line(
+                1_483_228_836,
+                500_000_000_000_000_000,
+                true
+            )),
+            ["1483228800", "500000000000000000", "1"]
+        );
+        // Refusals: attoseconds from 10¹⁸, and outside the table under `strict`.
+        assert_eq!(
+            tai_minus_utc_exact_line(0, 1_000_000_000_000_000_000, true),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            utc_from_tai_exact_line(0, 1_000_000_000_000_000_000, false),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            tai_minus_utc_exact_line(4_000_000_000, 0, true),
+            Err(Refusal::NoData)
+        );
+        assert_eq!(
+            cells(tai_minus_utc_exact_line(4_000_000_000, 0, false)),
+            ["37", "0"]
+        );
+        assert_eq!(
+            utc_from_tai_exact_line(-400_000_000, 0, true),
+            Err(Refusal::NoData)
         );
     }
 

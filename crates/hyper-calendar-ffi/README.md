@@ -80,8 +80,10 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a POSIX timestamp | `hc_unix_from_fixed` | `fixed` −106 751 990 448 137 through 106 751 991 886 463, the days whose midnight fits an `int64_t`; any other is `HC_ERROR_OUT_OF_RANGE` |
 | TAI seconds | `hc_tai_from_unix` | every `unix_seconds` up to `INT64_MAX − 37`; TAI runs ahead of UTC, so a later one has no TAI reading an `int64_t` holds and is `HC_ERROR_OVERFLOW`; under `strict`, 1961 through the end of the announced table, else `HC_ERROR_NO_DATA` |
 | seconds | `hc_tai_minus_utc` | every `unix_seconds`; under `strict`, as for `hc_tai_from_unix` |
-| 1 or 0 | `hc_day_has_leap_second` | `unix_seconds` −9 223 372 036 854 720 000 through 9 223 372 036 854 719 999, the whole days of the `int64_t` range; the part-days at its two ends begin or end where no `int64_t` reaches, and are `HC_ERROR_OUT_OF_RANGE` |
+| 1 or 0 | `hc_day_has_leap_second` | `unix_seconds` −9 223 372 036 854 720 000 through 9 223 372 036 854 719 999, the whole days of the `int64_t` range; the part-days at its two ends begin or end where no `int64_t` reaches, and are `HC_ERROR_OUT_OF_RANGE`; under `strict`, a day past the announced leap-second table is `HC_ERROR_NO_DATA` |
 | a POSIX timestamp | `hc_utc_from_tai` | every `tai_seconds`; under `strict`, as for `hc_tai_from_unix` |
+| seconds and attoseconds | `hc_tai_minus_utc_exact` | every `unix_seconds`, with `attoseconds` below 10¹⁸ (`HC_ERROR_OUT_OF_RANGE` from there); under `strict`, as for `hc_tai_from_unix` |
+| a POSIX second and attoseconds | `hc_utc_from_tai_exact` | every `tai_seconds`, with `tai_attoseconds` below 10¹⁸ (`HC_ERROR_OUT_OF_RANGE` from there); under `strict`, as for `hc_tai_from_unix` |
 | a fixed day | `hc_fixed_from_unix_in_zone` | `unix_seconds` −315 631 497 830 400 through 315 507 195 014 399, the instants of the years −9 999 994 to 9 999 994 by UTC, which a zone's rules answer for: they are read on the Gregorian years ±9 999 999, and an instant's answer reads the years around its own, which beyond these would give standard time whatever the rules say; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_interval` | every `first_low_seconds`, `first_high_seconds`, `second_low_seconds` and `second_high_seconds` with each low bound not above its high one; a bound past 128 bits of seconds is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_unit_convert` | every `count_numerator` and `count_denominator` that is not 0 in the denominator; a count or a length past 128 bits is `HC_ERROR_OVERFLOW`, and a unit `hc_units` does not list `HC_ERROR_UNKNOWN` |
@@ -167,10 +169,10 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a line | `hc_jupiter_at` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_jupiter_ingresses`, `hc_jupiter_risings` | `from_unix_seconds` and `to_unix_seconds` −93 724 128 000 through 32 535 216 000 (the span `[from, to)` ends within the years −1000 to 3000), at most 3 155 760 000 apart, a hundred Julian years; a `to` not after the `from` writes nothing; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_kumbh_by_sky`, `hc_pushkaram_by_sky`, `hc_pushkarams_in_year` | `year` −1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
-| a line | `hc_jupiter_stations` | `from_unix_seconds` and `to_unix_seconds` within the years −1000 to 3000 and no more than a hundred Julian years apart; any other is `HC_ERROR_OUT_OF_RANGE`, a `to` not after `from` an empty answer |
+| a line | `hc_jupiter_stations` | `from_unix_seconds` −93 724 128 000 through 32 535 215 999 and `to_unix_seconds` up to 32 535 216 000, the span `[from, to)` within the years −1000 to 3000, and no more than a hundred Julian years apart; any other is `HC_ERROR_OUT_OF_RANGE`, a `to` not after `from` an empty answer |
 | a line | `hc_kumbhs_in_year_by_sky` | `year` −1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and an ayanāṃśa not known `HC_ERROR_UNKNOWN` |
 | a line | `hc_tithis_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000, and on `surya-siddhanta` −1 132 604 through 2 519 973; any other is `HC_ERROR_OUT_OF_RANGE`, and a day or morrow without a sunrise `HC_ERROR_NO_DATA` |
-| a line | `hc_tithi_at`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor` | `unix_seconds` −62 167 219 200 through 93 305 366 399, the years −1000 to 3000, and on `surya-siddhanta` for `hc_tithi_at` −159 992 668 800 through 155 590 156 799, the days of Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_tithi_at`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000, and on `surya-siddhanta` for `hc_tithi_at` −159 992 668 800 through 155 590 156 799, the days of Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_janmashtami` | `year` 1700 through 2299, the Gregorian years whose Śrāvaṇa lies in the Śaka years 1622 to 2221 of the Rashtriya Panchang's calendar; any other is `HC_ERROR_OUT_OF_RANGE`, a reading or an ayanāṃśa not known `HC_ERROR_UNKNOWN`, and a place beyond 65° of latitude `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_vaishnava_day`, `hc_vishti_free_span` | `saka_year` 1622 through 2221 and `month` 1 through 12; a tithi outside 1 to 30 is `HC_ERROR_INVALID_DATE`, any other year or month, a month the year lacks (Mārgaśīrṣa of Śaka 1885 at the Central Station) included, and a place beyond 65° of latitude, `HC_ERROR_OUT_OF_RANGE`, and an ayanāṃśa not known `HC_ERROR_UNKNOWN` |
 | a line | `hc_rahu_at` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and an ayanāṃśa not known `HC_ERROR_UNKNOWN` |
@@ -319,7 +321,8 @@ One pair sits in a different layer: `hc_tai_from_unix` and
 Each builds on its own —
 `calendars` does not need `holiday` — and the table below names the one
 each entry point needs. CI runs this crate's tests with each layer's
-feature alone, through [`scripts/layer-tests.sh`](../../scripts/layer-tests.sh).
+feature alone, and the facade's own with the facade features the layer
+turns on, through [`scripts/layer-tests.sh`](../../scripts/layer-tests.sh).
 
 ```sh
 cargo build -p hyper-calendar-ffi --release --features calendars
@@ -339,7 +342,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-293 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+295 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -355,7 +358,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_day_of_year(int64_t fixed, uint32_t *out_day_of_year);` | `civil` | The 1-based day of the Gregorian year on a fixed day. |
 | `HcStatus hc_is_leap_year(int64_t fixed, int *out_is_leap);` | `civil` | Whether the Gregorian year on a fixed day is a leap year: writes 1 or 0. |
 | `HcStatus hc_fixed_from_unix(int64_t unix_seconds, int64_t *out_fixed);` | `civil` | The fixed day a POSIX timestamp falls on, in UTC. |
-| `HcStatus hc_day_has_leap_second(int64_t unix_seconds, int *out_has_leap);` | `civil` | Whether a POSIX timestamp names a day that ends with an inserted leap second. |
+| `HcStatus hc_day_has_leap_second(int64_t unix_seconds, int strict, int *out_has_leap);` | `civil` | Whether a POSIX timestamp names a day that ends with an inserted leap second. |
 | `HcStatus hc_unix_from_fixed(int64_t fixed, int64_t *out_unix_seconds);` | `civil` | The POSIX timestamp of midnight UTC on a fixed day. |
 | `HcStatus hc_tai64_decode(const char *hex, int64_t *out_tai_seconds, uint64_t *out_attoseconds);` | `timestamps` | A TAI64, TAI64N or TAI64NA label in hexadecimal read back into the TAI seconds and attoseconds of the instant it names. |
 | `HcStatus hc_gnss_week(const char *numbering, int64_t tai_seconds, uint64_t attoseconds, uint32_t *out_week, uint32_t *out_broadcast, uint32_t *out_tow_seconds, uint64_t *out_tow_attoseconds);` | `timestamps` | The GNSS week and time of week of a TAI instant. |
@@ -371,6 +374,8 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_fat_encode(int64_t fixed, uint32_t seconds_of_day, uint16_t *out_date, uint16_t *out_time);` | `timestamps` | The FAT date and time words of a fixed day and a time of day in whole seconds, the second rounded down to an even one. |
 | `HcStatus hc_epoch_from_tt(const char *notation, int64_t tt_seconds, uint64_t attoseconds, double *out_year);` | `timestamps` | The Julian or Besselian epoch of a TT instant, as a year with a fraction. |
 | `HcStatus hc_tt_from_epoch(const char *notation, double year, int64_t *out_tt_seconds, uint64_t *out_attoseconds);` | `timestamps` | The TT instant of a Julian or Besselian epoch, as whole seconds from 1970-01-01 00:00:00 TT and attoseconds. |
+| `HcStatus hc_tai_minus_utc_exact(int64_t unix_seconds, uint64_t attoseconds, int strict, char *buffer, size_t capacity, size_t *written);` | `timestamps` | `TAI - UTC` at a POSIX instant, exactly, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_utc_from_tai_exact(int64_t tai_seconds, uint64_t tai_attoseconds, int strict, char *buffer, size_t capacity, size_t *written);` | `timestamps` | The UTC label of a TAI instant, exactly, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_tai64_encode(int64_t tai_seconds, uint64_t attoseconds, const char *format, char *buffer, size_t capacity, size_t *written);` | `timestamps` | A TAI instant as a TAI64, TAI64N or TAI64NA label in lower-case hexadecimal, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_gnss_resolve_week(const char *numbering, uint32_t broadcast, const char *rule, int64_t reference_tai_seconds, uint32_t *out_week);` | `timestamps` | The full GNSS week a broadcast week names, by a rollover rule and a reference instant. |
 | `HcStatus hc_tai64_posix_plus_10_encode(int64_t unix_seconds, uint64_t attoseconds, const char *format, char *buffer, size_t capacity, size_t *written);` | `timestamps` | A POSIX instant as a TAI64 or TAI64N label in the `tai64-posix-plus-10` convention, in lower-case hexadecimal, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
@@ -1663,14 +1668,16 @@ more than 255 decimals and a minimum unit above seconds are
 
 ## Leap seconds, and the `strict` flag
 
-`hc_tai_from_unix`, `hc_tai_minus_utc` and `hc_utc_from_tai` take a `strict`
-flag. Non-zero refuses to answer before 1961, when UTC did not exist, and past
+`hc_tai_from_unix`, `hc_tai_minus_utc`, `hc_utc_from_tai` and
+`hc_day_has_leap_second` take a `strict` flag. Non-zero refuses to answer before 1961, when UTC did not exist, and past
 the announced validity of the IERS leap-second table, with
 `HC_ERROR_NO_DATA`; zero holds the last published offset into the future and
 treats UTC as TAI before 1961. Holding the last offset into the future is
-a forecast, which is why it is the caller's choice and not a default. `hc_day_has_leap_second` takes no
-flag and always uses the second policy. `hc-core`'s README states the
-table's horizon.
+a forecast, which is why it is the caller's choice and not a default. For
+`hc_day_has_leap_second` the flag concerns the future only: a day past the
+table is refused when it is non-zero and answered no when it is zero; before
+1961 no day ended in an inserted second, so none is refused. `hc-core`'s
+README states the table's horizon.
 
 ## What is not here
 

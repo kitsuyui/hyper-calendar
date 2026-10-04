@@ -120,7 +120,11 @@ macro_rules! exports {
             ///
             /// A timestamp in a day whose start or whose end is not an `int64_t` —
             /// the first and last part-days of the range — is
-            /// [`HC_ERROR_OUT_OF_RANGE`](super::HC_ERROR_OUT_OF_RANGE).
+            /// [`HC_ERROR_OUT_OF_RANGE`](super::HC_ERROR_OUT_OF_RANGE). A day past the
+            /// announced leap-second table, whose end no one has said is a leap
+            /// second's, is [`HC_ERROR_NO_DATA`](super::HC_ERROR_NO_DATA) when `strict`
+            /// is non-zero, and answered no when it is zero, as `hc_tai_from_unix`
+            /// holds the last published offset.
         }
         wasm {
             /// Whether the UTC day containing a POSIX timestamp ends with an inserted
@@ -128,8 +132,12 @@ macro_rules! exports {
             ///
             /// A timestamp in a day whose start or whose end is not an `i64` — the
             /// first and last part-days of the range — is [`HC_ERR_OUT_OF_RANGE`](super::HC_ERR_OUT_OF_RANGE).
+            /// A day past the announced leap-second table, whose end no one has said
+            /// is a leap second's, is [`HC_ERR_NO_DATA`](super::HC_ERR_NO_DATA) when
+            /// `strict` is non-zero, and answered 0 when it is zero, as `hc_tai_from_unix`
+            /// holds the last published offset.
         }
-        fn hc_day_has_leap_second(unix_seconds: i64) -> value(out_has_leap: int) =
+        fn hc_day_has_leap_second(unix_seconds: i64, strict: flag) -> value(out_has_leap: int) =
             $crate::time_lines::day_has_leap_second;
 
         c {
@@ -166,9 +174,11 @@ macro_rules! exports {
             /// another is `HC_ERROR_UNKNOWN`, and null `syntax` or `text`
             /// `HC_ERROR_NULL_POINTER`. Text that is not in the syntax, a date or a date of
             /// reduced accuracy where a date-time was meant, is `HC_ERROR_MALFORMED`; a
-            /// date or time that does not exist, 31 February or `24:00:01`,
-            /// `HC_ERROR_INVALID_DATE`; one this library cannot hold `HC_ERROR_OUT_OF_RANGE`.
-            /// Writes the required length, including the terminator, into `written`.
+            /// date or time that does not exist, 31 February, `24:00:01`, or `23:59:60` in
+            /// a zone that is not UTC or on a day that did not end in an inserted second,
+            /// `HC_ERROR_INVALID_DATE`; one this library cannot hold, or `23:59:60` past the
+            /// leap-second table, `HC_ERROR_OUT_OF_RANGE`. Writes the required length,
+            /// including the terminator, into `written`.
         }
         wasm {
             /// A date-time read in a syntax, as one UTF-8 line of eight cells, returning
@@ -196,8 +206,13 @@ macro_rules! exports {
             /// `HC_ERR_UNKNOWN`. Text that is not in the syntax, a date alone or a date of
             /// reduced accuracy under any syntax but `python` (`hc_iso_date_parts` reads
             /// those), is `HC_ERR_MALFORMED`; a date or a time that does not exist is
-            /// `HC_ERR_INVALID_DATE`; one this library cannot hold `HC_ERR_OUT_OF_RANGE`. A
-            /// null `buffer` returns the length the text needs.
+            /// `HC_ERR_INVALID_DATE`, and so is a `23:59:60` in a zone that is not UTC or on a
+            /// day the leap-second table says did not end in an inserted second (a reading
+            /// with no zone is let through); one this library cannot hold, and a `23:59:60`
+            /// past the table's validity, whose day no one has announced, is
+            /// `HC_ERR_OUT_OF_RANGE`. `rfc3339` has a calendar date only, an offset hour of
+            /// 00 through 23 and no seconds in an offset, and refuses the ISO forms that
+            /// have more. A null `buffer` returns the length the text needs.
         }
         fn hc_parse_datetime(syntax: name(syntax_len), text: text(text_len)) -> line =
             $crate::datetime_lines::parse_datetime_line;
@@ -213,9 +228,10 @@ macro_rules! exports {
             /// `minutes`, `seconds`, `milliseconds`, `microseconds` or `nanoseconds`, in
             /// any case; another, or one the syntax has not, is `HC_ERROR_UNKNOWN`, and null
             /// `HC_ERROR_NULL_POINTER`. `attoseconds` of 10¹⁸ or more, an offset beyond
-            /// ±25:59:59 and a year `0000..=9999` does not hold where the syntax needs one
-            /// are `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
-            /// terminator, into `written`.
+            /// ±25:59:59, a year `0000..=9999` does not hold where the syntax needs one, and
+            /// an offset with seconds where the syntax has no digits for them (every
+            /// syntax but `python`) are `HC_ERROR_OUT_OF_RANGE`. Writes the required length,
+            /// including the terminator, into `written`.
         }
         wasm {
             /// An instant written as a date-time in a syntax, to a precision and in the
@@ -237,8 +253,11 @@ macro_rules! exports {
             /// `hours` or `minutes`, RFC 2822 and HTTP no sub-second digits and Python no
             /// `nanoseconds`. Both in any case; another, one a syntax has not, and the empty
             /// string, is `HC_ERR_UNKNOWN`. `attoseconds` of 10¹⁸ or more, an offset beyond
-            /// ±25:59:59 and a year outside `0000..=9999` in RFC 3339, RFC 2822 or HTTP
-            /// is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text needs.
+            /// ±25:59:59, a year outside `0000..=9999` in RFC 3339, RFC 2822 or HTTP, and an
+            /// offset with seconds in a syntax with no digits for them (every one but
+            /// `python`, whose text is `+05:30:15`) is `HC_ERR_OUT_OF_RANGE`: the wall clock
+            /// of the whole offset written with the minutes alone would read back at another
+            /// instant. A null `buffer` returns the length the text needs.
         }
         fn hc_format_datetime(
             syntax: name(syntax_len),
@@ -472,6 +491,65 @@ macro_rules! exports {
             $crate::i18n_lines::parse_pattern_in_line;
     } };
     ("timestamps", $backend:ident) => { $backend! {
+        c {
+            /// `TAI - UTC` at a POSIX instant, exactly, as one NUL-terminated UTF-8 line in a
+            /// caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's: the whole seconds and the attoseconds
+            /// after them. From 1972 `TAI - UTC` is a whole number of seconds, 37 since 2017;
+            /// from 1961 to 1971 it is not, and moves by 3·10⁻⁸ s in a second, so the answer
+            /// depends on `attoseconds`, where `hc_tai_minus_utc` gives the floor at the
+            /// start of the second. `attoseconds` of 10¹⁸ or more is `HC_ERROR_OUT_OF_RANGE`,
+            /// and `strict` non-zero refuses before 1961 and past the announced leap-second
+            /// table with `HC_ERROR_NO_DATA`, as `hc_tai_from_unix` does. Writes the required
+            /// length, including the terminator, into `written`.
+        }
+        wasm {
+            /// `TAI - UTC` at a POSIX instant, exactly, as one UTF-8 line, returning the byte
+            /// length written.
+            ///
+            /// Tab-separated: the whole seconds and the attoseconds after them. From 1972
+            /// `TAI - UTC` is a whole number of seconds, 37 since 2017; from 1961 to 1971 it
+            /// is not, and moves by 3·10⁻⁸ s in a second, so the answer depends on
+            /// `attoseconds`, where `hc_tai_minus_utc` gives the floor at the start of the
+            /// second. `attoseconds` of 10¹⁸ or more is `HC_ERR_OUT_OF_RANGE`, and `strict`
+            /// non-zero refuses before 1961 and past the announced leap-second table with
+            /// `HC_ERR_NO_DATA`, as `hc_tai_from_unix` does. A null `buffer` returns the
+            /// length the text needs.
+        }
+        fn hc_tai_minus_utc_exact(unix_seconds: i64, attoseconds: u64, strict: flag) -> line =
+            $crate::time_lines::tai_minus_utc_exact_line;
+
+        c {
+            /// The UTC label of a TAI instant, exactly, as one NUL-terminated UTF-8 line in a
+            /// caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's: the POSIX second, the attoseconds into
+            /// it, and 1 for an inserted leap second, `23:59:60`, which POSIX time cannot
+            /// express and names by the second after it, else 0. From 1961 to 1971 the UTC
+            /// reading of a whole TAI second is not a whole second, and `hc_utc_from_tai`
+            /// gives its floor: TAI 8 s is 1969-12-31T23:59:59.999918 UTC, which that reads
+            /// as −1. `tai_attoseconds` of 10¹⁸ or more is `HC_ERROR_OUT_OF_RANGE`, and
+            /// `strict` non-zero refuses before 1961 and past the announced leap-second table
+            /// with `HC_ERROR_NO_DATA`. Writes the required length, including the terminator,
+            /// into `written`.
+        }
+        wasm {
+            /// The UTC label of a TAI instant, exactly, as one UTF-8 line, returning the byte
+            /// length written.
+            ///
+            /// Tab-separated: the POSIX second, the attoseconds into it, and `1` for an
+            /// inserted leap second, `23:59:60`, which POSIX time cannot express and names by
+            /// the second after it, else `0`. From 1961 to 1971 the UTC reading of a whole
+            /// TAI second is not a whole second, and `hc_utc_from_tai` gives its floor: TAI
+            /// 8 s is 1969-12-31T23:59:59.999918 UTC, which that reads as −1.
+            /// `tai_attoseconds` of 10¹⁸ or more is `HC_ERR_OUT_OF_RANGE`, and `strict`
+            /// non-zero refuses before 1961 and past the announced leap-second table with
+            /// `HC_ERR_NO_DATA`. A null `buffer` returns the length the text needs.
+        }
+        fn hc_utc_from_tai_exact(tai_seconds: i64, tai_attoseconds: u64, strict: flag) -> line =
+            $crate::time_lines::utc_from_tai_exact_line;
+
         c {
             /// A TAI instant as a TAI64, TAI64N or TAI64NA label in lower-case
             /// hexadecimal, as one NUL-terminated UTF-8 line in a caller-owned
@@ -5728,7 +5806,7 @@ macro_rules! exports {
             ///
             /// `zone` is a NUL-terminated IANA name, `Asia/Tokyo`, in any case: one
             /// a caller has loaded through `hc_zone_load`, or else one of the
-            /// seventeen the library carries with their current rules. A null
+            /// eighteen the library carries with their current rules. A null
             /// `zone` or `out_fixed` is `HC_ERROR_NULL_POINTER`, a name neither
             /// knows `HC_ERROR_UNKNOWN`, an instant outside the years −9 999 994 to
             /// 9 999 994 by UTC, the ones a zone's rules answer for,
@@ -5740,7 +5818,7 @@ macro_rules! exports {
             /// zone, or an error sentinel.
             ///
             /// `zone` is an IANA name, `Asia/Tokyo`, in any case: one a page has
-            /// loaded through `hc_zone_load`, or else one of the seventeen the
+            /// loaded through `hc_zone_load`, or else one of the eighteen the
             /// module carries with their current rules. A name neither knows is
             /// `HC_ERR_UNKNOWN`, an instant outside the years −9 999 994 to
             /// 9 999 994 by UTC, the ones a zone's rules answer for,
@@ -8341,7 +8419,8 @@ macro_rules! exports {
             /// authority `unread` is a page read that states the year with the instrument that
             /// fixes it not read. Nepal is in a build that has the `calendars` layer
             /// too, since its year starts on 1 Shrawan of the Bikram Sambat; in a build without it
-            /// the country is absent, which `hc_fiscal_year_on` reports as `HC_ERROR_UNKNOWN`. No
+            /// the country is absent, which `hc_fiscal_year_on` and `hc_fiscal_year_span` report as
+            /// `HC_ERROR_NO_DATA`, where a code no table has is `HC_ERROR_UNKNOWN`. No
             /// label convention is a default: the year is named for the year it starts in, or for
             /// the one it ends in, and every line says which.
             ///
@@ -8364,7 +8443,8 @@ macro_rules! exports {
             /// authority `unread` is a page read that states the year with the instrument that
             /// fixes it not read. Nepal is in a build that has the `calendars` layer
             /// too, since its year starts on 1 Shrawan of the Bikram Sambat; in a build without it
-            /// the country is absent, which `hc_fiscal_year_on` reports as `HC_ERR_UNKNOWN`. No
+            /// the country is absent, which `hc_fiscal_year_on` and `hc_fiscal_year_span` report as
+            /// `HC_ERR_NO_DATA`, where a code no table has is `HC_ERR_UNKNOWN`. No
             /// label convention is a default: the year is named for the year it starts in, or for
             /// the one it ends in, and every line says which.
             ///

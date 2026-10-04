@@ -27,7 +27,7 @@ use hc_core::unix::UtcInstant;
 use hc_core::{ATTOS_PER_SEC, Duration, UnixTime};
 use hc_tz::{Disambiguation, OffsetStyle, TimeZone, UtcOffset};
 
-use crate::error::{ValueError, ValueResult};
+use crate::error::{ErrorKind, ParseError, ValueError, ValueResult};
 
 /// The largest fraction this crate can hold, one attosecond short of a whole
 /// unit.
@@ -593,7 +593,9 @@ impl ZoneInfo {
     ///
     /// # Errors
     ///
-    /// [`crate::FormatError::Sink`] when the sink refuses.
+    /// [`crate::FormatError::Sink`] when the sink refuses, and
+    /// [`crate::FormatError::Unrepresentable`] for an offset the style has
+    /// no digits for: seconds in `+05:30`'s forms, minutes in `+05`'s.
     pub fn write<W: fmt::Write>(self, out: &mut W, style: OffsetStyle) -> crate::FormatResult<()> {
         match self {
             Self::Unspecified => {}
@@ -608,7 +610,22 @@ impl ZoneInfo {
                     out.write_str("00")?;
                 }
             }
-            Self::Offset(offset) => out.write_str(offset.format(style).as_str())?,
+            Self::Offset(offset) => {
+                // A style with no digits for the minutes or the seconds would
+                // write another offset than the one the value holds, and a
+                // reader would place the instant at another moment.
+                let fits = match style {
+                    OffsetStyle::Hours => offset.abs_minutes() == 0 && offset.abs_seconds() == 0,
+                    OffsetStyle::Extended | OffsetStyle::Basic => offset.abs_seconds() == 0,
+                    _ => true,
+                };
+                if !fits {
+                    return Err(crate::FormatError::Unrepresentable(
+                        "an offset with more digits than the form has",
+                    ));
+                }
+                out.write_str(offset.format(style).as_str())?;
+            }
         }
         Ok(())
     }
@@ -657,8 +674,11 @@ impl IsoDateTime {
     ///
     /// # Errors
     ///
-    /// [`ValueError::ReducedAccuracy`] when no day is named and
-    /// [`ValueError::MissingTime`] when no time is.
+    /// [`ValueError::ReducedAccuracy`] when no day is named,
+    /// [`ValueError::MissingTime`] when no time is, and
+    /// [`ValueError::Time`] when the second is 60 and the reading, in
+    /// its zone, is not a leap second UTC inserted: only at 23:59:60 UTC, on a
+    /// day `hc_core::leap` says ended in one.
     pub fn to_offset_date_time(self) -> ValueResult<OffsetDateTime> {
         let day = self.date.to_fixed()?;
         let time = self.time.ok_or(ValueError::MissingTime)?;
@@ -668,8 +688,10 @@ impl IsoDateTime {
         } else {
             day
         };
+        let local = CivilDateTime::new(day, clock);
+        check_leap_second(local, self.zone)?;
         Ok(OffsetDateTime {
-            local: CivilDateTime::new(day, clock),
+            local,
             zone: self.zone,
             written_as_end_of_day: next_day,
         })
@@ -711,6 +733,50 @@ pub struct OffsetDateTime {
     pub zone: ZoneInfo,
     /// Whether that midnight was written as `24:00` of the previous day.
     pub written_as_end_of_day: bool,
+}
+
+/// Whether a second 60 in a reading is one UTC had.
+///
+/// A positive leap second is only ever inserted at the end of a UTC day, at
+/// 23:59:60, so a reading in a zone is such a second only when the zone is UTC
+/// and the day ends in an inserted second (`hc_core::leap`). A reading with
+/// no zone names no instant and is let through. A reading that is no leap
+/// second is let through.
+///
+/// # Errors
+///
+/// [`hc_core::TimeError::OutOfRange`] when the second is 60 and the day,
+/// or the zone, is not one that has it, and
+/// [`hc_core::TimeError::AfterModelEnd`] when the day ends after the
+/// leap-second table's validity, so that no one has announced whether it
+/// ends in one.
+pub(crate) fn check_leap_second(local: CivilDateTime, zone: ZoneInfo) -> ValueResult<()> {
+    if !local.time.is_leap_second() {
+        return Ok(());
+    }
+    let Some(offset) = zone.offset() else {
+        return Ok(());
+    };
+    if !offset.is_utc() {
+        return Err(hc_core::TimeError::OutOfRange.into());
+    }
+    if hc_core::leap::end_of_day_step(local.day.to_unix_days())? != 1 {
+        return Err(hc_core::TimeError::OutOfRange.into());
+    }
+    Ok(())
+}
+
+/// The refusal of a parse whose reading [`check_leap_second`] turned down, at
+/// the byte `at`: the second is inconsistent with the day, or cannot be
+/// told because the table ends.
+pub(crate) fn leap_second_error(error: ValueError, at: usize) -> ParseError {
+    let kind = match error {
+        ValueError::Time(hc_core::TimeError::AfterModelEnd) => {
+            ErrorKind::Unrepresentable("a leap second after the end of the leap-second table")
+        }
+        _ => ErrorKind::Invalid("a leap second that UTC did not insert"),
+    };
+    ParseError::new(kind, at)
 }
 
 impl OffsetDateTime {

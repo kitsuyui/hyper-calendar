@@ -134,18 +134,6 @@ pub fn country_of(set: &RuleSet, kind: TableKind) -> Option<&'static str> {
     }
 }
 
-/// The locale a tag asks for, read as the calendar lines read one: `None`
-/// for `native`, which names no one locale (and a table has no language
-/// of its own to ask for), and the root locale for a tag that does not
-/// parse.
-fn requested_locale(tag: &str) -> Option<Locale> {
-    if tag == "native" {
-        None
-    } else {
-        Some(Locale::parse(tag).unwrap_or(Locale::ROOT))
-    }
-}
-
 /// A table's name in a locale, and the tag of the data that answered.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TableName {
@@ -264,7 +252,7 @@ pub fn short_table_name(
 /// regions it is the law of.
 #[must_use]
 pub fn holiday_tables(locale: &str) -> String {
-    let requested = requested_locale(locale);
+    let requested = Locale::requested(locale);
     let mut out = String::new();
     for (set, kind) in tables_with_kinds() {
         let named = table_name(set, kind, requested.as_ref());
@@ -424,8 +412,11 @@ fn region_country(table: &RuleSet) -> Option<&'static str> {
 /// Whether `region` is a region `table` can be asked for: of the table's
 /// country, and either a subdivision or municipality the table names (a rule
 /// is scoped to it, or it is listed as read) or a subdivision ISO 3166-2
-/// has in CLDR's list (`hc_i18n::place_names`), or a municipality's code
-/// of such a subdivision (ADR 0014). `US-ZZ`, `JP-99`, `JP garbage` and
+/// has in CLDR's list (`hc_i18n::place_names`, its codes: the `holiday`
+/// feature carries them without the names) or is one of the outlying areas
+/// ISO 3166-2:US lists and CLDR's list lacks
+/// ([`hc_holiday::rule::ISO_SUBDIVISIONS_BEYOND_CLDR`]), or a
+/// municipality's code of such a subdivision (ADR 0014). `US-ZZ`, `JP-99`, `JP garbage` and
 /// `JP-14-130-5` are none of these, and neither is any region of a
 /// tradition's table; a subdivision that exists and was not read, `US-NH`
 /// for a table that carries no New Hampshire day, is, and is answered with
@@ -452,8 +443,12 @@ fn is_known_region(table: &RuleSet, region: &str) -> bool {
     let (Some(first), Some(second)) = (parts.next(), parts.next()) else {
         return false;
     };
+    let subdivision = alloc::format!("{first}-{second}");
     first.eq_ignore_ascii_case(country)
-        && place_names::subdivision(&alloc::format!("{first}-{second}")).is_some()
+        && (place_names::subdivision(&subdivision).is_some()
+            || hc_holiday::rule::ISO_SUBDIVISIONS_BEYOND_CLDR
+                .iter()
+                .any(|code| hc_core::catalogue::matches(&subdivision, code)))
 }
 
 /// The scope a caller asks for: `region`, which must be a region the table
@@ -2571,8 +2566,11 @@ mod tests {
         }
         // A subdivision that exists, with a day carried, one read for none, one
         // not read, and a municipality of one, in either case and with white
-        // space around it.
+        // space around it. `US-PR` is one ISO 3166-2:US lists and CLDR's list
+        // lacks.
         for (table, region) in [
+            ("US", "US-PR"),
+            ("US", " us-gu "),
             ("JP", "JP-13"),
             ("JP", " jp-13 "),
             ("JP", "JP-14-130"),
@@ -2605,6 +2603,38 @@ mod tests {
             !after
                 .lines()
                 .any(|line| line.ends_with("\tunread-subdivision\t\t0"))
+        );
+    }
+
+    /// The region check of the holiday layer is the same in every build of
+    /// it: it needs the codes of CLDR's list (`subdivision-codes`), not the
+    /// names, so the facade's `holiday` feature alone answers `US-NH` as a
+    /// gap and a code that names no subdivision as unknown. The six outlying
+    /// areas ISO 3166-2:US lists are known beside them, and none is in
+    /// CLDR's list, so that the constant is not stale.
+    #[test]
+    fn the_region_check_needs_the_codes_and_not_the_names() {
+        for code in hc_holiday::rule::ISO_SUBDIVISIONS_BEYOND_CLDR {
+            assert!(place_names::subdivision(code).is_none(), "{code}");
+            assert!(
+                holidays_in_year("US", Some(code), None, None, 2026).is_ok(),
+                "{code}"
+            );
+        }
+        assert!(place_names::subdivision("US-NH").is_some());
+        assert!(holidays_in_year("US", Some("US-NH"), None, None, 2026).is_ok());
+        assert_eq!(
+            holidays_in_year("US", Some("US-XX"), None, None, 2026),
+            Err(Refusal::Unknown)
+        );
+        // The refusal is of the day, a gap and not an unknown region.
+        assert_eq!(
+            is_day_off("US", Some("US-NH"), None, ymd(2026, 9, 21)),
+            Err(Refusal::NoData)
+        );
+        assert_eq!(
+            is_day_off("US", Some("US-PR"), None, ymd(2026, 9, 21)),
+            Err(Refusal::NoData)
         );
     }
 

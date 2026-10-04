@@ -300,12 +300,28 @@ locale no table names, `de` or `zh-Hans`, gets `en`.
   every municipality any table lists, in column 9 or in column 13 of
   `hc_holiday_tables`, to a name in all three tags: a table that lists a
   municipality `municipal_names` does not carry fails the build.
-- **Two halves.** The territories, their names and forms, and each
+- **Three parts.** The territories, their names and forms, and each
   table's parent and fallbacks, are `hc-i18n`'s `territories` feature,
   which the facade's `holiday` feature and `hc-format`'s `zone-names` turn
   on: the holiday tables and the zone names read a country's name from it.
-  The subdivisions, their names and their containment are the
-  `place-names` feature on top, which only the `places` layer turns on.
+  The subdivisions' codes and validity statuses, with no name, are the
+  `subdivision-codes` feature, which the facade's `holiday` feature turns
+  on as well: a holiday table's region check tells a subdivision no table
+  has read, which is a gap, from a code that names none, which is refused,
+  and the `holiday` layer of the WebAssembly module and the C library must
+  agree with a build that has the names. The subdivisions' names and their
+  containment are the `place-names` feature on top, which includes
+  `subdivision-codes` and which only the `places` layer turns on.
+- **An ISO code CLDR's list lacks.** The region check of the holiday
+  layer also takes the six outlying areas ISO 3166-2:US lists beside the
+  states, `US-AS`, `US-GU`, `US-MP`, `US-PR`, `US-UM` and `US-VI`
+  [wikipedia-iso-3166-2-us], which CLDR 48's list of subdivisions does not
+  hold (`hc_holiday::rule::ISO_SUBDIVISIONS_BEYOND_CLDR`): a table that has
+  read none of them answers a gap, not a refusal. Whether other countries
+  have ISO 3166-2 codes CLDR lacks was not read: ISO's own list is a
+  script-driven page, and only the United States' page was read, so a code
+  of another country that is in ISO 3166-2 and not in CLDR's list is
+  refused as unknown.
 - **Sizes**, measured on 2026-09-29 (the names) and 2026-10-03 (the layers). The names are 2 594 289 bytes of
   subdivision text (127 976 names, English's 5 399 included) and 232 003
   of territory text (13 306 names), with the line feeds; storing a name
@@ -475,6 +491,9 @@ their names agree in some languages.
 - [uts35-v48] — Part 1: Subdivision Codes, Attribute draft, Inheritance
   and Validity (the lookup, the marker `↑↑↑`, the identifier as the last
   resort and the fallback locales before root), and Parent Locales. Read.
+- [wikipedia-iso-3166-2-us] — the codes ISO 3166-2:US lists beside the
+  states, the six outlying areas among them. Read, 2026-10-04; a secondary
+  account, the ISO list itself not read.
 - ISO 3166-1 and ISO 3166-2, the standards the codes come from. Not read:
   CLDR's validity data stands in for them, as the list of codes and their
   status.
@@ -485,8 +504,9 @@ their names agree in some languages.
   `crates/hc-i18n/src/place_names/cldr48.rs`; `--check`, `--dump`,
   `--stats` and `--fallbacks`.
 - `crates/hc-i18n/src/place_names.rs` — the lists, the tables and the
-  lookup, the territory half behind the `territories` feature and the
-  subdivisions behind `place-names`; the tests
+  lookup, the territory half behind the `territories` feature, the
+  subdivisions' codes and statuses behind `subdivision-codes` and their
+  names behind `place-names`; the tests
   `tokyo_is_tokyo_to_in_japanese_and_tokyo_in_english`,
   `a_german_and_an_american_subdivision_in_two_locales`,
   `a_name_falls_back_along_cldrs_chain_then_to_english`,

@@ -69,15 +69,17 @@ use crate::locale::Locale;
 
 mod cldr48;
 
+#[cfg(any(feature = "place-names", feature = "subdivision-codes"))]
+use cldr48::{SUBDIVISION_CODES, SUBDIVISION_STATUS};
 #[cfg(feature = "place-names")]
-use cldr48::{SUBDIVISION_CODES, SUBDIVISION_IN_COUNTRY, SUBDIVISION_STATUS, SUBDIVISION_WITHIN};
+use cldr48::{SUBDIVISION_IN_COUNTRY, SUBDIVISION_WITHIN};
 use cldr48::{TABLES, TERRITORY_CODES, TERRITORY_STATUS};
 
-/// Without the `place-names` feature no subdivision is carried: the list
-/// is empty.
-#[cfg(not(feature = "place-names"))]
+/// Without the `place-names` and `subdivision-codes` features no
+/// subdivision is carried: the list is empty.
+#[cfg(not(any(feature = "place-names", feature = "subdivision-codes")))]
 const SUBDIVISION_CODES: &str = "";
-#[cfg(not(feature = "place-names"))]
+#[cfg(not(any(feature = "place-names", feature = "subdivision-codes")))]
 const SUBDIVISION_STATUS: &[u8] = &[];
 
 /// Where the names come from, for a `source` cell.
@@ -840,6 +842,33 @@ mod tests {
 
     /// CLDR 48 `subdivisions/ja.xml`: `<subdivision type="jp13"
     /// draft="provisional">東京都</subdivision>`; `subdivisions/en.xml`:
+    /// The codes and their validity statuses are carried without a name:
+    /// `subdivision-codes` alone names every subdivision CLDR 48's validity
+    /// data holds, 5 027 regular and 476 deprecated, and no place a name.
+    #[cfg(all(feature = "subdivision-codes", not(feature = "place-names")))]
+    #[test]
+    fn the_codes_alone_name_every_subdivision_and_no_name() {
+        assert_eq!(subdivisions().count(), 5_503);
+        assert_eq!(
+            subdivisions()
+                .filter(|place| place.status() == Status::Regular)
+                .count(),
+            5_027
+        );
+        for code in ["JP-13", "us-nh", " GB-ENG "] {
+            let place = subdivision(code).expect("a subdivision");
+            assert_eq!(place.kind(), Kind::Subdivision);
+            assert_eq!(place.status(), Status::Regular, "{code}");
+            assert_eq!(place.english_name(), None, "{code}");
+            assert_eq!(place.name_in(Some(&locale("ja"))), None, "{code}");
+        }
+        assert!(subdivision("JP-99").is_none());
+        // CLDR's list holds the District of Columbia and not the outlying
+        // areas ISO 3166-2:US lists beside it.
+        assert!(subdivision("US-DC").is_some());
+        assert!(subdivision("US-PR").is_none());
+    }
+
     /// `jp13` `Tokyo`, approved.
     #[cfg(feature = "place-names")]
     #[test]

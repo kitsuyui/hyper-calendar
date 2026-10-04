@@ -9,6 +9,8 @@
 //! have neither: `OPEN_ENDED` names them, so that a calendar that loses
 //! its range fails here by name rather than dropping out of the sweep.
 
+#![cfg(all(feature = "civil", feature = "alloc"))]
+
 use std::collections::BTreeSet;
 
 /// The calendars with no first or last day: cycles of named days or years

@@ -37,7 +37,7 @@ use hc_relativity::worldline::{
 };
 use hc_uncertainty::Uncertain;
 
-use crate::boundary::{Answer, Line, Refusal};
+use crate::boundary::{Answer, Line, Refusal, out_of_range};
 
 /// How many columns a line of [`proper_time_line`] has.
 pub const PROPER_TIME_COLUMNS: usize = 7;
@@ -153,12 +153,6 @@ pub fn gravitating_bodies_lines() -> String {
         line.end();
     }
     out
-}
-
-/// Any error of the libraries below is out of range at the boundary: the
-/// arguments name no clock that exists.
-fn out_of_range<E>(_: E) -> Refusal {
-    Refusal::OutOfRange
 }
 
 /// How many columns a line of [`orbit_rate_offset_line`] has.

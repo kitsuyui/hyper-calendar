@@ -156,11 +156,6 @@ fn index_of(key: Key, number: i64) -> Answer<usize> {
     })
 }
 
-/// An optional validity bound.
-fn year_cell(line: &mut Line<'_>, year: Option<i32>) {
-    line.value_or_empty(year);
-}
-
 /// Every attribution list the crate ships, with what the crate declines to
 /// ship, one line each: the kind (`authority` or `gap`), the subject
 /// (`birthstone`, `birth-flower`, `moon-name`, `lunation-name`,
@@ -209,8 +204,8 @@ pub fn authorities_lines(subject: &str) -> Answer<String> {
                 .cell(authority.region.english_name)
                 .value_or_empty(authority.established)
                 .value_or_empty(authority.revised);
-            year_cell(&mut line, authority.validity.from);
-            year_cell(&mut line, authority.validity.to);
+            line.value_or_empty(authority.validity.from);
+            line.value_or_empty(authority.validity.to);
             line.cell(authority.provenance.id())
                 .cell(key.id())
                 .cell(authority.source)
@@ -263,8 +258,8 @@ fn push_subject(out: &mut String, subject: &str, number: i64) -> Answer<()> {
             .cell(&names.join(";"))
             .value(names.len())
             .cell_or_empty(list.glosses.get(index).copied());
-        year_cell(&mut line, authority.validity.from);
-        year_cell(&mut line, authority.validity.to);
+        line.value_or_empty(authority.validity.from);
+        line.value_or_empty(authority.validity.to);
         line.cell(authority.provenance.id())
             .cell_or_empty(authority.caveat)
             .flag(agreed);

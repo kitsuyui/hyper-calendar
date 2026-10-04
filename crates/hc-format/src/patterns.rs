@@ -664,8 +664,10 @@ impl ParsedFields {
     ///
     /// # Errors
     ///
-    /// [`ValueError::MissingField`] when no complete date is present, and
-    /// [`ValueError::Calendar`] when the fields do not name a real day.
+    /// [`ValueError::MissingField`] when no complete date is present,
+    /// [`ValueError::Calendar`] when the fields do not name a real day, and
+    /// [`ValueError::Time`] when the second is 60 and the reading, in its
+    /// zone, is not a leap second UTC inserted.
     pub fn to_offset_date_time(&self) -> ValueResult<crate::OffsetDateTime> {
         if let Some(seconds) = self.unix_seconds {
             // `%s` is defined as seconds since the POSIX epoch in UTC, so an
@@ -676,9 +678,12 @@ impl ParsedFields {
         }
         let day = self.resolve_day()?;
         let time = self.resolve_time()?;
+        let local = CivilDateTime::new(day, time);
+        let zone = self.zone.unwrap_or(ZoneInfo::Unspecified);
+        crate::value::check_leap_second(local, zone)?;
         Ok(crate::OffsetDateTime {
-            local: CivilDateTime::new(day, time),
-            zone: self.zone.unwrap_or(ZoneInfo::Unspecified),
+            local,
+            zone,
             written_as_end_of_day: false,
         })
     }

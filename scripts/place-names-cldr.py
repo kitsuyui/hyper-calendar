@@ -81,9 +81,11 @@ case. Every id CLDR 48 names has that shape (a region of two letters and a
 suffix of one to three letters or digits); an id of CLDR's own, with a
 four-character suffix or a numeric region, would stop the script.
 
-The subdivisions, their containment and their names are written under
-`#[cfg(feature = "place-names")]`, so that a build with only the
-`territories` feature carries the territories alone.
+The subdivisions' containment and names are written under
+`#[cfg(feature = "place-names")]`, and their codes and statuses under
+`#[cfg(any(feature = "place-names", feature = "subdivision-codes"))]`, so
+that a build with only the `territories` feature carries the territories
+alone and one with `subdivision-codes` carries the codes without a name.
 """
 import collections
 import http.client
@@ -600,12 +602,15 @@ def names_block(kind, table, codes, english):
 
 
 CFG = '#[cfg(feature = "place-names")]'
+# The codes and their validity statuses are carried by the `subdivision-codes`
+# feature too, which holds no name.
+CODES_CFG = '#[cfg(any(feature = "place-names", feature = "subdivision-codes"))]'
 
 
 def codes_rs(kind, codes, status, width):
     name = 'TERRITORY' if kind == 'territories' else 'SUBDIVISION'
     noun = 'territory' if kind == 'territories' else 'subdivision'
-    cfg = [CFG] if kind == 'subdivisions' else []
+    cfg = [CODES_CFG] if kind == 'subdivisions' else []
     isos = [iso(kind, c) for c in codes]
     assert all(len(i) <= width for i in isos)
     assert isos == sorted(isos)

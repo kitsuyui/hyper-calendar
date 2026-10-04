@@ -682,7 +682,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Facade features
 
-28 capability features, read from `crates/hyper-calendar/Cargo.toml`. Every one that names a crate also re-exports it; `tests/facade.rs` is what makes that true rather than hoped.
+29 capability features, read from `crates/hyper-calendar/Cargo.toml`. Every one that names a crate also re-exports it; `tests/facade.rs` is what makes that true rather than hoped.
 
 Besides these, `std` (on by default) chooses the build shape: turn it off for `no_std`, add `alloc` for the parts that need an allocator, and `libm` for floating-point math on targets without it. A build with neither `std` nor `libm` is refused at compile time.
 
@@ -703,12 +703,13 @@ Besides these, `std` (on by default) chooses the build shape: turn it off for `n
 | `tz` | civil, hc-tz, hc-i18n, hc-i18n/exemplar-cities |
 | `localized-exemplar-cities` | hc-i18n, hc-i18n/localized-exemplar-cities |
 | `place-names` | hc-i18n, hc-i18n/place-names |
+| `subdivision-codes` | hc-i18n, hc-i18n/subdivision-codes |
 | `format` | civil, hc-format, hc-i18n, hc-tz, hc-humanize?/format |
 | `zone-names` | format, tz, hc-format/zone-names |
 | `localized-zone-names` | zone-names, localized-exemplar-cities, hc-format/localized-zone-names |
 | `i18n` | civil, hc-i18n |
 | `humanize` | i18n, hc-humanize |
-| `holiday` | regional, seasons, equinox, indic, hc-holiday, hc-i18n, hc-i18n/territories |
+| `holiday` | regional, seasons, equinox, indic, hc-holiday, hc-i18n, hc-i18n/territories, subdivision-codes |
 | `jupiter` | seasons, indic, almanac, format, i18n, hc-astro/jupiter, hc-seasons/jupiter |
 | `uncertainty` | hc-uncertainty |
 | `deep-time` | uncertainty, hc-deep-time |

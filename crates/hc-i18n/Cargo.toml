@@ -51,7 +51,12 @@ localized-zone-names = ["zone-names", "localized-exemplar-cities"]
 # `place_names` module). Some 2.6 MB, so a feature of its own that nothing
 # else turns on: the facade's `place-names` feature, and the `places` layer
 # of the WebAssembly module and the C library.
-place-names = ["territories"]
+place-names = ["territories", "subdivision-codes"]
+# The 5 503 ISO 3166-2 codes CLDR 48 names, each with its validity status
+# and no name (the code half of the `place_names` module): about 33 kB, so
+# a build that must tell a subdivision from a misspelling, as the facade's
+# `holiday` feature does, carries the codes without the names.
+subdivision-codes = []
 
 [dependencies]
 hc-core = { workspace = true }

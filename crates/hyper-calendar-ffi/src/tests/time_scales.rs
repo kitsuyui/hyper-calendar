@@ -558,3 +558,54 @@ fn the_time_scale_entry_points_refuse_as_documented() {
         HC_ERROR_NULL_POINTER
     );
 }
+
+/// From 1961 to 1971 `TAI − UTC` is not a whole number of seconds, and the
+/// exact entry points say so where the whole-second ones floor. At POSIX 0 it
+/// is 8.000 082 s (the USNO line from 1968-02-01, 4.213 17 s + 1461 days ×
+/// 0.002 592 s), so POSIX 0 is TAI 8 s and 82 µs, and TAI 8 s is POSIX −1 s
+/// and 0.999 918 s, where `hc_utc_from_tai` of 8 reads −1 and loses the
+/// fraction.
+#[test]
+fn the_exact_bridge_writes_the_fraction_of_the_rate_era() {
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_tai_minus_utc_exact(0, 0, 1, buffer, capacity, written)
+    });
+    assert_eq!(text, "8\t82000000000000\n");
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_utc_from_tai_exact(8, 0, 1, buffer, capacity, written)
+    });
+    let cells: Vec<&str> = text.trim_end().split('\t').collect();
+    assert_eq!(cells[0], "-1");
+    let attoseconds: i128 = cells[1].parse().expect("attoseconds");
+    assert!((attoseconds - 999_918_000_002_459_999).abs() <= 1, "{text}");
+    assert_eq!(cells[2], "0");
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_utc_from_tai_exact(
+            1_483_228_836,
+            500_000_000_000_000_000,
+            1,
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert_eq!(text, "1483228800\t500000000000000000\t1\n");
+    let mut written = 0usize;
+    let null = core::ptr::null_mut();
+    assert_eq!(
+        unsafe { hc_tai_minus_utc_exact(0, 1_000_000_000_000_000_000, 1, null, 0, &mut written) },
+        HC_ERROR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_utc_from_tai_exact(0, 1_000_000_000_000_000_000, 0, null, 0, &mut written) },
+        HC_ERROR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_tai_minus_utc_exact(4_000_000_000, 0, 1, null, 0, &mut written) },
+        HC_ERROR_NO_DATA
+    );
+    assert_eq!(
+        unsafe { hc_utc_from_tai_exact(-400_000_000, 0, 1, null, 0, &mut written) },
+        HC_ERROR_NO_DATA
+    );
+}

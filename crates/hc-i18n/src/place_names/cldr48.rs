@@ -52,7 +52,7 @@ pub(super) const TERRITORY_STATUS: &[u8] = concat!(
 
 /// The code of every subdivision a table can name, in the form ISO writes it, each
 /// padded with spaces to 6 bytes, in code order.
-#[cfg(feature = "place-names")]
+#[cfg(any(feature = "place-names", feature = "subdivision-codes"))]
 pub(super) const SUBDIVISION_CODES: &str = concat!(
     "AD-02 AD-03 AD-04 AD-05 AD-06 AD-07 AD-08 AE-AJ AE-AZ AE-DU AE-FU AE-RK ",
     "AE-SH AE-UQ AF-BALAF-BAMAF-BDGAF-BDSAF-BGLAF-DAYAF-FRAAF-FYBAF-GHAAF-GHO",
@@ -517,7 +517,7 @@ pub(super) const SUBDIVISION_CODES: &str = concat!(
 
 /// Each code's CLDR validity status, a byte a code in [`SUBDIVISION_CODES`] order;
 /// `Status::from_byte` reads it.
-#[cfg(feature = "place-names")]
+#[cfg(any(feature = "place-names", feature = "subdivision-codes"))]
 pub(super) const SUBDIVISION_STATUS: &[u8] = concat!(
     "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrdddddddddddddddddddddddddddd",
     "ddddddddrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",

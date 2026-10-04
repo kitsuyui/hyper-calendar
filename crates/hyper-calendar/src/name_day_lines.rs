@@ -59,11 +59,6 @@ fn gaps_of(country: &str) -> Vec<&'static Gap> {
         .collect()
 }
 
-/// A validity bound as a year, or empty where it is open.
-fn year_cell(line: &mut Line<'_>, year: Option<i32>) {
-    line.value_or_empty(year);
-}
-
 /// Every name-day list the crate ships and every country it declines to
 /// ship one for, one line each: the kind (`list` or `gap`), the identifier,
 /// the country (the ISO 3166-1 alpha-2 code of a list, the English name of
@@ -97,8 +92,8 @@ pub fn lists_lines() -> String {
             .cell(list.authority)
             .value_or_empty(list.decided)
             .cell(list.provenance.id());
-        year_cell(&mut line, list.validity.from);
-        year_cell(&mut line, list.validity.to);
+        line.value_or_empty(list.validity.from);
+        line.value_or_empty(list.validity.to);
         line.value(list.licence)
             .cell(list.leap_day.id())
             .value(list.total_names())
@@ -208,8 +203,8 @@ pub fn names_on_lines(country: &str, fixed: i64) -> Answer<String> {
         .cell(list.id)
         .cell(list.english_name)
         .cell(list.authority);
-        year_cell(&mut line, list.validity.from);
-        year_cell(&mut line, list.validity.to);
+        line.value_or_empty(list.validity.from);
+        line.value_or_empty(list.validity.to);
         line.value(list.licence);
         match names_on(list, year, month, day) {
             Ok(names) => {
@@ -270,8 +265,8 @@ pub fn days_of_lines(country: &str, name: &str, year: i64) -> Answer<String> {
         .cell(list.id)
         .cell(list.english_name)
         .cell(list.authority);
-        year_cell(&mut line, list.validity.from);
-        year_cell(&mut line, list.validity.to);
+        line.value_or_empty(list.validity.from);
+        line.value_or_empty(list.validity.to);
         line.value(list.licence);
         match days_of(list, name, small) {
             Ok(days) => {

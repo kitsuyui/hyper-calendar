@@ -1137,6 +1137,89 @@ mod tests {
         );
     }
 
+    /// An offset with seconds, 05:30:15 here, has no digits in ISO 8601's, RFC
+    /// 3339's or RFC 5322's offsets, so the instant cannot be written at it
+    /// without saying another moment: `20:00:20+05:30` is 15 s later than
+    /// 14:30:05Z. Only `datetime.isoformat` writes the seconds. An offset of
+    /// whole minutes is written as before.
+    #[test]
+    fn an_offset_with_seconds_is_refused_where_the_syntax_has_no_digits_for_it() {
+        let unix = 1_790_001_005;
+        for syntax in ["iso8601", "iso8601-basic", "rfc3339", "rfc2822"] {
+            for offset in [19_815, -17_762] {
+                assert_eq!(
+                    format_datetime_line(syntax, unix, 0, offset, "auto"),
+                    Err(Refusal::OutOfRange),
+                    "{syntax} {offset}"
+                );
+            }
+        }
+        assert_eq!(
+            owned(&format_datetime_line("python", unix, 0, 19_815, "auto").expect("a text"))[0],
+            "2026-09-21T20:00:20+05:30:15"
+        );
+        assert_eq!(
+            owned(&format_datetime_line("rfc3339", unix, 0, 19_800, "auto").expect("a text"))[0],
+            "2026-09-21T20:00:05+05:30"
+        );
+        // The python text reads back to the instant it was written from.
+        assert_eq!(
+            reading("python", "2026-09-21T20:00:20+05:30:15")[5],
+            unix.to_string()
+        );
+    }
+
+    /// A second 60 is a leap second only at the end of a UTC day that was
+    /// given one: 2016-12-31 and 2015-06-30 (`hc_core::leap`, from the IANA
+    /// `leap-seconds.list`), not 2026-09-21, 2016-06-30 or 2015-12-31, and not
+    /// at an offset, where 23:59:60 is not the UTC second 60. A day past the
+    /// table is not known to have one.
+    #[test]
+    fn a_second_60_is_read_only_on_a_day_that_ended_in_a_leap_second() {
+        assert_eq!(
+            reading("rfc3339", "2016-12-31T23:59:60Z"),
+            ["736329", "86400", "0", "utc", "0", "1483228800", "1", "0"]
+        );
+        assert_eq!(reading("rfc2822", "30 Jun 2015 23:59:60 +0000")[6], "1");
+        assert_eq!(reading("iso8601", "20150630T235960Z")[6], "1");
+        for (syntax, text) in [
+            ("rfc3339", "2026-09-21T23:59:60Z"),
+            ("rfc3339", "2016-06-30T23:59:60Z"),
+            ("iso8601", "2016-12-31T23:59:60+01:00"),
+            ("iso8601", "2015-12-31T23:59:60Z"),
+            ("rfc2822", "31 Dec 2015 23:59:60 +0000"),
+            ("rfc3339", "1972-06-30T23:59:60+09:00"),
+            ("python", "2016-06-30T23:59:60+00:00"),
+        ] {
+            assert_eq!(
+                parse_datetime_line(syntax, text),
+                Err(Refusal::InvalidDate),
+                "{syntax} {text}"
+            );
+        }
+        assert_eq!(
+            parse_datetime_line("rfc3339", "2030-12-31T23:59:60Z"),
+            Err(Refusal::OutOfRange)
+        );
+        // A reading with no zone names no instant, so no day is refused.
+        assert_eq!(reading("iso8601", "2026-09-21T23:59:60")[6], "1");
+    }
+
+    /// RFC 3339's grammar has a calendar date only, offset hours of 00 through
+    /// 23, and no seconds in an offset; ISO 8601 has the others.
+    #[test]
+    fn the_rfc_3339_syntax_refuses_what_its_grammar_does_not_have() {
+        for text in [
+            "2026-W39-1T14:30:05Z",
+            "2026-264T14:30:05Z",
+            "2026-09-21T14:30:05+24:00",
+            "2026-09-21T14:30:05+05:30:15",
+        ] {
+            assert!(parse_datetime_line("rfc3339", text).is_err(), "{text}");
+        }
+        assert_eq!(reading("iso8601", "2026-W39-1T14:30:05+24:00")[4], "86400");
+    }
+
     /// Python's `isocalendar`: 2021-01-03 (RD 737 793) is 2020-W53-7, and
     /// 2026-09-21 is 2026-W39-1 and day 264.
     #[test]
