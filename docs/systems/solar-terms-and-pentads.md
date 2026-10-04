@@ -553,7 +553,11 @@ therefore do not make:
 (`mod.rs`, `tropical.rs`, `decans.rs`, `drekkana.rs`, `sidereal.rs`, `rashi.rs`,
 `chinese_twelve.rs`).
 `hc-astro`'s `solar::solar_longitude_after` and `solar::seasonal_event` are
-the search.
+the search. At the boundary, `crates/hyper-calendar/src/season_lines.rs`:
+`hc_tropical_signs_in_year` and `hc_sidereal_signs_in_year` write the twelve
+sign periods of a Gregorian year at a meridian, `zodiac::tropical::signs_in_year`
+and `zodiac::sidereal::signs_in_year`, the sidereal in a named ayanāṃśa's
+zodiac.
 
 Anchors in the modules:
 `the_terms_of_2024_fall_where_the_japanese_almanac_puts_them`,

@@ -147,6 +147,13 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a line | `hc_naming_period_on` | every `fixed`; a calendar the registry does not carry is `HC_ERROR_UNKNOWN` |
 | a line | `hc_asian_day` | `fixed` 1 360 (23 September AD 4) through 3 652 398, the last day of the Asian year 9999; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_solar_new_year` | `year` in the calendar's own count: 1 through 3000 for `burmese`, 2444 through 2744 for `khmer` and 1301 through 1401 for `lao`; any other is `HC_ERROR_OUT_OF_RANGE`, and another calendar `HC_ERROR_UNKNOWN` |
+| a line | `hc_southeast_asian_year_type` | `year` in the calendar's own count, 2444 through 2744 for `khmer` and 1301 through 1401 for `lao`; any other is `HC_ERROR_OUT_OF_RANGE`, and another calendar `HC_ERROR_UNKNOWN` |
+| a line | `hc_maya_long_count` | `fixed` from 0.0.0.0.0 to 19.19.19.17.19 under the correlation: −1 137 142 through 1 742 857 under `gmt`, two days later under `gmt2` and three under `martin-skidmore`; any other is `HC_ERROR_OUT_OF_RANGE`, and a correlation not named `HC_ERROR_UNKNOWN` |
+| a line | `hc_akan_day` | every `fixed` from −9 223 372 036 854 053 701, the first day whose distance from the cycle's epoch is an `int64_t`; any earlier is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_weton` | every `fixed` |
+| a line | `hc_buddhist_lk_year` | `fixed` 738 521 (1 January 2023) through 740 346 (31 December 2027), the years whose Vesak Poya Day a Holidays Act order read fixes; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a Tiruvaḷḷuvar year | `hc_tiruvalluvar_year` | `fixed` within the days `hindu-solar-tamil` converts, the Tamil solar years that open in the Gregorian years 1700 to 2299; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_japanese_era_year` | `year` from 1, as far as the Han numerals write; 0 and below, and a year beyond them, are `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_holidays_in_year` | every `year`; a year the table has no entries or gaps for writes no lines |
 | 1 or 0; lines | `hc_holiday_is_day_off`, `hc_holiday_is_weekend`, `hc_holidays_on`, `hc_common_worship_on`, `hc_holidays_on_in` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERROR_OUT_OF_RANGE`, as is a day on which the region's weekend law was not read; for `hc_holiday_is_day_off` a day a gap of the day's year leaves open is `HC_ERROR_NO_DATA` |
 | a line | `hc_holiday_next`, `hc_holiday_previous` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERROR_OUT_OF_RANGE`; the search reaches sixteen years, and a gap that could hide a nearer entry, or no entry of the kinds within the reach, is `HC_ERROR_NO_DATA` |
@@ -166,13 +173,13 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a line | `hc_bhutanese_winter_solstice` | `year` 1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and one that holds no solstice, 1923, 1927, 1931, 1935, 1938, 1942, 1946, 1949, 1953 and 1957, `HC_ERROR_NO_DATA` |
 | a fixed day | `hc_tibetan_festival_day` | `year` 1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE`, a month or day the year does not have `HC_ERROR_INVALID_DATE`, and a skipped number under `henning-almanac` `HC_ERROR_NO_DATA` |
 | a fixed day | `hc_cold_food_day` | `year` −999 through 3000 under every reckoning, the years whose winter solstice before and whose April are both in the era of `hc_term_in_effect`; any other is `HC_ERROR_OUT_OF_RANGE`, and a reckoning it does not name `HC_ERROR_UNKNOWN` |
-| a line or lines | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_solar_event`, `hc_sunrise`, `hc_sunset`, `hc_moonrise`, `hc_moonset`, `hc_crescent_visible`, `hc_kalam`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_of_day`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_mansion_undertakings`, `hc_prayer_times`, `hc_zmanim`, `hc_temporal_hour`, `hc_unix_from_edo_time`, `hc_choghadiya`, `hc_folk_day`, `hc_planetary_hours_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line or lines | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_solar_event`, `hc_sunrise`, `hc_sunset`, `hc_moonrise`, `hc_moonset`, `hc_dawn`, `hc_dusk`, `hc_crescent_visible`, `hc_kalam`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_of_day`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_mansion_undertakings`, `hc_prayer_times`, `hc_zmanim`, `hc_temporal_hour`, `hc_unix_from_edo_time`, `hc_choghadiya`, `hc_folk_day`, `hc_planetary_hours_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_panchanga_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000, on the true sky, and −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000, on `surya-siddhanta`; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_hindu_lunar_date` | `fixed` in the Śaka years 1622 through 2221 on the true sky, from Chaitra śukla 1 in March 1700 to the eve of the one in March 2300, whose days move with the place and the ayanāṃśa (620 627 through 839 773 at the Central Station with Lahiri's); on `surya-siddhanta`, −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE`, as is a place beyond 65° of latitude; on the true sky, a day whose sunrise at the place the model does not find is `HC_ERROR_NO_DATA` |
 | a line | `hc_surya_siddhanta_sunrise` | `fixed` −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_surya_siddhanta_at`, `hc_barhaspatya_year_at` | `unix_seconds` −159 992 668 800 through 155 590 156 799, the days of Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_barhaspatya_year` | `saka` −3178 through 6821, the expired Śaka years of Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE` |
-| a line or lines | `hc_sky_at`, `hc_decan_at`, `hc_drekkana_at`, `hc_nakshatra_at`, `hc_solar_time`, `hc_edo_time`, `hc_panchak`, `hc_planetary_hour` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line or lines | `hc_sky_at`, `hc_decan_at`, `hc_drekkana_at`, `hc_nakshatra_at`, `hc_solar_time`, `hc_edo_time`, `hc_panchak`, `hc_planetary_hour`, `hc_equation_of_time` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_panchanga_at` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000, on the true sky, and −159 992 668 800 through 155 590 156 799, Kali Yuga 1 to 10 000, on `surya-siddhanta`; any other is `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_pushkaram` | `entry_unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_kumbh` | `year` −1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
@@ -186,10 +193,15 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a line | `hc_janmashtami` | `year` 1700 through 2299, the Gregorian years whose Śrāvaṇa lies in the Śaka years 1622 to 2221 of the Rashtriya Panchang's calendar; any other is `HC_ERROR_OUT_OF_RANGE`, a reading or an ayanāṃśa not known `HC_ERROR_UNKNOWN`, and a place beyond 65° of latitude `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_vaishnava_day`, `hc_vishti_free_span` | `saka_year` 1622 through 2221 and `month` 1 through 12; a tithi outside 1 to 30 is `HC_ERROR_INVALID_DATE`, any other year or month, a month the year lacks (Mārgaśīrṣa of Śaka 1885 at the Central Station) included, and a place beyond 65° of latitude, `HC_ERROR_OUT_OF_RANGE`, and an ayanāṃśa not known `HC_ERROR_UNKNOWN` |
 | a line | `hc_rahu_at` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and an ayanāṃśa not known `HC_ERROR_UNKNOWN` |
-| a line | `hc_rahu_ingresses` | `from_unix_seconds` and `to_unix_seconds` −93 724 128 000 through 32 535 216 000 (the span `[from, to)` ends within the years −1000 to 3000), at most 3 155 760 000 apart, a hundred Julian years; a `to` not after the `from` writes nothing; any other is `HC_ERROR_OUT_OF_RANGE`, and an ayanāṃśa not known `HC_ERROR_UNKNOWN` |
+| a line | `hc_rahu_ingresses`, `hc_solar_nakshatra_ingresses` | `from_unix_seconds` and `to_unix_seconds` −93 724 128 000 through 32 535 216 000 (the span `[from, to)` ends within the years −1000 to 3000), at most 3 155 760 000 apart, a hundred Julian years; a `to` not after the `from` writes nothing; any other is `HC_ERROR_OUT_OF_RANGE`, and an ayanāṃśa not known `HC_ERROR_UNKNOWN` |
 | a line | `hc_zassetsu_in_year`, `hc_seasonal_days_in_year` | `year` −1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and a meridian not read `HC_ERROR_UNKNOWN` |
 | a line | `hc_pentad_in_tradition` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and a tradition not listed `HC_ERROR_UNKNOWN` |
 | lines | `hc_pentads_in_year` | `year` −1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and a meridian not read `HC_ERROR_UNKNOWN` |
+| lines | `hc_tropical_signs_in_year` | `year` −1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and a meridian not read `HC_ERROR_UNKNOWN` |
+| lines | `hc_sidereal_signs_in_year` | `year` −1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE`, an ayanāṃśa not known `HC_ERROR_UNKNOWN`, read first, and a meridian not read `HC_ERROR_UNKNOWN` |
+| a fixed day | `hc_traditional_tanabata` | `year` −1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and a meridian not read `HC_ERROR_UNKNOWN` |
+| lines | `hc_principal_phases_in_month` | `year` −1000 through 3000 and a month 1 through 12; any other year is `HC_ERROR_OUT_OF_RANGE`, any other month `HC_ERROR_INVALID_DATE`, and a meridian not read `HC_ERROR_UNKNOWN` |
+| POSIX seconds | `hc_solar_noon`, `hc_solar_midnight` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000, at a place on the globe; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_gmat_from_gmt`, `hc_gmt_from_gmat` | `fixed` −3 652 424 999 through 3 652 424 634, the Gregorian years −9 999 999 to 9 999 999, with whole seconds up to 86 400 and attoseconds below 10¹⁸; 23:59:60, which neither reckoning shifts, and any other are `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_solar_terms_between`, `hc_moon_phases_between` | `from_unix` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; a `to_unix` at or before it writes no lines, and a later one must be at most 32 535 216 000 and at most 400 years after it; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_chinese_marriage_augury` | `chinese_year` 4282 through 4786, whose New Year and the next both fall in the Chinese calendar's range (1645 through 2150); any other is `HC_ERROR_OUT_OF_RANGE` |
@@ -353,7 +365,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-312 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+335 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -408,6 +420,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_civil_from_six_hour_clock(const char *reckoning, uint32_t hour, uint32_t minute, uint32_t second, int night, uint32_t *out_seconds);` | `timestamps` | The civil time of day of a six-hour reading, as seconds after midnight, 0 through 86 399. |
 | `HcStatus hc_french_decimal_time(uint32_t seconds_of_day, uint64_t attoseconds, char *buffer, size_t capacity, size_t *written);` | `timestamps` | The French Republican decimal time of a time of the civil clock, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_civil_from_french_decimal_time(uint32_t hour, uint32_t minute, uint32_t second, uint64_t attoseconds, char *buffer, size_t capacity, size_t *written);` | `timestamps` | The civil time of day of a French Republican decimal time, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_epochs(char *buffer, size_t capacity, size_t *written);` | `timestamps` | Every epoch `hc-core` carries, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_ccsds_decode(const char *hex, int strict, char *buffer, size_t capacity, size_t *written);` | `time-codes` | A binary CCSDS time code read, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_ccsds_encode(int64_t tai_seconds, uint64_t attoseconds, const char *p_field, int strict, char *buffer, size_t capacity, size_t *written);` | `time-codes` | The binary CCSDS time code of a TAI instant in the format a P-field names, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_ccsds_decode_from_epoch(const char *hex, int64_t epoch_tai_seconds, uint64_t epoch_attoseconds, int64_t epoch_unix_day, int strict, char *buffer, size_t capacity, size_t *written);` | `time-codes` | A binary CCSDS time code read, a Level 2 code from the caller's epoch, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
@@ -503,6 +516,16 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_folk_day(int64_t fixed, const char *meridian, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The folk reckonings of a fixed day outside the Japanese almanac, as NUL-terminated UTF-8 lines in a caller-owned buffer, one a reckoning, each named in a locale. |
 | `HcStatus hc_night_watch(uint32_t seconds_of_day, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The Chinese night watch and its points of a time of the civil clock by the fixed reckoning, as one NUL-terminated UTF-8 line in a caller-owned buffer, or the empty string by day. |
 | `HcStatus hc_solar_new_year(const char *calendar, int64_t year, char *buffer, size_t capacity, size_t *written);` | `calendars` | The day and the moment the year changes at the solar New Year of the Burmese, Khmer or Lao calendar, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_southeast_asian_year_type(const char *calendar, int64_t year, char *buffer, size_t capacity, size_t *written);` | `calendars` | The kind of lunar year a year of the Khmer or the Lao calendar is, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_maya_long_count(int64_t fixed, const char *correlation, char *buffer, size_t capacity, size_t *written);` | `calendars` | A fixed day in the Maya counts under a named correlation constant, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_akan_day(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `calendars` | A fixed day in the Akan *Adaduanan*, the 42-day cycle of the six-day and the seven-day week, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_weton(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `calendars` | A fixed day's *weton*, the Javanese five-day *pasaran* against the seven-day week, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_buddhist_lk_year(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `calendars` | Sri Lanka's Buddhist year of a fixed day, counted from the Vesak Full Moon Poya Day, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_tiruvalluvar_year(int64_t fixed, int64_t *out_year);` | `calendars` | The Tiruvaḷḷuvar year of a fixed day, Tamil Nadu's official count, written to `out_year`. |
+| `HcStatus hc_solar_nakshatra_ingresses(int64_t from_unix_seconds, int64_t to_unix_seconds, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `calendars` | The Sun's entries into the nakṣatras within a span, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_japanese_era_year(int64_t year, char *buffer, size_t capacity, size_t *written);` | `calendars` | A year of a Japanese era as the era's dates write it, 元 for the first year and the Han numerals of Japanese for every other, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_locale_format(const char *locale, const char *calendar, char *buffer, size_t capacity, size_t *written);` | `calendars` | The standard date, time and date-time formats a locale carries for a calendar, in CLDR's four lengths, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_plural_categories(const char *locale, const char *kind, char *buffer, size_t capacity, size_t *written);` | `calendars` | The plural categories a locale's cardinal or ordinal rules name, each with a number that falls in it, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_term_in_effect(int64_t fixed, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The solar term in effect on a fixed day at a meridian, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_pentad_in_effect(int64_t fixed, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The pentad (候) in effect on a fixed day at a meridian, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_pentad_traditions(char *buffer, size_t capacity, size_t *written);` | `seasons` | Every tradition that names the 72 pentads (候), as NUL-terminated UTF-8 lines in a caller-owned buffer. |
@@ -512,6 +535,10 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_cold_food_day(const char *convention, int64_t year, int64_t *out_fixed);` | `seasons` | The fixed day of 寒食, the Cold Food Day, of a Gregorian year under a named reckoning. |
 | `HcStatus hc_plum_rains(const char *rule, int64_t year, const char *meridian, int64_t *out_fixed);` | `seasons` | The fixed day of 入梅 or 出梅 of a Gregorian year by a named rule of the Chinese almanac, with the solar term it counts from at a meridian. |
 | `HcStatus hc_pentads_in_year(int64_t year, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | Every pentad (候) that begins in a Gregorian year at a meridian, named by every tradition at once, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_tropical_signs_in_year(int64_t year, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The twelve tropical sign periods of a Gregorian year at a meridian, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_sidereal_signs_in_year(int64_t year, const char *ayanamsa, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The twelve sidereal sign periods, the saṅkrāntis, of a Gregorian year in the zodiac of a named ayanāṃśa at a meridian, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_traditional_tanabata(int64_t year, const char *meridian, int64_t *out_fixed);` | `seasons` | The fixed day of 伝統的七夕, the National Astronomical Observatory's traditional Tanabata, of a Gregorian year at a meridian. |
+| `HcStatus hc_principal_phases_in_month(int64_t year, uint32_t month, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The principal phases of the Moon that fall inside a Gregorian month at a meridian, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_holiday_is_day_off(const char *code, const char *region, const char *group, int64_t fixed, int *out_is_day_off);` | `holiday` | Whether a fixed day is a day off in a holiday table. |
 | `HcStatus hc_holiday_add_business_days(const char *code, const char *region, const char *group, int64_t fixed, int64_t count, int64_t *out_fixed);` | `holiday` | A fixed day moved by a number of business days of a holiday table, in a subdivision and for a group. |
 | `HcStatus hc_holiday_business_days_between(const char *code, const char *region, const char *group, int64_t from_fixed, int64_t to_fixed, int64_t *out_count);` | `holiday` | The number of business days of a holiday table, in a subdivision and for a group, from one fixed day up to but not including another. |
@@ -579,6 +606,14 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_planetary_hours_of_day(int64_t fixed, double latitude, double longitude, double elevation, const char *locale, char *buffer, size_t capacity, size_t *written);` | `sky` | The twenty-four planetary hours of the planetary day that begins at the sunrise of a fixed day at a place, as NUL-terminated UTF-8 lines in `hc_planetary_hour`'s columns, each ruler named in a locale, in a caller-owned buffer. |
 | `HcStatus hc_moonrise(const char *horizon, int64_t fixed, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `sky` | Moonrise on a local day at a place against a named horizon, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_moonset(const char *horizon, int64_t fixed, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `sky` | Moonset on a local day at a place against a named horizon, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_ut1r_iers2010(double ut1_unix_seconds, char *buffer, size_t capacity, size_t *written);` | `sky` | UT1R at a UT1 instant by the IERS 2010 zonal tide model, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_ut1s_iers2010(double ut1_unix_seconds, char *buffer, size_t capacity, size_t *written);` | `sky` | UT1S at a UT1 instant by the IERS 2010 zonal tide model, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_zonal_tide_ut1_effect(double ut1_unix_seconds, double period_limit_days, char *buffer, size_t capacity, size_t *written);` | `sky` | The effect on UT1 of the zonal tides whose period is under a limit, at a UT1 instant, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_equation_of_time(int64_t unix_seconds, char *buffer, size_t capacity, size_t *written);` | `sky` | The equation of time at a POSIX timestamp, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_solar_noon(int64_t fixed, double latitude, double longitude, double elevation, int64_t *out_unix_seconds);` | `sky` | Apparent solar noon on a local day at a place, as POSIX seconds of Universal Time, written to `out_unix_seconds`. |
+| `HcStatus hc_solar_midnight(int64_t fixed, double latitude, double longitude, double elevation, int64_t *out_unix_seconds);` | `sky` | Apparent solar midnight opening a local day at a place, as POSIX seconds of Universal Time, written to `out_unix_seconds`. |
+| `HcStatus hc_dawn(const char *twilight, int64_t fixed, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `sky` | The start of a named twilight on a local day at a place, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_dusk(const char *twilight, int64_t fixed, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `sky` | The end of a named twilight on a local day at a place, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_orbit_at(double years_before_1950, char *buffer, size_t capacity, size_t *written);` | `orbital` | Earth's orbital elements and the June insolation at 65° N at an epoch, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_orbit_series(double from_years_before_1950, double to_years_before_1950, double step_years, char *buffer, size_t capacity, size_t *written);` | `orbital` | The line of `hc_orbit_at` at every epoch from `from_years_before_1950` to `to_years_before_1950` in steps of `step_years`, each with the epoch as a first column, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_daily_insolation(double years_before_present, double latitude_degrees, double solar_longitude_degrees, char *buffer, size_t capacity, size_t *written);` | `orbital` | The daily mean insolation at any latitude and solar longitude, for the orbit of an epoch, as NUL-terminated UTF-8 one line in a caller-owned buffer. |
@@ -729,7 +764,9 @@ and `hc_tt_from_epoch`, the Julian and Besselian epochs of a TT instant,
 whole seconds from 1970-01-01 00:00:00 TT and attoseconds, both ways. A
 null `notation` for `hc_tt_from_epoch`, as an empty one, reads the year
 as SOFA reads an epoch without a letter: Besselian before 1984.0, Julian
-from it. `hc_tt_bipm(series, tai_seconds, attoseconds, strict, buffer,
+from it. `hc_epochs(buffer, capacity, written)` writes the module's lines of
+every epoch `hc-core` carries, with its TAI reading as whole seconds and
+attoseconds and the document that defines it. `hc_tt_bipm(series, tai_seconds, attoseconds, strict, buffer,
 capacity, written)` writes TT(BIPM) at a TAI instant from a realisation
 the caller supplies as NUL-terminated text, one line per sample of the
 Modified Julian Date and TT(BIPMxx) − TAI − 32.184 s in microseconds: the
@@ -929,9 +966,23 @@ name is looked up along, one line per step with the rule that led to it;
 `hc_locale_info(locale, ...)` one line of what the locale is, its subtags
 and keys, parent, default numbering, first day of the week and `minDays`,
 direction, casing and plural rules;
+<<<<<<< HEAD
 `hc_plural_category(locale, number, kind, ...)` the CLDR category a number
 written as text has (`kind` `cardinal`, the form after a count, or
 `ordinal`, the form of a position);
+=======
+`hc_plural_categories(locale, kind, ...)` the module's lines of the
+categories a locale's cardinal or ordinal rules name, each with a number
+that falls in it; `hc_locale_format(locale, calendar, ...)` the module's
+eighteen lines of the standard date, time and date-time formats the locale
+carries for a calendar in CLDR's four lengths, with the available formats,
+under the CLDR calendar type the identifier maps to;
+`hc_japanese_era_year(year, ...)` a Japanese era's year as its dates write
+it, 元 for 1 and the Han numerals after;
+`hc_plural_category(locale, number, kind, ...)` the CLDR cardinal category a
+number written as text has (`kind` `cardinal`; `ordinal` is
+`HC_ERROR_NO_DATA`, since the ordinal rules are not carried);
+>>>>>>> 5be55a7c (Bind, document and index the wave E2 exports)
 `hc_names(locale, calendar, width, context, ...)` the names a locale has
 for a calendar; `hc_case(locale, mode, text, ...)` a text recased as the
 locale cases it; and `hc_isolate(locale, mode, text, ...)` a text wrapped
@@ -1021,7 +1072,13 @@ instant and its lines of the node's entries into the sidereal signs in a span, a
 `vikram-samvat-kartikadi`, `rajyabhisheka-saka`, `saptarshi`, `gupta`, `valabhi`,
 `kalachuri` or `lakshmana-sena` begins. A null `reading`, `ayanamsa` or
 `calendar` is `HC_ERROR_NULL_POINTER`, and a name not carried
-`HC_ERROR_UNKNOWN`.
+`HC_ERROR_UNKNOWN`. `hc_solar_nakshatra_ingresses(from_unix_seconds,
+to_unix_seconds, ayanamsa, buffer, capacity, written)` writes the module's
+lines of the Sun's entries into the nakṣatras in a span, the nakṣatra
+entered and the one left, with `hc_rahu_ingresses`'s span rule; and
+`hc_tiruvalluvar_year(fixed, out_year)` writes Tamil Nadu's Tiruvaḷḷuvar
+year of a day, the Gregorian year of its Thai 1 plus 31, on the Tamil solar
+calendar's range.
 
 `hc_kalam(convention, fixed, latitude, longitude, elevation, locale,
 buffer, capacity, written)` writes the module's three lines of Rāhu kālam,
@@ -1058,11 +1115,26 @@ repeated date is kept by `berzin` or `henning-almanac`.
 `hc_era_table(table, buffer, capacity, written)` and
 `hc_olympic_games(season, buffer, capacity, written)`, in `calendars` too,
 write the module's lines of every era of the `japanese` (248 eras),
-`chinese-regnal` (37) or `korean-regnal` (3) table, which
+`chinese-regnal` (37), `korean-regnal` (3) or `vietnamese-regnal-nguyen`
+(12, each with the day it was first in force) table, which
 `hc_calendar_eras` does not list: it lists what the locale data does, 236
-Japanese eras and none of the other two; and of the modern Olympic Games of
+Japanese eras and none of the other three; and of the modern Olympic Games of
 the `summer` or `winter` season, as Olympedia lists them. A name not known
 is `HC_ERROR_UNKNOWN`, and null for it `HC_ERROR_NULL_POINTER`.
+`hc_southeast_asian_year_type(calendar, year, buffer, capacity, written)`
+writes the module's line of the kind of lunar year a year of the `khmer`
+(Buddhist Era) or `lao` (Chulasakarat) calendar is, `normal`, `extra-day`
+or `extra-month`, with the solar New Year's day and second;
+`hc_maya_long_count(fixed, correlation, buffer, capacity, written)` the
+module's line of a day in the Maya counts under the correlation the caller
+names, `gmt`, `gmt2` or `martin-skidmore` or the constant as text;
+`hc_akan_day(fixed, buffer, capacity, written)` and `hc_weton(fixed,
+buffer, capacity, written)` the module's lines of a day of the Akan
+*Adaduanan*, with its names and its *dabɔne*, and of the Javanese *weton*
+with its *neptu*; and `hc_buddhist_lk_year(fixed, buffer, capacity,
+written)` the module's line of Sri Lanka's Buddhist year of a day, from the
+Vesak Poya Day, for 2023 to 2027, the years whose Vesak an order read
+fixes.
 
 `hc_choghadiya(fixed, latitude, longitude, elevation, locale, buffer,
 capacity, written)` writes the module's sixteen lines of the choghadiya,
@@ -1363,7 +1435,17 @@ name; a tradition not listed is `HC_ERROR_UNKNOWN`, and null for it
 `HC_ERROR_NULL_POINTER`. `hc_pentads_in_year(year, meridian, buffer,
 capacity, written)` writes every pentad that begins in a Gregorian year at
 a meridian, named by all four traditions at once, one a line in the
-module's columns. `hc_zassetsu_in_year(year, meridian, buffer,
+module's columns. `hc_tropical_signs_in_year(year, meridian, buffer,
+capacity, written)` and `hc_sidereal_signs_in_year(year, ayanamsa, meridian,
+buffer, capacity, written)` write the module's twelve lines of the sign
+periods of a Gregorian year, tropical from Aquarius and sidereal, the
+saṅkrāntis, from the first on or after 1 January in the ayanāṃśa's zodiac,
+null for which is `HC_ERROR_NULL_POINTER`; `hc_traditional_tanabata(year,
+meridian, out_fixed)` the fixed day of the Observatory's 伝統的七夕, at
+`japan` for its table; and `hc_principal_phases_in_month(year, month,
+meridian, buffer, capacity, written)` the module's lines of the four or five
+principal phases inside a Gregorian month, a month outside 1 to 12 being
+`HC_ERROR_INVALID_DATE`. `hc_zassetsu_in_year(year, meridian, buffer,
 capacity, written)` and `hc_seasonal_days_in_year(year, meridian, buffer,
 capacity, written)` write the module's lines of the 雑節 of a year and of the
 other seasonal days — the 三伏 and nine nines of the Chinese year, the dog
@@ -1512,6 +1594,23 @@ zodiac with its lord, as the WebAssembly module's README gives it.
 and write a `double`: the angle in degrees or UT2 − UT1 in seconds, at a
 UT1 reading counted as POSIX seconds are, from 1970-01-01 00:00 UT1. The
 two sidereal times are two conventions and two entry points.
+`hc_ut1r_iers2010(ut1_unix_seconds, buffer, capacity, written)` and
+`hc_ut1s_iers2010(...)` write the module's line of UT1 with the zonal tides
+of the IERS 2010 model removed, the 41 under 35 days and all 62, as the
+difference from UT1 in seconds and the regularised reading;
+`hc_zonal_tide_ut1_effect(ut1_unix_seconds, period_limit_days, buffer,
+capacity, written)` the tides under a period limit alone, a limit that is
+not positive being `HC_ERROR_OUT_OF_RANGE`; and
+`hc_equation_of_time(unix_seconds, buffer, capacity, written)` the module's
+one cell, apparent less mean solar time in seconds at an instant.
+`hc_solar_noon(fixed, latitude, longitude, elevation, out_unix_seconds)` and
+`hc_solar_midnight(...)` write the Sun's upper transit on a local day at a
+place and the lower transit that opens it as POSIX seconds, which every day
+has; `hc_dawn(twilight, fixed, latitude, longitude, elevation, buffer,
+capacity, written)` and `hc_dusk(...)` write the module's line of the start
+and the end of a `civil`, `nautical` or `astronomical` twilight, the
+missing depression named in `hc_solar_event`'s cells when the Sun does not
+reach it; null for the twilight is `HC_ERROR_NULL_POINTER`.
 `hc_solar_time(clock, unix_seconds, latitude, longitude, elevation, buffer,
 capacity, written)` and `hc_solar_event(event, fixed, latitude, longitude,
 elevation, buffer, capacity, written)` write the WebAssembly module's

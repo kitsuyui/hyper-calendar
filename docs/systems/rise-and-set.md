@@ -293,7 +293,16 @@ bounds.
 
 ## Code
 
-`crates/hc-astro/src/horizon.rs` and `crates/hc-astro/src/riseset.rs`.
+`crates/hc-astro/src/horizon.rs` and `crates/hc-astro/src/riseset.rs`. At
+the boundary, `crates/hyper-calendar/src/astro_lines.rs`: `hc_solar_noon` and
+`hc_solar_midnight` are `riseset::solar_noon` and `solar_midnight`, the
+transits every day has, and `hc_dawn` and `hc_dusk` are `riseset::dawn` and
+`dusk` for a `civil`, `nautical` or `astronomical` twilight, the missing
+depression named in `hc_solar_event`'s cells; the boundary tests hold them to
+Meeus's equation of time at Greenwich and to Helsinki's midsummer, where the
+civil twilight ends and the nautical does not
+(`the_equation_of_time_and_the_transits_are_meeuss`,
+`the_twilights_cross_the_boundary_and_name_a_missing_depression`).
 
 The tests that anchor them are in `riseset`:
 `sunrise_in_tokyo_on_new_years_day_matches_the_national_ephemeris`,

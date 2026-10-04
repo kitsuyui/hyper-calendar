@@ -425,7 +425,11 @@ Where the code, its documentation and a source disagree:
 (`FormatLength`, `date_pattern`, `time_pattern`, `date_time_pattern`,
 `available_format`, `calendar_key`, `calendar_key_for_locale`) over the
 generated `formats/cldr48.rs`, written by `scripts/formats-cldr.py`
-(`--check`, `--dump`). Tests that anchor it: in `strftime.rs`,
+(`--check`, `--dump`); at the boundary, `hc_locale_format`
+(`locale_format_lines` in `crates/hyper-calendar/src/i18n_lines.rs`), which
+lists a locale's eighteen patterns for a calendar — the four lengths of each
+of the three kinds and the six available formats — under the calendar type
+`calendar_key` gives. Tests that anchor it: in `strftime.rs`,
 `the_composites_take_the_locales_medium_formats`,
 `the_week_and_day_of_year_fields_agree_with_the_calendar`,
 `the_padding_flags_do_what_they_say`, `an_explicit_width_overrides_the_default`,

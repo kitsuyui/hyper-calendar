@@ -192,3 +192,45 @@ fn the_era_table_and_the_games_cross_the_boundary() {
     let spring = unsafe { hc_olympic_games("spring".as_ptr(), 6, core::ptr::null_mut(), 0) };
     assert_eq!(spring, HC_ERR_UNKNOWN);
 }
+
+/// The Nguyễn table: twelve eras from Gia Long's 1 June 1802 to Bảo Đại's
+/// abdication on 30 August 1945, Hiệp Hòa taken and never counted.
+#[test]
+fn the_nguyen_eras_cross_the_boundary_with_their_days() {
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_era_table("vietnamese-regnal-nguyen".as_ptr(), 24, buffer, capacity)
+    });
+    let rows: Vec<Vec<&str>> = text
+        .lines()
+        .map(|line| line.split('\t').collect())
+        .collect();
+    assert_eq!(rows.len(), 12, "{text}");
+    assert!(rows.iter().all(|row| row.len() == 12), "{text}");
+    let gia_long = &rows[0];
+    assert_eq!(
+        gia_long[..6],
+        ["gia-long", "嘉隆", "Gia Long", "Gia Long", "nguyen", "1802"]
+    );
+    assert_eq!(gia_long[6], "1820");
+    assert_eq!(gia_long[7], hc_gregorian_to_fixed(1802, 6, 1).to_string());
+    assert_eq!(
+        gia_long[8],
+        (hc_gregorian_to_fixed(1820, 2, 14) - 1).to_string()
+    );
+    assert_eq!(gia_long[9..11], ["kept", ""]);
+    let hiep_hoa = rows
+        .iter()
+        .find(|row| row[0] == "hiep-hoa")
+        .expect("Hiệp Hòa");
+    // The year the name would have numbered, 1884, is its first year; it
+    // has no last, never having been kept.
+    assert_eq!(hiep_hoa[5..10], ["1884", "", hiep_hoa[7], "", "not-kept"]);
+    assert!(
+        !hiep_hoa[7].is_empty() && !hiep_hoa[11].is_empty(),
+        "{hiep_hoa:?}"
+    );
+    let bao_dai = &rows[11];
+    assert_eq!(bao_dai[0], "bao-dai");
+    assert_eq!(bao_dai[6], "1945");
+    assert_eq!(bao_dai[8], hc_gregorian_to_fixed(1945, 8, 30).to_string());
+}

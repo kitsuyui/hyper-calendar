@@ -422,3 +422,122 @@ fn the_units_the_calendars_and_the_locales_are_lines_too() {
     assert_eq!(row("ar-EG")[7..], ["ar", "arab", "rtl"]);
     assert_eq!(row("ja")[7..], ["und", "latn", "ltr"]);
 }
+
+/// The Khmer and Lao year types, the Maya counts under a named
+/// correlation, the Akan day, the weton and Sri Lanka's Buddhist year
+/// cross the C boundary as the module's lines.
+#[test]
+fn the_regional_cycles_and_counts_cross_the_c_boundary() {
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_southeast_asian_year_type(c"khmer".as_ptr(), 2568, buffer, capacity, written)
+    });
+    assert_eq!(
+        Ok(text.clone()),
+        hc::calendar_values::southeast_asian_year_type_line("khmer", 2568)
+    );
+    assert!(text.starts_with("khmer\t2568\tnormal\t354\t0\t"), "{text}");
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_southeast_asian_year_type(c"lao".as_ptr(), 1342, buffer, capacity, written)
+    });
+    assert!(
+        text.starts_with("lao\t1342\textra-month\t384\t1\t"),
+        "{text}"
+    );
+    let mut written = 0usize;
+    for (calendar, year, status) in [
+        (c"khmer".as_ptr(), 2443, HC_ERROR_OUT_OF_RANGE),
+        (c"thai-lunar".as_ptr(), 2568, HC_ERROR_UNKNOWN),
+        (core::ptr::null(), 2568, HC_ERROR_NULL_POINTER),
+    ] {
+        assert_eq!(
+            unsafe {
+                hc_southeast_asian_year_type(calendar, year, core::ptr::null_mut(), 0, &mut written)
+            },
+            status
+        );
+    }
+    let epoch = 584_283 - 1_721_425;
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_maya_long_count(epoch, c"gmt".as_ptr(), buffer, capacity, written)
+    });
+    assert_eq!(
+        text,
+        "maya-longcount\t584283\t0.0.0.0.0\t0\t0\t0\t0\t0\t4\tAhau\t8\tCumku\n"
+    );
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_maya_long_count(
+            2_009_802 - 1_721_425,
+            c"584286".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert_eq!(
+        Ok(text.clone()),
+        hc::calendar_values::maya_long_count_line(2_009_802 - 1_721_425, "584286")
+    );
+    assert!(
+        text.starts_with("maya-longcount-584286\t584286\t9.17.19.13.16\t"),
+        "{text}"
+    );
+    for (fixed, correlation, status) in [
+        (epoch - 1, c"gmt".as_ptr(), HC_ERROR_OUT_OF_RANGE),
+        (epoch, c"lounsbury".as_ptr(), HC_ERROR_UNKNOWN),
+        (epoch, core::ptr::null(), HC_ERROR_NULL_POINTER),
+    ] {
+        assert_eq!(
+            unsafe {
+                hc_maya_long_count(fixed, correlation, core::ptr::null_mut(), 0, &mut written)
+            },
+            status
+        );
+    }
+    let mut day = 0i64;
+    assert_eq!(
+        unsafe { hc_gregorian_to_fixed(1978, 1, 23, &mut day) },
+        HC_OK
+    );
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_akan_day(day, buffer, capacity, written)
+    });
+    assert_eq!(text, "0\t1\t1\tFo\t2\tƐdwoada\tDwo\tFo-Dwo\tFɔdwo\n");
+    assert_eq!(
+        unsafe { hc_akan_day(i64::MIN, core::ptr::null_mut(), 0, &mut written) },
+        HC_ERROR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_gregorian_to_fixed(1945, 8, 17, &mut day) },
+        HC_OK
+    );
+    let text =
+        read_lines(|buffer, capacity, written| unsafe { hc_weton(day, buffer, capacity, written) });
+    assert_eq!(Ok(text.clone()), hc::calendar_values::weton_line(day));
+    assert!(
+        text.ends_with("\t6\tJemuwah\t1\tLegi\t6\t5\t11\tJemuwah Legi\n"),
+        "{text}"
+    );
+    assert_eq!(
+        unsafe { hc_gregorian_to_fixed(2025, 5, 12, &mut day) },
+        HC_OK
+    );
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_buddhist_lk_year(day, buffer, capacity, written)
+    });
+    assert_eq!(
+        Ok(text.clone()),
+        hc::calendar_values::buddhist_lk_year_line(day)
+    );
+    assert!(
+        text.starts_with(&format!("2569\t2025\t{day}\t{day}\t")),
+        "{text}"
+    );
+    assert_eq!(
+        unsafe { hc_gregorian_to_fixed(2022, 12, 31, &mut day) },
+        HC_OK
+    );
+    assert_eq!(
+        unsafe { hc_buddhist_lk_year(day, core::ptr::null_mut(), 0, &mut written) },
+        HC_ERROR_OUT_OF_RANGE
+    );
+}

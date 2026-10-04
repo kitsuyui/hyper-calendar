@@ -276,3 +276,132 @@ fn the_pentads_of_a_year_are_named_by_every_tradition() {
         HC_ERR_UNKNOWN
     );
 }
+
+/// The twelve signs tile the year: the NAOJ's 秋分 of 2026, 23 September
+/// 00:05 UTC, opens Libra, and Makara Saṅkrānti 2025 fell on 14 January in
+/// India, at 09:03 IST, as `hc-seasons` records it.
+#[test]
+fn the_signs_of_a_year_tile_it_and_turn_at_the_equinox() {
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_tropical_signs_in_year(2026, "japan".as_ptr(), 5, buffer, capacity)
+    });
+    let rows: Vec<Vec<&str>> = text
+        .lines()
+        .map(|line| line.split('\t').collect())
+        .collect();
+    assert_eq!(rows.len(), 12, "{text}");
+    assert!(rows.iter().all(|row| row.len() == 7), "{text}");
+    assert_eq!(rows[0][..3], ["11", "aquarius", "Aquarius"]);
+    assert_eq!(rows[11][..2], ["10", "capricorn"]);
+    for pair in rows.windows(2) {
+        assert_eq!(pair[0][4], pair[1][3], "{pair:?}");
+        let ends: i64 = pair[0][6].parse().expect("a day");
+        let begins: i64 = pair[1][5].parse().expect("a day");
+        assert_eq!(ends + 1, begins, "{pair:?}");
+    }
+    let libra = rows.iter().find(|row| row[1] == "libra").expect("Libra");
+    assert_eq!(libra[0], "7");
+    let start: i64 = libra[3].parse().expect("an instant");
+    let equinox = hc_unix_from_fixed(hc_gregorian_to_fixed(2026, 9, 23)) + 5 * 60;
+    assert!((start - equinox).abs() <= 120, "{start}");
+    assert_eq!(libra[5], hc_gregorian_to_fixed(2026, 9, 23).to_string());
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_sidereal_signs_in_year(
+            2025,
+            "lahiri".as_ptr(),
+            6,
+            "india".as_ptr(),
+            5,
+            buffer,
+            capacity,
+        )
+    });
+    let rows: Vec<Vec<&str>> = text
+        .lines()
+        .map(|line| line.split('\t').collect())
+        .collect();
+    assert_eq!(rows.len(), 12, "{text}");
+    assert!(
+        rows.iter().all(|row| row.len() == 8 && row[7] == "lahiri"),
+        "{text}"
+    );
+    assert_eq!(rows[0][..3], ["10", "makara", "Makara"]);
+    assert_eq!(rows[0][5], hc_gregorian_to_fixed(2025, 1, 14).to_string());
+    let sankranti: i64 = rows[0][3].parse().expect("an instant");
+    let drik = hc_unix_from_fixed(hc_gregorian_to_fixed(2025, 1, 14)) + 3 * 3_600 + 33 * 60;
+    assert!((sankranti - drik).abs() <= 20 * 60, "{sankranti}");
+    let null = core::ptr::null_mut();
+    assert_eq!(
+        unsafe { hc_tropical_signs_in_year(3001, "".as_ptr(), 0, null, 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_tropical_signs_in_year(2026, "mars".as_ptr(), 4, null, 0) },
+        HC_ERR_UNKNOWN
+    );
+    assert_eq!(
+        unsafe { hc_sidereal_signs_in_year(2025, "x".as_ptr(), 1, "".as_ptr(), 0, null, 0) },
+        HC_ERR_UNKNOWN
+    );
+    assert_eq!(
+        unsafe { hc_sidereal_signs_in_year(-1001, "lahiri".as_ptr(), 6, "".as_ptr(), 0, null, 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+}
+
+/// The Observatory's 伝統的七夕 of 2024 to 2026 and its 暦要項: the full
+/// moon of September 2024 on the 18th and the new moon of September 2026
+/// on the 11th, 12:27 JST.
+#[test]
+fn the_traditional_tanabata_and_the_months_phases_are_the_observatorys() {
+    let tanabata = |year: i64| unsafe { hc_traditional_tanabata(year, "japan".as_ptr(), 5) };
+    assert_eq!(tanabata(2024), hc_gregorian_to_fixed(2024, 8, 10));
+    assert_eq!(tanabata(2025), hc_gregorian_to_fixed(2025, 8, 29));
+    assert_eq!(tanabata(2026), hc_gregorian_to_fixed(2026, 8, 19));
+    assert_eq!(tanabata(3001), HC_ERR_OUT_OF_RANGE);
+    assert_eq!(
+        unsafe { hc_traditional_tanabata(2026, "mars".as_ptr(), 4) },
+        HC_ERR_UNKNOWN
+    );
+    let phases = |year: i64, month: u32| {
+        read_lines(|buffer, capacity| unsafe {
+            hc_principal_phases_in_month(year, month, "japan".as_ptr(), 5, buffer, capacity)
+        })
+    };
+    let text = phases(2024, 9);
+    let rows: Vec<Vec<&str>> = text
+        .lines()
+        .map(|line| line.split('\t').collect())
+        .collect();
+    assert!((4..=5).contains(&rows.len()), "{text}");
+    assert!(rows.iter().all(|row| row.len() == 3), "{text}");
+    let full = rows
+        .iter()
+        .find(|row| row[0] == "full")
+        .expect("a full moon");
+    assert_eq!(full[2], hc_gregorian_to_fixed(2024, 9, 18).to_string());
+    for pair in rows.windows(2) {
+        let earlier: i64 = pair[0][1].parse().expect("an instant");
+        let later: i64 = pair[1][1].parse().expect("an instant");
+        assert!(earlier < later, "{pair:?}");
+    }
+    let text = phases(2026, 9);
+    let new = text
+        .lines()
+        .find(|line| line.starts_with("new\t"))
+        .expect("a new moon");
+    let cells: Vec<&str> = new.split('\t').collect();
+    let instant: i64 = cells[1].parse().expect("an instant");
+    let naoj = hc_unix_from_fixed(hc_gregorian_to_fixed(2026, 9, 11)) + 3 * 3_600 + 27 * 60;
+    assert!((instant - naoj).abs() <= 120, "{instant}");
+    assert_eq!(cells[2], hc_gregorian_to_fixed(2026, 9, 11).to_string());
+    let null = core::ptr::null_mut();
+    assert_eq!(
+        unsafe { hc_principal_phases_in_month(2024, 13, "".as_ptr(), 0, null, 0) },
+        HC_ERR_INVALID_DATE
+    );
+    assert_eq!(
+        unsafe { hc_principal_phases_in_month(3001, 1, "".as_ptr(), 0, null, 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+}

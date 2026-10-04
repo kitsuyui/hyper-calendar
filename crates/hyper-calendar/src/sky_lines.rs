@@ -81,8 +81,9 @@ const fn delta_t_source(regime: DeltaTRegime) -> &'static str {
     }
 }
 
-/// The word a [`MoonPhase`] is written as.
-const fn phase_name(phase: MoonPhase) -> &'static str {
+/// The word a [`MoonPhase`] is written as, here and in
+/// [`crate::season_lines::principal_phases_in_month_lines`].
+pub(crate) const fn phase_name(phase: MoonPhase) -> &'static str {
     match phase {
         MoonPhase::New => "new",
         MoonPhase::FirstQuarter => "first-quarter",

@@ -184,7 +184,10 @@ The FAT32 specification (`fatgen103`) was not read.
 
 `crates/hc-core/src/ntp.rs`, `crates/hc-core/src/uuid.rs`,
 `crates/hc-core/src/dotnet.rs` and the epochs in
-`crates/hc-core/src/epoch.rs`, and `crates/hc-format/src/fat.rs`. Anchors:
+`crates/hc-core/src/epoch.rs`, which the WebAssembly module's and the C
+library's `hc_epochs` list, `epoch::ALL` with each TAI reading and source
+(`epochs_lines` in `crates/hyper-calendar/src/time_lines.rs`), and
+`crates/hc-format/src/fat.rs`. Anchors:
 `figure_4_of_rfc_5905`, `the_version_1_vector`, `the_version_6_vector`,
 `each_field_is_in_its_bits`, `the_examples_on_microsofts_page`. The WebAssembly module's and the C library's
 `hc_uuid_timestamp`, `hc_uuid_timestamp_encode`, `hc_ntp_resolve`,

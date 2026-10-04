@@ -448,6 +448,11 @@ table.
 
 ## Code
 
+At the boundary, `hc_southeast_asian_year_type` in
+`crates/hyper-calendar/src/calendar_values.rs` writes the kind of a `khmer` or
+`lao` year, `khmer::year_type` and `lao::year_type`, with its days and names
+and the solar New Year's day and second, beside `hc_solar_new_year`.
+
 `crates/hc-calendars-regional/src/southeast_asian.rs`: `YearType`,
 `Fortnight`, the walk `Years`, and the quantities `ahargana`,
 `kammacabala`, `is_solar_leap_year`, `avoman`, `new_year_tithi`,

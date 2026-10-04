@@ -229,3 +229,67 @@ fn rahu_and_the_eras_new_years_cross_the_boundary() {
         HC_ERR_OUT_OF_RANGE
     );
 }
+
+/// Thai 1 of 2021, 14 January, began Tiruvaḷḷuvar 2052 (Tamizhvalai), and
+/// Drik Panchang has the Sun enter Ārdrā at 06:28 IST on 22 June 2025, the
+/// Thiruvathira ñāṭṭuvēla.
+#[test]
+fn the_tiruvalluvar_year_and_the_suns_nakshatra_entries_cross_the_boundary() {
+    let year = |fixed: i64| hc_tiruvalluvar_year(fixed);
+    assert_eq!(year(hc_gregorian_to_fixed(2021, 1, 14)), 2052);
+    assert_eq!(year(hc_gregorian_to_fixed(2021, 1, 13)), 2051);
+    assert_eq!(year(hc_gregorian_to_fixed(2024, 4, 14)), 2055);
+    assert_eq!(year(hc_gregorian_to_fixed(2025, 1, 14)), 2056);
+    assert_eq!(
+        year(hc_gregorian_to_fixed(1699, 12, 31)),
+        HC_ERR_OUT_OF_RANGE
+    );
+    let drik = "lahiri-drik";
+    let from = hc_unix_from_fixed(hc_gregorian_to_fixed(2025, 6, 1));
+    let to = hc_unix_from_fixed(hc_gregorian_to_fixed(2025, 7, 1));
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_solar_nakshatra_ingresses(from, to, drik.as_ptr(), drik.len(), buffer, capacity)
+    });
+    let table = rows(&text);
+    assert_eq!(table.len(), 2, "{text}");
+    assert!(table.iter().all(|row| row.len() == 7), "{text}");
+    let ardra = &table[1];
+    assert_eq!(
+        ardra[1..4],
+        [
+            "6",
+            "ardra",
+            hc::hc_calendars_indic::nakshatra::nakshatra_name(6).unwrap()
+        ]
+    );
+    assert_eq!(
+        ardra[4..],
+        [
+            "5",
+            "mrigashirsha",
+            hc::hc_calendars_indic::nakshatra::nakshatra_name(5).unwrap()
+        ]
+    );
+    let moment: i64 = ardra[0].parse().expect("an instant");
+    let drik_time = hc_unix_from_fixed(hc_gregorian_to_fixed(2025, 6, 22)) + 58 * 60;
+    assert!((moment - drik_time).abs() <= 15 * 60, "{moment}");
+    let year_from = hc_unix_from_fixed(hc_gregorian_to_fixed(2025, 1, 1));
+    let year_to = hc_unix_from_fixed(hc_gregorian_to_fixed(2026, 1, 1));
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_solar_nakshatra_ingresses(year_from, year_to, "lahiri".as_ptr(), 6, buffer, capacity)
+    });
+    assert_eq!(rows(&text).len(), 27, "{text}");
+    let null = core::ptr::null_mut();
+    assert_eq!(
+        unsafe { hc_solar_nakshatra_ingresses(to, from, drik.as_ptr(), drik.len(), null, 0) },
+        0
+    );
+    assert_eq!(
+        unsafe { hc_solar_nakshatra_ingresses(0, 4_000_000_000, "lahiri".as_ptr(), 6, null, 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_solar_nakshatra_ingresses(from, to, "x".as_ptr(), 1, null, 0) },
+        HC_ERR_UNKNOWN
+    );
+}

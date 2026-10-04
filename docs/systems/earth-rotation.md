@@ -214,6 +214,13 @@ resolution were not read either.
 ## Code
 
 `crates/hc-astro/src/ut_variants.rs` and `crates/hc-astro/src/earth.rs`.
+At the boundary, `crates/hyper-calendar/src/astro_lines.rs`: `hc_ut1r_iers2010`
+and `hc_ut1s_iers2010` write UT1R − UT1 or UT1S − UT1 and the regularised
+reading at a UT1 instant, and `hc_zonal_tide_ut1_effect` the tides under a
+period limit of the caller's, so that a reading labelled with either name can
+be put back on UT1 from a page or a C program; the boundary tests hold them to
+the `RG_ZONT2.F` case
+(`the_regularised_ut1_lines_are_the_iers_test_case`).
 The tests that anchor them: `the_earth_rotation_angle_matches_erfa`,
 `the_iau2006_mean_sidereal_time_matches_erfa`,
 `the_meeus_mean_sidereal_time_is_the_iau1982_convention`,

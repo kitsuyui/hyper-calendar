@@ -393,6 +393,27 @@ pub fn barhaspatya_year_at_line(rule: &str, universal_unix: i64, locale: &str) -
     Ok(out)
 }
 
+/// The value of `hc_tiruvalluvar_year`: the Tiruvaḷḷuvar year of a fixed
+/// day, Tamil Nadu's official count, by
+/// [`hc_calendars_indic::hindu_solar::HinduSolarCalendar::tiruvalluvar_year_of`]
+/// on the Tamil solar calendar ([`hc_calendars_indic::hindu_solar::TAMIL`]):
+/// the Gregorian year in which the day's Thai 1, the Makara saṅkrānti's
+/// month, falls, plus 31 — 2052 from 14 January 2021 to the eve of Thai 1
+/// of 2022, so that the year changes at Thai 1 and not at the Tamil New
+/// Year of Chithirai 1.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a day outside the Tamil calendar's range,
+/// the Gregorian years 1700 to 2299.
+pub fn tiruvalluvar_year(fixed: i64) -> Answer<i64> {
+    let calendar = &hc_calendars_indic::hindu_solar::TAMIL;
+    let date = calendar.from_fixed(Rd(fixed))?;
+    calendar
+        .tiruvalluvar_year_of(date)
+        .ok_or(Refusal::OutOfRange)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

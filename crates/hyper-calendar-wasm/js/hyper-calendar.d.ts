@@ -1244,6 +1244,20 @@ export const COLUMNS: {
   readonly pentadsInYear: ReadonlyArray<string>;
   readonly moonCrossing: ReadonlyArray<string>;
   readonly listForms: ReadonlyArray<string>;
+  readonly regularizedUt1: ReadonlyArray<string>;
+  readonly signsInYear: ReadonlyArray<string>;
+  readonly siderealSignsInYear: ReadonlyArray<string>;
+  readonly principalPhase: ReadonlyArray<string>;
+  readonly yearType: ReadonlyArray<string>;
+  readonly mayaLongCount: ReadonlyArray<string>;
+  readonly akanDay: ReadonlyArray<string>;
+  readonly weton: ReadonlyArray<string>;
+  readonly buddhistLkYear: ReadonlyArray<string>;
+  readonly solarNakshatraIngress: ReadonlyArray<string>;
+  readonly japaneseEraYear: ReadonlyArray<string>;
+  readonly localeFormat: ReadonlyArray<string>;
+  readonly pluralCategories: ReadonlyArray<string>;
+  readonly epochs: ReadonlyArray<string>;
 };
 export const UNITS: readonly Unit[];
 export const NATIVE: "native";
@@ -1932,6 +1946,201 @@ export interface PentadOfYear {
   ends: number;
   /** Its name in each tradition `pentadTraditions` lists. */
   names: Record<PentadTraditionId, string>;
+}
+
+/** The one line of `hc_ut1r_iers2010` or `hc_ut1s_iers2010`. */
+export interface RegularizedUt1 {
+  /** UT1R − UT1 or UT1S − UT1, in seconds. */
+  minusUt1: number;
+  /** The regularised reading, counted as the UT1 given is: seconds from 1970-01-01 00:00 UT1. */
+  reading: number;
+}
+
+/** A twilight `hc_dawn` and `hc_dusk` take: the Sun's centre 6°, 12° or 18° below the horizon. */
+export type TwilightName = "civil" | "nautical" | "astronomical";
+
+/** One line of `hc_tropical_signs_in_year` or, without its ayanāṃśa, `hc_sidereal_signs_in_year`. */
+export interface SignPeriod<Id extends string> {
+  /** 1 for Aries or Meṣa through 12 for Pisces or Mīna. */
+  sign: number;
+  id: Id;
+  /** The English name of a tropical sign, the Sanskrit name of a sidereal one. */
+  name: string;
+  /** The instant the Sun entered the sign, as POSIX seconds of Universal Time, rounded down. */
+  start: number;
+  /** The instant it left, which is the next sign's `start`. */
+  end: number;
+  /** The first fixed day of the sign at the meridian. */
+  begins: number;
+  /** The last fixed day, the day before the next sign's `begins`. */
+  ends: number;
+}
+
+/** One line of `hc_sidereal_signs_in_year`. */
+export interface SiderealSignPeriod extends SignPeriod<SiderealSignId> {
+  ayanamsa: Ayanamsa;
+}
+
+/** One line of `hc_principal_phases_in_month`. */
+export interface PrincipalPhase {
+  phase: MoonPhaseName;
+  /** POSIX seconds of Universal Time, rounded down. */
+  instant: number;
+  /** The fixed day it falls on at the meridian. */
+  day: number;
+}
+
+/** A calendar `hc_southeast_asian_year_type` reads: the Buddhist Era for `khmer`, the Chulasakarat for `lao`. */
+export type SoutheastAsianCalendar = "khmer" | "lao";
+
+/** The kind of a Khmer or Lao lunar year: twelve months of 354 days, a 30th day in month 7, or month 8 twice. */
+export type LunarYearKind = "normal" | "extra-day" | "extra-month";
+
+/** The one line of `hc_southeast_asian_year_type`. */
+export interface SoutheastAsianYearType {
+  calendar: SoutheastAsianCalendar;
+  /** The year as the calendar numbers it. */
+  year: number;
+  kind: LunarYearKind;
+  /** 354, 355 or 384. */
+  days: number;
+  /** Whether month 8 is doubled. */
+  extraMonth: boolean;
+  thaiName: string;
+  khmerName: string;
+  /** The fixed day the solar New Year changes the year, `hc_solar_new_year`'s. */
+  newYear: number;
+  /** The seconds after midnight at which it changes. */
+  seconds: number;
+}
+
+/** A Maya correlation constant by name or by value: `gmt` is 584 283, `gmt2` 584 285, `martin-skidmore` 584 286. */
+export type MayaCorrelation =
+  | "gmt" | "584283" | "gmt2" | "gmt-plus-two" | "584285" | "martin-skidmore" | "584286";
+
+/** The one line of `hc_maya_long_count`. */
+export interface MayaLongCount {
+  /** The registry identifier of the Long Count under the constant: `maya-longcount`, `maya-longcount-gmt2`, `maya-longcount-584286`. */
+  id: string;
+  /** The constant. */
+  correlation: number;
+  /** `baktun.katun.tun.uinal.kin`. */
+  longCount: string;
+  baktun: number;
+  katun: number;
+  tun: number;
+  uinal: number;
+  kin: number;
+  /** 1 to 13. */
+  tzolkinNumber: number;
+  /** `Ahau`, `Imix`, … */
+  tzolkinName: string;
+  /** 0 to 19. */
+  haabDay: number;
+  /** `Pop` to `Uayeb`. */
+  haabMonth: string;
+}
+
+/** The one line of `hc_akan_day`. */
+export interface AkanDay {
+  /** Complete 42-day cycles since the Fɔdwo of 23 January 1978, negative before it. */
+  round: number;
+  /** The day of the cycle, 1 to 42. */
+  day: number;
+  /** 1 for Fo to 6 for Mono. */
+  nnanson: number;
+  nnansonName: string;
+  /** 1 for Kwasiada (Sunday) to 7 for Memeneda. */
+  nnawotwe: number;
+  nnawotweName: string;
+  /** The short weekday name a compound takes: `Kwasi`, `Dwo`. */
+  shortName: string;
+  /** The compound name, six-day name first: `Kuru-Kwasi`. */
+  name: string;
+  /** `Fɔdwo`, `Awukudae`, `Fofi` or `Akwasidae`; `null` on an ordinary day. */
+  dabone: string | null;
+}
+
+/** The one line of `hc_weton`. */
+export interface Weton {
+  /** Complete 35-day cycles since Rata Die 0. */
+  round: number;
+  /** The day of the cycle, 1 to 35. */
+  day: number;
+  /** 1 for Minggu (Sunday) to 7 for Setu. */
+  dina: number;
+  dinaName: string;
+  /** 1 for Legi to 5 for Kliwon. */
+  pasaran: number;
+  pasaranName: string;
+  dinaNeptu: number;
+  pasaranNeptu: number;
+  /** Their sum. */
+  neptu: number;
+  /** As spoken, weekday first: `Jemuwah Legi`. */
+  name: string;
+}
+
+/** The one line of `hc_buddhist_lk_year`. */
+export interface BuddhistLkYear {
+  /** The Buddhist year. */
+  year: number;
+  gregorianYear: number;
+  /** The fixed day of that Gregorian year's Vesak Full Moon Poya Day. */
+  vesak: number;
+  /** The fixed day the Buddhist year began on; `null` where no order read fixes it. */
+  began: number | null;
+  /** The last fixed day of the Buddhist year, the eve of the next Vesak; `null` likewise. */
+  ends: number | null;
+}
+
+/** One line of `hc_solar_nakshatra_ingresses`. */
+export interface SolarNakshatraIngress {
+  /** POSIX seconds of Universal Time, rounded down. */
+  moment: number;
+  /** The nakṣatra entered, 1 for Aśvinī through 27 for Revatī. */
+  into: number;
+  intoId: NakshatraId;
+  intoName: string;
+  /** The nakṣatra left. */
+  from: number;
+  fromId: NakshatraId;
+  fromName: string;
+}
+
+/** The kind of a standard format `hc_locale_format` lists. */
+export type FormatKind = "date" | "time" | "date-time" | "available";
+
+/** One line of `hc_locale_format`. */
+export interface LocaleFormat {
+  kind: FormatKind;
+  /** `full`, `long`, `medium` or `short`; for an available format its skeleton, `hms`, `Hms`, `Gy`, `d`, `yMMMMd` or `yMMMd`. */
+  length: string;
+  /** The pattern in UTS #35's field letters, `{1}` the date and `{0}` the time in a date-time format; `null` where the table has none. */
+  pattern: string | null;
+  /** The CLDR calendar type the formats were read under: `gregorian`, `japanese`, `generic`, … */
+  calendarType: string;
+}
+
+/** One line of `hc_plural_categories`. */
+export interface PluralCategoryExample {
+  category: PluralCategoryName;
+  /** A number the rules put in the category, as `hc_plural_category` reads one: `1`, `0.5`, `1000000`; `null` where none of the probes falls there. */
+  example: string | null;
+  /** The language of the rules, `und` where none is carried. */
+  rules: string;
+}
+
+/** One line of `hc_epochs`. */
+export interface EpochRow {
+  /** `unix`, `j2000`, `postgresql`, … */
+  id: string;
+  description: string;
+  /** Whole seconds from 1970-01-01 00:00:00 TAI. */
+  taiSeconds: bigint;
+  attoseconds: bigint;
+  /** The document that defines the epoch, with its `docs/references.bib` key. */
+  source: string;
 }
 
 /** The one line of `hc_pentad_in_tradition`. */
@@ -4693,6 +4902,8 @@ export class HyperCalendar {
   swatchBeat(unixSeconds: number | bigint, attoseconds?: number | bigint): number;
   /** `hc_epoch_from_tt`: the Julian or Besselian epoch of a TT instant. */
   epochFromTt(notation: EpochNotationName, ttSeconds: number | bigint, attoseconds?: number | bigint): Epoch;
+  /** `hc_epochs`: every epoch `hc-core` carries, with its TAI reading and source. */
+  epochs(): EpochRow[];
   /** `hc_tt_from_epoch`; an empty notation is SOFA's rule for an epoch without a letter. */
   ttFromEpoch(notation: EpochNotationName | "", year: number): EpochInstant;
   /**
@@ -4827,6 +5038,12 @@ export class HyperCalendar {
   localeInfo(locale: string): LocaleInfo;
   /** `hc_plural_category`: the plural category a number written as text has in a locale. */
   pluralCategory(locale: string, number: string, kind?: PluralKind): PluralCategoryAnswer;
+  /** `hc_plural_categories`: the categories a locale's cardinal or ordinal rules name, each with an example. */
+  pluralCategories(locale: string, kind?: PluralKind): PluralCategoryExample[];
+  /** `hc_locale_format`: the standard date, time and date-time formats of a locale for a calendar, in four lengths. */
+  localeFormat(locale: string, calendar: string): LocaleFormat[];
+  /** `hc_japanese_era_year`: 元 for 1, the Han numerals of Japanese after it. */
+  japaneseEraYear(year: number | bigint): string;
   /** `hc_names`: the names a locale has for a calendar in a width and a context. */
   names(locale: string, calendar: string, width?: NameWidth, context?: NameContext): LocaleName[];
   /** `hc_case`: a text recased as a locale cases it. */
@@ -4888,6 +5105,10 @@ export class HyperCalendar {
   rahuAt(unixSeconds: number | bigint, ayanamsa: Ayanamsa): NodePlace;
   /** `hc_rahu_ingresses`: the mean node's entries into the signs in a span. */
   rahuIngresses(fromUnixSeconds: number | bigint, toUnixSeconds: number | bigint, ayanamsa: Ayanamsa): NodeIngress[];
+  /** `hc_solar_nakshatra_ingresses`: the Sun's entries into the nakṣatras in `[from, to)`. */
+  solarNakshatraIngresses(fromUnixSeconds: number | bigint, toUnixSeconds: number | bigint, ayanamsa: Ayanamsa): SolarNakshatraIngress[];
+  /** `hc_tiruvalluvar_year`: Tamil Nadu's Tiruvaḷḷuvar year of a day, changing at Thai 1. */
+  tiruvalluvarYear(fixed: number | bigint): number;
   /** `hc_era_new_year`: the first day of a year of a historical Indian era over the lunisolar months. */
   eraNewYear(calendar: LunarEraId, year: number | bigint): number;
   /** `hc_panchanga_of_day`: read at the day's sunrise at the place; no sunrise is `no-data`. */
@@ -4955,6 +5176,16 @@ export class HyperCalendar {
   asianDay(fixed: number | bigint): AsianDay;
   /** `hc_solar_new_year`: the Burmese, Khmer or Lao solar New Year of a year in the calendar's own count. */
   solarNewYear(calendar: SolarNewYearCalendar, year: number | bigint): SolarNewYear;
+  /** `hc_southeast_asian_year_type`: the kind of a Khmer (Buddhist Era) or Lao (Chulasakarat) lunar year. */
+  southeastAsianYearType(calendar: SoutheastAsianCalendar, year: number | bigint): SoutheastAsianYearType;
+  /** `hc_maya_long_count`: a day in the Maya counts under a named correlation, `gmt` unless given. */
+  mayaLongCount(fixed: number | bigint, correlation?: MayaCorrelation): MayaLongCount;
+  /** `hc_akan_day`: a day of the Akan Adaduanan with its names and its dabɔne. */
+  akanDay(fixed: number | bigint): AkanDay;
+  /** `hc_weton`: a day's Javanese weton with its neptu. */
+  weton(fixed: number | bigint): Weton;
+  /** `hc_buddhist_lk_year`: Sri Lanka's Buddhist year of a day; outside 2023 through 2027 is `out-of-range`. */
+  buddhistLkYear(fixed: number | bigint): BuddhistLkYear;
   /** `hc_kalam`: three lines, Rāhu kālam, Yamaganda and Gulika kālam. */
   kalam(
     convention: KalamConvention,
@@ -5095,6 +5326,14 @@ export class HyperCalendar {
   seasonalDaysInYear(year: number | bigint, meridian?: Meridian): SeasonalDay[];
   /** `hc_pentads_in_year`: every pentad of a Gregorian year at a meridian, named by every tradition. */
   pentadsInYear(year: number | bigint, meridian?: Meridian): PentadOfYear[];
+  /** `hc_tropical_signs_in_year`: the twelve tropical sign periods of a Gregorian year at a meridian, Aquarius first. */
+  tropicalSignsInYear(year: number | bigint, meridian?: Meridian): SignPeriod<TropicalSignId>[];
+  /** `hc_sidereal_signs_in_year`: the twelve saṅkrāntis of a Gregorian year in an ayanāṃśa's zodiac at a meridian. */
+  siderealSignsInYear(year: number | bigint, ayanamsa: Ayanamsa, meridian?: Meridian): SiderealSignPeriod[];
+  /** `hc_traditional_tanabata`: the Observatory's 伝統的七夕 of a year, at `japan` unless a meridian is given. */
+  traditionalTanabata(year: number | bigint, meridian?: Meridian): number;
+  /** `hc_principal_phases_in_month`: the four or five principal phases inside a Gregorian month at a meridian. */
+  principalPhasesInMonth(year: number | bigint, month: number, meridian?: Meridian): PrincipalPhase[];
   /** `hc_cold_food_day`; a reckoning nobody knows is `unknown`, a year outside −999 to 3000 `out-of-range`. */
   coldFoodDay(convention: ColdFoodConvention, year: number | bigint): number;
   /** `hc_plum_rains`: at `meridian`, `china` for the published days; a year outside −1000 to 3000 is `out-of-range`. */
@@ -5173,6 +5412,22 @@ export class HyperCalendar {
   moonrise(horizon: HorizonId, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): MoonCrossing;
   /** `hc_moonset`. */
   moonset(horizon: HorizonId, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): MoonCrossing;
+  /** `hc_ut1r_iers2010`: UT1R − UT1 and the UT1R reading at a UT1 instant counted as POSIX seconds are. */
+  ut1rIers2010(ut1UnixSeconds: number): RegularizedUt1;
+  /** `hc_ut1s_iers2010`: UT1S − UT1 and the UT1S reading. */
+  ut1sIers2010(ut1UnixSeconds: number): RegularizedUt1;
+  /** `hc_zonal_tide_ut1_effect`: the zonal tides under a period limit in days, `Infinity` for all 62, in seconds. */
+  zonalTideUt1Effect(ut1UnixSeconds: number, periodLimitDays?: number): number;
+  /** `hc_equation_of_time`: apparent less mean solar time at a POSIX instant, in seconds. */
+  equationOfTime(unixSeconds: number | bigint): number;
+  /** `hc_solar_noon`: the Sun's upper transit on a local day at a place, as POSIX seconds. */
+  solarNoon(fixed: number | bigint, latitude: number, longitude: number, elevation?: number): number;
+  /** `hc_solar_midnight`: the lower transit opening the local day. */
+  solarMidnight(fixed: number | bigint, latitude: number, longitude: number, elevation?: number): number;
+  /** `hc_dawn`: the start of a twilight on a local day at a place, or the missing depression named. */
+  dawn(twilight: TwilightName, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): SolarEvent;
+  /** `hc_dusk`: the end of a twilight. */
+  dusk(twilight: TwilightName, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): SolarEvent;
   /** `hc_hjd_tt`: right ascension and declination in degrees, J2000. */
   hjdTt(ttJulianDate: number, rightAscension: number, declination: number): HeliocentricJulianDate;
   /** `hc_hjd_utc`; under `strict` a date outside the leap-second table is `no-data`. */

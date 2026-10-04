@@ -1121,6 +1121,32 @@ macro_rules! exports {
             attoseconds: u64,
         ) -> line =
             $crate::time_lines::civil_from_french_decimal_time_line;
+
+        c {
+            /// Every epoch `hc-core` carries, as NUL-terminated UTF-8 lines in a
+            /// caller-owned buffer.
+            ///
+            /// The lines are the WebAssembly module's, one an epoch in the table's
+            /// order: its identifier, its description, its TAI reading as whole
+            /// seconds from 1970-01-01 00:00:00 TAI and attoseconds, and the
+            /// document that defines it. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// Every epoch `hc-core` carries, as UTF-8 lines, returning the byte
+            /// length written.
+            ///
+            /// One line an epoch, in the table's order — the POSIX epoch, the GNSS
+            /// epochs, J2000, the origin of TCG and TCB, the Julian Day and the
+            /// Modified Julian Date, Rata Die, and the software epochs from .NET's
+            /// ticks to PostgreSQL's timestamps — tab-separated: its identifier
+            /// (`unix`, `j2000`, `postgresql`), its description, its TAI reading as
+            /// whole seconds from 1970-01-01 00:00:00 TAI and the attoseconds into
+            /// that second, as every TAI instant crosses, and the document that
+            /// defines it, with the key of its entry in `docs/references.bib`. A
+            /// null `buffer` returns the length the text needs.
+        }
+        fn hc_epochs() -> line = || Ok($crate::time_lines::epochs_lines());
     } };
     ("time-codes", $backend:ident) => { $backend! {
         c {
@@ -3156,9 +3182,10 @@ macro_rules! exports {
             /// Every era of a table, one a line, as NUL-terminated UTF-8 lines in a
             /// caller-owned buffer.
             ///
-            /// `table` is `japanese`, `chinese-regnal` or `korean-regnal`, in any
-            /// case; anything else is `HC_ERROR_UNKNOWN`, and null
-            /// `HC_ERROR_NULL_POINTER`. The lines are the WebAssembly module's.
+            /// `table` is `japanese`, `chinese-regnal`, `korean-regnal` or
+            /// `vietnamese-regnal-nguyen`, in any case; anything else is
+            /// `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`. The lines are
+            /// the WebAssembly module's.
             /// Writes the required length, including the terminator, into
             /// `written`.
         }
@@ -3169,26 +3196,32 @@ macro_rules! exports {
             /// The tables' own eras, not the locale data's list `hc_calendar_eras`
             /// names in a locale: `japanese` has the 248 eras from 大化 to 令和 where
             /// CLDR lists 236, `chinese-regnal` the 37 of the Ming, the Southern
-            /// Ming, the Shun and the Qing, and `korean-regnal` the three of the
-            /// Korean Empire, which no locale data lists. Tab-separated, twelve
-            /// columns: the era's code (`reiwa`, `showa-1312`); its name in the
-            /// characters of its source; its reading, in hiragana, pinyin or hangul;
-            /// its romanisation; the court (`unified`, `northern` or `southern`) or
-            /// the dynasty (`ming`, `southern-ming`, `shun`, `qing` or
-            /// `korean-empire`); the Gregorian year of its first year (元年), and of
-            /// its last where the table has one, the Chinese table's, and the Korean
-            /// table's; the fixed day it began, the day the Japanese era was
-            /// proclaimed or the Korean chosen, and the last fixed day it was in force
-            /// (the day before the next era of its court's stream, a Unified era read
-            /// in the Northern one, which carried 建武 to 暦応; before the lapse of 白雉
-            /// and 朱鳥; and for 元中 before the reunion of 1392), each empty where the
-            /// table has none, as for the Chinese eras and an era known to the month
-            /// alone; the status, `attested`, `disputed` or `month-only` for the
-            /// Japanese, `kept` or `not-kept` for the Chinese; the first day under
-            /// the other reading, 光武 backdated to 1 January 1897, empty elsewhere;
-            /// and the table's note. The table is read before anything else: one
-            /// not named is `HC_ERR_UNKNOWN`. A null `buffer` returns the length the
-            /// text needs.
+            /// Ming, the Shun and the Qing, `korean-regnal` the three of the
+            /// Korean Empire, which no locale data lists, and
+            /// `vietnamese-regnal-nguyen` the twelve of the Nguyễn dynasty from Gia
+            /// Long to Bảo Đại. Tab-separated, twelve
+            /// columns: the era's code (`reiwa`, `showa-1312`, `gia-long`); its name
+            /// in the characters of its source; its reading, in hiragana, pinyin or
+            /// hangul, or the Vietnamese name with its diacritics; its romanisation,
+            /// the Vietnamese name again; the court (`unified`, `northern` or
+            /// `southern`) or the dynasty (`ming`, `southern-ming`, `shun`, `qing`,
+            /// `korean-empire` or `nguyen`); the Gregorian year of its first year
+            /// (元年), and of its last where the table has one, the Chinese table's,
+            /// the Korean table's and the Vietnamese table's for a kept era; the
+            /// fixed day it began, the day the Japanese era was proclaimed, the
+            /// Korean chosen or the Vietnamese first in force, and the last fixed day
+            /// it was in force (the day before the next era of its court's stream,
+            /// a Unified era read in the Northern one, which carried 建武 to 暦応;
+            /// before the lapse of 白雉 and 朱鳥; for 元中 before the reunion of 1392;
+            /// and for a Nguyễn era the day before the next kept era or the
+            /// abdication of 30 August 1945), each empty where the table has none,
+            /// as for the Chinese eras, an era known to the month alone and the
+            /// Vietnamese era not kept; the status, `attested`, `disputed` or
+            /// `month-only` for the Japanese, `kept` or `not-kept` for the Chinese
+            /// and the Vietnamese; the first day under the other reading, 光武
+            /// backdated to 1 January 1897, empty elsewhere; and the table's note.
+            /// The table is read before anything else: one not named is
+            /// `HC_ERR_UNKNOWN`. A null `buffer` returns the length the text needs.
         }
         fn hc_era_table(table: name(table_len)) -> line =
             $crate::calendar_values::era_table_lines;
@@ -4603,6 +4636,310 @@ macro_rules! exports {
         }
         fn hc_solar_new_year(calendar: name(calendar_len), year: i64) -> line =
             $crate::calendar_values::solar_new_year_line;
+
+        c {
+            /// The kind of lunar year a year of the Khmer or the Lao calendar is,
+            /// as one NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// `calendar` is `khmer` or `lao`, in any case; anything else is
+            /// `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`. `year` is the
+            /// calendar's own, the Buddhist Era for `khmer` and the Chulasakarat for
+            /// `lao`, as `hc_solar_new_year` takes it; one outside the calendar's
+            /// range is `HC_ERROR_OUT_OF_RANGE`. The line is the WebAssembly
+            /// module's. Writes the required length, including the terminator,
+            /// into `written`.
+        }
+        wasm {
+            /// The kind of lunar year a year of the Khmer or the Lao calendar is,
+            /// as one UTF-8 line, returning the byte length written.
+            ///
+            /// Tab-separated: the calendar, `khmer` or `lao`; the year as it
+            /// numbers it, the Buddhist Era for `khmer` (2444 to 2744) and the
+            /// Chulasakarat for `lao` (1301 to 1401); the kind under the
+            /// *suryayatra* rule as the country applies it, `normal` (twelve months,
+            /// 354 days), `extra-day` (a 30th day in month 7, 355 days) or
+            /// `extra-month` (month 8 twice, 384 days); its days; `1` when the year
+            /// has the doubled month 8, else `0`; its Thai name and its Khmer name;
+            /// and the fixed day and the seconds after midnight at which the solar
+            /// New Year changes the year, `hc_solar_new_year`'s. `calendar` is read
+            /// in any case; anything else, the empty string included, is
+            /// `HC_ERR_UNKNOWN`, and a year outside the range
+            /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+            /// needs.
+        }
+        fn hc_southeast_asian_year_type(calendar: name(calendar_len), year: i64) -> line =
+            $crate::calendar_values::southeast_asian_year_type_line;
+
+        c {
+            /// A fixed day in the Maya counts under a named correlation constant,
+            /// as one NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// `correlation` is `gmt` or `584283`, `gmt2`, `gmt-plus-two` or
+            /// `584285`, or `martin-skidmore` or `584286`, in any case; anything
+            /// else is `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`. A day
+            /// before 0.0.0.0.0 or after 19.19.19.17.19 under the constant is
+            /// `HC_ERROR_OUT_OF_RANGE`. The line is the WebAssembly module's.
+            /// Writes the required length, including the terminator, into
+            /// `written`.
+        }
+        wasm {
+            /// A fixed day in the Maya counts under a named correlation constant,
+            /// as one UTF-8 line, returning the byte length written.
+            ///
+            /// The correlation is the caller's choice by name, where `hc_describe_day`
+            /// carries the three constants as three calendars each: `gmt` or
+            /// `584283`, the Goodman–Martínez–Thompson constant; `gmt2`,
+            /// `gmt-plus-two` or `584285`; `martin-skidmore` or `584286`; in any
+            /// case. Tab-separated: the registry identifier of the Long Count under
+            /// it (`maya-longcount`, `maya-longcount-gmt2`, `maya-longcount-584286`);
+            /// the constant; the Long Count as `baktun.katun.tun.uinal.kin`, then
+            /// its five places as five cells; the tzolkʼin number, 1 to 13, and its
+            /// day name; and the haabʼ day, 0 to 19, and its month name, the cycles
+            /// placed by the same constant, so that the Calendar Round is the one an
+            /// inscription pairs with that Long Count: 0.0.0.0.0 is 4 Ahau 8 Cumku
+            /// under every constant. A correlation not named, the empty string
+            /// included, is `HC_ERR_UNKNOWN`, and a day before 0.0.0.0.0 or after
+            /// 19.19.19.17.19 under it `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns
+            /// the length the text needs.
+        }
+        fn hc_maya_long_count(fixed: i64, correlation: name(correlation_len)) -> line =
+            $crate::calendar_values::maya_long_count_line;
+
+        c {
+            /// A fixed day in the Akan *Adaduanan*, the 42-day cycle of the six-day
+            /// and the seven-day week, as one NUL-terminated UTF-8 line in a
+            /// caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. A day at the ends of the
+            /// `int64_t` days, which the cycle's arithmetic cannot place, is
+            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// A fixed day in the Akan *Adaduanan*, the 42-day cycle of the six-day
+            /// and the seven-day week, as one UTF-8 line, returning the byte length
+            /// written.
+            ///
+            /// Tab-separated: the complete cycles since the *Fɔdwo* of 23 January
+            /// 1978, the cycle's epoch; the day of the cycle, 1 to 42; the *nnanson*
+            /// day, 1 for Fo to 6 for Mono, and its name; the weekday, 1 for
+            /// Kwasiada (Sunday) to 7 for Memeneda, and its name; the short weekday
+            /// name a compound takes (`Kwasi`, `Dwo`); the day's compound name, the
+            /// six-day name first (`Kuru-Kwasi`); and the *dabɔne* the day is,
+            /// `Fɔdwo`, `Awukudae`, `Fofi` or `Akwasidae`, or empty. The names are
+            /// `hc_describe_day`'s calendar `akan`'s, which carries the two
+            /// positions as numbers alone. A day at the ends of the `i64` days is
+            /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+            /// needs.
+        }
+        fn hc_akan_day(fixed: i64) -> line = $crate::calendar_values::akan_day_line;
+
+        c {
+            /// A fixed day's *weton*, the Javanese five-day *pasaran* against the
+            /// seven-day week, as one NUL-terminated UTF-8 line in a caller-owned
+            /// buffer.
+            ///
+            /// The line is the WebAssembly module's. A day at the ends of the
+            /// `int64_t` days, which the cycle's arithmetic cannot place, is
+            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// A fixed day's *weton*, the Javanese five-day *pasaran* against the
+            /// seven-day week, as one UTF-8 line, returning the byte length written.
+            ///
+            /// Tab-separated: the complete 35-day *wetonan* cycles since the epoch,
+            /// Rata Die 0; the day of the cycle, 1 to 35; the weekday, 1 for Minggu
+            /// (Sunday) to 7 for Setu, and its Javanese name, the *dina*; the
+            /// *pasaran* day, 1 for Legi to 5 for Kliwon, and its name; the *neptu*
+            /// of the weekday and of the pasaran, and their sum, the day's *neptu*;
+            /// and the day's compound name as it is spoken, weekday first (`Jemuwah
+            /// Legi`). `hc_describe_day`'s calendar `javanese-pasaran` carries the
+            /// positions and the sum as numbers alone. A day at the ends of the
+            /// `i64` days is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the
+            /// length the text needs.
+        }
+        fn hc_weton(fixed: i64) -> line = $crate::calendar_values::weton_line;
+
+        c {
+            /// Sri Lanka's Buddhist year of a fixed day, counted from the Vesak Full
+            /// Moon Poya Day, as one NUL-terminated UTF-8 line in a caller-owned
+            /// buffer.
+            ///
+            /// The line is the WebAssembly module's. A day outside 2023 to 2027,
+            /// the years whose Vesak day a Holidays Act order read fixes, is
+            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// Sri Lanka's Buddhist year of a fixed day, counted from the Vesak Full
+            /// Moon Poya Day, as one UTF-8 line, returning the byte length written.
+            ///
+            /// The Common Era year plus 544 from the Vesak Poya and plus 543 before
+            /// it, `hc_describe_day`'s calendar `buddhist-lk`. Tab-separated: the
+            /// Buddhist year; the Gregorian year the day is in; the fixed day of
+            /// that Gregorian year's Vesak Poya, as the Holidays Act order read fixes
+            /// it; the fixed day the Buddhist year began on, that Vesak or the year
+            /// before's, empty where no order read fixes it; and the last fixed day
+            /// of the Buddhist year, the eve of the next Vesak, empty likewise. A
+            /// day outside 2023 to 2027, the years whose Vesak day an order read
+            /// fixes, is `HC_ERR_OUT_OF_RANGE`: a gap, never a computed full moon. A
+            /// null `buffer` returns the length the text needs.
+        }
+        fn hc_buddhist_lk_year(fixed: i64) -> line =
+            $crate::calendar_values::buddhist_lk_year_line;
+
+        c {
+            /// The Tiruvaḷḷuvar year of a fixed day, Tamil Nadu's official count,
+            /// written to `out_year`.
+            ///
+            /// The Gregorian year in which the day's Thai 1 falls, plus 31, on the
+            /// Tamil solar calendar `hindu-solar-tamil`. A day outside the
+            /// Gregorian years 1700 to 2299 is `HC_ERROR_OUT_OF_RANGE`.
+        }
+        wasm {
+            /// The Tiruvaḷḷuvar year of a fixed day, Tamil Nadu's official count, or
+            /// an error sentinel.
+            ///
+            /// The Gregorian year in which the day's Thai 1, the Makara saṅkrānti's
+            /// month on the Tamil solar calendar `hindu-solar-tamil`, falls, plus
+            /// 31: 2052 from 14 January 2021 to the eve of Thai 1 of 2022, so the
+            /// count changes at Thai 1 and not at the Tamil New Year of Chithirai 1,
+            /// which `hc_describe_day` writes as the date's `tiruvalluvar-year`
+            /// field. A day outside the Gregorian years 1700 to 2299 is
+            /// `HC_ERR_OUT_OF_RANGE`.
+        }
+        fn hc_tiruvalluvar_year(fixed: i64) -> value(out_year: i64) =
+            $crate::hindu_lines::tiruvalluvar_year;
+
+        c {
+            /// The Sun's entries into the nakṣatras within a span, as NUL-terminated
+            /// UTF-8 lines in a caller-owned buffer.
+            ///
+            /// The lines are the WebAssembly module's. `ayanamsa` is as for
+            /// `hc_nakshatra_at`; null is `HC_ERROR_NULL_POINTER`. The span is
+            /// `[from_unix_seconds, to_unix_seconds)` and fails as
+            /// `hc_rahu_ingresses`'s does. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// The Sun's entries into the nakṣatras within a span, as UTF-8 lines,
+            /// returning the byte length written.
+            ///
+            /// One line an entry in `[from_unix_seconds, to_unix_seconds)`, in time
+            /// order, in the zodiac of the ayanāṃśa: the moment as whole POSIX
+            /// seconds of Universal Time, rounded down; the nakṣatra the Sun enters,
+            /// 1 for Aśvinī through 27 for Revatī, its identifier and its name as
+            /// `hc_nakshatra_at` writes them; and the one it leaves by the same
+            /// three. The Sun crosses a nakṣatra in thirteen to fourteen days, the
+            /// stay the Malayalam almanacs print as a ñāṭṭuvēla, so a year has
+            /// twenty-seven entries. `ayanamsa` is as for `hc_nakshatra_at`;
+            /// another is `HC_ERR_UNKNOWN`. A `to` not after the `from` writes
+            /// nothing; a span longer than a hundred Julian years, or with an end
+            /// outside the years −1000 to 3000, is `HC_ERR_OUT_OF_RANGE`. A null
+            /// `buffer` returns the length the text needs.
+        }
+        fn hc_solar_nakshatra_ingresses(
+            from_unix_seconds: i64,
+            to_unix_seconds: i64,
+            ayanamsa: name(ayanamsa_len),
+        ) -> line =
+            $crate::panchanga_lines::solar_nakshatra_ingresses_lines;
+
+        c {
+            /// A year of a Japanese era as the era's dates write it, 元 for the
+            /// first year and the Han numerals of Japanese for every other, as one
+            /// NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. A year below 1 is
+            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// A year of a Japanese era as the era's dates write it, 元 for the
+            /// first year and the Han numerals of Japanese for every other, as one
+            /// UTF-8 line, returning the byte length written.
+            ///
+            /// One cell: 元 for 1, 二 for 2, 三十一 for 31, the numerals of the
+            /// `jpan` numbering system `hc_format_number` writes. A year below 1,
+            /// or one the numerals do not write, is `HC_ERR_OUT_OF_RANGE`. A null
+            /// `buffer` returns the length the text needs.
+        }
+        fn hc_japanese_era_year(year: i64) -> line =
+            $crate::i18n_lines::japanese_era_year_line;
+
+        c {
+            /// The standard date, time and date-time formats a locale carries for
+            /// a calendar, in CLDR's four lengths, as NUL-terminated UTF-8 lines in
+            /// a caller-owned buffer.
+            ///
+            /// The lines are the WebAssembly module's. `calendar` is a registry
+            /// identifier; one the registry does not carry is `HC_ERROR_UNKNOWN`,
+            /// and null `HC_ERROR_NULL_POINTER`. A tag that does not parse is
+            /// `HC_ERROR_MALFORMED`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// The standard date, time and date-time formats a locale carries for
+            /// a calendar, in CLDR's four lengths, as UTF-8 lines, returning the
+            /// byte length written.
+            ///
+            /// One line a format, eighteen in all, tab-separated: the kind, `date`,
+            /// `time`, `date-time` or `available`; the length, `full`, `long`,
+            /// `medium` or `short`, or for an available format its skeleton,
+            /// `hms`, `Hms`, `Gy`, `d`, `yMMMMd` or `yMMMd`; the pattern in UTS #35's
+            /// field letters (`EEEE, d. MMMM y` for `de`'s full date, `HH:mm:ss` its
+            /// medium time, `{1}, {0}` its medium date-time, `{1}` the date and `{0}`
+            /// the time), empty where the table has none; and the CLDR calendar type
+            /// the formats were read under, `gregorian` for the Gregorian family,
+            /// `japanese`, `hebrew`, `islamic`, `persian`, `chinese`, `buddhist`,
+            /// `roc`, `coptic`, `ethiopic`, `indian`, `dangi`, `iso8601`, and
+            /// `generic` for a calendar CLDR gives no formats of its own. The
+            /// patterns are CLDR 48's for the locale, resolved through its fallback
+            /// chain and `root.xml`; `hc_format_pattern`'s `%c`, `%x` and `%X` write
+            /// the medium ones. `calendar` is a registry identifier; one the
+            /// registry does not carry is `HC_ERR_UNKNOWN`. A tag that does not
+            /// parse is `HC_ERR_MALFORMED`; `locale` is as for `hc_locale_chain`. A
+            /// null `buffer` returns the length the text needs.
+        }
+        fn hc_locale_format(locale: text(locale_len), calendar: name(calendar_len)) -> line =
+            $crate::i18n_lines::locale_format_lines;
+
+        c {
+            /// The plural categories a locale's cardinal or ordinal rules name, each
+            /// with a number that falls in it, as NUL-terminated UTF-8 lines in a
+            /// caller-owned buffer.
+            ///
+            /// The lines are the WebAssembly module's. `kind` is `cardinal` or
+            /// `ordinal`, as for `hc_plural_category`; any other kind is
+            /// `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`. A tag that does
+            /// not parse is `HC_ERROR_MALFORMED`. Writes the required length,
+            /// including the terminator, into `written`.
+        }
+        wasm {
+            /// The plural categories a locale's cardinal or ordinal rules name, each
+            /// with a number that falls in it, as UTF-8 lines, returning the byte
+            /// length written.
+            ///
+            /// One line a category the rules name, in CLDR's order — `zero`, `one`,
+            /// `two`, `few`, `many`, `other` — tab-separated: the category; a
+            /// number the rules put in it, written as `hc_plural_category` reads
+            /// one (`1`, `0.5`, `1000000`), the first of the written numbers 0 to
+            /// 1 100 and the first millions, with one and two fraction digits, that
+            /// falls there, empty for a category no such number reaches; and the
+            /// language of the rules that answered (`ru`, `pt-PT`, or `und` where
+            /// none is carried and everything is `other`). Arabic's cardinals answer
+            /// all six, Russian's `one`, `few`, `many` and `other`, French's `one`,
+            /// `many` and `other`, its `many` a whole million, Japanese's `other`
+            /// alone; English's ordinals `one` (1st), `two`, `few` and `other`.
+            /// `kind` is `cardinal`, the form after a count, or `ordinal`, the form
+            /// of a position, in any case, as for `hc_plural_category`; any other
+            /// kind is `HC_ERR_UNKNOWN`. A tag that does not parse is
+            /// `HC_ERR_MALFORMED`; `locale` is as for `hc_locale_chain`. A null
+            /// `buffer` returns the length the text needs.
+        }
+        fn hc_plural_categories(locale: text(locale_len), kind: name(kind_len)) -> line =
+            $crate::i18n_lines::plural_categories_lines;
     } };
     ("seasons", $backend:ident) => { $backend! {
         c {
@@ -4899,6 +5236,125 @@ macro_rules! exports {
         }
         fn hc_pentads_in_year(year: i64, meridian: text(meridian_len)) -> line =
             $crate::season_lines::pentads_in_year_lines;
+
+        c {
+            /// The twelve tropical sign periods of a Gregorian year at a meridian,
+            /// as NUL-terminated UTF-8 lines in a caller-owned buffer.
+            ///
+            /// The lines are the WebAssembly module's. `meridian` is as for
+            /// `hc_term_in_effect`, and a year outside −1000 to 3000 is
+            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// The twelve tropical sign periods of a Gregorian year at a meridian,
+            /// as UTF-8 lines, returning the byte length written.
+            ///
+            /// One line a sign, in date order from Aquarius around 20 January to
+            /// Capricorn around 21 December, the order the signs appear in a
+            /// Gregorian year, tab-separated: the sign, 1 for Aries through 12 for
+            /// Pisces; its identifier (`aries`) and English name; the instant the
+            /// Sun entered it and the instant it left, each as whole POSIX seconds
+            /// of Universal Time, rounded down, consecutive signs sharing theirs
+            /// exactly; and the first and the last fixed day of the sign at the
+            /// meridian, so that a sign's days run `begins..=ends`. The signs turn
+            /// at the solar terms of `hc_solar_terms_between`; `hc_decan_at` has the
+            /// sign at an instant. `meridian` is as for `hc_term_in_effect`, and a
+            /// year outside −1000 to 3000 is `HC_ERR_OUT_OF_RANGE`. A null `buffer`
+            /// returns the length the text needs.
+        }
+        fn hc_tropical_signs_in_year(year: i64, meridian: text(meridian_len)) -> line =
+            $crate::season_lines::tropical_signs_in_year_lines;
+
+        c {
+            /// The twelve sidereal sign periods, the saṅkrāntis, of a Gregorian
+            /// year in the zodiac of a named ayanāṃśa at a meridian, as
+            /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+            ///
+            /// The lines are the WebAssembly module's. `ayanamsa` is as for
+            /// `hc_drekkana_at`; null is `HC_ERROR_NULL_POINTER`. `meridian` is as
+            /// for `hc_term_in_effect`, and a year outside −1000 to 3000 is
+            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// The twelve sidereal sign periods, the saṅkrāntis, of a Gregorian
+            /// year in the zodiac of a named ayanāṃśa at a meridian, as UTF-8
+            /// lines, returning the byte length written.
+            ///
+            /// One line a sign, in date order from the first saṅkrānti on or after
+            /// 1 January, Makara's around 14 January with a modern ayanāṃśa,
+            /// tab-separated: the sign, 1 for Meṣa through 12 for Mīna; its
+            /// identifier (`mesha`) and Sanskrit name; the instant the Sun entered
+            /// it and the instant it left, each as whole POSIX seconds of Universal
+            /// Time, rounded down; the first and the last fixed day of the sign at
+            /// the meridian; and the ayanāṃśa's identifier. `ayanamsa` is as for
+            /// `hc_drekkana_at`; anything else, the empty string included, is
+            /// `HC_ERR_UNKNOWN`, read before the meridian. `meridian` is as for
+            /// `hc_term_in_effect`, and a year outside −1000 to 3000 is
+            /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+            /// needs.
+        }
+        fn hc_sidereal_signs_in_year(
+            year: i64,
+            ayanamsa: name(ayanamsa_len),
+            meridian: text(meridian_len),
+        ) -> line =
+            $crate::season_lines::sidereal_signs_in_year_lines;
+
+        c {
+            /// The fixed day of 伝統的七夕, the National Astronomical Observatory's
+            /// traditional Tanabata, of a Gregorian year at a meridian.
+            ///
+            /// `meridian` is as for `hc_term_in_effect`; the Observatory's days are
+            /// at `japan`. A year outside −1000 to 3000 is `HC_ERROR_OUT_OF_RANGE`.
+        }
+        wasm {
+            /// The fixed day of 伝統的七夕, the National Astronomical Observatory's
+            /// traditional Tanabata, of a Gregorian year at a meridian, or an error
+            /// sentinel.
+            ///
+            /// The seventh day counted from the day holding the new moon nearest 処暑,
+            /// on or before the day holding 処暑, as the Observatory defines it:
+            /// 10 August 2024, 29 August 2025, 19 August 2026 at `japan`, where its
+            /// table's days are read. `meridian` is as for `hc_term_in_effect`, and
+            /// a year outside −1000 to 3000 is `HC_ERR_OUT_OF_RANGE`.
+        }
+        fn hc_traditional_tanabata(year: i64, meridian: text(meridian_len)) -> value(out_fixed: i64) =
+            $crate::season_lines::traditional_tanabata;
+
+        c {
+            /// The principal phases of the Moon that fall inside a Gregorian month
+            /// at a meridian, as NUL-terminated UTF-8 lines in a caller-owned
+            /// buffer.
+            ///
+            /// The lines are the WebAssembly module's. `meridian` is as for
+            /// `hc_term_in_effect`; a month outside 1 to 12 is
+            /// `HC_ERROR_INVALID_DATE` and a year outside −1000 to 3000
+            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// The principal phases of the Moon that fall inside a Gregorian month
+            /// at a meridian, as UTF-8 lines, returning the byte length written.
+            ///
+            /// One line a phase, in time order, four or five of them, since a month
+            /// of 30 or 31 days can hold one phase twice, tab-separated: the phase,
+            /// `new`, `first-quarter`, `full` or `last-quarter`, as
+            /// `hc_moon_phases_between` names them; its instant as whole POSIX
+            /// seconds of Universal Time, rounded down; and the fixed day it falls
+            /// on at the meridian, which is what decides the month. `meridian` is as
+            /// for `hc_term_in_effect`; a month outside 1 to 12 is
+            /// `HC_ERR_INVALID_DATE` and a year outside −1000 to 3000
+            /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+            /// needs.
+        }
+        fn hc_principal_phases_in_month(
+            year: i64,
+            month: u32,
+            meridian: text(meridian_len),
+        ) -> line =
+            $crate::season_lines::principal_phases_in_month_lines;
     } };
     ("holiday", $backend:ident) => { $backend! {
         c {
@@ -7295,6 +7751,217 @@ macro_rules! exports {
             |horizon, fixed, latitude, longitude, elevation| {
                 $crate::astro_lines::location(latitude, longitude, elevation)
                     .and_then(|place| $crate::astro_lines::moonset_line(horizon, fixed, place))
+            };
+
+        c {
+            /// UT1R at a UT1 instant by the IERS 2010 zonal tide model, as one
+            /// NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. The instant is as for
+            /// `hc_earth_rotation_angle`, and fails as it does. Writes the required
+            /// length, including the terminator, into `written`.
+        }
+        wasm {
+            /// UT1R at a UT1 instant by the IERS 2010 zonal tide model, as one UTF-8
+            /// line, returning the byte length written.
+            ///
+            /// UT1 with the 41 zonal tides of periods under 35 days of IERS
+            /// Conventions 2010, Table 8.1, removed, as the IAU defined UT1R in
+            /// 1982; the tidal model is in the name, since the Conventions' table
+            /// is not Yoder's of 1981. Tab-separated: UT1R − UT1 in seconds, within
+            /// ±2.75 ms, and the UT1R reading, counted as the UT1 given is, 86 400
+            /// seconds a day from 1970-01-01 00:00 UT1. The instant is as for
+            /// `hc_earth_rotation_angle`, and fails as it does. A null `buffer`
+            /// returns the length the text needs.
+        }
+        fn hc_ut1r_iers2010(ut1_unix_seconds: f64) -> line =
+            $crate::astro_lines::ut1r_iers2010_line;
+
+        c {
+            /// UT1S at a UT1 instant by the IERS 2010 zonal tide model, as one
+            /// NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// As `hc_ut1r_iers2010`, with all 62 tides removed.
+        }
+        wasm {
+            /// UT1S at a UT1 instant by the IERS 2010 zonal tide model, as one UTF-8
+            /// line, returning the byte length written.
+            ///
+            /// As `hc_ut1r_iers2010`, with all 62 zonal tides of Table 8.1 removed,
+            /// to the 18.6-year nodal term: UT1S − UT1 in seconds, within ±0.173 s,
+            /// and the UT1S reading.
+        }
+        fn hc_ut1s_iers2010(ut1_unix_seconds: f64) -> line =
+            $crate::astro_lines::ut1s_iers2010_line;
+
+        c {
+            /// The effect on UT1 of the zonal tides whose period is under a limit,
+            /// at a UT1 instant, as one NUL-terminated UTF-8 line in a caller-owned
+            /// buffer.
+            ///
+            /// The line is the WebAssembly module's. The instant is as for
+            /// `hc_earth_rotation_angle`, and fails as it does; a limit that is not
+            /// positive is `HC_ERROR_OUT_OF_RANGE`. Writes the required length,
+            /// including the terminator, into `written`.
+        }
+        wasm {
+            /// The effect on UT1 of the zonal tides whose period is under a limit,
+            /// at a UT1 instant, as one UTF-8 line, returning the byte length
+            /// written.
+            ///
+            /// The one cell is the sum, in seconds, of the terms of IERS Conventions
+            /// 2010, Table 8.1, whose period in days is under `period_limit_days`:
+            /// 35 is UT1R's 41 tides and an infinite limit UT1S's 62, and a limit
+            /// between them is a model of the caller's own. The regularised reading
+            /// is UT1 *minus* this, as the Conventions say the corrections are
+            /// subtracted. The instant is as for `hc_earth_rotation_angle`, and
+            /// fails as it does; a limit that is not positive, NaN included, is
+            /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+            /// needs.
+        }
+        fn hc_zonal_tide_ut1_effect(ut1_unix_seconds: f64, period_limit_days: f64) -> line =
+            $crate::astro_lines::zonal_tide_ut1_effect_line;
+
+        c {
+            /// The equation of time at a POSIX timestamp, as one NUL-terminated
+            /// UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. An instant outside the years
+            /// −1000 to 3000 is `HC_ERROR_OUT_OF_RANGE`. Writes the required length,
+            /// including the terminator, into `written`.
+        }
+        wasm {
+            /// The equation of time at a POSIX timestamp, as one UTF-8 line,
+            /// returning the byte length written.
+            ///
+            /// The one cell is apparent solar time less mean solar time, in
+            /// seconds, positive when a sundial is ahead of the mean clock and up
+            /// to about sixteen minutes either way over the year, from the hour
+            /// angle of the apparent Sun that `hc_solar_time`'s `local-apparent`
+            /// clock and the rise and set exports solve: +822.6 s on 1992 October 13
+            /// at 0h, Meeus's example 28.a. The timestamp is read as Universal Time;
+            /// one outside the years −1000 to 3000 is `HC_ERR_OUT_OF_RANGE`. A null
+            /// `buffer` returns the length the text needs.
+        }
+        fn hc_equation_of_time(unix_seconds: i64) -> line =
+            $crate::astro_lines::equation_of_time_line;
+
+        c {
+            /// Apparent solar noon on a local day at a place, as POSIX seconds of
+            /// Universal Time, written to `out_unix_seconds`.
+            ///
+            /// The Sun's upper transit of the local meridian, which every day has,
+            /// under the midnight sun too. The place is as for `hc_sunrise`; one
+            /// off the globe, or a day outside the years −1000 to 3000, is
+            /// `HC_ERROR_OUT_OF_RANGE`.
+        }
+        wasm {
+            /// Apparent solar noon on a local day at a place, as whole POSIX seconds
+            /// of Universal Time, rounded down, or an error sentinel.
+            ///
+            /// The Sun's upper transit of the local meridian, which every day has,
+            /// under the midnight sun too, so there is no missing event to name: the
+            /// moment `hc_solar_time`'s `local-apparent` clock reads 12. The day is
+            /// the local one, from local mean midnight at the longitude, and the
+            /// place is as for `hc_sunrise`; one off the globe, or a day outside the
+            /// years −1000 to 3000, is `HC_ERR_OUT_OF_RANGE`.
+        }
+        fn hc_solar_noon(fixed: i64, latitude: f64, longitude: f64, elevation: f64) -> value(out_unix_seconds: i64) =
+            |fixed, latitude, longitude, elevation| {
+                $crate::astro_lines::location(latitude, longitude, elevation)
+                    .and_then(|place| $crate::astro_lines::solar_noon(fixed, place))
+            };
+
+        c {
+            /// Apparent solar midnight opening a local day at a place, as POSIX
+            /// seconds of Universal Time, written to `out_unix_seconds`.
+            ///
+            /// The Sun's lower transit, half a day before the day's noon; the place
+            /// and the day are as for `hc_solar_noon`, and fail as it does.
+        }
+        wasm {
+            /// Apparent solar midnight opening a local day at a place, as whole
+            /// POSIX seconds of Universal Time, rounded down, or an error sentinel.
+            ///
+            /// The Sun's lower transit, half a day before the day's `hc_solar_noon`,
+            /// which every day has; the place and the day are as for
+            /// `hc_solar_noon`, and fail as it does.
+        }
+        fn hc_solar_midnight(fixed: i64, latitude: f64, longitude: f64, elevation: f64) -> value(out_unix_seconds: i64) =
+            |fixed, latitude, longitude, elevation| {
+                $crate::astro_lines::location(latitude, longitude, elevation)
+                    .and_then(|place| $crate::astro_lines::solar_midnight(fixed, place))
+            };
+
+        c {
+            /// The start of a named twilight on a local day at a place, as one
+            /// NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// `twilight` is `civil`, `nautical` or `astronomical`, in any case;
+            /// anything else is `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`.
+            /// The line is the WebAssembly module's: the instant as POSIX seconds,
+            /// and the four cells of `hc_solar_event` naming the missing
+            /// `depression`. The place is as for `hc_sunrise`; one off the globe, or
+            /// a day outside the years −1000 to 3000, is `HC_ERROR_OUT_OF_RANGE`.
+            /// Writes the required length, including the terminator, into
+            /// `written`.
+        }
+        wasm {
+            /// The start of a named twilight on a local day at a place, as one
+            /// UTF-8 line, returning the byte length written.
+            ///
+            /// `twilight` is `civil`, the Sun's centre 6° below the horizon;
+            /// `nautical`, 12°; or `astronomical`, 18°; in any case; anything else,
+            /// the empty string included, is `HC_ERR_UNKNOWN`. The day is the local
+            /// one, from local mean midnight at the longitude, and the place is as
+            /// for `hc_sunrise`, the elevation unused since a depression is measured
+            /// from the geometric horizon. Tab-separated: the instant the Sun's
+            /// centre rises to the depression as whole POSIX seconds of Universal
+            /// Time, rounded down; and the four cells of `hc_solar_event` naming a
+            /// missing solar event — `depression`, the day, and the depression
+            /// sought in arcminutes and in arcseconds — which are empty when the
+            /// twilight begins that morning, the first cell being empty instead
+            /// when the Sun never gets that low (a light summer night) or never gets
+            /// that high (the polar winter). A place off the globe, or a day
+            /// outside the years −1000 to 3000, is `HC_ERR_OUT_OF_RANGE`. A null
+            /// `buffer` returns the length the text needs.
+        }
+        fn hc_dawn(
+            twilight: name(twilight_len),
+            fixed: i64,
+            latitude: f64,
+            longitude: f64,
+            elevation: f64,
+        ) -> line =
+            |twilight, fixed, latitude, longitude, elevation| {
+                $crate::astro_lines::location(latitude, longitude, elevation)
+                    .and_then(|place| $crate::astro_lines::dawn_line(twilight, fixed, place))
+            };
+
+        c {
+            /// The end of a named twilight on a local day at a place, as one
+            /// NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// As `hc_dawn`, for the evening: the instant the Sun's centre sets to
+            /// the twilight's depression.
+        }
+        wasm {
+            /// The end of a named twilight on a local day at a place, as one UTF-8
+            /// line, returning the byte length written.
+            ///
+            /// As `hc_dawn`, for the evening: the instant the Sun's centre sets to
+            /// the twilight's depression, or the missing `depression` named.
+        }
+        fn hc_dusk(
+            twilight: name(twilight_len),
+            fixed: i64,
+            latitude: f64,
+            longitude: f64,
+            elevation: f64,
+        ) -> line =
+            |twilight, fixed, latitude, longitude, elevation| {
+                $crate::astro_lines::location(latitude, longitude, elevation)
+                    .and_then(|place| $crate::astro_lines::dusk_line(twilight, fixed, place))
             };
     } };
     ("orbital", $backend:ident) => { $backend! {

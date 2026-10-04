@@ -1582,7 +1582,11 @@ phrase; the module states the coordinates only.
 
 The tithi's span and name, and the ayanāṃśa's table and value, reach the
 boundary as `hc_tithi_at`, `hc_tithis_of_day`, `hc_ayanamsas`,
-`hc_ayanamsa_at` and `hc_ayanamsa_from_anchor`. `tithi::tithi_span` finds
+`hc_ayanamsa_at` and `hc_ayanamsa_from_anchor`; the Sun's nakṣatra entries
+as `hc_solar_nakshatra_ingresses` (`solar_nakshatra_ingress_after` walked
+over a span, in `crates/hyper-calendar/src/panchanga_lines.rs`), and the
+Tiruvaḷḷuvar year of a day as `hc_tiruvalluvar_year`
+(`HinduSolarCalendar::tiruvalluvar_year_of` on `TAMIL`, in `hindu_lines.rs`). `tithi::tithi_span` finds
 when the elongation crossed and crosses a multiple of 12° by the search the
 yoga and karaṇa spans use, and `surya_siddhanta::tithi_span` does the same
 on the Siddhānta's sky; `tithi_name` and `TITHI_NAMES` are the thirty names in
