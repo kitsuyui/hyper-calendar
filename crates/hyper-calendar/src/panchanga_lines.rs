@@ -1001,6 +1001,65 @@ pub fn rahu_ingresses_lines(from: i64, to: i64, ayanamsa_name: &str) -> Answer<S
     Ok(out)
 }
 
+/// How many columns each line of [`solar_nakshatra_ingresses_lines`]
+/// writes.
+pub const SOLAR_NAKSHATRA_INGRESS_COLUMNS: usize = 7;
+
+/// The lines of `hc_solar_nakshatra_ingresses`: the Sun's entries into the
+/// nakṣatras in the half-open span `[from, to)` of POSIX seconds, in time
+/// order, in the zodiac of a named ayanāṃśa, by
+/// [`hc_calendars_indic::nakshatra::solar_nakshatra_ingress_after`] — the
+/// moment as whole POSIX seconds of Universal Time, rounded down, the
+/// nakṣatra the Sun enters by its number, identifier and name, and the one
+/// it leaves by the same three. The Sun crosses a nakṣatra in thirteen to
+/// fourteen days, so a year has twenty-seven entries; the Malayalam
+/// almanacs print them as the ñāṭṭuvēla table.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for an ayanāṃśa not named; [`Refusal::OutOfRange`]
+/// for a span with an end outside the sky layer's era or longer than
+/// [`MAX_NODE_SPAN_SECONDS`].
+pub fn solar_nakshatra_ingresses_lines(from: i64, to: i64, ayanamsa_name: &str) -> Answer<String> {
+    use hc_calendars_indic::nakshatra::{
+        NAKSHATRAS_PER_REVOLUTION, solar_nakshatra_at, solar_nakshatra_ingress_after,
+    };
+    let ayanamsa = ayanamsa(ayanamsa_name)?;
+    let start = moment_in_era(from)?;
+    if to <= from {
+        return Ok(String::new());
+    }
+    moment_in_era(to - 1)?;
+    if to - from > MAX_NODE_SPAN_SECONDS {
+        return Err(Refusal::OutOfRange);
+    }
+    let mut out = String::new();
+    let mut current = solar_nakshatra_at(start, ayanamsa);
+    let mut cursor = start;
+    loop {
+        let next = current % NAKSHATRAS_PER_REVOLUTION + 1;
+        let ingress = solar_nakshatra_ingress_after(next, ayanamsa, cursor);
+        let unix = unix_from_moment(ingress);
+        if unix >= to {
+            break;
+        }
+        let mut line = Line::new(&mut out);
+        line.value(unix)
+            .value(next)
+            .cell(nakshatra_id(next).unwrap_or(""))
+            .cell(nakshatra_name(next).unwrap_or(""))
+            .value(current)
+            .cell(nakshatra_id(current).unwrap_or(""))
+            .cell(nakshatra_name(current).unwrap_or(""));
+        line.end();
+        // A day past the entry is well inside the new nakṣatra, which the
+        // Sun takes a fortnight to cross.
+        cursor = Moment(ingress.0 + 1.0);
+        current = next;
+    }
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

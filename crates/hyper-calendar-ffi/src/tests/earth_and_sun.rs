@@ -340,3 +340,159 @@ fn the_moon_rises_and_sets_when_the_usno_says() {
         HC_ERROR_NULL_POINTER
     );
 }
+
+/// The regularised UT1 lines, the equation of time, the transits and the
+/// twilights are the module's: the IERS `RG_ZONT2.F` test case at MJD
+/// 54 465, Meeus's example 28.a at Greenwich, and the nautical twilight
+/// Helsinki's midsummer lacks.
+#[test]
+fn the_ut1_variants_the_transits_and_the_twilights_are_the_modules() {
+    let ut1 = (54_465.0 - 40_587.0) * 86_400.0;
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_zonal_tide_ut1_effect(ut1, f64::INFINITY, buffer, capacity, written)
+    });
+    let all: f64 = text.trim_end().parse().expect("a number");
+    assert!((all - 0.079_832_876_785_765_57).abs() < 1e-6, "{all}");
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_ut1s_iers2010(ut1, buffer, capacity, written)
+    });
+    assert_eq!(Ok(text.clone()), hc::astro_lines::ut1s_iers2010_line(ut1));
+    let minus: f64 = text
+        .split('\t')
+        .next()
+        .expect("a cell")
+        .parse()
+        .expect("a number");
+    assert!((minus + all).abs() < 1e-9, "{text}");
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_ut1r_iers2010(ut1, buffer, capacity, written)
+    });
+    assert_eq!(Ok(text), hc::astro_lines::ut1r_iers2010_line(ut1));
+    assert_eq!(
+        measured(|buffer, capacity, written| unsafe {
+            hc_ut1r_iers2010(f64::NAN, buffer, capacity, written)
+        }),
+        HC_ERROR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        measured(|buffer, capacity, written| unsafe {
+            hc_zonal_tide_ut1_effect(ut1, 0.0, buffer, capacity, written)
+        }),
+        HC_ERROR_OUT_OF_RANGE
+    );
+    let mut day = 0i64;
+    assert_eq!(
+        unsafe { hc_gregorian_to_fixed(1992, 10, 13, &mut day) },
+        HC_OK
+    );
+    let midnight_utc = (day - 719_163) * 86_400;
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_equation_of_time(midnight_utc, buffer, capacity, written)
+    });
+    let equation: f64 = text.trim_end().parse().expect("a number");
+    assert!((equation - 822.6).abs() < 1.0, "{equation}");
+    let mut noon = 0i64;
+    assert_eq!(
+        unsafe { hc_solar_noon(day, 51.4769, 0.0, 0.0, &mut noon) },
+        HC_OK
+    );
+    assert_eq!(
+        Ok(noon),
+        hc::astro_lines::solar_noon(day, hc::hc_astro::riseset::Location::new(51.4769, 0.0, 0.0))
+    );
+    assert!(
+        (noon - (midnight_utc + 12 * 3_600 - 832)).abs() <= 4,
+        "{noon}"
+    );
+    let mut midnight = 0i64;
+    assert_eq!(
+        unsafe { hc_solar_midnight(day, 51.4769, 0.0, 0.0, &mut midnight) },
+        HC_OK
+    );
+    assert!((noon - midnight - 43_200).abs() <= 1, "{midnight}");
+    assert_eq!(
+        unsafe { hc_solar_noon(day, 91.0, 0.0, 0.0, &mut noon) },
+        HC_ERROR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_solar_midnight(day, 0.0, 0.0, 0.0, core::ptr::null_mut()) },
+        HC_ERROR_NULL_POINTER
+    );
+    assert_eq!(
+        measured(|buffer, capacity, written| unsafe {
+            hc_equation_of_time(i64::MIN, buffer, capacity, written)
+        }),
+        HC_ERROR_OUT_OF_RANGE
+    );
+    let mut midsummer = 0i64;
+    assert_eq!(
+        unsafe { hc_gregorian_to_fixed(2024, 6, 21, &mut midsummer) },
+        HC_OK
+    );
+    let helsinki = hc::hc_astro::riseset::Location::new(60.1699, 24.9384, 0.0);
+    let dusk = read_lines(|buffer, capacity, written| unsafe {
+        hc_dusk(
+            c"nautical".as_ptr(),
+            midsummer,
+            60.1699,
+            24.9384,
+            0.0,
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert_eq!(
+        Ok(dusk.clone()),
+        hc::astro_lines::dusk_line("nautical", midsummer, helsinki)
+    );
+    assert_eq!(dusk, format!("\tdepression\t{midsummer}\t720\t43200\n"));
+    let dawn = read_lines(|buffer, capacity, written| unsafe {
+        hc_dawn(
+            c"CIVIL".as_ptr(),
+            midsummer,
+            60.1699,
+            24.9384,
+            0.0,
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert_eq!(
+        Ok(dawn.clone()),
+        hc::astro_lines::dawn_line("civil", midsummer, helsinki)
+    );
+    assert!(
+        dawn.ends_with("\t\t\t\t\n") && !dawn.starts_with('\t'),
+        "{dawn}"
+    );
+    for (twilight, status) in [
+        (c"dusk".as_ptr(), HC_ERROR_UNKNOWN),
+        (core::ptr::null(), HC_ERROR_NULL_POINTER),
+    ] {
+        assert_eq!(
+            measured(|buffer, capacity, written| unsafe {
+                hc_dawn(
+                    twilight, midsummer, 0.0, 0.0, 0.0, buffer, capacity, written,
+                )
+            }),
+            status
+        );
+    }
+    assert_eq!(
+        measured(|buffer, capacity, written| unsafe {
+            hc_dusk(
+                c"civil".as_ptr(),
+                midsummer,
+                91.0,
+                0.0,
+                0.0,
+                buffer,
+                capacity,
+                written,
+            )
+        }),
+        HC_ERROR_OUT_OF_RANGE
+    );
+}

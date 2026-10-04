@@ -4,7 +4,10 @@
 //! year's place in the sabbatical cycle, the Chinese reckoned age and
 //! marriage augury, how the calendar of the province of Asia writes a
 //! day, unnumbered days included, and the day and the moment the year
-//! changes at the solar New Year of the Burmese, Khmer and Lao calendars.
+//! changes at the solar New Year of the Burmese, Khmer and Lao calendars;
+//! and the lines of the Khmer and Lao year types, of a day in the Maya
+//! counts under a named correlation, of a day of the Akan *Adaduanan* and
+//! of the Javanese *weton*, and of Sri Lanka's Buddhist year.
 //!
 //! A Hebrew date crosses the boundary as the fixed day it names — the day
 //! whose daylight carries it; an event after sunset belongs to the next
@@ -24,7 +27,10 @@ use hc_calendars_regional::chinese_regnal::{self, Dynasty};
 use hc_calendars_regional::korean_regnal;
 use hc_calendars_regional::nengo::{self, Certainty, Court};
 use hc_calendars_regional::olympiad::{self, GamesStatus};
-use hc_calendars_regional::{burmese, khmer, lao};
+use hc_calendars_regional::southeast_asian::YearType;
+use hc_calendars_regional::{
+    akan, buddhist_lk, burmese, javanese_pasaran, khmer, lao, maya, vietnamese_regnal,
+};
 use hc_calendars_solar::asian::{AsianCalendar, WrittenDay};
 
 use crate::boundary::{Answer, Line, Refusal, line};
@@ -308,6 +314,15 @@ fn gregorian_year_of(fixed: i64) -> i64 {
 ///   day before the next era or the annexation, `attested`, and the first
 ///   day under the reading that backdates 光武 to 1 January 1897 in the
 ///   column after the status when it differs.
+/// * `vietnamese-regnal-nguyen`: [`vietnamese_regnal::ALL`], the twelve
+///   eras of the Nguyễn dynasty from Gia Long to Bảo Đại, with the name in
+///   chữ Hán, the Vietnamese name with its diacritics for the reading and
+///   the romanisation both, `nguyen` for the dynasty column, the Common Era
+///   year of its first lunisolar year, the first day each was in force
+///   ([`vietnamese_regnal::VietnameseEra::start`]), the last day the day
+///   before the next kept era began or the abdication of 30 August 1945,
+///   the status `kept`, or `not-kept` for Hiệp Hòa, taken and never
+///   counted, whose last year and last day are empty, and the table's note.
 ///
 /// The names and the dates are the tables' and their sources', as the
 /// system documents say; this lists them and decides nothing.
@@ -400,6 +415,29 @@ pub fn era_table_lines(table: &str) -> Answer<String> {
                 line.value(era.backdated_start.0);
             }
             line.empty();
+            line.end();
+        }
+    } else if hc_core::catalogue::matches(table, "vietnamese-regnal-nguyen") {
+        for (position, era) in vietnamese_regnal::ALL.iter().enumerate() {
+            let last = era.in_use.then(|| {
+                vietnamese_regnal::ALL[position + 1..]
+                    .iter()
+                    .find(|next| next.in_use)
+                    .map_or(vietnamese_regnal::LATEST.0, |next| next.start.0 - 1)
+            });
+            let mut line = crate::boundary::Line::new(&mut out);
+            line.cell(era.id)
+                .cell(era.han)
+                .cell(era.name)
+                .cell(era.name)
+                .cell("nguyen")
+                .value(era.start_year)
+                .value_or_empty(last.map(gregorian_year_of))
+                .value(era.start.0)
+                .value_or_empty(last)
+                .cell(if era.in_use { "kept" } else { "not-kept" })
+                .empty()
+                .cell(era.note);
             line.end();
         }
     } else {
@@ -731,6 +769,235 @@ pub fn solar_new_year_line(calendar: &str, year: i64) -> Answer<String> {
     }
     cells.end();
     Ok(out)
+}
+
+/// How many columns the line of [`southeast_asian_year_type_line`] writes.
+pub const YEAR_TYPE_COLUMNS: usize = 9;
+
+/// The identifier of a [`YearType`]: `normal`, `extra-day` or
+/// `extra-month`.
+const fn year_type_id(kind: YearType) -> &'static str {
+    match kind {
+        YearType::Normal => "normal",
+        YearType::ExtraDay => "extra-day",
+        YearType::ExtraMonth => "extra-month",
+    }
+}
+
+/// The line of `hc_southeast_asian_year_type`: the kind of lunar year a
+/// year of the `khmer` or the `lao` calendar is under the *suryayatra*
+/// rule as each country applies it ([`khmer::year_type`],
+/// [`lao::year_type`]) — the calendar; the year as it numbers it, the
+/// Buddhist Era for `khmer` and the Chulasakarat for `lao`; the kind,
+/// `normal` (twelve months, 354 days), `extra-day` (a 30th day in month
+/// 7, 355) or `extra-month` (month 8 twice, 384); its days; `1` when the
+/// year has the doubled month 8; its Thai and its Khmer name; and the day
+/// and the seconds after midnight at which the solar New Year changes the
+/// year, `hc_solar_new_year`'s.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a calendar that is neither, and
+/// [`Refusal::OutOfRange`] for a year outside the calendar's range, BE
+/// 2444 to 2744 or CS 1301 to 1401.
+pub fn southeast_asian_year_type_line(calendar: &str, year: i64) -> Answer<String> {
+    let (name, kind, change) = if hc_core::catalogue::matches(calendar, "khmer") {
+        ("khmer", khmer::year_type(year), khmer::laeung_sak(year))
+    } else if hc_core::catalogue::matches(calendar, "lao") {
+        ("lao", lao::year_type(year), lao::new_year_day(year))
+    } else {
+        return Err(Refusal::Unknown);
+    };
+    let (kind, change) = kind.zip(change).ok_or(Refusal::OutOfRange)?;
+    Ok(line(|line| {
+        line.cell(name)
+            .value(year)
+            .cell(year_type_id(kind))
+            .value(kind.days())
+            .flag(kind.has_extra_month())
+            .cell(kind.thai_name())
+            .cell(kind.khmer_name())
+            .value(change.day.0)
+            .value(change.seconds);
+    }))
+}
+
+/// The Maya correlation a name selects, as the long count under it:
+/// `gmt` or `584283`, the Goodman–Martínez–Thompson constant; `gmt2`,
+/// `gmt-plus-two` or `584285`; `martin-skidmore` or `584286`; in any case.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for anything else.
+pub fn maya_correlation(name: &str) -> Answer<maya::MayaLongCountCalendar> {
+    [
+        ("gmt", maya::MayaLongCountCalendar::GMT),
+        ("584283", maya::MayaLongCountCalendar::GMT),
+        ("gmt2", maya::MayaLongCountCalendar::GMT_PLUS_TWO),
+        ("gmt-plus-two", maya::MayaLongCountCalendar::GMT_PLUS_TWO),
+        ("584285", maya::MayaLongCountCalendar::GMT_PLUS_TWO),
+        (
+            "martin-skidmore",
+            maya::MayaLongCountCalendar::MARTIN_SKIDMORE,
+        ),
+        ("584286", maya::MayaLongCountCalendar::MARTIN_SKIDMORE),
+    ]
+    .into_iter()
+    .find(|(id, _)| hc_core::catalogue::matches(name, id))
+    .map(|(_, calendar)| calendar)
+    .ok_or(Refusal::Unknown)
+}
+
+/// How many columns the line of [`maya_long_count_line`] writes.
+pub const MAYA_LONG_COUNT_COLUMNS: usize = 12;
+
+/// The line of `hc_maya_long_count`: a fixed day under a named correlation
+/// — the registry identifier of the long count under it (`maya-longcount`,
+/// `maya-longcount-gmt2`, `maya-longcount-584286`), the constant, the Long
+/// Count as `baktun.katun.tun.uinal.kin` and as its five places, the
+/// tzolkʼin number and day name, and the haabʼ day and month name, the
+/// cycles under the same constant ([`maya::MayaTzolkinCalendar::beside`],
+/// [`maya::MayaHaabCalendar::beside`]), so that the Calendar Round is the
+/// one an inscription pairs with that long count. 0.0.0.0.0 is 4 Ahau 8
+/// Cumku under every constant.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a correlation [`maya_correlation`] does not
+/// read, and [`Refusal::OutOfRange`] for a day before 0.0.0.0.0 or after
+/// 19.19.19.17.19 under it.
+pub fn maya_long_count_line(fixed: i64, correlation: &str) -> Answer<String> {
+    let long_count = maya_correlation(correlation)?;
+    let day = Rd(fixed);
+    let count = long_count.from_fixed(day)?;
+    let tzolkin = maya::MayaTzolkinCalendar::beside(long_count).from_fixed(day)?;
+    let haab = maya::MayaHaabCalendar::beside(long_count).from_fixed(day)?;
+    Ok(line(|line| {
+        line.cell(long_count.id().0)
+            .value(long_count.correlation())
+            .value(count)
+            .value(count.baktun)
+            .value(count.katun)
+            .value(count.tun)
+            .value(count.uinal)
+            .value(count.kin)
+            .value(tzolkin.position.number)
+            .cell(tzolkin.position.name_str().unwrap_or(""))
+            .value(haab.position.day)
+            .cell(haab.position.month_str().unwrap_or(""));
+    }))
+}
+
+/// How many columns the line of [`akan_day_line`] writes.
+pub const AKAN_DAY_COLUMNS: usize = 9;
+
+/// The line of `hc_akan_day`: a fixed day in the Akan *Adaduanan*, the
+/// 42-day cycle of the six-day *nnanson* against the seven-day *nnawɔtwe*
+/// ([`akan::AkanCalendar`]) — the complete cycles since the *Fɔdwo* of
+/// 23 January 1978, the day of the cycle from 1, the *nnanson* day 1 to 6
+/// and its name, the weekday 1 for Kwasiada (Sunday) to 7 for Memeneda
+/// and its name, the short weekday name a compound takes, the compound
+/// name (`Kuru-Kwasi`), and the *dabɔne* the day is — `Fɔdwo`, `Awukudae`,
+/// `Fofi` or `Akwasidae` — or empty.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a day whose distance from the epoch is not
+/// an `i64`, the first 722 107 days of the `i64` range.
+pub fn akan_day_line(fixed: i64) -> Answer<String> {
+    fixed
+        .checked_sub(akan::EPOCH.0)
+        .ok_or(Refusal::OutOfRange)?;
+    let date = akan::AkanCalendar.from_fixed(Rd(fixed))?;
+    let ordinal = date.ordinal()?;
+    Ok(line(|line| {
+        line.value(date.round)
+            .value(ordinal + 1)
+            .value(date.nnanson)
+            .cell(date.nnanson_name().unwrap_or(""))
+            .value(date.nnawotwe)
+            .cell(date.nnawotwe_name().unwrap_or(""))
+            .cell(akan::NNAWOTWE_SHORT[usize::from(date.nnawotwe - 1)])
+            .value(date)
+            .cell_or_empty(date.dabone());
+    }))
+}
+
+/// How many columns the line of [`weton_line`] writes.
+pub const WETON_COLUMNS: usize = 10;
+
+/// The line of `hc_weton`: a fixed day's *weton*, the Javanese five-day
+/// *pasaran* against the seven-day week, the 35-day *wetonan*
+/// ([`javanese_pasaran::JavanesePasaranCalendar`]) — the complete cycles
+/// since the epoch, the day of the cycle from 1, the weekday 1 for Minggu
+/// (Sunday) to 7 for Setu and its Javanese name (*dina*), the *pasaran*
+/// day 1 for Legi to 5 for Kliwon and its name, the *neptu* of the weekday
+/// and of the pasaran and their sum, the day's *neptu*, and the compound
+/// name the day is spoken as (`Jemuwah Legi`).
+///
+/// # Errors
+///
+/// None: the cycle is counted from Rata Die 0 and every `i64` day has a
+/// weton; the signature is the line-makers'.
+pub fn weton_line(fixed: i64) -> Answer<String> {
+    let date = javanese_pasaran::JavanesePasaranCalendar.from_fixed(Rd(fixed))?;
+    let ordinal = date.ordinal()?;
+    let dina = usize::from(date.dina - 1);
+    let pasaran = usize::from(date.pasaran - 1);
+    Ok(line(|line| {
+        line.value(date.round)
+            .value(ordinal + 1)
+            .value(date.dina)
+            .cell(date.dina_name().unwrap_or(""))
+            .value(date.pasaran)
+            .cell(date.pasaran_name().unwrap_or(""))
+            .value(javanese_pasaran::DINA_NEPTU[dina])
+            .value(javanese_pasaran::PASARAN_NEPTU[pasaran])
+            .value_or_empty(date.neptu().ok())
+            .value(date);
+    }))
+}
+
+/// How many columns the line of [`buddhist_lk_year_line`] writes.
+pub const BUDDHIST_LK_YEAR_COLUMNS: usize = 5;
+
+/// The line of `hc_buddhist_lk_year`: Sri Lanka's Buddhist year of a fixed
+/// day, the Common Era year plus 544 from the Vesak Full Moon Poya Day and
+/// plus 543 before it ([`buddhist_lk::year_of`]) — the Buddhist year; the
+/// Gregorian year the day is in; the fixed day of that Gregorian year's
+/// Vesak Poya, as the Holidays Act order read fixes it
+/// ([`buddhist_lk::vesak_poya`]); the fixed day the Buddhist year began on,
+/// that Vesak or the year before's, empty where no order read fixes it;
+/// and the last fixed day of the Buddhist year, the eve of the next Vesak,
+/// empty likewise.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a day outside the years whose Vesak day an
+/// order read fixes, 2023 to 2027: a gap, not a computed full moon.
+pub fn buddhist_lk_year_line(fixed: i64) -> Answer<String> {
+    let day = Rd(fixed);
+    let year = buddhist_lk::year_of(day)?;
+    let gregorian_year = hc_calendar::gregorian::year_from_fixed(day);
+    let vesak = buddhist_lk::vesak_poya(gregorian_year).ok_or(Refusal::OutOfRange)?;
+    let (began, ends) = if day >= vesak {
+        (
+            Some(vesak),
+            buddhist_lk::vesak_poya(gregorian_year + 1).map(|next| Rd(next.0 - 1)),
+        )
+    } else {
+        (
+            buddhist_lk::vesak_poya(gregorian_year - 1),
+            Some(Rd(vesak.0 - 1)),
+        )
+    };
+    Ok(line(|line| {
+        line.value(year)
+            .value(gregorian_year)
+            .value(vesak.0)
+            .value_or_empty(began.map(|day| day.0))
+            .value_or_empty(ends.map(|day| day.0));
+    }))
 }
 
 #[cfg(test)]

@@ -462,6 +462,24 @@ test("the Python time, week, solar New Year, pentad, Moon and list lines read th
   assert.deepEqual([...COLUMNS.listForms], columnsAfter("### List patterns"));
 });
 
+test("the UT1 variants, the twilights, the signs, the regional cycles and the epochs read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.regularizedUt1], columnsAfter("### Regularised UT1"));
+  assert.deepEqual([...COLUMNS.solarEvent], columnsAfter("### Dawn and dusk"));
+  assert.deepEqual([...COLUMNS.signsInYear], columnsAfter("### The signs of a year"));
+  assert.deepEqual([...COLUMNS.siderealSignsInYear], columnsAfter("### The sidereal signs of a year"));
+  assert.deepEqual([...COLUMNS.principalPhase], columnsAfter("### The phases of a month"));
+  assert.deepEqual([...COLUMNS.yearType], columnsAfter("### The kind of a year"));
+  assert.deepEqual([...COLUMNS.mayaLongCount], columnsAfter("## The Maya counts under a correlation"));
+  assert.deepEqual([...COLUMNS.akanDay], columnsAfter("### The Akan day"));
+  assert.deepEqual([...COLUMNS.weton], columnsAfter("### The weton"));
+  assert.deepEqual([...COLUMNS.buddhistLkYear], columnsAfter("## Sri Lanka's Buddhist year"));
+  assert.deepEqual([...COLUMNS.solarNakshatraIngress], columnsAfter("### The Sun's nakṣatra entries"));
+  assert.deepEqual([...COLUMNS.japaneseEraYear], columnsAfter("### A Japanese era year"));
+  assert.deepEqual([...COLUMNS.localeFormat], columnsAfter("### A locale's standard formats"));
+  assert.deepEqual([...COLUMNS.pluralCategories], columnsAfter("### The plural categories"));
+  assert.deepEqual([...COLUMNS.epochs], columnsAfter("### The epochs"));
+});
+
 test("the relativity lines read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.properTime], columnsAfter("## Relativity"));
   assert.deepEqual([...COLUMNS.gravitationalDilation], columnsAfter("### A clock at a radius"));

@@ -312,3 +312,138 @@ fn the_pentads_of_a_year_are_named_by_every_tradition() {
         HC_ERROR_UNKNOWN
     );
 }
+
+/// The signs of a year, the traditional Tanabata and a month's phases are
+/// the module's lines: Libra opens at the NAOJ's 秋分 of 2026, Makara
+/// Saṅkrānti 2025 falls on 14 January in India, 伝統的七夕 2024 is 10 August
+/// and September 2024's full moon the 18th, JST.
+#[test]
+fn the_signs_the_tanabata_and_the_phases_cross_the_c_boundary() {
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_tropical_signs_in_year(2026, c"japan".as_ptr(), buffer, capacity, written)
+    });
+    assert_eq!(
+        Ok(text.clone()),
+        hc::season_lines::tropical_signs_in_year_lines(2026, "japan")
+    );
+    assert_eq!(text.lines().count(), 12);
+    let mut day = 0i64;
+    assert_eq!(
+        unsafe { hc_gregorian_to_fixed(2026, 9, 23, &mut day) },
+        HC_OK
+    );
+    let libra = text
+        .lines()
+        .find(|line| line.contains("\tlibra\t"))
+        .expect("Libra");
+    let cells: Vec<&str> = libra.split('\t').collect();
+    assert_eq!(cells[5], day.to_string());
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_sidereal_signs_in_year(
+            2025,
+            c"lahiri".as_ptr(),
+            c"india".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert_eq!(
+        Ok(text.clone()),
+        hc::season_lines::sidereal_signs_in_year_lines(2025, "lahiri", "india")
+    );
+    assert_eq!(
+        unsafe { hc_gregorian_to_fixed(2025, 1, 14, &mut day) },
+        HC_OK
+    );
+    assert!(text.starts_with("10\tmakara\tMakara\t"), "{text}");
+    assert_eq!(
+        text.lines().next().and_then(|line| line.split('\t').nth(5)),
+        Some(day.to_string().as_str())
+    );
+    let mut written = 0usize;
+    assert_eq!(
+        unsafe {
+            hc_sidereal_signs_in_year(
+                2025,
+                core::ptr::null(),
+                c"india".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                &mut written,
+            )
+        },
+        HC_ERROR_NULL_POINTER
+    );
+    assert_eq!(
+        unsafe {
+            hc_tropical_signs_in_year(
+                3001,
+                core::ptr::null(),
+                core::ptr::null_mut(),
+                0,
+                &mut written,
+            )
+        },
+        HC_ERROR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe {
+            hc_tropical_signs_in_year(
+                2026,
+                c"mars".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                &mut written,
+            )
+        },
+        HC_ERROR_UNKNOWN
+    );
+    let mut tanabata = 0i64;
+    assert_eq!(
+        unsafe { hc_traditional_tanabata(2024, c"japan".as_ptr(), &mut tanabata) },
+        HC_OK
+    );
+    assert_eq!(
+        unsafe { hc_gregorian_to_fixed(2024, 8, 10, &mut day) },
+        HC_OK
+    );
+    assert_eq!(tanabata, day);
+    assert_eq!(
+        unsafe { hc_traditional_tanabata(3001, c"japan".as_ptr(), &mut tanabata) },
+        HC_ERROR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_traditional_tanabata(2024, c"mars".as_ptr(), &mut tanabata) },
+        HC_ERROR_UNKNOWN
+    );
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_principal_phases_in_month(2024, 9, c"japan".as_ptr(), buffer, capacity, written)
+    });
+    assert_eq!(
+        Ok(text.clone()),
+        hc::season_lines::principal_phases_in_month_lines(2024, 9, "japan")
+    );
+    assert_eq!(
+        unsafe { hc_gregorian_to_fixed(2024, 9, 18, &mut day) },
+        HC_OK
+    );
+    assert!(
+        text.lines()
+            .any(|line| line.starts_with("full\t") && line.ends_with(&day.to_string())),
+        "{text}"
+    );
+    assert_eq!(
+        unsafe {
+            hc_principal_phases_in_month(
+                2024,
+                0,
+                c"japan".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                &mut written,
+            )
+        },
+        HC_ERROR_INVALID_DATE
+    );
+}

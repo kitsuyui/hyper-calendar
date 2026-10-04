@@ -4319,3 +4319,178 @@ describe("formatting by pattern", () => {
     assert.equal(era(1_556_636_400), "令和|1|令和元年");
   });
 });
+
+describe("the UT1 variants, the twilights and the transits", () => {
+  test("the regularised UT1 lines are the IERS test case and the twilights name a missing depression", () => {
+    // RG_ZONT2.F's header: at MJD 54 465 the whole table gives δUT1 = 0.0798 s.
+    const ut1 = (54_465 - 40_587) * 86_400;
+    const all = hc.zonalTideUt1Effect(ut1);
+    assert.ok(Math.abs(all - 0.079_832_876_785_765_57) < 1e-6, `${all}`);
+    const ut1s = hc.ut1sIers2010(ut1);
+    assert.ok(Math.abs(ut1s.minusUt1 + all) < 1e-9 && Math.abs(ut1s.reading - (ut1 + ut1s.minusUt1)) < 1e-6, JSON.stringify(ut1s));
+    const ut1r = hc.ut1rIers2010(ut1);
+    assert.ok(Math.abs(ut1r.minusUt1 + hc.zonalTideUt1Effect(ut1, 35)) < 1e-9 && Math.abs(ut1r.minusUt1) < 2.75e-3);
+    refused(() => hc.ut1rIers2010(Number.NaN), "out-of-range");
+    refused(() => hc.zonalTideUt1Effect(ut1, 0), "out-of-range");
+    // Meeus 28.a: +13 min 42.6 s on 1992 October 13 at 0h, so Greenwich's Sun
+    // transits before mean noon and the lower transit is half a day earlier.
+    const day = hc.gregorianToFixed(1992, 10, 13);
+    const midnight = hc.unixFromFixed(day);
+    assert.ok(Math.abs(hc.equationOfTime(midnight) - 822.6) < 1, `${hc.equationOfTime(midnight)}`);
+    const noon = hc.solarNoon(day, 51.4769, 0);
+    assert.ok(Math.abs(noon - (midnight + 43_200 - hc.equationOfTime(noon))) <= 2, `${noon}`);
+    assert.ok(Math.abs(noon - hc.solarMidnight(day, 51.4769, 0) - 43_200) <= 1);
+    refused(() => hc.solarNoon(day, 91, 0), "out-of-range");
+    refused(() => hc.equationOfTime(2n ** 62n), "out-of-range");
+    // Jerusalem, 1 January 2024: the dawns in order before the USNO's 06:39 sunrise.
+    const newYear = hc.gregorianToFixed(2024, 1, 1);
+    const dawns = ["astronomical", "nautical", "civil"].map((twilight) => hc.dawn(twilight, newYear, 31.78, 35.24, 740).instant);
+    assert.ok(dawns.every((instant) => instant !== null), JSON.stringify(dawns));
+    assert.ok(dawns[0] < dawns[1] && dawns[1] < dawns[2] && dawns[2] < hc.unixFromFixed(newYear) + 4 * 3_600 + 39 * 60);
+    // Helsinki at midsummer: civil twilight ends, nautical never does.
+    const midsummer = hc.gregorianToFixed(2024, 6, 21);
+    assert.equal(hc.dusk("civil", midsummer, 60.1699, 24.9384).missing, null);
+    assert.deepEqual(hc.dusk("nautical", midsummer, 60.1699, 24.9384), {
+      instant: null, missing: { event: "depression", day: midsummer, depressionArcminutes: 720, depressionArcseconds: 43_200 },
+    });
+    refused(() => hc.dawn(/** @type {any} */ ("dusk"), newYear, 0, 0), "unknown");
+  });
+});
+
+describe("the signs of a year, the Tanabata and the phases of a month", () => {
+  test("the twelve signs tile the year and the Observatory's days are its", () => {
+    // The NAOJ's 秋分 of 2026, 23 September 00:05 UTC, opens Libra.
+    const signs = hc.tropicalSignsInYear(2026, "japan");
+    assert.equal(signs.length, 12);
+    assert.deepEqual([signs[0].sign, signs[0].id, signs[11].id], [11, "aquarius", "capricorn"]);
+    for (let index = 1; index < signs.length; index += 1) {
+      assert.equal(signs[index - 1].end, signs[index].start);
+      assert.equal(signs[index - 1].ends + 1, signs[index].begins);
+    }
+    const libra = signs.find((period) => period.id === "libra");
+    assert.ok(libra && Math.abs(libra.start - (hc.unixFromFixed(hc.gregorianToFixed(2026, 9, 23)) + 300)) <= 120);
+    assert.equal(libra?.begins, hc.gregorianToFixed(2026, 9, 23));
+    // Makara Saṅkrānti 2025 fell on 14 January in India.
+    const sidereal = hc.siderealSignsInYear(2025, "lahiri", "india");
+    assert.equal(sidereal.length, 12);
+    assert.deepEqual([sidereal[0].sign, sidereal[0].id, sidereal[0].name, sidereal[0].ayanamsa], [10, "makara", "Makara", "lahiri"]);
+    assert.equal(sidereal[0].begins, hc.gregorianToFixed(2025, 1, 14));
+    refused(() => hc.tropicalSignsInYear(3001), "out-of-range");
+    refused(() => hc.siderealSignsInYear(2025, /** @type {any} */ ("x")), "unknown");
+    // よくある質問 3-10: 伝統的七夕 is 10 August 2024, 29 August 2025, 19 August 2026.
+    assert.equal(hc.traditionalTanabata(2024), hc.gregorianToFixed(2024, 8, 10));
+    assert.equal(hc.traditionalTanabata(2025, "japan"), hc.gregorianToFixed(2025, 8, 29));
+    assert.equal(hc.traditionalTanabata(2026), hc.gregorianToFixed(2026, 8, 19));
+    refused(() => hc.traditionalTanabata(2026, "mars"), "unknown");
+    // 暦要項: the full moon of September 2024 on the 18th JST, the new moon of September 2026 on the 11th at 12:27.
+    const phases = hc.principalPhasesInMonth(2024, 9, "japan");
+    assert.ok(phases.length >= 4 && phases.length <= 5, `${phases.length}`);
+    assert.equal(phases.find((event) => event.phase === "full")?.day, hc.gregorianToFixed(2024, 9, 18));
+    const newMoon = hc.principalPhasesInMonth(2026, 9, "japan").find((event) => event.phase === "new");
+    assert.ok(newMoon && Math.abs(newMoon.instant - (hc.unixFromFixed(hc.gregorianToFixed(2026, 9, 11)) + 3 * 3_600 + 27 * 60)) <= 120);
+    refused(() => hc.principalPhasesInMonth(2024, 13), "invalid-date");
+  });
+});
+
+describe("the regional cycles and counts", () => {
+  test("the year types, the Maya counts, the Akan day, the weton and the Buddhist year", () => {
+    // Tum's rule: 2568 BE is a normal year; its Laeung Sak 02:15:00 on 16 April 2024.
+    assert.deepEqual(hc.southeastAsianYearType("khmer", 2568), {
+      calendar: "khmer", year: 2568, kind: "normal", days: 354, extraMonth: false,
+      thaiName: "ปกติมาส", khmerName: "បកតិមាស បកតិវារៈ", newYear: hc.gregorianToFixed(2024, 4, 16), seconds: 8_100,
+    });
+    assert.equal(hc.southeastAsianYearType("khmer", 2567).kind, "extra-month");
+    assert.equal(hc.southeastAsianYearType("lao", 1342).days, 384);
+    refused(() => hc.southeastAsianYearType("khmer", 2443), "out-of-range");
+    refused(() => hc.southeastAsianYearType(/** @type {any} */ ("thai-lunar"), 2568), "unknown");
+    // 0.0.0.0.0 is 4 Ahau 8 Cumku; under GMT it is JDN 584 283.
+    const epoch = 584_283 - 1_721_425;
+    assert.deepEqual(hc.mayaLongCount(epoch), {
+      id: "maya-longcount", correlation: 584_283, longCount: "0.0.0.0.0", baktun: 0, katun: 0, tun: 0, uinal: 0, kin: 0,
+      tzolkinNumber: 4, tzolkinName: "Ahau", haabDay: 8, haabMonth: "Cumku",
+    });
+    // Martin and Skidmore's Poco Uinic eclipse, 9.17.19.13.16 5 Cib 14 Chen at JDN 2 009 802.
+    const eclipse = hc.mayaLongCount(2_009_802 - 1_721_425, "584286");
+    assert.deepEqual([eclipse.id, eclipse.longCount, eclipse.tzolkinNumber, eclipse.tzolkinName, eclipse.haabDay, eclipse.haabMonth],
+      ["maya-longcount-584286", "9.17.19.13.16", 5, "Cib", 14, "Chen"]);
+    refused(() => hc.mayaLongCount(epoch - 1), "out-of-range");
+    refused(() => hc.mayaLongCount(epoch, /** @type {any} */ ("lounsbury")), "unknown");
+    // The source's dabɔne of 1978: Fɔdwo on 23 January, Akwasidae on 8 January.
+    assert.deepEqual(hc.akanDay(hc.gregorianToFixed(1978, 1, 23)), {
+      round: 0, day: 1, nnanson: 1, nnansonName: "Fo", nnawotwe: 2, nnawotweName: "Ɛdwoada", shortName: "Dwo", name: "Fo-Dwo", dabone: "Fɔdwo",
+    });
+    const akwasidae = hc.akanDay(hc.gregorianToFixed(1978, 1, 8));
+    assert.deepEqual([akwasidae.round, akwasidae.day, akwasidae.name, akwasidae.dabone], [-1, 28, "Kuru-Kwasi", "Akwasidae"]);
+    assert.equal(hc.akanDay(hc.gregorianToFixed(1978, 1, 24)).dabone, null);
+    // Indonesia's proclamation, 17 August 1945, was Jemuwah Legi.
+    const weton = hc.weton(hc.gregorianToFixed(1945, 8, 17));
+    assert.deepEqual([weton.dina, weton.dinaName, weton.pasaran, weton.pasaranName, weton.dinaNeptu, weton.pasaranNeptu, weton.neptu, weton.name],
+      [6, "Jemuwah", 1, "Legi", 6, 5, 11, "Jemuwah Legi"]);
+    // Vesak 2025, 12 May, opened the Buddhist year 2569.
+    const vesak = hc.gregorianToFixed(2025, 5, 12);
+    assert.deepEqual(hc.buddhistLkYear(vesak), { year: 2569, gregorianYear: 2025, vesak, began: vesak, ends: hc.gregorianToFixed(2026, 5, 29) });
+    assert.deepEqual(hc.buddhistLkYear(hc.gregorianToFixed(2023, 1, 1)), {
+      year: 2566, gregorianYear: 2023, vesak: hc.gregorianToFixed(2023, 5, 5), began: null, ends: hc.gregorianToFixed(2023, 5, 4),
+    });
+    refused(() => hc.buddhistLkYear(hc.gregorianToFixed(2022, 12, 31)), "out-of-range");
+  });
+
+  test("the Nguyễn eras, the Tiruvaḷḷuvar year and the Sun's nakṣatra entries", () => {
+    const nguyen = hc.eraTable("vietnamese-regnal-nguyen");
+    assert.equal(nguyen.length, 12);
+    assert.deepEqual([nguyen[0].code, nguyen[0].name, nguyen[0].reading, nguyen[0].group, nguyen[0].firstYear, nguyen[0].lastYear, nguyen[0].start, nguyen[0].status],
+      ["gia-long", "嘉隆", "Gia Long", "nguyen", 1802, 1820, hc.gregorianToFixed(1802, 6, 1), "kept"]);
+    const hiepHoa = nguyen.find((era) => era.code === "hiep-hoa");
+    assert.deepEqual([hiepHoa?.status, hiepHoa?.lastYear, hiepHoa?.last], ["not-kept", null, null]);
+    assert.equal(nguyen[11].last, hc.gregorianToFixed(1945, 8, 30));
+    // Tamizhvalai: Thai 1, 14 January 2021, began 2052.
+    assert.equal(hc.tiruvalluvarYear(hc.gregorianToFixed(2021, 1, 14)), 2052);
+    assert.equal(hc.tiruvalluvarYear(hc.gregorianToFixed(2021, 1, 13)), 2051);
+    refused(() => hc.tiruvalluvarYear(hc.gregorianToFixed(1699, 12, 31)), "out-of-range");
+    // Drik Panchang: the Sun enters Ārdrā at 06:28 IST on 22 June 2025.
+    const june = hc.solarNakshatraIngresses(hc.unixFromFixed(hc.gregorianToFixed(2025, 6, 1)), hc.unixFromFixed(hc.gregorianToFixed(2025, 7, 1)), "lahiri-drik");
+    assert.equal(june.length, 2);
+    assert.deepEqual([june[1].into, june[1].intoId, june[1].from, june[1].fromId], [6, "ardra", 5, "mrigashirsha"]);
+    assert.ok(Math.abs(june[1].moment - (hc.unixFromFixed(hc.gregorianToFixed(2025, 6, 22)) + 58 * 60)) <= 15 * 60);
+    assert.equal(hc.solarNakshatraIngresses(hc.unixFromFixed(hc.gregorianToFixed(2025, 1, 1)), hc.unixFromFixed(hc.gregorianToFixed(2026, 1, 1)), "lahiri").length, 27);
+    assert.deepEqual(hc.solarNakshatraIngresses(10, 0, "lahiri"), []);
+    refused(() => hc.solarNakshatraIngresses(0, 4_000_000_000, "lahiri"), "out-of-range");
+  });
+});
+
+describe("the era year, the templates, the plural categories and the epochs", () => {
+  test("元 and the Han numerals, ja's templates, the categories of ar and ru, and the 25 epochs", () => {
+    assert.deepEqual([hc.japaneseEraYear(1), hc.japaneseEraYear(2), hc.japaneseEraYear(31)], ["元", "二", "三十一"]);
+    refused(() => hc.japaneseEraYear(0), "out-of-range");
+    // CLDR 48 de.xml, calendar type gregorian: the four date lengths, the medium time and the medium date-time.
+    const german = hc.localeFormat("de", "gregory");
+    assert.equal(german.length, 18);
+    assert.deepEqual(german.filter((row) => row.kind === "date").map((row) => [row.length, row.pattern]),
+      [["full", "EEEE, d. MMMM y"], ["long", "d. MMMM y"], ["medium", "dd.MM.y"], ["short", "dd.MM.yy"]]);
+    assert.deepEqual(german.find((row) => row.kind === "time" && row.length === "medium"),
+      { kind: "time", length: "medium", pattern: "HH:mm:ss", calendarType: "gregorian" });
+    assert.equal(german.find((row) => row.kind === "date-time" && row.length === "medium")?.pattern, "{1}, {0}");
+    assert.deepEqual(german.filter((row) => row.kind === "available").map((row) => row.length), ["hms", "Hms", "Gy", "d", "yMMMMd", "yMMMd"]);
+    assert.equal(hc.localeFormat("ja-JP", "gregory").find((row) => row.kind === "date" && row.length === "medium")?.pattern, "y/MM/dd");
+    assert.ok(hc.localeFormat("en", "hebrew").every((row) => row.calendarType === "hebrew"));
+    refused(() => hc.localeFormat("en", "x"), "unknown");
+    refused(() => hc.localeFormat("e!", "gregory"), "malformed");
+    assert.deepEqual(hc.pluralCategories("ar").map((row) => [row.category, row.example]),
+      [["zero", "0"], ["one", "1"], ["two", "2"], ["few", "3"], ["many", "11"], ["other", "0.5"]]);
+    assert.deepEqual(hc.pluralCategories("ru-RU"), [
+      { category: "one", example: "1", rules: "ru" }, { category: "few", example: "2", rules: "ru" },
+      { category: "many", example: "0", rules: "ru" }, { category: "other", example: "0.0", rules: "ru" },
+    ]);
+    assert.deepEqual(hc.pluralCategories("ja"), [{ category: "other", example: "0", rules: "ja" }]);
+    // 1st, 2nd, 3rd, 4th.
+    assert.deepEqual(hc.pluralCategories("en", "ordinal").map((row) => [row.category, row.example]),
+      [["one", "1"], ["two", "2"], ["few", "3"], ["other", "0"]]);
+    refused(() => hc.pluralCategories("en", /** @type {any} */ ("x")), "unknown");
+    const epochs = hc.epochs();
+    assert.equal(epochs.length, 25);
+    assert.deepEqual([epochs[0].id, epochs[0].taiSeconds, epochs[0].attoseconds], ["unix", 8n, 82_000_000_000_000n]);
+    const j2000 = epochs.find((epoch) => epoch.id === "j2000");
+    assert.deepEqual([j2000?.taiSeconds, j2000?.attoseconds], [946_727_967n, 816_000_000_000_000_000n]);
+    assert.ok(epochs.every((epoch) => epoch.source.length > 0));
+  });
+});

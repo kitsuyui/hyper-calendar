@@ -153,7 +153,10 @@ as a check of the computed day; the solstices themselves are
 ## Code
 
 `crates/hc-seasons/src/cold_food.rs`; `traditional_tanabata` in
-`crates/hc-seasons/src/moon_calendar.rs`. In `hc-holiday`, the 寒食 entry
+`crates/hc-seasons/src/moon_calendar.rs`, which the WebAssembly module's and
+the C library's `hc_traditional_tanabata` export for a year at a meridian
+(`traditional_tanabata` in `crates/hyper-calendar/src/season_lines.rs`,
+held to the Observatory's 2024 to 2026 by the boundary tests). In `hc-holiday`, the 寒食 entry
 of `CHINESE_FOLK` and the 한식 entry of `KOREAN_FOLK` in
 `crates/hc-holiday/src/traditions.rs`. The WebAssembly module's and the C
 library's `hc_cold_food_day`, one export taking the reckoning's identifier,

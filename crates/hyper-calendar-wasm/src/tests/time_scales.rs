@@ -453,3 +453,33 @@ fn glonass_ole_and_excel_dates_cross_the_boundary() {
         HC_ERR_OUT_OF_RANGE
     );
 }
+
+/// The epochs are `hc-core`'s table: the POSIX epoch's TAI reading is
+/// 8.000 082 s, J2000's 946 727 967.816 s, and PostgreSQL's, the last row,
+/// 946 684 832 s.
+#[test]
+fn the_epochs_are_the_tables() {
+    let text = read_lines(|buffer, capacity| unsafe { hc_epochs(buffer, capacity) });
+    let rows: Vec<Vec<&str>> = text
+        .lines()
+        .map(|line| line.split('\t').collect())
+        .collect();
+    assert_eq!(rows.len(), 25, "{text}");
+    assert!(
+        rows.iter().all(|row| row.len() == 5 && !row[4].is_empty()),
+        "{text}"
+    );
+    assert_eq!(
+        rows[0][..4],
+        [
+            "unix",
+            "POSIX time_t origin, 1970-01-01T00:00:00Z",
+            "8",
+            "82000000000000"
+        ]
+    );
+    let j2000 = rows.iter().find(|row| row[0] == "j2000").expect("J2000");
+    assert_eq!(j2000[2..4], ["946727967", "816000000000000000"]);
+    assert_eq!(rows[24][0], "postgresql");
+    assert_eq!(rows[24][2..4], ["946684832", "0"]);
+}

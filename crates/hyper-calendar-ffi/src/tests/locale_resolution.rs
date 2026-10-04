@@ -114,3 +114,93 @@ fn the_names_the_case_and_the_isolates_of_a_locale() {
         HC_ERROR_UNKNOWN
     );
 }
+
+/// The era year, the templates and the plural categories are the module's
+/// lines, with the C library's own refusals for a null name.
+#[test]
+fn the_era_year_the_templates_and_the_plural_categories_cross_the_c_boundary() {
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_japanese_era_year(1, buffer, capacity, written)
+    });
+    assert_eq!(text, "元\n");
+    assert_eq!(
+        measured(|buffer, capacity, written| unsafe {
+            hc_japanese_era_year(0, buffer, capacity, written)
+        }),
+        HC_ERROR_OUT_OF_RANGE
+    );
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_locale_format(
+            c"de".as_ptr(),
+            c"gregory".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert_eq!(
+        Ok(text.clone()),
+        hc::i18n_lines::locale_format_lines("de", "gregory")
+    );
+    assert_eq!(text.lines().count(), 18);
+    assert!(
+        text.starts_with("date\tfull\tEEEE, d. MMMM y\tgregorian\n"),
+        "{text}"
+    );
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_locale_format(
+            core::ptr::null(),
+            c"gregory".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert_eq!(Ok(text), hc::i18n_lines::locale_format_lines("", "gregory"));
+    for (locale, calendar, status) in [
+        (c"en".as_ptr(), c"x".as_ptr(), HC_ERROR_UNKNOWN),
+        (c"e!".as_ptr(), c"gregory".as_ptr(), HC_ERROR_MALFORMED),
+        (c"en".as_ptr(), core::ptr::null(), HC_ERROR_NULL_POINTER),
+    ] {
+        assert_eq!(
+            measured(|buffer, capacity, written| unsafe {
+                hc_locale_format(locale, calendar, buffer, capacity, written)
+            }),
+            status
+        );
+    }
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_plural_categories(
+            c"ru".as_ptr(),
+            c"cardinal".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert_eq!(
+        text,
+        "one\t1\tru\nfew\t2\tru\nmany\t0\tru\nother\t0.0\tru\n"
+    );
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_plural_categories(
+            c"en".as_ptr(),
+            c"ordinal".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert_eq!(text, "one\t1\ten\ntwo\t2\ten\nfew\t3\ten\nother\t0\ten\n");
+    for (kind, status) in [
+        (c"x".as_ptr(), HC_ERROR_UNKNOWN),
+        (core::ptr::null(), HC_ERROR_NULL_POINTER),
+    ] {
+        assert_eq!(
+            measured(|buffer, capacity, written| unsafe {
+                hc_plural_categories(c"ru".as_ptr(), kind, buffer, capacity, written)
+            }),
+            status
+        );
+    }
+}

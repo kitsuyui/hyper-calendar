@@ -236,3 +236,69 @@ fn rahu_and_the_eras_new_years_cross_the_c_boundary() {
         HC_ERROR_NULL_POINTER
     );
 }
+
+/// Thai 1 of 2021, 14 January, began Tiruvaḷḷuvar 2052, and the Sun's
+/// entries into the nakṣatras are the module's lines, 27 in 2025.
+#[test]
+fn the_tiruvalluvar_year_and_the_suns_nakshatra_entries_cross_the_c_boundary() {
+    let mut year = 0i64;
+    assert_eq!(
+        unsafe { hc_tiruvalluvar_year(fixed(2021, 1, 14), &mut year) },
+        HC_OK
+    );
+    assert_eq!(year, 2052);
+    assert_eq!(
+        unsafe { hc_tiruvalluvar_year(fixed(2021, 1, 13), &mut year) },
+        HC_OK
+    );
+    assert_eq!(year, 2051);
+    assert_eq!(
+        unsafe { hc_tiruvalluvar_year(fixed(1699, 12, 31), &mut year) },
+        HC_ERROR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_tiruvalluvar_year(fixed(2021, 1, 14), core::ptr::null_mut()) },
+        HC_ERROR_NULL_POINTER
+    );
+    let (from, to) = (unix(2025, 1, 1), unix(2026, 1, 1));
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_solar_nakshatra_ingresses(from, to, c"lahiri".as_ptr(), buffer, capacity, written)
+    });
+    assert_eq!(
+        Ok(text.clone()),
+        hc::panchanga_lines::solar_nakshatra_ingresses_lines(from, to, "lahiri")
+    );
+    assert_eq!(rows(&text).len(), 27);
+    let mut written = 0usize;
+    for (ayanamsa, status) in [
+        (c"x".as_ptr(), HC_ERROR_UNKNOWN),
+        (core::ptr::null(), HC_ERROR_NULL_POINTER),
+    ] {
+        assert_eq!(
+            unsafe {
+                hc_solar_nakshatra_ingresses(
+                    from,
+                    to,
+                    ayanamsa,
+                    core::ptr::null_mut(),
+                    0,
+                    &mut written,
+                )
+            },
+            status
+        );
+    }
+    assert_eq!(
+        unsafe {
+            hc_solar_nakshatra_ingresses(
+                0,
+                4_000_000_000,
+                c"lahiri".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                &mut written,
+            )
+        },
+        HC_ERROR_OUT_OF_RANGE
+    );
+}

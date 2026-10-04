@@ -530,7 +530,11 @@ the Moon, over starts every half day for 600 days from 2024 and targets at
 
 `crates/hc-astro/src/solar.rs`, `vsop87.rs`, `lunar.rs`, `search.rs` and the
 nutation, obliquity and equatorial functions of `earth.rs`; at the boundary
-`crates/hyper-calendar/src/sky_lines.rs`. The tests that anchor them: in
+`crates/hyper-calendar/src/sky_lines.rs`, and in `astro_lines.rs`
+`hc_equation_of_time`, `solar::equation_of_time` in seconds at an instant,
+and in `season_lines.rs` `hc_principal_phases_in_month`, the principal phases
+inside a Gregorian month at a meridian from `hc-seasons`'s
+`moon_calendar::principal_phases_in_month`. The tests that anchor them: in
 `solar`, `the_apparent_solar_longitude_matches_meeus_example_25b`,
 `the_solar_position_matches_meeus_example_25b`,
 `every_published_seasonal_event_falls_inside_the_claimed_accuracy`,

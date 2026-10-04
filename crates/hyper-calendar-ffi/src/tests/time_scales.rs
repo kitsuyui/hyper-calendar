@@ -609,3 +609,22 @@ fn the_exact_bridge_writes_the_fraction_of_the_rate_era() {
         HC_ERROR_NO_DATA
     );
 }
+
+/// The epochs are the module's lines, 25 of them from the POSIX epoch to
+/// PostgreSQL's.
+#[test]
+fn the_epochs_are_the_modules_lines() {
+    let text =
+        read_lines(|buffer, capacity, written| unsafe { hc_epochs(buffer, capacity, written) });
+    assert_eq!(text, hc::time_lines::epochs_lines());
+    assert_eq!(text.lines().count(), 25);
+    assert!(
+        text.starts_with("unix\tPOSIX time_t origin, 1970-01-01T00:00:00Z\t8\t82000000000000\t")
+    );
+    assert!(
+        text.lines()
+            .last()
+            .expect("a line")
+            .starts_with("postgresql\t")
+    );
+}

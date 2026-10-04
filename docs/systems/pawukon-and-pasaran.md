@@ -265,7 +265,10 @@ were read by the module's author on 2026-09-26 and not re-read here.
 ## Code
 
 `crates/hc-calendars-regional/src/balinese_pawukon.rs` and
-`crates/hc-calendars-regional/src/javanese_pasaran.rs`; the holy days,
+`crates/hc-calendars-regional/src/javanese_pasaran.rs`; at the boundary,
+`hc_weton` in `crates/hyper-calendar/src/calendar_values.rs`, a day's weton
+with both names, the *neptu* of each and their sum, and the compound name,
+beyond the numbers `hc_describe_day`'s `javanese-pasaran` carries; the holy days,
 `hc-holiday`'s `traditions::BALINESE_PAWUKON_DAYS`, anchored by
 `galungan_and_kuningan_are_wikipedias_dates` and
 `tumpek_and_kajeng_kliwon_are_the_books_positions_in_the_pawukon`. Anchors:

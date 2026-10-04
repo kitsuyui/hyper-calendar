@@ -529,12 +529,164 @@ impl PluralRules {
     pub fn select_decimal(&self, text: &str) -> I18nResult<PluralCategory> {
         Ok(self.select(&PluralOperands::parse(text)?))
     }
+
+    /// The categories these rules answer with, in CLDR's order, each with
+    /// the first number of [`PROBE_OPERANDS`] that falls in it; a category
+    /// the rules never answer is `None`.
+    ///
+    /// The probes are the integers 0 to 1 100 and the first three millions,
+    /// with their written decimals: the rules of CLDR 48 decide on `n`
+    /// modulo 10, 100 or 1 000 (Arabic, Polish), on a million (French,
+    /// Spanish and Italian give `many` to a whole million) or on the
+    /// fraction digits (Czech, Lithuanian), so the set reaches every
+    /// category [`PluralRules::categories`] names but one reached only
+    /// through the compact exponent `c`, which this crate reads as 0; the
+    /// test `the_categories_a_rule_answers_are_its_rules` holds every
+    /// language of both kinds to that.
+    #[must_use]
+    pub fn category_examples(&self) -> [(PluralCategory, Option<PluralOperands>); 6] {
+        let mut out = PluralCategory::ALL.map(|category| (category, None));
+        for operands in PROBE_OPERANDS {
+            let category = self.select(&operands);
+            let slot = &mut out[category as usize];
+            if slot.1.is_none() {
+                slot.1 = Some(operands);
+            }
+        }
+        out
+    }
+}
+
+/// The operands [`PluralRules::category_examples`] tries, in order: the
+/// written numbers 0 to 1 100, then 1 000 000, 1 000 001 and 2 000 000,
+/// each as an integer and as decimals with one and two fraction digits
+/// (`1`, `1.0`, `1.5`, `1.00`, `1.50`).
+#[derive(Debug, Clone)]
+pub struct ProbeOperands {
+    at: u32,
+}
+
+/// Every probe, as [`PluralRules::category_examples`] walks them.
+pub const PROBE_OPERANDS: ProbeOperands = ProbeOperands { at: 0 };
+
+impl ProbeOperands {
+    /// The integers probed, in order.
+    const INTEGERS: usize = 1_101 + 3;
+    /// The written forms of each integer: itself, `.0`, `.5`, `.00`, `.50`.
+    const FORMS: usize = 5;
+
+    const fn integer(index: usize) -> u64 {
+        match index {
+            1_101 => 1_000_000,
+            1_102 => 1_000_001,
+            1_103 => 2_000_000,
+            whole => whole as u64,
+        }
+    }
+}
+
+impl Iterator for ProbeOperands {
+    type Item = PluralOperands;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let at = self.at as usize;
+        if at >= Self::INTEGERS * Self::FORMS {
+            return None;
+        }
+        self.at += 1;
+        let integer = Self::integer(at / Self::FORMS);
+        Some(match at % Self::FORMS {
+            0 => PluralOperands::from_parts(integer, 0, 0),
+            1 => PluralOperands::from_parts(integer, 1, 0),
+            2 => PluralOperands::from_parts(integer, 1, 5),
+            3 => PluralOperands::from_parts(integer, 2, 0),
+            _ => PluralOperands::from_parts(integer, 2, 50),
+        })
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::PluralCategory::{Few, Many, One, Other, Two, Zero};
     use super::*;
+
+    /// The categories each language's rule answers are the ones its
+    /// `plurals.xml` rule names: all six for Arabic and Welsh, four for
+    /// Russian and Polish, `one`, `many` and `other` for French, whose
+    /// `many` is a whole million, `one` and `other` for English, and
+    /// `other` alone for Japanese and for a language no rule is carried for.
+    #[test]
+    fn the_categories_a_rule_answers_are_its_rules() {
+        let answered = |language: &str| -> Vec<PluralCategory> {
+            PluralRules::for_locale(&Locale::parse(language).expect("a tag"))
+                .category_examples()
+                .iter()
+                .filter_map(|(category, example)| example.map(|_| *category))
+                .collect()
+        };
+        assert_eq!(answered("ar"), [Zero, One, Two, Few, Many, Other]);
+        assert_eq!(answered("cy"), [Zero, One, Two, Few, Many, Other]);
+        assert_eq!(answered("ru"), [One, Few, Many, Other]);
+        assert_eq!(answered("pl"), [One, Few, Many, Other]);
+        assert_eq!(answered("fr"), [One, Many, Other]);
+        assert_eq!(answered("en"), [One, Other]);
+        assert_eq!(answered("ja"), [Other]);
+        assert_eq!(answered("sa"), [Other]);
+        // The example is the first probe in the category: 0 for Arabic's
+        // zero, 1 000 000 for French's many, 0.5 for Lithuanian's many.
+        let arabic = PluralRules::for_language("ar").expect("Arabic");
+        assert_eq!(
+            arabic.category_examples()[0].1,
+            Some(PluralOperands::from_integer(0))
+        );
+        let french = PluralRules::for_language("fr").expect("French");
+        assert_eq!(
+            french.category_examples()[4].1,
+            Some(PluralOperands::from_integer(1_000_000))
+        );
+        let lithuanian = PluralRules::for_language("lt").expect("Lithuanian");
+        assert_eq!(
+            lithuanian.category_examples()[4].1,
+            Some(PluralOperands::from_parts(0, 1, 5))
+        );
+        assert_eq!(PROBE_OPERANDS.count(), (1_101 + 3) * 5);
+        // English positions: 1st, 2nd, 3rd, 4th.
+        let english = PluralRules::of_kind_for_language(PluralType::Ordinal, "en").expect("en");
+        let positions: Vec<(PluralCategory, Option<u64>)> = english
+            .category_examples()
+            .iter()
+            .map(|(category, example)| (*category, example.map(|operands| operands.i())))
+            .collect();
+        assert_eq!(
+            positions,
+            [
+                (Zero, None),
+                (One, Some(1)),
+                (Two, Some(2)),
+                (Few, Some(3)),
+                (Many, None),
+                (Other, Some(0)),
+            ]
+        );
+        // Every language of both kinds: the categories a probe reaches are
+        // the categories the rules name, and no other.
+        let mut unreached = Vec::new();
+        for kind in PluralType::ALL {
+            for language in PluralRules::languages(kind) {
+                let rules = PluralRules::of_kind_for_language(kind, language).expect("listed");
+                let named: Vec<PluralCategory> = rules.categories().collect();
+                let reached: Vec<PluralCategory> = rules
+                    .category_examples()
+                    .iter()
+                    .filter_map(|(category, example)| example.map(|_| *category))
+                    .collect();
+                if named != reached {
+                    unreached.push((kind, language, named, reached));
+                }
+            }
+        }
+        assert!(unreached.is_empty(), "{unreached:?}");
+    }
 
     /// Assert the CLDR sample values of one language, integers and decimals
     /// alike. Every expectation here is a sample from the language's own

@@ -1261,6 +1261,33 @@ pub fn civil_from_french_decimal_time_line(
     }))
 }
 
+/// How many columns each line of [`epochs_lines`] writes.
+pub const EPOCH_COLUMNS: usize = 5;
+
+/// The lines of `hc_epochs`: every epoch [`hc_core::epoch::ALL`] carries,
+/// in the table's order — the POSIX epoch, the GNSS epochs, J2000, the
+/// origin of TCG and TCB, the Julian Day and the Modified Julian Date,
+/// Rata Die, and the software epochs from .NET's ticks to PostgreSQL's
+/// timestamps — one a line: its identifier (`unix`, `j2000`, `postgresql`),
+/// its description, its TAI reading as whole seconds from 1970-01-01
+/// 00:00:00 TAI and the attoseconds into that second, as every TAI
+/// instant crosses, and the document that defines it, with the key of its
+/// entry in `docs/references.bib`.
+#[must_use]
+pub fn epochs_lines() -> String {
+    let mut out = String::new();
+    for epoch in hc_core::epoch::ALL {
+        let mut line = crate::boundary::Line::new(&mut out);
+        line.cell(epoch.id)
+            .cell(epoch.description)
+            .value(epoch.tai_reading.whole_seconds())
+            .value(epoch.tai_reading.subsec_attos())
+            .cell(epoch.source);
+        line.end();
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

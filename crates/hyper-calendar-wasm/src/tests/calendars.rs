@@ -718,3 +718,177 @@ fn the_locale_argument_fails_as_text_does() {
         unsafe { hc_describe_day(739_880, core::ptr::null(), 0, core::ptr::null_mut(), 0) };
     assert!(needed > 0);
 }
+
+/// The year types Tum's rule gives Cambodia's 2567 to 2570 BE and
+/// Dupertuis's table gives Laos's 1342 CS, with the Khmer New Year of
+/// 2568, 02:15:00 on 16 April 2024.
+#[test]
+fn the_southeast_asian_year_types_cross_the_boundary() {
+    let kind = |calendar: &str, year: i64| {
+        read_lines(|buffer, capacity| unsafe {
+            hc_southeast_asian_year_type(calendar.as_ptr(), calendar.len(), year, buffer, capacity)
+        })
+    };
+    let text = kind("khmer", 2568);
+    let cells: Vec<&str> = text.trim_end().split('\t').collect();
+    assert_eq!(cells.len(), 9, "{text}");
+    assert_eq!(cells[..5], ["khmer", "2568", "normal", "354", "0"]);
+    assert_eq!(cells[5..7], ["ปกติมาส", "បកតិមាស បកតិវារៈ"]);
+    assert_eq!(cells[7], hc_gregorian_to_fixed(2024, 4, 16).to_string());
+    assert_eq!(cells[8], "8100");
+    assert!(kind("khmer", 2567).contains("\textra-month\t384\t1\t"));
+    assert!(kind("khmer", 2569).contains("\textra-day\t355\t0\t"));
+    assert!(kind("khmer", 2570).contains("\textra-month\t384\t1\t"));
+    assert!(kind("LAO", 1342).starts_with("lao\t1342\textra-month\t384\t1\t"));
+    let null = core::ptr::null_mut();
+    assert_eq!(
+        unsafe { hc_southeast_asian_year_type("khmer".as_ptr(), 5, 2443, null, 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_southeast_asian_year_type("lao".as_ptr(), 3, 1402, null, 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_southeast_asian_year_type("thai-lunar".as_ptr(), 10, 2568, null, 0) },
+        HC_ERR_UNKNOWN
+    );
+}
+
+/// 0.0.0.0.0 is 4 Ahau 8 Cumku under every constant, JDN 584 283 under
+/// GMT; Martin and Skidmore's eclipse 9.17.19.13.16 5 Cib 14 Chen is
+/// JDN 2 009 802 under theirs.
+#[test]
+fn the_maya_counts_under_a_named_correlation_cross_the_boundary() {
+    let maya = |fixed: i64, correlation: &str| {
+        read_lines(|buffer, capacity| unsafe {
+            hc_maya_long_count(
+                fixed,
+                correlation.as_ptr(),
+                correlation.len(),
+                buffer,
+                capacity,
+            )
+        })
+    };
+    let epoch = 584_283 - 1_721_425;
+    assert_eq!(
+        maya(epoch, "GMT"),
+        "maya-longcount\t584283\t0.0.0.0.0\t0\t0\t0\t0\t0\t4\tAhau\t8\tCumku\n"
+    );
+    assert_eq!(
+        maya(epoch + 2, "gmt2"),
+        "maya-longcount-gmt2\t584285\t0.0.0.0.0\t0\t0\t0\t0\t0\t4\tAhau\t8\tCumku\n"
+    );
+    assert_eq!(
+        maya(2_009_802 - 1_721_425, "584286"),
+        "maya-longcount-584286\t584286\t9.17.19.13.16\t9\t17\t19\t13\t16\t5\tCib\t14\tChen\n"
+    );
+    assert_eq!(
+        maya(epoch + 3, "martin-skidmore").split('\t').nth(2),
+        Some("0.0.0.0.0")
+    );
+    let null = core::ptr::null_mut();
+    assert_eq!(
+        unsafe { hc_maya_long_count(epoch - 1, "gmt".as_ptr(), 3, null, 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_maya_long_count(epoch, "lounsbury".as_ptr(), 9, null, 0) },
+        HC_ERR_UNKNOWN
+    );
+}
+
+/// The *dabɔne* of 1978 the source dates — Akwasidae on 8 January, Fɔdwo on
+/// 23 January, Awukudae on 1 February, Fofi on 10 February — and
+/// Indonesia's proclamation on Jemuwah Legi, 17 August 1945.
+#[test]
+fn the_akan_day_and_the_weton_cross_the_boundary() {
+    let akan =
+        |day: i64| read_lines(|buffer, capacity| unsafe { hc_akan_day(day, buffer, capacity) });
+    assert_eq!(
+        akan(hc_gregorian_to_fixed(1978, 1, 23)),
+        "0\t1\t1\tFo\t2\tƐdwoada\tDwo\tFo-Dwo\tFɔdwo\n"
+    );
+    let awukudae = akan(hc_gregorian_to_fixed(1978, 2, 1));
+    assert!(
+        awukudae.starts_with("0\t10\t") && awukudae.ends_with("\tAwukudae\n"),
+        "{awukudae}"
+    );
+    let fofi = akan(hc_gregorian_to_fixed(1978, 2, 10));
+    assert!(
+        fofi.starts_with("0\t19\t") && fofi.ends_with("\tFofi\n"),
+        "{fofi}"
+    );
+    let akwasidae = akan(hc_gregorian_to_fixed(1978, 1, 8));
+    assert!(
+        akwasidae.starts_with("-1\t28\t4\tKuru\t1\tKwasiada\tKwasi\tKuru-Kwasi\tAkwasidae\n"),
+        "{akwasidae}"
+    );
+    let ordinary = akan(hc_gregorian_to_fixed(1978, 1, 24));
+    assert!(
+        ordinary.starts_with("0\t2\t2\tNwuna\t3\t") && ordinary.ends_with("\t\n"),
+        "{ordinary}"
+    );
+    assert_eq!(
+        unsafe { hc_akan_day(i64::MIN, core::ptr::null_mut(), 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+    let weton = read_lines(|buffer, capacity| unsafe {
+        hc_weton(hc_gregorian_to_fixed(1945, 8, 17), buffer, capacity)
+    });
+    let cells: Vec<&str> = weton.trim_end().split('\t').collect();
+    assert_eq!(cells.len(), 10, "{weton}");
+    assert_eq!(
+        cells[2..],
+        ["6", "Jemuwah", "1", "Legi", "6", "5", "11", "Jemuwah Legi"]
+    );
+    let later = read_lines(|buffer, capacity| unsafe {
+        hc_weton(hc_gregorian_to_fixed(1945, 8, 17) + 35, buffer, capacity)
+    });
+    assert!(later.ends_with("\tJemuwah Legi\n"), "{later}");
+}
+
+/// Sri Lanka's Vesak of 12 May 2025 opened the Buddhist year 2569, "B.C
+/// 2569/2025"; the day before was 2568's last, and the first days of 2023
+/// are 2566 from a Vesak no order read fixes.
+#[test]
+fn sri_lankas_buddhist_year_crosses_the_boundary() {
+    let year = |day: i64| {
+        read_lines(|buffer, capacity| unsafe { hc_buddhist_lk_year(day, buffer, capacity) })
+    };
+    let vesak_2025 = hc_gregorian_to_fixed(2025, 5, 12);
+    assert_eq!(
+        year(vesak_2025),
+        format!(
+            "2569\t2025\t{vesak_2025}\t{vesak_2025}\t{}\n",
+            hc_gregorian_to_fixed(2026, 5, 29)
+        )
+    );
+    assert_eq!(
+        year(vesak_2025 - 1),
+        format!(
+            "2568\t2025\t{vesak_2025}\t{}\t{}\n",
+            hc_gregorian_to_fixed(2024, 5, 23),
+            vesak_2025 - 1
+        )
+    );
+    assert_eq!(
+        year(hc_gregorian_to_fixed(2023, 1, 1)),
+        format!(
+            "2566\t2023\t{}\t\t{}\n",
+            hc_gregorian_to_fixed(2023, 5, 5),
+            hc_gregorian_to_fixed(2023, 5, 4)
+        )
+    );
+    assert!(year(hc_gregorian_to_fixed(2027, 12, 31)).ends_with("\t\n"));
+    let null = core::ptr::null_mut();
+    assert_eq!(
+        unsafe { hc_buddhist_lk_year(hc_gregorian_to_fixed(2022, 12, 31), null, 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_buddhist_lk_year(hc_gregorian_to_fixed(2028, 1, 1), null, 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+}

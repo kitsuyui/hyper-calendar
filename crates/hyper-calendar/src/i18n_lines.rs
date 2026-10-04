@@ -14,6 +14,7 @@ use hc_core::catalogue::matches;
 use hc_i18n::casing::{self, CasingStyle};
 use hc_i18n::day_periods::{self, FlexibleDayPeriod};
 use hc_i18n::direction::{self, Direction};
+use hc_i18n::formats::{self, FormatLength};
 use hc_i18n::names::{self, DayPeriod, NameContext, NameWidth};
 use hc_i18n::plural::{PluralOperands, PluralRules};
 use hc_i18n::week;
@@ -578,6 +579,130 @@ pub fn isolate_line(tag: &str, mode: &str, text: &str) -> Answer<String> {
             .flag(isolated)
             .cell(id);
     }))
+}
+
+/// The line of `hc_japanese_era_year`: a year of a Japanese era as the
+/// era's dates write it, 元 for the first year and the Han numerals of
+/// Japanese for every other, by
+/// [`hc_i18n::numbering::write_japanese_era_year`] — one cell, 元 for 1,
+/// 二 for 2, 三十一 for 31.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a year below 1 or beyond what the numerals
+/// write.
+pub fn japanese_era_year_line(year: i64) -> Answer<String> {
+    let mut text = String::new();
+    hc_i18n::numbering::write_japanese_era_year(year, &mut text)
+        .map_err(|_| Refusal::OutOfRange)?;
+    Ok(line(|line| {
+        line.cell(&text);
+    }))
+}
+
+/// How many columns each line of [`locale_format_lines`] writes.
+pub const LOCALE_FORMAT_COLUMNS: usize = 4;
+
+/// A standard format of a locale, a calendar type and a length, as
+/// [`formats::date_pattern`] and its two siblings read one.
+type StandardPattern = fn(&Locale, &str, FormatLength) -> Option<&'static str>;
+
+/// The lines of `hc_locale_format`: the standard date, time and date-time
+/// formats a locale carries for a calendar, in CLDR's four lengths, and the
+/// `availableFormats` items the table keeps, from [`hc_i18n::formats`] —
+/// one line a format: its kind, `date`, `time`, `date-time` or
+/// `available`; its length, `full`, `long`, `medium` or `short`, or the
+/// skeleton of an available format (`hms`, `Hms`, `Gy`, `d`, `yMMMMd`,
+/// `yMMMd`); the pattern in UTS #35's field letters, with `{1}` for the
+/// date and `{0}` for the time in a date-time format, empty where the table
+/// has none; and the CLDR calendar type the formats were read under
+/// ([`formats::calendar_key`]), `gregorian` for the Gregorian family,
+/// `japanese`, `hebrew`, `islamic`, `persian`, `chinese`, … and `generic`
+/// for a calendar CLDR gives no formats of its own. The patterns are the
+/// locale's own file's, resolved through its fallback chain and `root.xml`,
+/// as `%c`, `%x` and `%X` of `hc_format_pattern` write the medium ones.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a calendar the registry does not carry, and
+/// [`Refusal::Malformed`] for a tag that does not parse.
+pub fn locale_format_lines(tag: &str, calendar: &str) -> Answer<String> {
+    let registry = crate::registry();
+    let found = registry.get_by_name(calendar).ok_or(Refusal::Unknown)?;
+    let key = formats::calendar_key(found.meta().id);
+    let locale = strict_locale(tag)?;
+    let mut out = String::new();
+    let standard: [(&str, StandardPattern); 3] = [
+        ("date", formats::date_pattern),
+        ("time", formats::time_pattern),
+        ("date-time", formats::date_time_pattern),
+    ];
+    for (kind, pattern) in standard {
+        for length in FormatLength::ALL {
+            let mut line = Line::new(&mut out);
+            line.cell(kind)
+                .cell(length.as_str())
+                .cell_or_empty(pattern(&locale, key, length))
+                .cell(key);
+            line.end();
+        }
+    }
+    for skeleton in formats::AVAILABLE_FORMATS {
+        let mut line = Line::new(&mut out);
+        line.cell("available")
+            .cell(skeleton)
+            .cell_or_empty(formats::available_format(&locale, key, skeleton))
+            .cell(key);
+        line.end();
+    }
+    Ok(out)
+}
+
+/// How many columns each line of [`plural_categories_lines`] writes.
+pub const PLURAL_CATEGORIES_COLUMNS: usize = 3;
+
+/// The lines of `hc_plural_categories`: the plural categories a locale's
+/// rules of a kind name, in CLDR's order — `zero`, `one`, `two`, `few`,
+/// `many`, `other` — one a line ([`PluralRules::categories`]), each with
+/// a number the rules put in it, written as the rules read it (`1`, `0.5`,
+/// `1000000`), the first of [`hc_i18n::plural::PROBE_OPERANDS`] that falls
+/// there ([`PluralRules::category_examples`]), empty where no probe does,
+/// and the language of the rules that answered (`ru`, `pt-PT`, or `und`
+/// where none is carried and everything is `other`). `kind` is `cardinal`,
+/// the form after a count, or `ordinal`, the form of a position, as for
+/// `hc_plural_category`.
+///
+/// # Errors
+///
+/// [`Refusal::Malformed`] for a tag that does not parse and
+/// [`Refusal::Unknown`] for a kind that is neither.
+pub fn plural_categories_lines(tag: &str, kind: &str) -> Answer<String> {
+    let kind = hc_i18n::PluralType::from_keyword(kind.trim()).ok_or(Refusal::Unknown)?;
+    let locale = strict_locale(tag)?;
+    let rules = PluralRules::of_kind_for_locale(kind, &locale);
+    let examples = rules.category_examples();
+    let mut out = String::new();
+    for category in rules.categories() {
+        let example = examples
+            .iter()
+            .find(|(candidate, _)| *candidate == category)
+            .and_then(|(_, example)| *example);
+        let mut line = Line::new(&mut out);
+        line.cell(category.as_str());
+        match example {
+            Some(example) if example.v() == 0 => line.value(example.i()),
+            Some(example) => line.value(format_args!(
+                "{}.{:0width$}",
+                example.i(),
+                example.f(),
+                width = example.v() as usize
+            )),
+            None => line.empty(),
+        };
+        line.cell(rules.language());
+        line.end();
+    }
+    Ok(out)
 }
 
 #[cfg(test)]

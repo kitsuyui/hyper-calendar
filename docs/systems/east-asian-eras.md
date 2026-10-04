@@ -262,13 +262,17 @@ module carries.
 
 ## Code
 
-`hc_era_table("chinese-regnal")` and `hc_era_table("korean-regnal")` write the
-two tables as lines: the 37 Chinese eras by year, with no start or last day,
+`hc_era_table("chinese-regnal")`, `hc_era_table("korean-regnal")` and
+`hc_era_table("vietnamese-regnal-nguyen")` write the
+three tables as lines: the 37 Chinese eras by year, with no start or last day,
 which the table does not carry and the Datong calendar of the Ming is not in
-this library to date, and the three Korean eras by the day each was chosen,
+this library to date, the three Korean eras by the day each was chosen,
 with 光武's backdated first day in its own column
-(`the_chinese_and_korean_eras_are_listed_with_what_their_tables_know`);
-locale data lists neither, so `hc_calendar_eras` answers `HC_ERR_NO_DATA`
+(`the_chinese_and_korean_eras_are_listed_with_what_their_tables_know`), and
+the twelve Nguyễn eras by the day each was first in force, the last day the
+eve of the next kept era or the abdication, Hiệp Hòa `not-kept` with none
+(`the_nguyen_eras_cross_the_boundary_with_their_days`);
+locale data lists none of them, so `hc_calendar_eras` answers `HC_ERR_NO_DATA`
 for them.
 
 `crates/hc-calendars-regional/src/chinese_regnal.rs` (`ChineseEra`,

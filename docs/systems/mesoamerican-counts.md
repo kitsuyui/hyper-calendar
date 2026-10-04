@@ -491,7 +491,11 @@ needs a correction the uncorrected 365-day year here does not make.
 `MayaCalendarRoundCalendar`, `calendar_round_ordinal`, the `GMT`,
 `GMT_PLUS_TWO` and `MARTIN_SKIDMORE` constants of the three cycle types), `maya_819.rs` (`Maya819Calendar`, `Maya819Date`,
 `Direction`, `STATION_DAYS`, `CYCLE_DAYS`, `BASE_BEFORE_EPOCH`) and `aztec.rs` (`CORRELATION`,
-`AztecTonalpohualliCalendar`, `AztecXiuhpohualliCalendar`). Anchors:
+`AztecTonalpohualliCalendar`, `AztecXiuhpohualliCalendar`). At the boundary,
+`hc_maya_long_count` in `crates/hyper-calendar/src/calendar_values.rs` writes a
+day in the Long Count, the tzolkʼin and the haabʼ under a correlation the
+caller names — `gmt`, `gmt2` or `martin-skidmore`, or the constant as text —
+where `hc_describe_day` carries the three as three calendars each. Anchors:
 `the_correlation_puts_the_epoch_where_the_constant_says`,
 `the_cycles_under_each_correlation_are_separate_calendars`,
 `the_cycles_follow_their_long_count_under_each_correlation`,

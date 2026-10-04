@@ -346,3 +346,180 @@ fn the_moon_rises_and_sets_when_the_usno_says() {
         HC_ERR_OUT_OF_RANGE
     );
 }
+
+/// The test case in the header of the IERS routine `RG_ZONT2.F`: at
+/// MJD 54 465, 2008-01-01 00:00, the whole table gives δUT1 = 0.079 832 9 s,
+/// so UT1S − UT1 is its negative; the 41 short tides are UT1R's part of it.
+#[test]
+fn the_regularised_ut1_lines_are_the_iers_test_case() {
+    let ut1 = (54_465.0 - 40_587.0) * 86_400.0;
+    let effect = |limit: f64| {
+        number(|buffer, capacity| unsafe { hc_zonal_tide_ut1_effect(ut1, limit, buffer, capacity) })
+    };
+    let all = effect(f64::INFINITY);
+    assert!((all - 0.079_832_876_785_765_57).abs() < 1e-6, "{all}");
+    let short = effect(35.0);
+    assert!(short.abs() < 2.75e-3 && short != all, "{short}");
+    let cells = |text: String| -> Vec<f64> {
+        text.trim_end()
+            .split('\t')
+            .map(|cell| cell.parse().expect("a number"))
+            .collect()
+    };
+    let ut1s = cells(read_lines(|buffer, capacity| unsafe {
+        hc_ut1s_iers2010(ut1, buffer, capacity)
+    }));
+    assert_eq!(ut1s.len(), 2);
+    assert!((ut1s[0] + all).abs() < 1e-9, "{ut1s:?}");
+    assert!((ut1s[1] - (ut1 + ut1s[0])).abs() < 1e-6, "{ut1s:?}");
+    let ut1r = cells(read_lines(|buffer, capacity| unsafe {
+        hc_ut1r_iers2010(ut1, buffer, capacity)
+    }));
+    assert!((ut1r[0] + short).abs() < 1e-9, "{ut1r:?}");
+    assert!((ut1r[1] - (ut1 + ut1r[0])).abs() < 1e-6, "{ut1r:?}");
+    let null = core::ptr::null_mut();
+    assert_eq!(
+        unsafe { hc_ut1r_iers2010(f64::NAN, null, 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_ut1s_iers2010(1e15, null, 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+    for limit in [0.0, -35.0, f64::NAN] {
+        assert_eq!(
+            unsafe { hc_zonal_tide_ut1_effect(ut1, limit, null, 0) },
+            HC_ERR_OUT_OF_RANGE,
+            "{limit}"
+        );
+    }
+}
+
+/// Meeus, example 28.a: on 1992 October 13 at 0h the equation of time is
+/// +13 min 42.6 s, so the sundial at Greenwich is that far ahead of the
+/// clock and the Sun transits at 11:46:17 UT; the lower transit opening
+/// the day is half a day earlier, and 15° east brings the noon an hour
+/// sooner.
+#[test]
+fn the_equation_of_time_and_the_transits_are_meeuss() {
+    let day = hc_gregorian_to_fixed(1992, 10, 13);
+    let midnight_utc = hc_unix_from_fixed(day);
+    let equation =
+        number(|buffer, capacity| unsafe { hc_equation_of_time(midnight_utc, buffer, capacity) });
+    assert!((equation - 822.6).abs() < 1.0, "{equation}");
+    // The equation grows some twenty seconds a day in October, so the noon
+    // transit is the mean noon less the equation read at that noon.
+    let noon = hc_solar_noon(day, 51.4769, 0.0, 0.0);
+    assert!(
+        (noon - (midnight_utc + 12 * 3_600 - 832)).abs() <= 4,
+        "{noon}"
+    );
+    let at_noon = number(|buffer, capacity| unsafe { hc_equation_of_time(noon, buffer, capacity) });
+    assert!(
+        (noon - (midnight_utc + 12 * 3_600 - at_noon as i64)).abs() <= 2,
+        "{noon}"
+    );
+    let midnight = hc_solar_midnight(day, 51.4769, 0.0, 0.0);
+    assert!((noon - midnight - 43_200).abs() <= 1, "{midnight}");
+    let east = hc_solar_noon(day, 51.4769, 15.0, 0.0);
+    assert!((noon - east - 3_600).abs() <= 3, "{east}");
+    assert_eq!(hc_solar_noon(day, 91.0, 0.0, 0.0), HC_ERR_OUT_OF_RANGE);
+    let far = hc_gregorian_to_fixed(3001, 1, 1);
+    assert_eq!(hc_solar_midnight(far, 0.0, 0.0, 0.0), HC_ERR_OUT_OF_RANGE);
+    assert_eq!(
+        unsafe { hc_equation_of_time(i64::MIN, core::ptr::null_mut(), 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+}
+
+/// At Jerusalem on 1 January 2024 the three dawns come in order before the
+/// USNO's sunrise and the three dusks after its sunset; at Helsinki at
+/// midsummer, where the Sun stays within 6.4° of the horizon, civil
+/// twilight ends and nautical twilight does not, which the line names.
+#[test]
+fn the_twilights_cross_the_boundary_and_name_a_missing_depression() {
+    let crossing = |export: unsafe extern "C" fn(
+        *const u8,
+        usize,
+        i64,
+        f64,
+        f64,
+        f64,
+        *mut u8,
+        usize,
+    ) -> i64,
+                    twilight: &str,
+                    day: i64,
+                    place: [f64; 3]| {
+        let text = read_lines(|buffer, capacity| unsafe {
+            export(
+                twilight.as_ptr(),
+                twilight.len(),
+                day,
+                place[0],
+                place[1],
+                place[2],
+                buffer,
+                capacity,
+            )
+        });
+        let line = text.strip_suffix('\n').expect("one line");
+        let cells: Vec<String> = line.split('\t').map(str::to_owned).collect();
+        assert_eq!(cells.len(), 5, "{text:?}");
+        cells
+    };
+    let day = hc_gregorian_to_fixed(2024, 1, 1);
+    let jerusalem = [31.78, 35.24, 740.0];
+    let instant = |cells: &[String]| -> i64 { cells[0].parse().expect("an instant") };
+    let dawns: Vec<i64> = ["astronomical", "Nautical", "civil"]
+        .iter()
+        .map(|twilight| instant(&crossing(hc_dawn, twilight, day, jerusalem)))
+        .collect();
+    let dusks: Vec<i64> = ["civil", "nautical", "ASTRONOMICAL"]
+        .iter()
+        .map(|twilight| instant(&crossing(hc_dusk, twilight, day, jerusalem)))
+        .collect();
+    // The USNO: sunrise 06:39 and sunset 16:46 at UT+2.
+    let sunrise = hc_unix_from_fixed(day) + 4 * 3_600 + 39 * 60;
+    let sunset = hc_unix_from_fixed(day) + 14 * 3_600 + 46 * 60;
+    assert!(
+        dawns[0] < dawns[1] && dawns[1] < dawns[2] && dawns[2] < sunrise,
+        "{dawns:?}"
+    );
+    assert!(
+        sunset < dusks[0] && dusks[0] < dusks[1] && dusks[1] < dusks[2],
+        "{dusks:?}"
+    );
+    // Civil twilight at Jerusalem lasts about half an hour.
+    assert!(
+        (sunrise - dawns[2]) > 20 * 60 && (sunrise - dawns[2]) < 40 * 60,
+        "{dawns:?}"
+    );
+    let midsummer = hc_gregorian_to_fixed(2024, 6, 21);
+    let helsinki = [60.1699, 24.9384, 0.0];
+    let civil = crossing(hc_dusk, "civil", midsummer, helsinki);
+    assert!(
+        !civil[0].is_empty() && civil[1..].iter().all(String::is_empty),
+        "{civil:?}"
+    );
+    let nautical = crossing(hc_dusk, "nautical", midsummer, helsinki);
+    assert_eq!(
+        nautical,
+        ["", "depression", &midsummer.to_string(), "720", "43200"]
+    );
+    let dawn = crossing(hc_dawn, "nautical", midsummer, helsinki);
+    assert_eq!(dawn[1..], nautical[1..]);
+    let null = core::ptr::null_mut();
+    assert_eq!(
+        unsafe { hc_dawn("dusk".as_ptr(), 4, day, 0.0, 0.0, 0.0, null, 0) },
+        HC_ERR_UNKNOWN
+    );
+    assert_eq!(
+        unsafe { hc_dusk("civil".as_ptr(), 5, day, 91.0, 0.0, 0.0, null, 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_dusk("".as_ptr(), 0, day, 0.0, 0.0, 0.0, null, 0) },
+        HC_ERR_UNKNOWN
+    );
+}

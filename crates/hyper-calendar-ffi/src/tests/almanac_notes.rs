@@ -222,3 +222,37 @@ fn the_era_table_and_the_games_cross_the_c_boundary() {
         HC_ERROR_NULL_POINTER
     );
 }
+
+/// The Nguyễn table crosses the C boundary as the module's twelve lines,
+/// Gia Long's from 1 June 1802.
+#[test]
+fn the_nguyen_eras_cross_the_c_boundary() {
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_era_table(
+            c"vietnamese-regnal-nguyen".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert_eq!(
+        Ok(text.clone()),
+        hc::calendar_values::era_table_lines("vietnamese-regnal-nguyen")
+    );
+    assert_eq!(text.lines().count(), 12);
+    let mut day = 0i64;
+    assert_eq!(
+        unsafe { hc_gregorian_to_fixed(1802, 6, 1, &mut day) },
+        HC_OK
+    );
+    assert!(
+        text.starts_with(&format!(
+            "gia-long\t嘉隆\tGia Long\tGia Long\tnguyen\t1802\t1820\t{day}\t"
+        )),
+        "{text}"
+    );
+    assert!(
+        text.contains("\nhiep-hoa\t協和\tHiệp Hòa\tHiệp Hòa\tnguyen\t1884\t\t"),
+        "{text}"
+    );
+}

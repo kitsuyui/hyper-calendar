@@ -136,3 +136,106 @@ fn the_names_the_case_and_the_isolates_of_a_locale() {
     };
     assert_eq!(unknown, HC_ERR_UNKNOWN);
 }
+
+/// 元 for the first year of an era and the Han numerals after it; the
+/// templates `ja` writes a Japanese date with; and the categories Arabic,
+/// Russian and Japanese plural rules answer.
+#[test]
+fn the_era_year_the_templates_and_the_plural_categories_cross_the_boundary() {
+    let era_year = |year: i64| {
+        read_lines(|buffer, capacity| unsafe { hc_japanese_era_year(year, buffer, capacity) })
+    };
+    assert_eq!(era_year(1), "元\n");
+    assert_eq!(era_year(2), "二\n");
+    assert_eq!(era_year(31), "三十一\n");
+    assert_eq!(
+        unsafe { hc_japanese_era_year(0, core::ptr::null_mut(), 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+    let format = |locale: &str, calendar: &str| {
+        read_lines(|buffer, capacity| unsafe {
+            hc_locale_format(
+                locale.as_ptr(),
+                locale.len(),
+                calendar.as_ptr(),
+                calendar.len(),
+                buffer,
+                capacity,
+            )
+        })
+    };
+    // CLDR 48 de.xml, calendar type gregorian: the four date lengths, the
+    // medium time and the medium date-time.
+    let text = format("de", "gregory");
+    let rows: Vec<Vec<&str>> = text
+        .lines()
+        .map(|line| line.split('\t').collect())
+        .collect();
+    assert_eq!(rows.len(), 18, "{text}");
+    assert!(
+        rows.iter()
+            .all(|row| row.len() == 4 && row[3] == "gregorian"),
+        "{text}"
+    );
+    assert_eq!(
+        rows[..4],
+        [
+            ["date", "full", "EEEE, d. MMMM y", "gregorian"],
+            ["date", "long", "d. MMMM y", "gregorian"],
+            ["date", "medium", "dd.MM.y", "gregorian"],
+            ["date", "short", "dd.MM.yy", "gregorian"],
+        ]
+    );
+    assert_eq!(rows[6][..3], ["time", "medium", "HH:mm:ss"]);
+    assert_eq!(rows[10][..3], ["date-time", "medium", "{1}, {0}"]);
+    assert_eq!(rows[12][..2], ["available", "hms"]);
+    let hebrew = format("en", "hebrew");
+    assert!(
+        hebrew.lines().all(|line| line.ends_with("\thebrew")),
+        "{hebrew}"
+    );
+    let null = core::ptr::null_mut();
+    assert_eq!(
+        unsafe { hc_locale_format("en".as_ptr(), 2, "x".as_ptr(), 1, null, 0) },
+        HC_ERR_UNKNOWN
+    );
+    assert_eq!(
+        unsafe { hc_locale_format("e!".as_ptr(), 2, "gregory".as_ptr(), 7, null, 0) },
+        HC_ERR_MALFORMED
+    );
+    let categories = |locale: &str, kind: &str| {
+        read_lines(|buffer, capacity| unsafe {
+            hc_plural_categories(
+                locale.as_ptr(),
+                locale.len(),
+                kind.as_ptr(),
+                kind.len(),
+                buffer,
+                capacity,
+            )
+        })
+    };
+    assert_eq!(
+        categories("ar", "cardinal"),
+        "zero\t0\tar\none\t1\tar\ntwo\t2\tar\nfew\t3\tar\nmany\t11\tar\nother\t0.5\tar\n"
+    );
+    assert_eq!(
+        categories("ru-RU", "Cardinal"),
+        "one\t1\tru\nfew\t2\tru\nmany\t0\tru\nother\t0.0\tru\n"
+    );
+    assert_eq!(categories("ja", "cardinal"), "other\t0\tja\n");
+    assert_eq!(categories("sa", "cardinal"), "other\t0\tund\n");
+    // 1st, 2nd, 3rd, 4th.
+    assert_eq!(
+        categories("en", "ordinal"),
+        "one\t1\ten\ntwo\t2\ten\nfew\t3\ten\nother\t0\ten\n"
+    );
+    assert_eq!(
+        unsafe { hc_plural_categories("en".as_ptr(), 2, "x".as_ptr(), 1, null, 0) },
+        HC_ERR_UNKNOWN
+    );
+    assert_eq!(
+        unsafe { hc_plural_categories("e!".as_ptr(), 2, "cardinal".as_ptr(), 8, null, 0) },
+        HC_ERR_MALFORMED
+    );
+}

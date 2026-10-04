@@ -360,7 +360,10 @@ those changes; none was read.
 `crates/hc-calendars-solar/src/masonic_march.rs`,
 `crates/hc-calendars-solar/src/ptolemaic_day.rs` and
 `crates/hc-calendars-regional/src/buddhist_lk.rs` (`VESAK_POYA`, `year_of`,
-`BuddhistLkCalendar`; anchors `the_year_turns_on_vesak_poya_day`,
+`BuddhistLkCalendar`; at the boundary `hc_buddhist_lk_year` in
+`crates/hyper-calendar/src/calendar_values.rs`, the year of a day with the
+Vesak that began it and the eve of the next, empty where no order read fixes
+them; anchors `the_year_turns_on_vesak_poya_day`,
 `the_years_outside_the_orders_are_a_gap`,
 `a_date_without_the_gregorian_year_is_read_when_it_is_unambiguous`); the
 other anchors are the tests named above.

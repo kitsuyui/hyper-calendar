@@ -31,9 +31,10 @@ use hc_seasons::san_fu::{SanFu, shu_jiu_periods};
 use hc_seasons::seasons::Season;
 use hc_seasons::solar_terms::{TermOrder, namings, term_in_effect};
 use hc_seasons::zassetsu::{self, HiganSeason, Zassetsu, ZassetsuRule};
-use hc_seasons::{ColdFoodConvention, Meridian, pentads};
+use hc_seasons::zodiac::{self, Ayanamsa};
+use hc_seasons::{ColdFoodConvention, Meridian, moon_calendar, pentads};
 
-use crate::astro_lines::{EARLIEST_YEAR, LATEST_YEAR, day_in_era};
+use crate::astro_lines::{EARLIEST_YEAR, LATEST_YEAR, day_in_era, unix_from_moment};
 use crate::boundary::{Answer, Line, Refusal};
 
 /// How many columns [`term_line`] and [`pentad_line`] write.
@@ -502,6 +503,163 @@ pub fn plum_rains_day(rule: &str, year: i64, meridian_name: &str) -> Answer<i64>
         return Err(Refusal::OutOfRange);
     }
     Ok((rule.day)(year, meridian).0)
+}
+
+/// The meridian and the year of a call, checked in that order.
+fn meridian_and_year(year: i64, name: &str) -> Answer<Meridian> {
+    let meridian = meridian(name)?;
+    if !(EARLIEST_YEAR..=LATEST_YEAR).contains(&year) {
+        return Err(Refusal::OutOfRange);
+    }
+    Ok(meridian)
+}
+
+/// How many columns each line of [`tropical_signs_in_year_lines`] writes.
+pub const TROPICAL_SIGNS_COLUMNS: usize = 7;
+
+/// How many columns each line of [`sidereal_signs_in_year_lines`] writes:
+/// the tropical columns and the ayanāṃśa.
+pub const SIDEREAL_SIGNS_COLUMNS: usize = TROPICAL_SIGNS_COLUMNS + 1;
+
+/// The cells a sign period shares between the two zodiacs: the sign's
+/// number and identifier, its name, the instants the Sun entered and left
+/// it as whole POSIX seconds, rounded down, and its first and last days at
+/// the meridian.
+fn sign_period_cells<S>(
+    line: &mut Line<'_>,
+    period: &zodiac::SignPeriod<S>,
+    number: u8,
+    id: &str,
+    name: &str,
+) {
+    line.value(number)
+        .cell(id)
+        .cell(name)
+        .value(unix_from_moment(period.start))
+        .value(unix_from_moment(period.end))
+        .value(period.start_day.0)
+        .value(period.end_day.0);
+}
+
+/// The lines of `hc_tropical_signs_in_year`: the twelve tropical sign
+/// periods of a Gregorian year at a meridian, in date order from Aquarius
+/// around 20 January to Capricorn around 21 December, as
+/// [`zodiac::tropical::signs_in_year`] walks them — one a line: the sign,
+/// 1 for Aries through 12 for Pisces, its identifier (`aries`) and English
+/// name, the instant the Sun entered it and the instant it left, each as
+/// whole POSIX seconds of Universal Time rounded down, and the first and
+/// the last day of the sign at the meridian. Consecutive periods share
+/// their instants exactly, and a sign's days run `begins..=ends`.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a meridian [`meridian`] does not read, and
+/// [`Refusal::OutOfRange`] for a year outside −1000 to 3000.
+pub fn tropical_signs_in_year_lines(year: i64, meridian_name: &str) -> Answer<String> {
+    let meridian = meridian_and_year(year, meridian_name)?;
+    let mut out = String::new();
+    for period in zodiac::tropical::signs_in_year(year, meridian) {
+        let mut line = Line::new(&mut out);
+        sign_period_cells(
+            &mut line,
+            &period,
+            period.sign.index() + 1,
+            period.sign.id(),
+            period.sign.english_name(),
+        );
+        line.end();
+    }
+    Ok(out)
+}
+
+/// The lines of `hc_sidereal_signs_in_year`: the twelve sidereal sign
+/// periods — the saṅkrāntis — of a Gregorian year in the zodiac of a named
+/// ayanāṃśa at a meridian, in date order from the first saṅkrānti on or
+/// after 1 January, Makara's around 14 January with a modern ayanāṃśa, as
+/// [`zodiac::sidereal::signs_in_year`] walks them — one a line: the sign,
+/// 1 for Meṣa through 12 for Mīna, its identifier (`mesha`) and Sanskrit
+/// name, the instants the Sun entered and left it as whole POSIX seconds
+/// rounded down, its first and last days at the meridian, and the
+/// ayanāṃśa's identifier.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for an ayanāṃśa [`Ayanamsa::by_id`] does not name
+/// or a meridian [`meridian`] does not read, the ayanāṃśa read first, and
+/// [`Refusal::OutOfRange`] for a year outside −1000 to 3000.
+pub fn sidereal_signs_in_year_lines(
+    year: i64,
+    ayanamsa_name: &str,
+    meridian_name: &str,
+) -> Answer<String> {
+    let ayanamsa = Ayanamsa::by_id(ayanamsa_name).ok_or(Refusal::Unknown)?;
+    let meridian = meridian_and_year(year, meridian_name)?;
+    let mut out = String::new();
+    for period in zodiac::sidereal::signs_in_year(year, ayanamsa, meridian) {
+        let mut line = Line::new(&mut out);
+        sign_period_cells(
+            &mut line,
+            &period,
+            period.sign.index() + 1,
+            period.sign.id(),
+            period.sign.sanskrit_name(),
+        );
+        line.cell(ayanamsa.id());
+        line.end();
+    }
+    Ok(out)
+}
+
+/// The value of `hc_traditional_tanabata`: the fixed day of 伝統的七夕 of a
+/// Gregorian year at a meridian, the National Astronomical Observatory's
+/// traditional Tanabata, by [`moon_calendar::traditional_tanabata`]: the
+/// seventh day counted from the day holding the new moon nearest 処暑, on
+/// or before the day holding 処暑. The Observatory's days are at `japan`.
+///
+/// # Errors
+///
+/// As [`tropical_signs_in_year_lines`].
+pub fn traditional_tanabata(year: i64, meridian_name: &str) -> Answer<i64> {
+    let meridian = meridian_and_year(year, meridian_name)?;
+    Ok(moon_calendar::traditional_tanabata(year, meridian).0)
+}
+
+/// How many columns each line of [`principal_phases_in_month_lines`]
+/// writes.
+pub const PRINCIPAL_PHASES_COLUMNS: usize = 3;
+
+/// The lines of `hc_principal_phases_in_month`: the principal phases of
+/// the Moon that fall inside a Gregorian month at a meridian, in time
+/// order, by [`moon_calendar::principal_phases_in_month`] — four or five
+/// of them, since a month of 30 or 31 days can hold one phase twice — one
+/// a line: the phase (`new`, `first-quarter`, `full` or `last-quarter`),
+/// its instant as whole POSIX seconds of Universal Time rounded down, and
+/// the fixed day it falls on at the meridian.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a meridian [`meridian`] does not read,
+/// [`Refusal::InvalidDate`] for a month outside 1 to 12, and
+/// [`Refusal::OutOfRange`] for a year outside −1000 to 3000.
+pub fn principal_phases_in_month_lines(
+    year: i64,
+    month: u32,
+    meridian_name: &str,
+) -> Answer<String> {
+    let meridian = meridian_and_year(year, meridian_name)?;
+    let month = u8::try_from(month)
+        .ok()
+        .filter(|month| (1..=12).contains(month))
+        .ok_or(Refusal::InvalidDate)?;
+    let mut out = String::new();
+    for event in moon_calendar::principal_phases_in_month(year, month, meridian) {
+        let mut line = Line::new(&mut out);
+        line.cell(crate::sky_lines::phase_name(event.phase))
+            .value(unix_from_moment(event.moment))
+            .value(event.day.0);
+        line.end();
+    }
+    Ok(out)
 }
 
 #[cfg(test)]

@@ -309,6 +309,14 @@ Known disagreements:
   (`for_language`, `for_locale`, `of_kind_for_language`,
   `of_kind_for_locale`, `languages`, `language`, `kind`, `categories`,
   `select`, `select_integer`, `select_decimal`).
+- `PluralRules::category_examples` and `PROBE_OPERANDS`, in the same file:
+  the categories a rule set answers, each with the first probe — the written
+  numbers 0 to 1 100 and the first millions, as integers and with one and
+  two fraction digits — that falls in it, a sample for each form; and at
+  the boundary `hc_plural_categories` in
+  `crates/hyper-calendar/src/i18n_lines.rs`, which writes them for a
+  locale's cardinal or ordinal rules
+  (`the_categories_a_rule_answers_are_its_rules`).
 - Tests in the same file, `plural::tests`. They hold the operands of
   written forms (`operands_come_from_the_written_form_not_the_value`), the
   rejected strings, one test per rule shape with the published samples, the

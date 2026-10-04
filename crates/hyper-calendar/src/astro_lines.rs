@@ -33,9 +33,9 @@ use hc_astro::earth::{
 };
 use hc_astro::hjd::{self, Target, heliocentric_correction_seconds};
 use hc_astro::horizon::{self, Horizon};
-use hc_astro::riseset::{self, Location};
+use hc_astro::riseset::{self, Location, Twilight};
 use hc_astro::solar_time::{MissingSolarEvent, SolarClock, SolarEvent};
-use hc_astro::ut_variants::ut2_minus_ut1;
+use hc_astro::ut_variants::{self, ut2_minus_ut1};
 use hc_calendar::Rd;
 use hc_calendar::fixed::{Moment, RD_OF_UNIX_EPOCH};
 use hc_calendar::gregorian::new_year;
@@ -707,6 +707,205 @@ pub fn gmt_from_gmat_line(fixed: i64, seconds_of_day: u32, attoseconds: u64) -> 
     let gmat = clock_reading(fixed, seconds_of_day, attoseconds)?;
     let gmt = hc_astro::gmat::gmt_from_gmat(gmat).map_err(|_| Refusal::OutOfRange)?;
     Ok(reading_line(gmt))
+}
+
+/// How many columns the lines of [`ut1r_iers2010_line`] and
+/// [`ut1s_iers2010_line`] write.
+pub const REGULARIZED_UT1_COLUMNS: usize = 2;
+
+/// A UT1 moment as a UT1 reading counted as POSIX time counts UTC, 86 400
+/// seconds a day from 1970-01-01 00:00 UT1: the inverse of [`ut1_moment`].
+fn ut1_unix_seconds(moment: Moment) -> f64 {
+    (moment.0 - RD_OF_UNIX_EPOCH as f64) * SECONDS_PER_DAY_F64
+}
+
+/// The line of a regularised UT1: the regularised reading less UT1, in
+/// seconds, and the regularised reading itself, counted as the UT1 given
+/// is.
+fn regularized_ut1_line(
+    ut1_unix_seconds_given: f64,
+    minus_ut1: fn(Moment) -> f64,
+    regularized: fn(Moment) -> Moment,
+) -> Answer<String> {
+    let moment = ut1_moment(ut1_unix_seconds_given)?;
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.value(minus_ut1(moment))
+        .value(ut1_unix_seconds(regularized(moment)));
+    line.end();
+    Ok(out)
+}
+
+/// The line of `hc_ut1r_iers2010`: UT1R − UT1 in seconds at a UT1 reading,
+/// and the UT1R reading counted as the UT1 is, by
+/// [`hc_astro::ut_variants::ut1r_iers2010`] — UT1 with the 41 zonal tides
+/// of periods under 35 days of IERS Conventions 2010, Table 8.1, removed.
+///
+/// # Errors
+///
+/// As [`ut1_moment`].
+pub fn ut1r_iers2010_line(ut1_unix_seconds_given: f64) -> Answer<String> {
+    regularized_ut1_line(
+        ut1_unix_seconds_given,
+        ut_variants::ut1r_minus_ut1_iers2010,
+        ut_variants::ut1r_iers2010,
+    )
+}
+
+/// The line of `hc_ut1s_iers2010`: UT1S − UT1 in seconds at a UT1 reading,
+/// and the UT1S reading counted as the UT1 is, by
+/// [`hc_astro::ut_variants::ut1s_iers2010`] — UT1 with all 62 zonal tides
+/// of IERS Conventions 2010, Table 8.1, to the 18.6-year nodal term,
+/// removed.
+///
+/// # Errors
+///
+/// As [`ut1_moment`].
+pub fn ut1s_iers2010_line(ut1_unix_seconds_given: f64) -> Answer<String> {
+    regularized_ut1_line(
+        ut1_unix_seconds_given,
+        ut_variants::ut1s_minus_ut1_iers2010,
+        ut_variants::ut1s_iers2010,
+    )
+}
+
+/// The line of `hc_zonal_tide_ut1_effect`: the effect on UT1, in seconds,
+/// of the zonal tides of IERS Conventions 2010, Table 8.1, whose period is
+/// under `period_limit_days`, at a UT1 reading, by
+/// [`hc_astro::ut_variants::zonal_tide_ut1_effect`] with
+/// [`hc_astro::julian_centuries`] of the moment. 35 days is UT1R's set and
+/// an infinite limit UT1S's; the regularised reading is UT1 *minus* this.
+///
+/// # Errors
+///
+/// As [`ut1_moment`], and [`Refusal::OutOfRange`] for a limit that is not
+/// positive, NaN included.
+pub fn zonal_tide_ut1_effect_line(
+    ut1_unix_seconds_given: f64,
+    period_limit_days: f64,
+) -> Answer<String> {
+    let moment = ut1_moment(ut1_unix_seconds_given)?;
+    if period_limit_days.is_nan() || period_limit_days <= 0.0 {
+        return Err(Refusal::OutOfRange);
+    }
+    number_line(Ok(ut_variants::zonal_tide_ut1_effect(
+        hc_astro::julian_centuries(moment),
+        period_limit_days,
+    )))
+}
+
+/// The line of `hc_equation_of_time`: apparent solar time less mean solar
+/// time at a Universal Time instant, in seconds, by
+/// [`hc_astro::solar::equation_of_time`]: positive when a sundial is ahead
+/// of the mean clock, up to about 16 minutes either way over the year.
+///
+/// # Errors
+///
+/// As [`moment_in_era`].
+pub fn equation_of_time_line(universal_unix: i64) -> Answer<String> {
+    let moment = moment_in_era(universal_unix)?;
+    number_line(Ok(
+        hc_astro::solar::equation_of_time(moment) * SECONDS_PER_DAY_F64
+    ))
+}
+
+/// The value of `hc_solar_noon`: the Sun's upper transit of the local
+/// meridian on a local day at a place, as whole POSIX seconds of Universal
+/// Time, rounded down, by [`riseset::solar_noon`]. Every day has one,
+/// under the midnight sun too.
+///
+/// # Errors
+///
+/// As [`day_in_era`].
+pub fn solar_noon(fixed: i64, place: Location) -> Answer<i64> {
+    let day = day_in_era(fixed)?;
+    Ok(unix_from_moment(riseset::solar_noon(day, place)))
+}
+
+/// The value of `hc_solar_midnight`: the Sun's lower transit that opens a
+/// local day at a place, half a day before its noon, as whole POSIX seconds
+/// of Universal Time, rounded down, by [`riseset::solar_midnight`].
+///
+/// # Errors
+///
+/// As [`day_in_era`].
+pub fn solar_midnight(fixed: i64, place: Location) -> Answer<i64> {
+    let day = day_in_era(fixed)?;
+    Ok(unix_from_moment(riseset::solar_midnight(day, place)))
+}
+
+/// The twilight a name selects: `civil`, the Sun's centre 6° below the
+/// horizon; `nautical`, 12°; or `astronomical`, 18°; in any case.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for anything else.
+pub fn twilight(name: &str) -> Answer<Twilight> {
+    [
+        ("civil", Twilight::Civil),
+        ("nautical", Twilight::Nautical),
+        ("astronomical", Twilight::Astronomical),
+    ]
+    .into_iter()
+    .find(|(id, _)| hc_core::catalogue::matches(name, id))
+    .map(|(_, twilight)| twilight)
+    .ok_or(Refusal::Unknown)
+}
+
+/// How many columns the lines of [`dawn_line`] and [`dusk_line`] write:
+/// the instant and the cells of [`missing_cells`].
+pub const TWILIGHT_COLUMNS: usize = 1 + MISSING_COLUMNS;
+
+/// The depression a twilight asks for, in whole arcminutes.
+fn twilight_arcminutes(twilight: Twilight) -> u16 {
+    (twilight.depression_degrees() * 60.0) as u16
+}
+
+/// The line of `hc_dawn`: the start of a named twilight on a local day at
+/// a place, the moment the Sun's centre rises to the twilight's depression,
+/// as whole POSIX seconds of Universal Time, rounded down, then the cells
+/// of [`missing_cells`], which name the missing `depression` and its
+/// arcminutes when the Sun does not cross it that morning. By
+/// [`riseset::dawn`].
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a twilight [`twilight`] does not read, and the
+/// range errors of [`day_in_era`] and [`location`].
+pub fn dawn_line(twilight_name: &str, fixed: i64, place: Location) -> Answer<String> {
+    let twilight = twilight(twilight_name)?;
+    let day = day_in_era(fixed)?;
+    let answer = riseset::dawn(day, place, twilight).ok_or(MissingSolarEvent::DawnDepression {
+        day,
+        arcminutes: twilight_arcminutes(twilight),
+    });
+    Ok(twilight_line(answer))
+}
+
+/// The line of `hc_dusk`: the end of a named twilight on a local day at a
+/// place, the moment the Sun's centre sets to the twilight's depression,
+/// in the columns of [`dawn_line`]. By [`riseset::dusk`].
+///
+/// # Errors
+///
+/// As [`dawn_line`].
+pub fn dusk_line(twilight_name: &str, fixed: i64, place: Location) -> Answer<String> {
+    let twilight = twilight(twilight_name)?;
+    let day = day_in_era(fixed)?;
+    let answer = riseset::dusk(day, place, twilight).ok_or(MissingSolarEvent::Depression {
+        day,
+        arcminutes: twilight_arcminutes(twilight),
+    });
+    Ok(twilight_line(answer))
+}
+
+/// A twilight crossing, or the depression it misses, as one line.
+fn twilight_line(answer: Result<Moment, MissingSolarEvent>) -> String {
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    moment_or_missing(&mut line, answer);
+    line.end();
+    out
 }
 
 #[cfg(test)]
