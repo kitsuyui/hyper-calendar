@@ -33,12 +33,12 @@
 //! | --- | --- |
 //! | Julian/Gregorian structure | [`gregorian`], [`julian`], [`julian_gregorian`], [`swedish`], [`revised_julian`], [`byzantine`], [`roman`], [`rumi`], [`berber`], [`yazidi`], [`icelandic`] |
 //! | Year counts over the Julian, Gregorian or Solar Hijri year | [`year_counts`] (the Spanish era, the Masonic years, ADA, the Capitoline *ab urbe condita*, the Cheondogyo 포덕 year, the Iranian imperial year), [`era_fascista`], [`masonic_march`] (Anno Lucis from 1 March), [`ptolemaic_day`] (the Egyptian eras with Ptolemy's day from noon), [`syro_macedonian`] (the Seleucid era in its Syrian form, the eras of Antioch and Gaza), [`asian`] (the Macedonian months of the province of Asia) |
-//! | Other namings of a Gregorian day | [`iso8601`], [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`koki`], [`indian`], [`nanakshahi`], [`bangladeshi`], [`discordian`], [`assyrian`], [`soviet_week`] |
+//! | Other namings of a Gregorian day | [`iso8601`], [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`koki`], [`indian`], [`nanakshahi`], [`bangladeshi`], [`kurdish`], [`discordian`], [`assyrian`], [`soviet_week`] |
 //! | Twelve thirties plus epagomenal days | [`coptic`], [`ethiopic`], [`egyptian`], [`philip_era`], [`bostran`], [`armenian`], [`armenian_fixed`], [`french_republican`], [`french_republican_richards`], [`zoroastrian`], [`mandaean`], [`jalali_tusi`] |
 //! | Day counts | [`julian_day`], [`day_counts`], [`spreadsheet`] |
 //! | Cycle-based | [`persian`], [`persian_33`], [`bahai`], [`bahai_kept`] |
 //! | Fixed-length years | [`taiping`] (the Taiping Heavenly Calendar, 366 days every year) |
-//! | Proposed reforms | [`symmetry454`], [`symmetry010`] (both on [`symmetry`]), [`hermetic_leap_week`] (on the same leap-week engine), [`world_calendar`], [`international_fixed`], [`positivist`], [`hanke_henry`], [`week_and_month`], [`dee`] (the Dee–Cecil and Dee calendars), [`liberalia`], [`tabot`] |
+//! | Proposed reforms | [`symmetry454`], [`symmetry010`] (both on [`symmetry`]), [`hermetic_leap_week`] (on the same leap-week engine), [`world_calendar`], [`international_fixed`], [`positivist`], [`hanke_henry`], [`week_and_month`], [`dee`] (the Dee–Cecil and Dee calendars), [`liberalia`], [`tabot`], [`pax`], [`tranquility`] |
 //! | An instant system over TAI | [`terran`] (the Terran Computational Calendar, not a day calendar and not registered) |
 //! | A pure week cycle | [`qumran`] |
 //! | Not calendars | [`cycles`] (the computus cycles), [`year_style`] (where the year began), [`adoption`] (when each country took the Gregorian calendar) |
@@ -149,12 +149,14 @@ pub mod julian;
 pub mod julian_day;
 pub mod julian_gregorian;
 pub mod koki;
+pub mod kurdish;
 pub mod liberalia;
 pub mod mandaean;
 pub mod masonic_march;
 pub mod minguo;
 pub mod nanakshahi;
 pub mod ordinal;
+pub mod pax;
 pub mod persian;
 pub mod persian_33;
 pub mod philip_era;
@@ -174,6 +176,7 @@ pub mod syro_macedonian;
 pub mod tabot;
 pub mod taiping;
 pub mod terran;
+pub mod tranquility;
 pub mod week_and_month;
 pub mod world_calendar;
 pub mod yazidi;
@@ -219,12 +222,14 @@ pub use julian_day::{
 };
 pub use julian_gregorian::{Adoption, ReformCalendar, ReformDate};
 pub use koki::{KokiCalendar, KokiDate};
+pub use kurdish::{KurdishCalendar, KurdishDate};
 pub use liberalia::{LiberaliaSolarCalendar, LiberaliaSolarDate};
 pub use mandaean::{MandaeanCalendar, MandaeanDate};
 pub use masonic_march::{MasonicMarchCalendar, MasonicMarchDate};
 pub use minguo::{MinguoCalendar, MinguoDate};
 pub use nanakshahi::{NanakshahiCalendar, NanakshahiDate};
 pub use ordinal::{OrdinalCalendar, OrdinalDate};
+pub use pax::{PaxCalendar, PaxDate};
 pub use persian::{ArithmeticPersianCalendar, PersianDate};
 pub use persian_33::ThirtyThreeYearPersianCalendar;
 pub use philip_era::{PhilipEraCalendar, PhilipEraDate};
@@ -240,6 +245,7 @@ pub use symmetry454::{Symmetry454Calendar, Symmetry454Date};
 pub use syro_macedonian::{JulianEra, JulianEraCalendar, JulianEraDate};
 pub use tabot::{TabotCalendar, TabotDate};
 pub use taiping::{TaipingCalendar, TaipingDate};
+pub use tranquility::{TranquilityCalendar, TranquilityDate};
 pub use week_and_month::{WeekAndMonthCalendar, WeekAndMonthDate};
 pub use world_calendar::{WorldCalendar, WorldCalendarDate};
 pub use yazidi::{YazidiCalendar, YazidiDate};
@@ -330,6 +336,9 @@ mod registration {
         crate::LiberaliaSolarCalendar,
         crate::TabotCalendar,
         crate::TaipingCalendar,
+        crate::PaxCalendar,
+        crate::TranquilityCalendar,
+        crate::KurdishCalendar,
         for reform in ADOPTIONS
             .into_iter()
             .filter_map(|adoption| ReformCalendar::new(adoption).ok())
@@ -343,7 +352,7 @@ pub use registration::register_all;
 /// How many calendars [`register_all`] inserts, not counting the reform
 /// variants.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 97;
+const CALENDAR_COUNT: usize = 100;
 
 #[cfg(test)]
 mod tests {
@@ -436,6 +445,9 @@ mod tests {
                 LiberaliaSolarCalendar,
                 TabotCalendar,
                 TaipingCalendar,
+                PaxCalendar,
+                TranquilityCalendar,
+                KurdishCalendar,
                 ReformCalendar::new(crate::julian_gregorian::ADOPTIONS[0]).expect("the reform"),
             );
             assert!(checked > 0, "no calendar covered rd {rd}");
@@ -498,6 +510,9 @@ mod tests {
             LiberaliaSolarCalendar.meta(),
             TabotCalendar.meta(),
             TaipingCalendar.meta(),
+            PaxCalendar.meta(),
+            TranquilityCalendar.meta(),
+            KurdishCalendar.meta(),
         ] {
             let first = meta.earliest.expect("bounded below");
             let last = meta.latest.expect("bounded above");
@@ -750,6 +765,18 @@ mod tests {
             assert_eq!(
                 DynAdapter::new(TabotCalendar).is_leap_year(year),
                 Ok(tabot::is_long_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(PaxCalendar).is_leap_year(year),
+                Ok(pax::is_leap_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(TranquilityCalendar).is_leap_year(year),
+                Ok(tranquility::is_leap_year(year))
+            );
+            assert_eq!(
+                DynAdapter::new(KurdishCalendar).is_leap_year(year),
+                Ok(kurdish::is_leap_year(year))
             );
             assert_eq!(
                 DynAdapter::new(IcelandicCalendar::GREGORIAN).is_leap_year(year),

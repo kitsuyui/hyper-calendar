@@ -675,3 +675,6 @@ coincidente = "coincidente"
 # patriarchia.ru, the Moscow Patriarchate's site, named in the Russian row of
 # crates/hc-name-days/src/gaps.rs as a page that showed no calendar.
 patriarchia = "patriarchia"
+# O'Leary, co-author of a work Wikipedia's "Kurdish calendar" cites, named in
+# the wikipedia-kurdish-calendar entry of docs/references.bib.
+Leary = "Leary"

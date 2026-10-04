@@ -81,6 +81,9 @@ file does not:
 | `week_and_month` | Palmen's Week and Month: the ISO weeks in months of four or five, weeks Alpha to Epsilon | `week-and-month` |
 | `liberalia` | Meyer's Liberalia Triday, solar: quarters of 30 or 31 three-day tridays from 17 March 1904 ([docs/systems/liberalia-triday.md](../../docs/systems/liberalia-triday.md)); the lunar form is in `hc-calendars-lunar` | `liberalia-triday-solar` |
 | `tabot` | Tabot (Moore, rules by Meyer): from 2 November 1930, twelve months on fixed Gregorian dates, Ras of 31 days in the Gregorian leap February | `tabot` |
+| `pax` | Pax (Colligan, 1930): thirteen months of 28 days with Columbus before December, the week *Pax* when the year's last two digits are divisible by six or are 99 and the year not by 400, every year from a Sunday | `pax` |
+| `tranquility` | Tranquility (Siggins, 1989): thirteen months of 28 days, Archimedes to Mendel, from 21 July, Armstrong Day on 20 July and Aldrin Day on 29 February outside the week, year 1 A.T. from 21 July 1969 | `tranquility` |
+| `kurdish` | Kurdish solar year: from Newroz, 21 March, six months of 31 days, five of 30 and Reşeme of 29 or 30 on fixed Gregorian dates, the year 700 ahead of the Gregorian | `kurdish` |
 | `taiping` | The Taiping Heavenly Calendar, 1852–1869: every year 366 days, odd months of 31 and even of 30, and the day names the calendar printed a day ahead ([docs/systems/taiping-tianli.md](../../docs/systems/taiping-tianli.md)) | `taiping-tianli` |
 | `terran` | The Terran Computational Calendar: elapsed time since 0TC over TAI, the minimonth of leap days and IERS leap seconds, year bases — two functions over `hc_core::Instant<Tai>`, not a calendar of days ([docs/systems/terran-computational.md](../../docs/systems/terran-computational.md)) | *(not registered)* |
 
