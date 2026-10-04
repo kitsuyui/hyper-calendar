@@ -6,8 +6,8 @@ Backs the identifiers `spanish-era`, `masonic-anno-lucis`,
 `cheondogyo-podeok`, `persian-imperial`, `philip-era`, `bostran-era`,
 `era-fascista`, `masonic-anno-lucis-march`, `egyptian-ptolemy` and
 `philip-era-ptolemy` in `hc-calendars-solar`, and `huangdi-era`,
-`huangdi-era-tongmenghui`, `huangdi-era-liu-shipei` and
-`huangdi-era-jiangsu` in `hc-calendars-regional`.
+`huangdi-era-tongmenghui`, `huangdi-era-liu-shipei`, `huangdi-era-jiangsu`
+and `buddhist-lk` in `hc-calendars-regional`.
 
 ## What it is
 
@@ -210,6 +210,7 @@ an Anno and its 1st to 28th close the one before.
 | `masonic-anno-lucis-march` | Gregorian days, months numbered from March | + 4000, from 1 March | A.L. 1 (from 1 March 3999 BC) on | Attested, undated |
 | `egyptian-ptolemy` | `egyptian`, the day from noon at Alexandria | as `egyptian` | as `egyptian` | Unrecorded |
 | `philip-era-ptolemy` | `philip-era`, the day from noon at Alexandria | as `philip-era` | as `philip-era` | Unrecorded |
+| `buddhist-lk` | Gregorian | + 544 from the Vesak Full Moon Poya Day, + 543 before it | 1 January 2023 to 31 December 2027, the years whose Vesak day the Holidays Act orders read fix | Attested at Vesak 2025 (2569) and 2026 (2570); the count is older, and the years outside the orders are a gap |
 
 The nine pure offsets on a solar year are one table, `year_counts::ALL`,
 read by one calendar type, whose `Base` is the Julian, the Gregorian or
@@ -249,6 +250,28 @@ leap days no readable source gives: Kubitschek's edition (1915), Samuel's
 *Greek and Roman Chronology* (1972, pp. 171–178) and Bultrighini's chapter
 of 2021, which is read only as a PDF, would give them; the June code of
 the Masonic year, above.
+
+**Sri Lanka's Buddhist year** turns on a day the state fixes each year.
+The State Vesak Festival of 10–16 May 2025 was held "for the Buddhist Year
+2569" and the Prime Minister's message of Vesak day, 12 May 2025, is headed
+"B.C 2569/2025" [media-gov-lk-vesak-2025, media-gov-lk-vesak-message-2569];
+the festival of 27 May 2026, around the Vesak Poya of 30 May, is "for the
+Buddhist Year 2570" [ziradaily-vesak-2026]. The rule in those words — the
+Common Era year plus 544 from Wesak and plus 543 before it, against
+Thailand's 543 from 1 January — is the Malaysian society's statement for
+Sri Lanka, Malaysia and Singapore [wesak-determining-be]; no Sri Lankan
+text read states the rule itself, and the government desk calendars whose
+covers carry a year's two numbers are PDFs, not read. The Vesak day is the
+Minister's order under the Holidays Act, No. 29 of 1971, and `buddhist-lk`
+carries the five the orders read fix, 5 May 2023, 23 May 2024, 12 May 2025,
+30 May 2026 (moved from 1 May by the Cabinet decision of 30 March 2026
+[adaderana-vesak-2026]) and 19 May 2027, the same days `hc-holiday` lists
+for Sri Lanka; a year outside them is a gap, not a computed full moon. The
+month and day are the Gregorian ones, as the documents write them beside
+the year, and because the Vesak day moves a Buddhist year with a month and
+day can name two days — 20 May 2569 is 20 May 2025 and 20 May 2026 — so the
+Gregorian year travels as the extra field `gregorian-year`, and a date
+without it is read when one day carries it and refused when two do.
 
 ## Accuracy
 
@@ -295,6 +318,13 @@ those changes; none was read.
 
 | Key | Used for | Read |
 | --- | --- | --- |
+| [media-gov-lk-vesak-2025], [media-gov-lk-vesak-message-2569] | The Buddhist Year 2569 at Vesak 2025 | Yes, 2026-10-04 |
+| [ziradaily-vesak-2026] | The Buddhist Year 2570 at Vesak 2026, 30 May | Yes, 2026-10-04 |
+| [wesak-determining-be] | The rule, + 544 from Wesak and + 543 before, for Sri Lanka, Malaysia and Singapore | Yes, 2026-10-03 |
+| [adaderana-vesak-2026] | Vesak 2026 confirmed for 30 May | Yes, 2026-10-04 |
+| [cbsl-bank-holidays-2025] | Vesak 2025 on 12 May; the page carries no Buddhist year | Yes, 2026-10-04 |
+| [wikipedia-en-buddhist-calendar] | The epochs of the Theravada traditions and 2569 as 2025–2026 | Yes, 2026-10-04 |
+| The Government Printer's desk calendars for 2025 and 2026 | The two numbers of each year on the cover | Not read (PDF) |
 | [wikipedia-spanish-era] | The epoch, the offset and Era 941, the kingdoms' years, the year from 1 January and later 25 December, the 1137 document | Yes, 2026-09-26 |
 | [grumel-eras-historical] | The Spanish era in Spain and Portugal; the Bostran epoch | Yes, 2026-09-26 |
 | [lodge43-masonic-calendar] | The four Masonic years, their rites and the examples for 2010 | Yes, 2026-09-26; re-read 2026-09-29, no new year other than the common one stated |
@@ -327,6 +357,10 @@ those changes; none was read.
 `crates/hc-calendars-solar/src/philip_era.rs`,
 `crates/hc-calendars-solar/src/bostran.rs`,
 `crates/hc-calendars-solar/src/era_fascista.rs`,
-`crates/hc-calendars-solar/src/masonic_march.rs` and
-`crates/hc-calendars-solar/src/ptolemaic_day.rs`; the anchors are the
-tests named above.
+`crates/hc-calendars-solar/src/masonic_march.rs`,
+`crates/hc-calendars-solar/src/ptolemaic_day.rs` and
+`crates/hc-calendars-regional/src/buddhist_lk.rs` (`VESAK_POYA`, `year_of`,
+`BuddhistLkCalendar`; anchors `the_year_turns_on_vesak_poya_day`,
+`the_years_outside_the_orders_are_a_gap`,
+`a_date_without_the_gregorian_year_is_read_when_it_is_unambiguous`); the
+other anchors are the tests named above.

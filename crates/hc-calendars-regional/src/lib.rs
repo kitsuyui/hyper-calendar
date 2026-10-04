@@ -26,6 +26,8 @@
 //! | [`gregorian_eras`] | `hongxian` — Yuan Shikai's 洪憲 of 1916; `manchukuo` — Manchukuo's 大同 and 康德, 1932–1945; both on the Gregorian calendar |
 //! | [`burmese`] | `burmese` — the Myanmar Era's lunisolar calendar, its watat years and full moons by the Calendar Advisory Board's arithmetic and the record's exceptions |
 //! | [`thai_lunar`] | `thai-lunar` — the Thai lunar calendar, its adhikamāsa and adhikavāra years carried as published for 2535–2570 BE (1992–2027) |
+//! | [`buddhist_lk`] | `buddhist-lk` — Sri Lanka's Buddhist year over the Gregorian day, the Common Era year plus 544 from the Vesak Poya Day and plus 543 before it, over the Vesak days the Holidays Act orders fix, 2023–2027 |
+//! | [`vietnamese_regnal`] | `vietnamese-regnal-nguyen` — the eleven eras of the Nguyễn dynasty over the Vietnamese lunisolar calendar, from the day each began, 1 June 1802 to the abdication of 30 August 1945 |
 //! | [`tibetan_almanac`] | No calendar: the Tibetan almanac's columns — lunar mansion, *yoga*, *karaṇa*, true Sun and Moon — the planets and Rāhu, the *rab byung* year names and the count from 127 BCE, the Bhutanese weekday and winter solstice, the Mongolian months and colours, and where a festival on a skipped or repeated date falls |
 //! | [`khmer`] | `khmer` — the Khmer *Chhankitek*, its leap-month and leap-day years by the *suryayatra* rule as Cambodia applies it, 1900–2200 |
 //! | [`lao`] | `lao` — the Lao lunar calendar by the *suryayatra* rule as Dupertuis computes it, Chulasakarat 1301–1401 (1938–2039) |
@@ -139,6 +141,7 @@ pub mod akan;
 pub mod arsacid;
 pub mod aztec;
 pub mod balinese_pawukon;
+pub mod buddhist_lk;
 pub mod burmese;
 pub mod chinese_regnal;
 pub mod gregorian_eras;
@@ -158,6 +161,7 @@ pub mod southeast_asian;
 pub mod thai_lunar;
 pub mod tibetan_almanac;
 mod vague_year;
+pub mod vietnamese_regnal;
 pub mod zapotec;
 
 pub use akan::{AkanCalendar, AkanDate};
@@ -167,6 +171,7 @@ pub use aztec::{
     AztecXiuhpohualliDate,
 };
 pub use balinese_pawukon::{BalinesePawukonCalendar, PawukonDate};
+pub use buddhist_lk::{BuddhistLkCalendar, BuddhistLkDate};
 pub use burmese::{BurmeseCalendar, BurmeseDate, MoonPhase, Thingyan, YearType};
 pub use chinese_regnal::{
     ChineseEra, ChineseRegnalCalendar, ChineseRegnalDate, Dynasty, QingCourtCalendar,
@@ -190,6 +195,7 @@ pub use nengo::{Certainty, Court, Nengo, WesternScale};
 pub use olympiad::{OlympiadCalendar, OlympiadDate};
 pub use sexagenary::{SexagenaryCalendar, SexagenaryDayDate};
 pub use thai_lunar::{ThaiLunarCalendar, ThaiLunarDate};
+pub use vietnamese_regnal::{VietnameseEra, VietnameseRegnalCalendar, VietnameseRegnalDate};
 pub use zapotec::{ZapotecYzaCalendar, ZapotecYzaDate};
 
 #[cfg(feature = "alloc")]
@@ -241,6 +247,8 @@ mod registration {
         crate::BurmeseCalendar,
         crate::SexagenaryCalendar,
         crate::ThaiLunarCalendar,
+        crate::BuddhistLkCalendar,
+        crate::VietnameseRegnalCalendar,
         crate::KhmerCalendar,
         crate::LaoCalendar,
         crate::OlympiadCalendar,
@@ -254,7 +262,7 @@ pub use registration::register_all;
 
 /// How many calendars [`register_all`] inserts.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 46;
+const CALENDAR_COUNT: usize = 48;
 
 #[cfg(test)]
 mod tests {
@@ -298,6 +306,8 @@ mod tests {
                 BurmeseCalendar,
                 SexagenaryCalendar,
                 ThaiLunarCalendar,
+                BuddhistLkCalendar,
+                VietnameseRegnalCalendar,
                 KhmerCalendar,
                 LaoCalendar,
                 OlympiadCalendar,
@@ -482,8 +492,9 @@ mod tests {
         let rendered = registry.describe_day(rd);
         // Every calendar answers; the ones that refuse the day are the
         // Korean Empire's, kept only from 1896 to 1910, the Qing eras' in
-        // both readings, 洪憲's of 1916 and Manchukuo's of 1932–1945, and
-        // the Arsacid era's, which ends with `babylonian`'s record in 76 CE.
+        // both readings, 洪憲's of 1916 and Manchukuo's of 1932–1945, the
+        // Nguyễn eras' of 1802–1945, and the Arsacid era's, which ends with
+        // `babylonian`'s record in 76 CE.
         assert_eq!(rendered.len(), registry.len());
         let converted = rendered.iter().filter(|(_, fields)| fields.is_ok()).count();
         let supporting = registry.metas().filter(|meta| meta.supports(rd)).count();
@@ -502,6 +513,7 @@ mod tests {
                 "chinese-regnal-qing-court",
                 "hongxian",
                 "manchukuo",
+                "vietnamese-regnal-nguyen",
                 "arsacid-era"
             ]
         );
@@ -526,15 +538,16 @@ mod tests {
             assert!(!meta.id.as_str().is_empty());
             assert!(!meta.english_name.is_empty());
             // Only the era calendars over a lunisolar year carry intercalary
-            // months — the Japanese, in the lunisolar half of its range, and
-            // the Qing eras and the Huangdi counts over the Chinese calendar,
-            // the Arsacid era over the Babylonian — and the four Theravada
-            // lunisolar calendars.
+            // months — the Japanese, in the lunisolar half of its range, the
+            // Qing eras and the Huangdi counts over the Chinese calendar, the
+            // Nguyễn eras over the Vietnamese, the Arsacid era over the
+            // Babylonian — and the four Theravada lunisolar calendars.
             assert!(
                 !meta.has_leap_months
                     || meta.id.as_str().starts_with("japanese")
                     || meta.id.as_str().starts_with("huangdi-era")
                     || meta.id.as_str().starts_with("chinese-regnal")
+                    || meta.id.as_str() == "vietnamese-regnal-nguyen"
                     || meta.id.as_str() == "arsacid-era"
                     || meta.id.as_str() == "burmese"
                     || meta.id.as_str() == "thai-lunar"
