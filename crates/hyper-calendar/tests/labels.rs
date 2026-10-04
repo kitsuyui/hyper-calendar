@@ -495,9 +495,12 @@ fn a_calendar_the_locale_has_no_name_for_is_named_nothing() {
     // language, which is what `native` asks for and `bo` does not.
     assert_eq!(calendar_name("bo", "japanese"), "");
     assert_eq!(calendar_name("bo", "hebrew"), "");
-    // German names the Japanese calendar and not the Tibetan one.
+    // German names the Japanese calendar from CLDR and the Tibetan one from
+    // its Wikipedia's title, and the Bhutanese reckoning, which no source
+    // in German names, not at all.
     assert_eq!(calendar_name("de", "japanese"), "Japanischer Kalender");
-    assert_eq!(calendar_name("de", "tibetan"), "");
+    assert_eq!(calendar_name("de", "tibetan"), "Tibetischer Kalender");
+    assert_eq!(calendar_name("de", "tibetan-bhutan"), "");
     // A tag that does not parse is the root locale, which names nothing.
     assert_eq!(calendar_name("not a tag", "gregory"), "");
     // Only `native` asks for the calendar's own language.

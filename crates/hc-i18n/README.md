@@ -26,7 +26,7 @@ nothing else in the workspace hard-codes a localised string.
 | `reckonings` | What a locale calls the terms of the other reckonings of a day and a year — the choghadiya, the Panchak kinds, the kālam, the Kumbh sites and Pushkaram rivers, the planets of the planetary hours, the night watches, and the Vietnamese, Chinese and Turkish folk days — each in the language its source writes it in, English, Chinese, Vietnamese or Turkish, with the crates' own names, and in Hindi or the other Chinese script where a source in it was read; no term is translated or converted |
 | `horizons` | What a locale calls a horizon a rising is measured against, only where an observatory or almanac office names it in the language: the Hong Kong Observatory's name for the USNO in `zh-Hant` and `zh-Hans`, the IMCCE's in `fr`; every other locale and horizon is left to the English name |
 | `holiday_groups` | What a locale calls a group of people a holiday is given to alone (`hc_holiday::group`), only where an instrument in the language names the group: China's Article 3 names for women, youth, children and active servicemen in `zh-Hans`, and the names Nepal's Home Ministry notices give their communities, faiths and employees in `ne`; every other locale and group is left to the English name |
-| `calendar_names` | What a locale calls a calendar CLDR has no key for, only where a source in the language names it: the Tibetan almanac's `tibetan` (藏历, 藏曆, チベット暦, བོད་ཀྱི་ལོ་ཐོ), `tibetan-tsurphu` (楚尔派, 楚爾派, མཚུར་ལུགས) and `mongolian` (モンゴル暦, 蒙古历, 蒙古曆, Билгийн тоолол), from the Chinese, Japanese, Tibetan and Mongolian Wikipedias; `LocaleData::calendar_name` reads them after CLDR's |
+| `calendar_names` | What a locale calls a calendar CLDR has no key for, only where a source in the language names it: by hand, the Tibetan almanac's `tibetan` (藏历, 藏曆, チベット暦, བོད་ཀྱི་ལོ་ཐོ), `tibetan-tsurphu` (楚尔派, 楚爾派, མཚུར་ལུགས) and `mongolian` (モンゴル暦, 蒙古历, 蒙古曆, Билгийн тоолол), from the Chinese, Japanese, Tibetan and Mongolian Wikipedias; and, generated into `data::WIKIPEDIA_CALENDAR_NAMES` by `scripts/calendar-names-wikipedia.py`, the title of each locale's own Wikipedia article on a calendar, from the interlanguage links of the article about it (ビルマ暦, Haab, 缅历 and 緬曆 in the two Chinese variants): 756 titles for 42 of the 46 carried locales an edition writes; `LocaleData::calendar_name` reads them after CLDR's, and a calendar none names keeps its English name |
 | `holiday_names` | What a locale calls a day of a holiday table, found by its identifier (`hc_holiday::id`), beside the table's own names, only where a source prints it: seven Coptic Orthodox feasts in `cop`, from Wikipedia's "Nayrouz" and the Coptic Wikipedia's test project (both secondary) |
 | `municipal_names` | What a locale calls a municipality a holiday table lists, which CLDR does not name: the twenty designated cities of Japan and 長崎市, in `ja` (川崎市), `ja-Latn` (`Kawasaki-shi`) and `en` (`Kawasaki`), from the instruments the tables cite, JIS X 0402's list and English and Japanese Wikipedia (secondary); `hc_place_name` and `hc_subdivisions` write them, status `municipal`, and a test holds every municipality a table lists to a name |
 | `dated` | Month and weekday names a government gave for a period, with the days they were in force and the days no source decides: Turkmenistan's of 2002–2008 |
@@ -169,8 +169,14 @@ against the evaluator, by tests.
 * **Calendar names** — what a locale calls a calendar,
   `names::calendar_display_name` — are CLDR 48's
   `localeDisplayNames/types/type[@key="calendar"]` at its `approved` and
-  `contributed` levels, keyed to the registry, and a calendar CLDR does not
-  name in a locale is left unnamed. No two registered calendars share a
+  `contributed` levels, keyed to the registry; then, for a calendar CLDR
+  does not name in a locale, the hand-written names of `calendar_names`
+  and the titles of the locale's Wikipedia articles on the calendars
+  (`data::WIKIPEDIA_CALENDAR_NAMES`, generated from the articles'
+  interlanguage links, each title as its edition writes it, nothing
+  translated); a calendar none of the three names is left unnamed, and
+  `docs/i18n.md`, "What a locale calls a calendar", says which have no
+  article to read and why. No two registered calendars share a
   name in a locale, nor in the English names the calendars declare
   themselves (`CalendarMeta::english_name`); the facade's
   `tests/distinct_names.rs` holds every locale to it. Where CLDR's one

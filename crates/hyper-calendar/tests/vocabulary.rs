@@ -173,6 +173,28 @@ fn every_calendar_a_locale_names_is_one_the_registry_answers_to() {
                 }
             }
         }
+        for name in locale.calendar_names {
+            if !known(name.calendar) {
+                unknown.insert(format!(
+                    "{} calls {} {}",
+                    locale.tag, name.calendar.0, name.name
+                ));
+            }
+        }
+    }
+    // The calendar names a source in the language gives, by hand and from
+    // the locale's Wikipedia, are keyed to the registry too.
+    for (tag, name) in hyper_calendar::hc_i18n::calendar_names::SOURCED_CALENDAR_NAMES {
+        if !known(name.calendar) {
+            unknown.insert(format!("{tag} calls {} {}", name.calendar.0, name.name));
+        }
+    }
+    for (tag, names) in hyper_calendar::hc_i18n::data::WIKIPEDIA_CALENDAR_NAMES {
+        for name in *names {
+            if !known(name.calendar) {
+                unknown.insert(format!("{tag} calls {} {}", name.calendar.0, name.name));
+            }
+        }
     }
     assert!(
         unknown.is_empty(),
