@@ -29,7 +29,7 @@ nothing else in the workspace hard-codes a localised string.
 | `holiday_names` | What a locale calls a day of a holiday table, found by its identifier (`hc_holiday::id`), beside the table's own names, only where a source prints it: seven Coptic Orthodox feasts in `cop`, from Wikipedia's "Nayrouz" and the Coptic Wikipedia's test project (both secondary) |
 | `municipal_names` | What a locale calls a municipality a holiday table lists, which CLDR does not name: the twenty designated cities of Japan and 長崎市, in `ja` (川崎市), `ja-Latn` (`Kawasaki-shi`) and `en` (`Kawasaki`), from the instruments the tables cite, JIS X 0402's list and English and Japanese Wikipedia (secondary); `hc_place_name` and `hc_subdivisions` write them, status `municipal`, and a test holds every municipality a table lists to a name |
 | `dated` | Month and weekday names a government gave for a period, with the days they were in force and the days no source decides: Turkmenistan's of 2002–2008 |
-| `week` | CLDR's week rules: the first day of the week and `minDays`, by locale (`WeekRule::for_locale`, `-u-fw-` included), and with them the week of the year, the week-numbering year and the week of the month of a Gregorian day, the week date's day, and ISO 8601's rule as one point of them, each tested against UTS #35's own 1998 example |
+| `week` | CLDR's week rules: the first day of the week and `minDays`, by locale (`week::for_locale`, `-u-fw-` included), as `hc-calendar`'s `WeekRule`, whose arithmetic gives the week of the year, the week-numbering year and the week of the month of a Gregorian day, the week date's day, and ISO 8601's rule as one point of them; the locale's pair is tested against CLDR's week data and UTS #35's own 1998 example |
 | `direction` | Script direction and the bidi isolation a formatter needs to embed a date in text running the other way |
 | `casing` | Turkish dotted/dotless i, and whether a language capitalises month names at all |
 | `exemplar_cities` | With the `exemplar-cities` feature: CLDR's English exemplar city of each of the 418 zones `hc-tz` locates; with `localized-exemplar-cities`, the city in every other carried locale CLDR names it in |
@@ -110,7 +110,7 @@ there. The table is checked for sortedness and uniqueness by a test.
 * **The week rule**: CLDR 48's `weekData/minDays` is generated into
   `hc_i18n::data::REGION_MIN_DAYS` (the regions with more than the world's
   one day: 4 for most of Europe) and, with the first day below, makes
-  `week::WeekRule::for_locale`, UTS #35 Part 4's "Week of Year": week 1 is the
+  `week::for_locale`, a `WeekRule` of `hc-calendar`, UTS #35 Part 4's "Week of Year": week 1 is the
   first week, from the first day, with `minDays` days of the year, and a
   week with fewer is the last of the year before. Each entry carries the
   `minDays` of the region its language is likeliest in (`LocaleData::min_days`), written

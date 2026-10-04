@@ -228,6 +228,33 @@ describe("civil", () => {
     refused(() => hc.unixFromFixedInZone(2n ** 53n, "Asia/Tokyo"), "out-of-range");
     assert.equal(hc.exports.hc_unix_from_fixed(106_751_991_886_464n), -9_000_000_000_000_002n);
   });
+
+  test("Python's time and calendar functions answer as the documentation's examples", () => {
+    // time.gmtime(0): a Thursday, day 1 of 1970; timegm is its inverse.
+    assert.deepEqual(hc.gmtime(0), { year: 1970, month: 1, day: 1, hour: 0, minute: 0, second: 0, weekday: 3, dayOfYear: 1, dst: 0 });
+    assert.equal(hc.timegm(1970, 1, 1), 0);
+    assert.equal(hc.timegm(2026, 1, 32), hc.timegm(2026, 2, 1));
+    refused(() => hc.timegm(2026, 13, 1), "invalid-date");
+    assert.equal(hc.isleap(2024), true);
+    assert.equal(hc.isleap(2100), false);
+    assert.equal(hc.leapdays(2000, 2026), 7);
+    assert.equal(hc.leapdays(2026, 2000), -7);
+    assert.equal(hc.calendarWeekday(2026, 9, 21), 0);
+    refused(() => hc.calendarWeekday(2026, 2, 30), "invalid-date");
+    assert.deepEqual(hc.monthrange(2026, 2), { firstWeekday: 6, days: 28 });
+    const february = hc.monthcalendar(2026, 2);
+    assert.equal(february.length, 5);
+    assert.deepEqual(february[0], [0, 0, 0, 0, 0, 0, 1]);
+    assert.deepEqual(february[4], [23, 24, 25, 26, 27, 28, 0]);
+    assert.deepEqual(hc.monthcalendar(2026, 2, 6)[0], [1, 2, 3, 4, 5, 6, 7]);
+    refused(() => hc.monthcalendar(2026, 2, 7), "invalid-date");
+    // UTS #35's example: 1 January 2021 is week 1 of 2021 for Sunday and 1,
+    // week 53 of 2020 for ISO 8601's Monday and 4.
+    const newYear = hc.gregorianToFixed(2021, 1, 1);
+    assert.deepEqual(hc.weekOfYear(newYear), { weekYear: 2020, week: 53, weeksInYear: 53, weekOfMonth: 0 });
+    assert.deepEqual(hc.weekOfYear(newYear, 7, 1), { weekYear: 2021, week: 1, weeksInYear: 52, weekOfMonth: 1 });
+    refused(() => hc.weekOfYear(newYear, 8, 1), "out-of-range");
+  });
 });
 
 describe("dayExtras", () => {
@@ -1276,6 +1303,31 @@ describe("holidays", () => {
     assert.deepEqual(emirates.at(-1), { days: [5, 6, 7], first: "2022-01-01", last: null, regions: ["AE-SH"] });
   });
 
+  test("a table's substitution laws are listed beside its weekend, with the regions that keep their own", () => {
+    const tables = hc.holidayTables("en");
+    // Japan's 振替休日: the 1973 rule to the following day, and the 2005
+    // amendment's, in force from 2007, to the nearest following day that is
+    // not a holiday.
+    assert.deepEqual(tables.find((table) => table.code === "JP")?.substitution, [
+      { trigger: [7], direction: "forward", skipOccupied: false, onCollision: false, avoid: [], first: 1973, last: 2006, regions: [] },
+      { trigger: [7], direction: "forward", skipOccupied: true, onCollision: false, avoid: [], first: 2007, last: null, regions: [] },
+    ]);
+    // South Korea's 대체공휴일 counts two holidays on one day; Johor's Friday
+    // rule of 2014–2024 skips the Saturday of its weekend.
+    assert.ok(tables.find((table) => table.code === "KR")?.substitution.some((law) => law.onCollision));
+    assert.ok(tables.find((table) => table.code === "MY")?.substitution.some((law) =>
+      law.regions.includes("MY-01") && law.trigger[0] === 5 && law.avoid[0] === 6 && law.first === 2014 && law.last === 2024));
+    // A table with no statute leaves its holidays on the weekend.
+    assert.deepEqual(tables.find((table) => table.code === "un-days")?.substitution, []);
+    for (const table of tables) {
+      for (const law of table.substitution) {
+        for (const region of law.regions) {
+          assert.ok(table.regions.includes(region), `${table.code} ${region}`);
+        }
+      }
+    }
+  });
+
   test("a table's regions are the ones it answers for, a region with only a weekend law among them", () => {
     const tables = hc.holidayTables("en");
     assert.deepEqual(tables.find((table) => table.code === "MY")?.regions, ["MY-01", "MY-02", "MY-03", "MY-09", "MY-11"]);
@@ -1359,6 +1411,23 @@ describe("almanac", () => {
     const tiger = hc.pentadInTradition(hc.gregorianToFixed(2026, 12, 14), "senmyo", "japan");
     assert.deepEqual([tiger.index, tiger.name, tiger.alternate], [52, "虎始交", "武始交"]);
     refused(() => hc.pentadInTradition(day, /** @type {any} */ ("horyaku"), "japan"), "unknown");
+  });
+
+  test("every pentad of a year is named by every tradition at once", () => {
+    const pentads = hc.pentadsInYear(2024, "japan");
+    assert.ok(pentads.length >= 71 && pentads.length <= 73, `${pentads.length}`);
+    const second = pentads.find((pentad) => pentad.index === 64);
+    assert.deepEqual(second, {
+      index: 64,
+      begins: hc.gregorianToFixed(2024, 2, 9),
+      ends: hc.gregorianToFixed(2024, 2, 13),
+      names: { chinese: "蟄蟲始振", japanese: "黄鶯睍睆", jokyo: "梅花乃芳", senmyo: "蟄虫始振" },
+    });
+    for (let index = 1; index < pentads.length; index += 1) {
+      assert.equal(pentads[index - 1].ends + 1, pentads[index].begins);
+    }
+    refused(() => hc.pentadsInYear(3001), "out-of-range");
+    refused(() => hc.pentadsInYear(2024, "mars"), "unknown");
   });
 
   test("the zassetsu and the seasonal days of a year are their sources'", () => {
@@ -1676,6 +1745,17 @@ describe("time zones", () => {
     refused(() => fresh.fixedFromUnixInZone(0, "Test/Junk"), "unknown");
     refused(() => fresh.loadZone("", TZIF_V2_EASTERN), "unknown");
     assert.throws(() => fresh.loadZone(name, /** @type {any} */ ("bytes")), TypeError);
+  });
+
+  test("localtime and mktime read a zone, with a policy for the readings two instants name", () => {
+    assert.deepEqual(hc.localtime(0, "Asia/Tokyo"), { year: 1970, month: 1, day: 1, hour: 9, minute: 0, second: 0, weekday: 3, dayOfYear: 1, dst: 0 });
+    assert.equal(hc.mktime(1970, 1, 1, 9, 0, 0, "Asia/Tokyo"), 0);
+    // Berlin's 02:30 on 29 March 2026 does not exist; on 25 October it is read twice.
+    refused(() => hc.mktime(2026, 3, 29, 2, 30, 0, "Europe/Berlin"), "invalid-date");
+    const earliest = hc.mktime(2026, 10, 25, 2, 30, 0, "Europe/Berlin", "earliest");
+    assert.equal(hc.mktime(2026, 10, 25, 2, 30, 0, "Europe/Berlin", "latest") - earliest, 3600);
+    refused(() => hc.mktime(2026, 1, 1, 0, 0, 0, "Mars/Olympus"), "unknown");
+    refused(() => hc.mktime(2026, 1, 1, 0, 0, 0, "Asia/Tokyo", /** @type {any} */ ("guess")), "unknown");
   });
 });
 
@@ -2420,6 +2500,28 @@ describe("the Earth's rotation and the Sun's hours", () => {
     assert.ok(Math.abs(polar.altitudeDegrees + 50 / 60) < 1e-12, `${polar.altitudeDegrees}`);
     refused(() => hc.sunrise(/** @type {any} */ ("naoj"), day, ...jerusalem), "unknown");
   });
+
+  test("the Moon rises and sets when the USNO says, and skips a day a month", () => {
+    // The USNO for Jerusalem on 2024-01-01: moonrise 21:47 and moonset 10:15 at UT+2.
+    const day = hc.gregorianToFixed(2024, 1, 1);
+    const jerusalem = /** @type {const} */ ([31.78, 35.24, 740]);
+    const rise = hc.moonrise("usno", day, ...jerusalem);
+    assert.ok(rise.instant !== null && Math.abs(rise.instant - Date.UTC(2024, 0, 1, 19, 47) / 1000) <= 35, JSON.stringify(rise));
+    assert.equal(rise.missing, null);
+    const set = hc.moonset("usno", day, ...jerusalem);
+    assert.ok(set.instant !== null && Math.abs(set.instant - Date.UTC(2024, 0, 1, 8, 15) / 1000) <= 35, JSON.stringify(set));
+    const skipped = [];
+    for (let offset = 0; offset < 31; offset += 1) {
+      const crossing = hc.moonrise("usno", day + offset, ...jerusalem);
+      if (crossing.instant === null) {
+        assert.deepEqual(crossing.missing, { event: "moonrise", day: day + offset });
+        skipped.push(offset);
+      }
+    }
+    assert.equal(skipped.length, 1, JSON.stringify(skipped));
+    refused(() => hc.moonrise(/** @type {any} */ ("naoj"), day, ...jerusalem), "unknown");
+    refused(() => hc.moonset("usno", day, 91, 0), "out-of-range");
+  });
 });
 
 describe("the Hindu date and the crescent", () => {
@@ -2741,6 +2843,24 @@ describe("renamed months, the Asian days and the sabbatical year", () => {
     const described = hc.describeDay(1_360, "en").find((row) => row.id === "asian");
     assert.equal(described?.day, 1);
     refused(() => hc.asianDay(1_359), "out-of-range");
+  });
+
+  test("the solar New Years are the calendars' own", () => {
+    // Thingyan of 1386 ME ran from akyo on 13 April 2024 to the New Year on the 17th; the
+    // Khmer Laeung Sak of 2568 BE was 02:15:00 on 16 April 2024, as the announcement gives it.
+    const april = (/** @type {number} */ day) => hc.gregorianToFixed(2024, 4, day);
+    assert.deepEqual(hc.solarNewYear("burmese", 1386), {
+      calendar: "burmese", year: 1386, newYear: april(17), seconds: null, chulasakaratYear: null,
+      akyo: april(13), akya: april(14), lastAkyat: april(15), atat: april(16),
+    });
+    assert.deepEqual(hc.solarNewYear("khmer", 2568), {
+      calendar: "khmer", year: 2568, newYear: april(16), seconds: 8100, chulasakaratYear: 1386,
+      akyo: null, akya: null, lastAkyat: null, atat: null,
+    });
+    // Dupertuis's worked example: the Lao New Year of 1343 CS on 15 April 1981.
+    assert.equal(hc.solarNewYear("lao", 1343).newYear, hc.gregorianToFixed(1981, 4, 15));
+    refused(() => hc.solarNewYear("khmer", 2443), "out-of-range");
+    refused(() => hc.solarNewYear(/** @type {any} */ ("thai-lunar"), 2567), "unknown");
   });
 
   test("5782 and 5789 are sabbatical years", () => {
@@ -3444,6 +3564,19 @@ describe("places", () => {
 });
 
 describe("humanize", () => {
+  test("the list forms are CLDR's, and clamp holds a value within its bounds", () => {
+    assert.deepEqual(hc.listForms("long", "en"), { two: "{0} and {1}", start: "{0}, {1}", middle: "{0}, {1}", end: "{0}, and {1}", localeUsed: "en" });
+    assert.equal(hc.listForms("short", "en").end, "{0}, {1}");
+    refused(() => hc.listForms(/** @type {any} */ ("tiny"), "en"), "unknown");
+    // humanize's examples: clamp(0.0001, floor=0.01) and clamp(0.999, format="{:.0%}", ceil=0.99).
+    assert.deepEqual(hc.clamp(0.0001, "display", 0.01), { text: "<0.01", localeUsed: "en" });
+    assert.deepEqual(hc.clamp(0.999, "percent:0", null, 0.99), { text: ">99%", localeUsed: "en" });
+    assert.equal(hc.clamp(123.456).text, "123.456");
+    assert.equal(hc.clamp(0.5, "fixed:2").text, "0.50");
+    refused(() => hc.clamp(1, "scientific"), "unknown");
+    refused(() => hc.clamp(1, "fixed:x"), "malformed");
+  });
+
   test("an instant reads as CLDR's English and Russian phrase it", () => {
     const now = 1_700_000_000;
     assert.deepEqual(hc.relativeTime(now - 3 * 3_600 - 59, now, "long", false, "en"), {

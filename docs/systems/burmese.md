@@ -431,5 +431,6 @@ of `EraRule`, and the functions `watat`, `year_info`, `new_year_day`,
 `every_day_of_three_decades_round_trips`, `impossible_dates_are_refused`,
 `the_thingyan_of_1386_me_ran_from_13_to_17_april_2024`. Myanmar's holidays
 on the calendar are in `crates/hc-holiday`, `MM` in `countries/asia.rs`,
-through `CalendarSystem::BURMESE` and `burmese::thingyan`; the Latin month
-names are in `hc-i18n`.
+through `CalendarSystem::BURMESE` and `burmese::thingyan`, and the
+boundary's `hc_solar_new_year` writes Thingyan's days for `burmese`; the
+Latin month names are in `hc-i18n`.

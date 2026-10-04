@@ -231,3 +231,48 @@ fn the_zassetsu_and_the_seasonal_days_cross_the_boundary() {
     };
     assert_eq!(far, HC_ERR_OUT_OF_RANGE);
 }
+
+/// Every pentad of 2024 at Japan's meridian, named by every tradition: the
+/// 立春次候 that begins on 9 February is 蟄蟲始振, 黄鶯睍睆, 梅花乃芳 and 蟄虫始振
+/// across the four, as the 暦Wiki's table reads.
+#[test]
+fn the_pentads_of_a_year_are_named_by_every_tradition() {
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_pentads_in_year(2024, "japan".as_ptr(), 5, buffer, capacity)
+    });
+    let rows: Vec<Vec<&str>> = text
+        .lines()
+        .map(|line| line.split('\t').collect())
+        .collect();
+    assert!((71..=73).contains(&rows.len()), "{} pentads", rows.len());
+    assert!(rows.iter().all(|row| row.len() == 7), "{text}");
+    let begins = hc_gregorian_to_fixed(2024, 2, 9).to_string();
+    let ends = hc_gregorian_to_fixed(2024, 2, 13).to_string();
+    let row = rows.iter().find(|row| row[0] == "64").expect("立春次候");
+    assert_eq!(
+        row[1..],
+        [
+            &begins,
+            &ends,
+            "蟄蟲始振",
+            "黄鶯睍睆",
+            "梅花乃芳",
+            "蟄虫始振"
+        ]
+    );
+    // Each pentad ends the day before the next begins.
+    for pair in rows.windows(2) {
+        let end: i64 = pair[0][2].parse().expect("a day");
+        let next: i64 = pair[1][1].parse().expect("a day");
+        assert_eq!(end + 1, next, "{pair:?}");
+    }
+    let null = core::ptr::null_mut();
+    assert_eq!(
+        unsafe { hc_pentads_in_year(3001, "".as_ptr(), 0, null, 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_pentads_in_year(2024, "mars".as_ptr(), 4, null, 0) },
+        HC_ERR_UNKNOWN
+    );
+}

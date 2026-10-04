@@ -263,3 +263,80 @@ fn the_solar_lines_are_the_modules() {
         HC_ERROR_NULL_POINTER
     );
 }
+
+/// The USNO's "Complete Sun and Moon Data for One Day" for 31.78° N,
+/// 35.24° E on 1 January 2024: moonrise at 21:47 and moonset at 10:15,
+/// UT+2, so 19:47 and 08:15 UTC.
+#[test]
+fn the_moon_rises_and_sets_when_the_usno_says() {
+    let mut day = 0i64;
+    assert_eq!(
+        unsafe { hc_gregorian_to_fixed(2024, 1, 1, &mut day) },
+        HC_OK
+    );
+    let rise = read_lines(|buffer, capacity, written| unsafe {
+        hc_moonrise(
+            c"usno".as_ptr(),
+            day,
+            31.78,
+            35.24,
+            740.0,
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    let cells: Vec<&str> = rise.trim_end_matches('\n').split('\t').collect();
+    assert_eq!(cells.len(), 3, "{rise}");
+    let instant: i64 = cells[0].parse().expect("an instant");
+    assert!((instant - 1_704_138_420).abs() <= 35, "{rise:?}");
+    let set = read_lines(|buffer, capacity, written| unsafe {
+        hc_moonset(
+            c"usno".as_ptr(),
+            day,
+            31.78,
+            35.24,
+            740.0,
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    let instant: i64 = set
+        .split('\t')
+        .next()
+        .expect("a cell")
+        .parse()
+        .expect("an instant");
+    assert!((instant - 1_704_096_900).abs() <= 35, "{set:?}");
+    assert_eq!(
+        measured(|buffer, capacity, written| unsafe {
+            hc_moonrise(
+                c"naoj".as_ptr(),
+                day,
+                0.0,
+                0.0,
+                0.0,
+                buffer,
+                capacity,
+                written,
+            )
+        }),
+        HC_ERROR_UNKNOWN
+    );
+    assert_eq!(
+        measured(|buffer, capacity, written| unsafe {
+            hc_moonset(
+                core::ptr::null(),
+                day,
+                0.0,
+                0.0,
+                0.0,
+                buffer,
+                capacity,
+                written,
+            )
+        }),
+        HC_ERROR_NULL_POINTER
+    );
+}

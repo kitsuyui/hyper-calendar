@@ -246,6 +246,16 @@ impl Ratio {
     /// coercion.
     #[must_use]
     pub fn as_f64(self) -> f64 {
+        // A decimal ratio — a denominator that is a power of ten, as every
+        // SI prefix's is — is read as the decimal it writes, `1e-24`, which
+        // `f64`'s parser rounds correctly; `1.0 / 1e24` would not, as 10²⁴
+        // is not a double and the quotient of two rounded values rounds
+        // again, to 1.0000000000000001e-24.
+        if let Some(exponent) = power_of_ten(self.den)
+            && let Some(value) = decimal_to_f64(self.num, exponent)
+        {
+            return value;
+        }
         self.num as f64 / self.den as f64
     }
 
@@ -383,6 +393,71 @@ impl fmt::Display for Ratio {
 }
 
 /// The greatest common divisor, by the binary algorithm so it stays `const`.
+/// The exponent `k` for which `value` is `10^k`, if it is one.
+const fn power_of_ten(value: i128) -> Option<u32> {
+    let mut rest = value;
+    let mut exponent = 0u32;
+    if rest < 1 {
+        return None;
+    }
+    while rest % 10 == 0 {
+        rest /= 10;
+        exponent += 1;
+    }
+    if rest == 1 { Some(exponent) } else { None }
+}
+
+/// `num × 10^-exponent` as the double nearest to it, for a `num` a double
+/// holds exactly, below 2⁵³, and an exponent up to 38, which every SI
+/// prefix and every decimal unit of the catalogue is. The tenth power is
+/// split into its twos, an exact change of binary exponent, and its fives,
+/// and the division by the fives is done in 128-bit integers to more than
+/// 53 bits with a sticky bit for the remainder, so that the one rounding,
+/// to a double, is to nearest, ties to even. `None` outside those sizes,
+/// where [`Ratio::as_f64`] falls back to a floating-point division.
+fn decimal_to_f64(num: i128, exponent: u32) -> Option<f64> {
+    let magnitude = num.unsigned_abs();
+    if magnitude >= 1 << 53 || exponent > 38 {
+        return None;
+    }
+    if magnitude == 0 {
+        return Some(0.0);
+    }
+    let fives = 5u128.pow(exponent);
+    let bits = |value: u128| 128 - value.leading_zeros();
+    // The first shift fills the 128 bits: the quotient then has about
+    // 127 − bits(fives) bits, 64 or more while the fives are 63 bits or
+    // fewer, 5²⁷ and below. Beyond that a second step divides the
+    // remainder, shifted to fill 128 bits again, and the two quotients are
+    // joined, which gives 76 bits or more and never overflows.
+    let first = 127 - bits(magnitude);
+    let scaled = magnitude << first;
+    let (mut quotient, remainder, shift) = if bits(fives) <= 63 {
+        (scaled / fives, scaled % fives, first)
+    } else {
+        let second = 127 - bits(fives);
+        let rest = (scaled % fives) << second;
+        (
+            ((scaled / fives) << second) | (rest / fives),
+            rest % fives,
+            first + second,
+        )
+    };
+    if remainder != 0 {
+        // The quotient has more than 53 bits, so its lowest bit lies below
+        // the rounding position and only breaks a tie, which a non-zero
+        // remainder is not.
+        quotient |= 1;
+    }
+    // The one rounding: a u128 to the nearest double, ties to even.
+    let rounded = quotient as f64;
+    // 2^-(shift + exponent), exact: the exponent field alone, and far from
+    // the subnormals for these sizes.
+    let scale = f64::from_bits(u64::from(1023 - (shift + exponent)) << 52);
+    let value = rounded * scale;
+    Some(if num < 0 { -value } else { value })
+}
+
 const fn gcd(mut a: u128, mut b: u128) -> u128 {
     if a == 0 {
         return if b == 0 { 1 } else { b };

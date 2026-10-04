@@ -150,8 +150,8 @@ Hong Kong Observatory's 美國海軍天文氣象台 and 美国海军天文气象
 D.C." [imcce-promenade-usno]. The Observatory of Japan's definition of its
 own sunrise [nao-rekiwiki-hinode-teigi] names none of the three, and no
 other horizon has a name outside English, so every other name is the
-English one, with `en`. `hc_sunrise` and `hc_sunset` take a horizon by its
-identifier. At sea level the default
+English one, with `en`. `hc_sunrise`, `hc_sunset`, `hc_moonrise` and
+`hc_moonset` take a horizon by its identifier. At sea level the default
 and `usno` are the same horizon.
 
 `riseset::dawn` and `dusk` take a `Twilight`, whose depression is the

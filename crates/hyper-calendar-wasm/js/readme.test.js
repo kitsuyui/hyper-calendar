@@ -451,6 +451,17 @@ test("the humanized times read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.approximateDuration], columnsAfter("### A hedged duration"));
 });
 
+test("the Python time, week, solar New Year, pentad, Moon and list lines read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.structTime], columnsAfter("### A `struct_time`"));
+  assert.deepEqual([...COLUMNS.monthrange], columnsAfter("### A month's range"));
+  assert.deepEqual([...COLUMNS.monthcalendar], columnsAfter("### A month's calendar"));
+  assert.deepEqual([...COLUMNS.weekOfYear], columnsAfter("### The week of the year"));
+  assert.deepEqual([...COLUMNS.solarNewYear], columnsAfter("## Solar New Years"));
+  assert.deepEqual([...COLUMNS.pentadsInYear], columnsAfter("### Every pentad of a year"));
+  assert.deepEqual([...COLUMNS.moonCrossing], columnsAfter("### Moonrise and moonset"));
+  assert.deepEqual([...COLUMNS.listForms], columnsAfter("### List patterns"));
+});
+
 test("the relativity lines read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.properTime], columnsAfter("## Relativity"));
   assert.deepEqual([...COLUMNS.gravitationalDilation], columnsAfter("### A clock at a radius"));

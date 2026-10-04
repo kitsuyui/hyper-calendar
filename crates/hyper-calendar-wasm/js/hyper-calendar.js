@@ -56,6 +56,14 @@ export const METHODS = Object.freeze([
   { method: "taiMinusUtc", export: "hc_tai_minus_utc", feature: "civil" },
   { method: "dayHasLeapSecond", export: "hc_day_has_leap_second", feature: "civil" },
   { method: "unixFromFixed", export: "hc_unix_from_fixed", feature: "civil" },
+  { method: "gmtime", export: "hc_gmtime", feature: "civil" },
+  { method: "timegm", export: "hc_timegm", feature: "civil" },
+  { method: "isleap", export: "hc_isleap", feature: "civil" },
+  { method: "leapdays", export: "hc_leapdays", feature: "civil" },
+  { method: "calendarWeekday", export: "hc_calendar_weekday", feature: "civil" },
+  { method: "monthrange", export: "hc_monthrange", feature: "civil" },
+  { method: "monthcalendar", export: "hc_monthcalendar", feature: "civil" },
+  { method: "weekOfYear", export: "hc_week_of_year", feature: "civil" },
   { method: "formatIsoDate", export: "hc_format_iso_date", feature: "civil" },
   { method: "parseIsoDate", export: "hc_parse_iso_date", feature: "civil" },
   { method: "tai64Encode", export: "hc_tai64_encode", feature: "timestamps" },
@@ -164,6 +172,7 @@ export const METHODS = Object.freeze([
   { method: "chineseAlmanacSolarTerms", export: "hc_chinese_almanac_solar_terms", feature: "calendars" },
   { method: "hebrewSabbaticalCycleYear", export: "hc_hebrew_sabbatical_cycle_year", feature: "calendars" },
   { method: "asianDay", export: "hc_asian_day", feature: "calendars" },
+  { method: "solarNewYear", export: "hc_solar_new_year", feature: "calendars" },
   { method: "kalam", export: "hc_kalam", feature: "calendars" },
   { method: "almanacCycles", export: "hc_almanac_cycles", feature: "calendars" },
   { method: "almanacDay", export: "hc_almanac_day", feature: "calendars" },
@@ -210,6 +219,7 @@ export const METHODS = Object.freeze([
   { method: "pentadInTradition", export: "hc_pentad_in_tradition", feature: "seasons" },
   { method: "zassetsuInYear", export: "hc_zassetsu_in_year", feature: "seasons" },
   { method: "seasonalDaysInYear", export: "hc_seasonal_days_in_year", feature: "seasons" },
+  { method: "pentadsInYear", export: "hc_pentads_in_year", feature: "seasons" },
   { method: "coldFoodDay", export: "hc_cold_food_day", feature: "seasons" },
   { method: "plumRains", export: "hc_plum_rains", feature: "seasons" },
   { method: "placeYearsAgo", export: "hc_place_years_ago", feature: "deep-time" },
@@ -228,6 +238,8 @@ export const METHODS = Object.freeze([
   { method: "zones", export: "hc_zones", feature: "tz" },
   { method: "zoneLocation", export: "hc_zone_location", feature: "tz" },
   { method: "zoneOffset", export: "hc_zone_offset", feature: "tz" },
+  { method: "localtime", export: "hc_localtime", feature: "tz" },
+  { method: "mktime", export: "hc_mktime", feature: "tz" },
   { method: "skyAt", export: "hc_sky_at", feature: "sky" },
   { method: "solarTermsBetween", export: "hc_solar_terms_between", feature: "sky" },
   { method: "moonPhasesBetween", export: "hc_moon_phases_between", feature: "sky" },
@@ -242,6 +254,8 @@ export const METHODS = Object.freeze([
   { method: "horizons", export: "hc_horizons", feature: "sky" },
   { method: "sunrise", export: "hc_sunrise", feature: "sky" },
   { method: "sunset", export: "hc_sunset", feature: "sky" },
+  { method: "moonrise", export: "hc_moonrise", feature: "sky" },
+  { method: "moonset", export: "hc_moonset", feature: "sky" },
   { method: "hjdTt", export: "hc_hjd_tt", feature: "sky" },
   { method: "hjdUtc", export: "hc_hjd_utc", feature: "sky" },
   { method: "gmatFromGmt", export: "hc_gmat_from_gmt", feature: "sky" },
@@ -292,6 +306,7 @@ export const METHODS = Object.freeze([
   { method: "unitChoice", export: "hc_unit_choice", feature: "humanize" },
   { method: "relativeTimeWith", export: "hc_relative_time_with", feature: "humanize" },
   { method: "approximateDuration", export: "hc_approximate_duration", feature: "humanize" },
+  { method: "listForms", export: "hc_list_forms", feature: "humanize" },
   { method: "apnumber", export: "hc_apnumber", feature: "natural" },
   { method: "fractional", export: "hc_fractional", feature: "natural" },
   { method: "scientific", export: "hc_scientific", feature: "natural" },
@@ -307,6 +322,7 @@ export const METHODS = Object.freeze([
   { method: "ordinal", export: "hc_ordinal", feature: "natural" },
   { method: "intcomma", export: "hc_intcomma", feature: "natural" },
   { method: "intcommaFloat", export: "hc_intcomma_float", feature: "natural" },
+  { method: "clamp", export: "hc_clamp", feature: "natural" },
   { method: "parseDatetime", export: "hc_parse_datetime", feature: "datetime" },
   { method: "formatDatetime", export: "hc_format_datetime", feature: "datetime" },
   { method: "formatIsoDateAs", export: "hc_format_iso_date_as", feature: "datetime" },
@@ -499,6 +515,7 @@ export const COLUMNS = Object.freeze({
   holidayTables: Object.freeze([
     "code", "kind", "name", "english name", "locale used", "source", "country", "short name",
     "regions", "groups", "group names", "region groups", "read subdivisions", "weekend",
+    "substitution",
   ]),
   lectionary: Object.freeze([
     "liturgical year",
@@ -786,7 +803,78 @@ export const COLUMNS = Object.freeze({
   attributions: Object.freeze(["subject", "id", "name", "key", "key kind", "attributions", "count", "gloss", "valid from", "valid until", "provenance", "caveat", "agreed"]),
   attributionsOn: Object.freeze(["subject", "id", "name", "key", "key kind", "attributions", "count", "gloss", "valid from", "valid until", "provenance", "caveat", "agreed"]),
   harvestMoon: Object.freeze(["year", "harvest moon", "hunters moon", "month", "september moon", "meridian", "source"]),
+  structTime: Object.freeze(["year", "month", "day", "hour", "minute", "second", "weekday", "day of year", "dst"]),
+  monthrange: Object.freeze(["first weekday", "days"]),
+  monthcalendar: Object.freeze(["day 1", "day 2", "day 3", "day 4", "day 5", "day 6", "day 7"]),
+  weekOfYear: Object.freeze(["week year", "week", "weeks in year", "week of month"]),
+  solarNewYear: Object.freeze([
+    "calendar", "year", "new year", "seconds", "chulasakarat year", "akyo", "akya", "last akyat", "atat",
+  ]),
+  pentadsInYear: Object.freeze(["index", "begins", "ends", "chinese", "japanese", "jokyo", "senmyo"]),
+  moonCrossing: Object.freeze(["instant", "missing", "missing day"]),
+  listForms: Object.freeze(["two", "start", "middle", "end", "locale used"]),
 });
+
+/**
+ * The one line of `hc_gmtime` or `hc_localtime`: Python's `struct_time`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").StructTime}
+ */
+function structTime(cells) {
+  const [year, month, day, hour, minute, second, weekday, dayOfYear, dst] = cells;
+  return {
+    year: integer(year, "year"),
+    month: integer(month, "month"),
+    day: integer(day, "day"),
+    hour: integer(hour, "hour"),
+    minute: integer(minute, "minute"),
+    second: integer(second, "second"),
+    weekday: integer(weekday, "weekday"),
+    dayOfYear: integer(dayOfYear, "day of year"),
+    dst: integer(dst, "dst"),
+  };
+}
+
+/**
+ * The one line of `hc_solar_new_year`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").SolarNewYear}
+ */
+function solarNewYear(cells) {
+  const [calendar, year, newYear, seconds, chulasakaratYear, akyo, akya, lastAkyat, atat] = cells;
+  return {
+    calendar: /** @type {import("./hyper-calendar.d.ts").SolarNewYearCalendar} */ (calendar),
+    year: integer(year, "year"),
+    newYear: integer(newYear, "new year"),
+    seconds: optionalInteger(seconds, "seconds"),
+    chulasakaratYear: optionalInteger(chulasakaratYear, "chulasakarat year"),
+    akyo: optionalInteger(akyo, "akyo"),
+    akya: optionalInteger(akya, "akya"),
+    lastAkyat: optionalInteger(lastAkyat, "last akyat"),
+    atat: optionalInteger(atat, "atat"),
+  };
+}
+
+/**
+ * The one line of `hc_moonrise` or `hc_moonset`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").MoonCrossing}
+ */
+function moonCrossing(cells) {
+  const [instant, missing, missingDay] = cells;
+  return {
+    instant: optionalInteger(instant, "instant"),
+    missing: missing === ""
+      ? null
+      : {
+        event: /** @type {import("./hyper-calendar.d.ts").MissingMoonEventName} */ (missing),
+        day: integer(missingDay, "missing day"),
+      },
+  };
+}
 
 /**
  * One line of `hc_orbit_rate_offset`.
@@ -2962,7 +3050,7 @@ function regionGroup(pair) {
 function holidayTable(cells) {
   const [
     code, kind, name, englishName, localeUsed, source, country, shortName, regions, groups, groupNames,
-    regionGroups, readSubdivisions, weekend,
+    regionGroups, readSubdivisions, weekend, substitution,
   ] = cells;
   return {
     code,
@@ -2979,6 +3067,7 @@ function holidayTable(cells) {
     regionGroups: regionGroups === "" ? [] : regionGroups.split(";").map(regionGroup),
     readSubdivisions: readSubdivisions === "" ? [] : readSubdivisions.split(";"),
     weekend: weekend === "" ? [] : weekend.split(";").map(weekendLaw),
+    substitution: substitution === "" ? [] : substitution.split(";").map(substitutionLaw),
   };
 }
 
@@ -2995,6 +3084,28 @@ function weekendLaw(entry) {
     days: days === "unread" ? null : days.split("+").map((day) => Number(day)),
     first: first === "" ? null : first,
     last: last === "" ? null : last,
+    regions: regions === "" ? [] : regions.split(","),
+  };
+}
+
+/**
+ * One weekend-substitution law of a holiday table: an entry of column 15
+ * of `hc_holiday_tables`, `trigger/direction/flags/avoid/first/last/regions`.
+ *
+ * @param {string} entry
+ * @returns {import("./hyper-calendar.d.ts").SubstitutionLaw}
+ */
+function substitutionLaw(entry) {
+  const [trigger, direction, flags, avoid, first, last, regions] = entry.split("/");
+  const set = flags === "" ? [] : flags.split("+");
+  return {
+    trigger: trigger.split("+").map((day) => Number(day)),
+    direction: /** @type {import("./hyper-calendar.d.ts").SubstituteDirection} */ (direction),
+    skipOccupied: set.includes("skip-occupied"),
+    onCollision: set.includes("on-collision"),
+    avoid: avoid === "" ? [] : avoid.split("+").map((day) => Number(day)),
+    first: first === "" ? null : Number(first),
+    last: last === "" ? null : Number(last),
     regions: regions === "" ? [] : regions.split(","),
   };
 }
@@ -6315,6 +6426,305 @@ export class HyperCalendar {
               fn(y, ayanamsaPointer, ayanamsaLen, rulePointer, ruleLen, lat, lon, elev,
                 meridianPointer, meridianLen, localePointer, localeLen, buffer, capacity), true)))));
     return rows(text, COLUMNS.pushkaramsInYear, "hc_pushkarams_in_year").map(pushkaramBySky);
+  }
+
+  /**
+   * Python's `time.gmtime(seconds)`: the UTC reading of a POSIX second as
+   * the nine fields of a `struct_time`, `dst` 0.
+   *
+   * @param {number | bigint} unixSeconds
+   * @returns {import("./hyper-calendar.d.ts").StructTime}
+   */
+  gmtime(unixSeconds) {
+    const fn = this.#export("hc_gmtime");
+    const seconds = toI64(unixSeconds, "unixSeconds");
+    const text = this.#text("hc_gmtime", (buffer, capacity) => fn(seconds, buffer, capacity), true);
+    return structTime(this.#oneLine("hc_gmtime", text, COLUMNS.structTime));
+  }
+
+  /**
+   * Python's `time.localtime(seconds)` in a zone: the wall-clock reading
+   * of a POSIX second as a `struct_time`, `dst` 1 where the zone's rules
+   * call the time daylight saving. The zone is read as {@link zoneOffset}
+   * reads it.
+   *
+   * @param {number | bigint} unixSeconds
+   * @param {string} zone
+   * @returns {import("./hyper-calendar.d.ts").StructTime}
+   */
+  localtime(unixSeconds, zone) {
+    const text = this.#call("hc_localtime", [["i64", "unixSeconds", unixSeconds], ["str", "zone", zone]]);
+    return structTime(this.#oneLine("hc_localtime", text, COLUMNS.structTime));
+  }
+
+  /**
+   * Python's `calendar.timegm(tuple)`: the POSIX second of a UTC reading.
+   * The day, hour, minute and second add up unchecked, as Python's do; a
+   * month outside 1 to 12 is `invalid-date`.
+   *
+   * @param {number | bigint} year
+   * @param {number | bigint} month
+   * @param {number | bigint} day
+   * @param {number | bigint} [hour]
+   * @param {number | bigint} [minute]
+   * @param {number | bigint} [second]
+   * @returns {number}
+   */
+  timegm(year, month, day, hour = 0, minute = 0, second = 0) {
+    const fn = this.#export("hc_timegm");
+    return toNumber(
+      fn(toI64(year, "year"), toI64(month, "month"), toI64(day, "day"), toI64(hour, "hour"), toI64(minute, "minute"), toI64(second, "second")),
+      "hc_timegm",
+    );
+  }
+
+  /**
+   * Python's `time.mktime(tuple)` in a zone: the POSIX second of a
+   * wall-clock reading, each field checked; `policy` says what a reading
+   * two instants name, or none, becomes: `earliest`, `latest`, `reject`
+   * (`invalid-date` for either) or `push-forward`.
+   *
+   * @param {number | bigint} year
+   * @param {number | bigint} month
+   * @param {number | bigint} day
+   * @param {number | bigint} hour
+   * @param {number | bigint} minute
+   * @param {number | bigint} second
+   * @param {string} zone
+   * @param {import("./hyper-calendar.d.ts").DisambiguationPolicy} [policy]
+   * @returns {number}
+   */
+  mktime(year, month, day, hour, minute, second, zone, policy = "reject") {
+    const fn = this.#export("hc_mktime");
+    const fields = [toI64(year, "year"), toI64(month, "month"), toI64(day, "day"), toI64(hour, "hour"), toI64(minute, "minute"), toI64(second, "second")];
+    return this.#withText(zone, "zone", (zonePointer, zoneLen) =>
+      this.#withText(policy, "policy", (policyPointer, policyLen) =>
+        toNumber(fn(...fields, zonePointer, zoneLen, policyPointer, policyLen), "hc_mktime")));
+  }
+
+  /**
+   * Python's `calendar.isleap(year)`.
+   *
+   * @param {number | bigint} year
+   * @returns {boolean}
+   */
+  isleap(year) {
+    return toNumber(this.#export("hc_isleap")(toI64(year, "year")), "hc_isleap") === 1;
+  }
+
+  /**
+   * Python's `calendar.leapdays(y1, y2)`: the leap years from `y1` up to
+   * but not including `y2`, counted backwards when `y2` is before `y1`.
+   *
+   * @param {number | bigint} y1
+   * @param {number | bigint} y2
+   * @returns {number}
+   */
+  leapdays(y1, y2) {
+    return toNumber(this.#export("hc_leapdays")(toI64(y1, "y1"), toI64(y2, "y2")), "hc_leapdays");
+  }
+
+  /**
+   * Python's `calendar.weekday(year, month, day)`: Monday 0 to Sunday 6,
+   * where {@link weekday} answers Monday 1 to Sunday 7 for a fixed day.
+   *
+   * @param {number | bigint} year
+   * @param {number} month
+   * @param {number} day
+   * @returns {number}
+   */
+  calendarWeekday(year, month, day) {
+    const fn = this.#export("hc_calendar_weekday");
+    return toNumber(fn(toI64(year, "year"), toU32(month, "month"), toU32(day, "day")), "hc_calendar_weekday");
+  }
+
+  /**
+   * Python's `calendar.monthrange(year, month)`: the weekday of the first
+   * of the month, Monday 0, and the days in the month.
+   *
+   * @param {number | bigint} year
+   * @param {number} month
+   * @returns {import("./hyper-calendar.d.ts").MonthRange}
+   */
+  monthrange(year, month) {
+    const fn = this.#export("hc_monthrange");
+    const [y, m] = [toI64(year, "year"), toU32(month, "month")];
+    const text = this.#text("hc_monthrange", (buffer, capacity) => fn(y, m, buffer, capacity), true);
+    const [firstWeekday, days] = this.#oneLine("hc_monthrange", text, COLUMNS.monthrange);
+    return { firstWeekday: integer(firstWeekday, "first weekday"), days: integer(days, "days") };
+  }
+
+  /**
+   * Python's `calendar.monthcalendar(year, month)`: a row of seven numbers
+   * for each week of the month, `0` for a day outside it, the week
+   * beginning on `firstWeekday`, Monday 0 to Sunday 6.
+   *
+   * @param {number | bigint} year
+   * @param {number} month
+   * @param {number} [firstWeekday]
+   * @returns {number[][]}
+   */
+  monthcalendar(year, month, firstWeekday = 0) {
+    const fn = this.#export("hc_monthcalendar");
+    const [y, m, first] = [toI64(year, "year"), toU32(month, "month"), toU32(firstWeekday, "firstWeekday")];
+    const text = this.#text("hc_monthcalendar", (buffer, capacity) => fn(y, m, first, buffer, capacity), true);
+    return rows(text, COLUMNS.monthcalendar, "hc_monthcalendar").map((week) =>
+      week.map((cell, index) => integer(cell, `day ${index + 1}`)));
+  }
+
+  /**
+   * A fixed day's week of the year under a week rule: the first day of
+   * the week as an ISO weekday number, Monday 1 to Sunday 7, and the
+   * fewest days a first week holds, 1 to 7. ISO 8601 is 1 and 4, the
+   * default; `strftime`'s `%U` is 7 and 7, its `%W` 1 and 7; a locale's
+   * pair is {@link localeInfo}'s `firstDay` and `minDays`.
+   *
+   * @param {number | bigint} fixed
+   * @param {number} [firstWeekday]
+   * @param {number} [minDays]
+   * @returns {import("./hyper-calendar.d.ts").WeekOfYear}
+   */
+  weekOfYear(fixed, firstWeekday = 1, minDays = 4) {
+    const fn = this.#export("hc_week_of_year");
+    const [day, first, min] = [toI64(fixed, "fixed"), toU32(firstWeekday, "firstWeekday"), toU32(minDays, "minDays")];
+    const text = this.#text("hc_week_of_year", (buffer, capacity) => fn(day, first, min, buffer, capacity), true);
+    const [weekYear, week, weeksInYear, weekOfMonth] = this.#oneLine("hc_week_of_year", text, COLUMNS.weekOfYear);
+    return {
+      weekYear: integer(weekYear, "week year"),
+      week: integer(week, "week"),
+      weeksInYear: integer(weeksInYear, "weeks in year"),
+      weekOfMonth: integer(weekOfMonth, "week of month"),
+    };
+  }
+
+  /**
+   * The day and the moment the year changes at the solar New Year of the
+   * `burmese`, `khmer` or `lao` calendar, `year` in the calendar's own
+   * count: the Myanmar Era, the Buddhist Era or the Chulasakarat.
+   *
+   * @param {import("./hyper-calendar.d.ts").SolarNewYearCalendar} calendar
+   * @param {number | bigint} year
+   * @returns {import("./hyper-calendar.d.ts").SolarNewYear}
+   */
+  solarNewYear(calendar, year) {
+    const text = this.#call("hc_solar_new_year", [["str", "calendar", calendar], ["i64", "year", year]]);
+    return solarNewYear(this.#oneLine("hc_solar_new_year", text, COLUMNS.solarNewYear));
+  }
+
+  /**
+   * Every pentad that begins in a Gregorian year at a meridian, in date
+   * order, named by every tradition of {@link pentadTraditions} at once.
+   *
+   * @param {number | bigint} year
+   * @param {string | number} [meridian]
+   * @returns {import("./hyper-calendar.d.ts").PentadOfYear[]}
+   */
+  pentadsInYear(year, meridian = "universal") {
+    const text = this.#yearLines("hc_pentads_in_year", year, meridian);
+    return rows(text, COLUMNS.pentadsInYear, "hc_pentads_in_year").map(
+      ([index, begins, ends, chinese, japanese, jokyo, senmyo]) => ({
+        index: integer(index, "index"),
+        begins: integer(begins, "begins"),
+        ends: integer(ends, "ends"),
+        names: { chinese, japanese, jokyo, senmyo },
+      }));
+  }
+
+  /**
+   * Moonrise on a fixed day at a place against a named horizon, or `null`
+   * with the missing moonrise named: the Moon skips a local day about once
+   * a month.
+   *
+   * @param {import("./hyper-calendar.d.ts").HorizonId} horizon
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} [elevation]
+   * @returns {import("./hyper-calendar.d.ts").MoonCrossing}
+   */
+  moonrise(horizon, fixed, latitude, longitude, elevation = 0) {
+    return this.#moonCrossing("hc_moonrise", horizon, fixed, latitude, longitude, elevation);
+  }
+
+  /**
+   * Moonset on a fixed day at a place against a named horizon, or `null`
+   * with the missing moonset named.
+   *
+   * @param {import("./hyper-calendar.d.ts").HorizonId} horizon
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} [elevation]
+   * @returns {import("./hyper-calendar.d.ts").MoonCrossing}
+   */
+  moonset(horizon, fixed, latitude, longitude, elevation = 0) {
+    return this.#moonCrossing("hc_moonset", horizon, fixed, latitude, longitude, elevation);
+  }
+
+  /**
+   * @param {string} exportName
+   * @param {string} horizon
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} elevation
+   * @returns {import("./hyper-calendar.d.ts").MoonCrossing}
+   */
+  #moonCrossing(exportName, horizon, fixed, latitude, longitude, elevation) {
+    const fn = this.#export(exportName);
+    const day = toI64(fixed, "fixed");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(horizon, "horizon", (pointer, len) =>
+      this.#text(exportName, (buffer, capacity) =>
+        fn(pointer, len, day, lat, lon, elev, buffer, capacity), true));
+    return moonCrossing(this.#oneLine(exportName, text, COLUMNS.moonCrossing));
+  }
+
+  /**
+   * The CLDR list patterns a style joins the parts of a duration with, in
+   * a locale: `long` takes CLDR's `standard` list, `short` its `unit` list
+   * and `narrow` its `unit-narrow`.
+   *
+   * @param {import("./hyper-calendar.d.ts").RelativeStyle} [style]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").ListForms}
+   */
+  listForms(style = "long", locale = "und") {
+    const text = this.#call("hc_list_forms", [["str", "style", style], ["str", "locale", locale]]);
+    const [two, start, middle, end, localeUsed] = this.#oneLine("hc_list_forms", text, COLUMNS.listForms);
+    return { two, start, middle, end, localeUsed };
+  }
+
+  /**
+   * `humanize`'s `clamp`: the value written with `format` — `display`,
+   * `fixed:N` or `percent:N` — or, below `floor` or above `ceil`, that
+   * bound written the same way after its token, `<0.01`, `>99%`. Python's
+   * function form has no shape here: format the value the line gives.
+   *
+   * @param {number} value
+   * @param {string} [format]
+   * @param {number | null} [floor]
+   * @param {number | null} [ceil]
+   * @param {string} [floorToken]
+   * @param {string} [ceilToken]
+   * @returns {import("./hyper-calendar.d.ts").LocalizedNaturalText}
+   */
+  clamp(value, format = "display", floor = null, ceil = null, floorToken = "<", ceilToken = ">") {
+    const bound = (/** @type {number | null} */ limit, /** @type {string} */ what) => {
+      if (limit === null) {
+        return "";
+      }
+      return String(toF64(limit, what));
+    };
+    const text = this.#call("hc_clamp", [
+      ["f64", "value", value],
+      ["str", "format", format],
+      ["str", "floor", bound(floor, "floor")],
+      ["str", "ceil", bound(ceil, "ceil")],
+      ["str", "floorToken", floorToken],
+      ["str", "ceilToken", ceilToken],
+    ]);
+    return localizedNaturalText(this.#oneLine("hc_clamp", text, COLUMNS.localizedNaturalText));
   }
 
   /**

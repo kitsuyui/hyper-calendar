@@ -410,13 +410,20 @@ impl Date {
 }
 
 impl fmt::Display for Date {
-    /// Renders as ISO 8601 `YYYY-MM-DD`, with an explicit sign and expanded
-    /// year outside the four-digit range as ISO 8601 requires.
+    /// Renders as ISO 8601 `YYYY-MM-DD`; a year outside the four-digit range
+    /// is written in the standard's expanded form, a sign and the six or
+    /// more digits [`hc_calendar::gregorian::expanded_year_digits`] gives,
+    /// as `hc-format` writes it: `+012345-06-07`, `-000001-01-01`.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if (0..=9_999).contains(&self.year) {
+        if hc_calendar::gregorian::is_four_digit_year(self.year) {
             write!(f, "{:04}-{:02}-{:02}", self.year, self.month, self.day)
         } else {
-            write!(f, "{:+06}-{:02}-{:02}", self.year, self.month, self.day)
+            let width = usize::from(hc_calendar::gregorian::expanded_year_digits(self.year)) + 1;
+            write!(
+                f,
+                "{:+0width$}-{:02}-{:02}",
+                self.year, self.month, self.day
+            )
         }
     }
 }

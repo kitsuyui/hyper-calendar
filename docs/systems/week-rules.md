@@ -1,9 +1,11 @@
 # Week rules: the first day of the week, the minimal days of a first week, and the week numbers they give
 
-Backs `hc-i18n`'s `week` module: `WeekRule` (`ISO`, `WORLD`, `new`, `for_locale`,
+Backs `hc-calendar`'s `week` module, `WeekRule` (`ISO`, `WORLD`, `new`,
 `first_day`, `min_days`, `position`, `week_one_start`, `week_of_year`,
-`weeks_in_year`, `week_of_month`, `to_fixed`), the regional data it reads
-(`locale::region_min_days`, `locale::region_first_day_of_week`,
+`weeks_in_year`, `week_of_month`, `to_fixed`), the one week arithmetic the
+workspace has, which `hc-calendars-solar`'s `iso_week` counts its weeks by; and
+`hc-i18n`'s `week` module, `week::for_locale`, which reads a locale's rule from
+the regional data (`locale::region_min_days`, `locale::region_first_day_of_week`,
 `data::REGION_MIN_DAYS`) and `names::first_day_of_week`. Through them it backs
 `hc-format`'s CLDR pattern letters `w`, `Y`, `W`, `e` and `c`, and the
 `strftime` conversions `%U` and `%W` (`Fields::week_of_year_sunday` and
@@ -121,8 +123,9 @@ Sunday and the seventh of one that starts on Saturday. The `strftime` pattern
 
 ## What is carried
 
-- `WeekRule` for the Gregorian calendar. `ISO` (Monday, 4), `WORLD` (Monday,
-  1, CLDR's `001`) and `for_locale` for every locale of `hc-i18n`.
+- `WeekRule` for the Gregorian calendar, in `hc-calendar`. `ISO` (Monday, 4),
+  `WORLD` (Monday, 1, CLDR's `001`) and `hc_i18n::week::for_locale` for every
+  locale of `hc-i18n`.
 - The first day of the week of every region CLDR 48 lists, 71 rows of
   `locale::REGION_FIRST_DAY` (Monday for the rest), and `minDays` of 44
   regions, generated into `data::REGION_MIN_DAYS` by `scripts/locales-cldr.py`.
@@ -132,7 +135,9 @@ Sunday and the seventh of one that starts on Saturday. The `strftime` pattern
   names no locale means by a week number); the `strftime` conversions `%U` and
   `%W`, `%V` and `%G` (ISO), `%u` and `%w`; and the CLDR parser's resolution of
   a week year, a week and a weekday to a day through `to_fixed`.
-- The boundary: `hc_locale_info` writes the first day (column 14, an ISO
+- The boundary: `hc_week_of_year` writes a fixed day's week-numbering
+  year, week, weeks in the year and week of the month under any rule given
+  as its first day and `minDays`; `hc_locale_info` writes the first day (column 14, an ISO
   weekday number) and `minDays` (column 15) of a locale, and `hc_format_pattern`
   writes the letters above.
 
@@ -171,7 +176,7 @@ measured on 2026-10-04 against four independent things.
 - **Python's `strftime`.** The facade's `%U %W` for `en-US` and Python 3.9.6's
   `date.strftime('%U %W')` give the same pair on the same 73 414 days: 0
   differences.
-- **ICU.** `WeekRule::for_locale` of `und-XX` for every one of the 676
+- **ICU.** `week::for_locale` of `und-XX` for every one of the 676
   two-letter codes `AA` to `ZZ` that `hc-i18n` parses was compared with Node
   22.15.1's `new Intl.Locale('und-XX').weekInfo` (ICU 76.1, CLDR 46): `firstDay`
   and `minimalDays` agree for 661 and differ for 15. `IS` is Sunday in CLDR 48

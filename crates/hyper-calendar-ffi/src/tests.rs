@@ -19,6 +19,7 @@ fn querying_the_version_works_in_both_passes() {
 /// Call a line-writing entry point the way a C caller does: measure,
 /// allocate, read, and check the terminator.
 #[cfg(any(
+    feature = "civil",
     feature = "timestamps",
     feature = "time-codes",
     feature = "calendars",
@@ -73,6 +74,7 @@ fn read_lines(call: impl Fn(*mut c_char, usize, *mut usize) -> HcStatus) -> Stri
 /// buffer, which is `HC_ERROR_BUFFER_TOO_SMALL` when the entry point
 /// answers, and the refusal when it does not.
 #[cfg(any(
+    feature = "civil",
     feature = "timestamps",
     feature = "time-codes",
     feature = "calendars",
@@ -97,6 +99,9 @@ mod civil_refusals;
 
 #[cfg(feature = "civil")]
 mod civil;
+
+#[cfg(feature = "civil")]
+mod python_time;
 
 #[cfg(feature = "calendars")]
 mod calendars;

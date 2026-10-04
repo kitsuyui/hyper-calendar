@@ -37,6 +37,15 @@ test("the civil methods answer", () => {
   assert.equal(hc.weekday(rd), 1);
   assert.equal(hc.fixedFromUnix(0), 719_163);
   assert.equal(hc.taiMinusUtc(1_700_000_000, true), 37);
+  // Python's time and calendar functions, and the week of the year, are civil too.
+  assert.equal(hc.gmtime(0).weekday, 3);
+  assert.equal(hc.timegm(1970, 1, 1), 0);
+  assert.equal(hc.isleap(2024), true);
+  assert.equal(hc.leapdays(2000, 2026), 7);
+  assert.equal(hc.calendarWeekday(2026, 9, 21), 0);
+  assert.equal(hc.monthrange(2026, 2).days, 28);
+  assert.equal(hc.monthcalendar(2026, 2).length, 5);
+  assert.equal(hc.weekOfYear(rd).week, 39);
 });
 
 test("a method of another layer throws not-exported when called, not at load", () => {
@@ -88,6 +97,14 @@ test("a method of another layer throws not-exported when called, not at load", (
     pentadInTradition: () => hc.pentadInTradition(739_880, "senmyo", "japan"),
     zassetsuInYear: () => hc.zassetsuInYear(2024, "japan"),
     seasonalDaysInYear: () => hc.seasonalDaysInYear(2026, "china"),
+    pentadsInYear: () => hc.pentadsInYear(2024, "japan"),
+    localtime: () => hc.localtime(0, "Asia/Tokyo"),
+    mktime: () => hc.mktime(1970, 1, 1, 9, 0, 0, "Asia/Tokyo"),
+    solarNewYear: () => hc.solarNewYear("khmer", 2568),
+    moonrise: () => hc.moonrise("usno", 738_886, 31.78, 35.24, 740),
+    moonset: () => hc.moonset("usno", 738_886, 31.78, 35.24, 740),
+    listForms: () => hc.listForms("long", "en"),
+    clamp: () => hc.clamp(0.5, "fixed:2"),
     coldFoodDay: () => hc.coldFoodDay("hansik", 2026),
     placeYearsAgo: () => hc.placeYearsAgo(66e6, 0, "ja"),
     cosmicEvents: () => hc.cosmicEvents("ja"),

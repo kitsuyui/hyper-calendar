@@ -144,6 +144,8 @@ pub mod panchanga_lines;
 pub mod place_lines;
 #[cfg(all(feature = "alloc", feature = "planetary"))]
 pub mod planetary_lines;
+#[cfg(all(feature = "alloc", feature = "civil"))]
+pub mod python_lines;
 #[cfg(all(
     feature = "alloc",
     feature = "indic",

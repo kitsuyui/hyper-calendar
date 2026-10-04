@@ -126,6 +126,36 @@ pub const fn is_leap_year(year: i64) -> bool {
     year.rem_euclid(4) == 0 && (year.rem_euclid(100) != 0 || year.rem_euclid(400) == 0)
 }
 
+/// Whether `year` fits ISO 8601's four-digit year field, `0000..=9999`.
+///
+/// A year outside it is written in the standard's expanded form, a sign
+/// and [`expanded_year_digits`] digits, by every writer in this workspace:
+/// `hc-format`'s `YearStyle::for_year` and the facade's `civil::Date`.
+#[must_use]
+pub const fn is_four_digit_year(year: i64) -> bool {
+    year >= 0 && year <= 9_999
+}
+
+/// The digits a year outside `0000..=9999` is written with in ISO 8601's
+/// expanded form, besides its sign: six, and one more for each power of
+/// ten from a million (`+012345`, `-000500`, `+9999999`).
+///
+/// ISO 8601-1:2019 leaves the count to agreement between the parties. Six
+/// holds every year of this module's range below a million, and it is the
+/// one count the workspace writes, so that a date spelled by one crate reads
+/// back in another.
+#[must_use]
+pub const fn expanded_year_digits(year: i64) -> u8 {
+    let magnitude = year.unsigned_abs();
+    let mut digits = 6u8;
+    let mut limit = 1_000_000u64;
+    while magnitude >= limit && digits < 18 {
+        digits += 1;
+        limit *= 10;
+    }
+    digits
+}
+
 /// The number of days in `month` of `year`, or `None` when `month` is not in
 /// `1..=12`.
 #[must_use]

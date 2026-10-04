@@ -225,7 +225,7 @@ The numeric fields are written in the locale's default numbering system
 where it is positional (`d MMMM y` is *٢١ سبتمبر ٢٠٢٦* in `ar-EG`, as ICU
 writes it) and read back in it or in Latin digits; `O` and `Z` still read
 Latin digits only. `w`, `Y` and `W` count weeks by the locale's week rule,
-`hc_i18n::week::WeekRule`: its first day of the week (`-u-fw-` first) and CLDR
+`hc_i18n::week::for_locale` (an `hc_calendar::week::WeekRule`): its first day of the week (`-u-fw-` first) and CLDR
 48's `minDays` for its region, so 1 January 2021 is *2021-W1* in `en-US` and
 *2020-W53* in `de`, ISO 8601's Monday and four days being the rule with no
 locale; `W` is 0 for a day before its month's first week, as ICU4J numbers

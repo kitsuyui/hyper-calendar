@@ -131,9 +131,19 @@ fn day_of_year_and_leap_years_agree() {
 fn dates_render_as_iso_8601() {
     assert_eq!(Date::new(2026, 9, 21).unwrap().to_string(), "2026-09-21");
     assert_eq!(Date::new(1, 1, 1).unwrap().to_string(), "0001-01-01");
-    // Outside the four-digit range ISO 8601 requires an explicit sign.
-    assert_eq!(Date::new(-1, 1, 1).unwrap().to_string(), "-00001-01-01");
-    assert_eq!(Date::new(12_345, 6, 7).unwrap().to_string(), "+12345-06-07");
+    // Outside the four-digit range ISO 8601 requires an explicit sign and an
+    // agreed number of digits: six, the count `hc-format` writes and reads
+    // back (`+002026-09-21` is its own round-trip example), and more from a
+    // million.
+    assert_eq!(Date::new(-1, 1, 1).unwrap().to_string(), "-000001-01-01");
+    assert_eq!(
+        Date::new(12_345, 6, 7).unwrap().to_string(),
+        "+012345-06-07"
+    );
+    assert_eq!(
+        Date::new(-1_000_000, 1, 1).unwrap().to_string(),
+        "-1000000-01-01"
+    );
 }
 
 #[test]

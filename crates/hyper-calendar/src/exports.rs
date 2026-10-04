@@ -163,6 +163,194 @@ macro_rules! exports {
                     .and_then($crate::hc_core::duration::seconds_in_days)
                     .ok_or($crate::boundary::Refusal::OutOfRange)
             };
+
+        c {
+            /// Python's `time.gmtime(seconds)`: the UTC reading of a POSIX second
+            /// as the nine fields of a `struct_time`, one NUL-terminated UTF-8 line
+            /// in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. A second outside the Gregorian
+            /// years ±9 999 999 is `HC_ERROR_OUT_OF_RANGE`. Writes the required
+            /// length, including the terminator, into `written`.
+        }
+        wasm {
+            /// Python's `time.gmtime(seconds)`: the UTC reading of a POSIX second
+            /// as the nine fields of a `struct_time`, one UTF-8 line, returning the
+            /// byte length written.
+            ///
+            /// Tab-separated, in Python's order: `tm_year`; `tm_mon`, 1 to 12;
+            /// `tm_mday`; `tm_hour`; `tm_min`; `tm_sec`; `tm_wday`, Monday 0 to
+            /// Sunday 6; `tm_yday`, from 1; and `tm_isdst`, 0 for UTC. A second
+            /// outside the Gregorian years ±9 999 999 is `HC_ERR_OUT_OF_RANGE`. A
+            /// null `buffer` returns the length the text needs.
+        }
+        fn hc_gmtime(unix_seconds: i64) -> line =
+            $crate::python_lines::gmtime_line;
+
+        c {
+            /// Python's `calendar.timegm(tuple)`: the POSIX second of a UTC reading
+            /// given as its year, month, day, hour, minute and second, written to
+            /// `out_unix_seconds`.
+            ///
+            /// The day, hour, minute and second are not checked and add up, as
+            /// Python's do: a day 32 is the first of the next month. A month
+            /// outside 1 to 12 is `HC_ERROR_INVALID_DATE`, a year outside
+            /// ±9 999 999 `HC_ERROR_OUT_OF_RANGE`, and a sum that leaves an
+            /// `int64_t` `HC_ERROR_OVERFLOW`.
+        }
+        wasm {
+            /// Python's `calendar.timegm(tuple)`: the POSIX second of a UTC reading
+            /// given as its year, month, day, hour, minute and second, or an error
+            /// sentinel.
+            ///
+            /// The day, hour, minute and second are not checked and add up, as
+            /// Python's do: a day 32 is the first of the next month. A month
+            /// outside 1 to 12 is `HC_ERR_INVALID_DATE`, and a year outside
+            /// ±9 999 999 or a sum that leaves an `i64` `HC_ERR_OUT_OF_RANGE`.
+        }
+        fn hc_timegm(
+            year: i64,
+            month: i64,
+            day: i64,
+            hour: i64,
+            minute: i64,
+            second: i64,
+        ) -> value(out_unix_seconds: i64) =
+            |year, month, day, hour, minute, second| {
+                $crate::python_lines::timegm([year, month, day, hour, minute, second])
+            };
+
+        c {
+            /// Python's `calendar.isleap(year)`: whether a proleptic Gregorian year
+            /// is a leap year, for any year; writes 1 or 0.
+        }
+        wasm {
+            /// Python's `calendar.isleap(year)`: whether a proleptic Gregorian year
+            /// is a leap year, for any year: 1 or 0.
+        }
+        fn hc_isleap(year: i64) -> value(out_is_leap: int) =
+            $crate::python_lines::isleap;
+
+        c {
+            /// Python's `calendar.leapdays(y1, y2)`: the number of leap years from
+            /// `y1` up to but not including `y2`, counted backwards when `y2` is
+            /// before `y1`, written to `out_leap_days`.
+            ///
+            /// A year outside ±9 999 999 is `HC_ERROR_OUT_OF_RANGE`.
+        }
+        wasm {
+            /// Python's `calendar.leapdays(y1, y2)`: the number of leap years from
+            /// `y1` up to but not including `y2`, counted backwards when `y2` is
+            /// before `y1`, or an error sentinel.
+            ///
+            /// A year outside ±9 999 999 is `HC_ERR_OUT_OF_RANGE`.
+        }
+        fn hc_leapdays(y1: i64, y2: i64) -> value(out_leap_days: i64) =
+            $crate::python_lines::leapdays;
+
+        c {
+            /// Python's `calendar.weekday(year, month, day)`: the weekday of a
+            /// Gregorian date with Monday 0 and Sunday 6, written to `out_weekday`,
+            /// where `hc_weekday` answers Monday 1 to Sunday 7 for a fixed day.
+            ///
+            /// A date that does not exist is `HC_ERROR_INVALID_DATE` and a year
+            /// outside ±9 999 999 `HC_ERROR_OUT_OF_RANGE`.
+        }
+        wasm {
+            /// Python's `calendar.weekday(year, month, day)`: the weekday of a
+            /// Gregorian date with Monday 0 and Sunday 6, or an error sentinel,
+            /// where `hc_weekday` answers Monday 1 to Sunday 7 for a fixed day.
+            ///
+            /// A date that does not exist is `HC_ERR_INVALID_DATE` and a year
+            /// outside ±9 999 999 `HC_ERR_OUT_OF_RANGE`.
+        }
+        fn hc_calendar_weekday(year: i64, month: u32, day: u32) -> value(out_weekday: u8) =
+            $crate::python_lines::calendar_weekday;
+
+        c {
+            /// Python's `calendar.monthrange(year, month)`: the weekday of the first
+            /// day of a Gregorian month, Monday 0, and the number of days in the
+            /// month, as one NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. A month outside 1 to 12 is
+            /// `HC_ERROR_INVALID_DATE` and a year outside ±9 999 999
+            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// Python's `calendar.monthrange(year, month)`: the weekday of the first
+            /// day of a Gregorian month, Monday 0, and the number of days in the
+            /// month, as one UTF-8 line, returning the byte length written.
+            ///
+            /// Tab-separated: the first day's weekday, Monday 0 to Sunday 6, and
+            /// the days, 28 to 31. A month outside 1 to 12 is `HC_ERR_INVALID_DATE`
+            /// and a year outside ±9 999 999 `HC_ERR_OUT_OF_RANGE`. A null `buffer`
+            /// returns the length the text needs.
+        }
+        fn hc_monthrange(year: i64, month: u32) -> line =
+            $crate::python_lines::monthrange_line;
+
+        c {
+            /// Python's `calendar.monthcalendar(year, month)`, the weeks of a
+            /// Gregorian month as NUL-terminated UTF-8 lines in a caller-owned
+            /// buffer, with the first weekday of the week as an argument.
+            ///
+            /// The lines are the WebAssembly module's. `first_weekday` is Monday 0
+            /// to Sunday 6, what `calendar.setfirstweekday` sets; above 6, or a
+            /// month outside 1 to 12, is `HC_ERROR_INVALID_DATE`, and a year outside
+            /// ±9 999 999 `HC_ERROR_OUT_OF_RANGE`. Writes the required length,
+            /// including the terminator, into `written`.
+        }
+        wasm {
+            /// Python's `calendar.monthcalendar(year, month)`, the weeks of a
+            /// Gregorian month as UTF-8 lines, returning the byte length written,
+            /// with the first weekday of the week as an argument.
+            ///
+            /// One line a week, from the week holding the 1st to the week holding
+            /// the last day, seven tab-separated cells each: the day of the month,
+            /// or `0` for a day outside the month. `first_weekday` is Monday 0 to
+            /// Sunday 6, what `calendar.setfirstweekday` sets; above 6, or a month
+            /// outside 1 to 12, is `HC_ERR_INVALID_DATE`, and a year outside
+            /// ±9 999 999 `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length
+            /// the text needs.
+        }
+        fn hc_monthcalendar(year: i64, month: u32, first_weekday: u32) -> line =
+            $crate::python_lines::monthcalendar_lines;
+
+        c {
+            /// A fixed day's week of the year under a week rule, as one
+            /// NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. `first_weekday` is the ISO 8601
+            /// number of the day the week begins on, Monday 1 to Sunday 7, and
+            /// `min_days` the fewest days of a year or month a week needs to be its
+            /// first, 1 to 7: ISO 8601 is 1 and 4, `strftime`'s `%U` 7 and 7 and its
+            /// `%W` 1 and 7, and a locale's pair is `hc_locale_info`'s columns 14
+            /// and 15. Either outside 1 to 7, or a day outside the Gregorian years,
+            /// is `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including
+            /// the terminator, into `written`.
+        }
+        wasm {
+            /// A fixed day's week of the year under a week rule, as one UTF-8 line,
+            /// returning the byte length written.
+            ///
+            /// Tab-separated: the week-numbering year; the week of that year, from
+            /// 1; the number of weeks the year has, 52 or 53; and the week of the
+            /// month, 1 for the month's first week and 0 for the days before it.
+            /// `first_weekday` is the ISO 8601 number of the day the week begins
+            /// on, Monday 1 to Sunday 7, and `min_days` the fewest days of a year or
+            /// month a week needs to be its first, 1 to 7, UTS #35's `firstDay`
+            /// and `minDays`: ISO 8601 is 1 and 4 (1 January 2021 is week 53 of
+            /// 2020), `strftime`'s `%U` is 7 and 7 and its `%W` 1 and 7 (both number
+            /// the days before week 1 as the year's week 0, which this reads as the
+            /// last week of the year before), the United States is 7 and 1 (1
+            /// January 2021 is week 1 of 2021) and a locale's pair is
+            /// `hc_locale_info`'s columns 14 and 15. Either outside 1 to 7, or a day
+            /// outside the Gregorian years, is `HC_ERR_OUT_OF_RANGE`. A null
+            /// `buffer` returns the length the text needs.
+        }
+        fn hc_week_of_year(fixed: i64, first_weekday: u32, min_days: u32) -> line =
+            $crate::python_lines::week_of_year_line;
     } };
     ("datetime", $backend:ident) => { $backend! {
         c {
@@ -4369,6 +4557,50 @@ macro_rules! exports {
         }
         fn hc_night_watch(seconds_of_day: u32, locale: text(locale_len)) -> line =
             $crate::reckoning_lines::night_watch_line;
+
+        c {
+            /// The day and the moment the year changes at the solar New Year of the
+            /// Burmese, Khmer or Lao calendar, as one NUL-terminated UTF-8 line in a
+            /// caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. `calendar` is `burmese`, `khmer`
+            /// or `lao`, in any case; another is `HC_ERROR_UNKNOWN` and null
+            /// `HC_ERROR_NULL_POINTER`. `year` is the calendar's own count — the
+            /// Myanmar Era, 1 to 3000; the Buddhist Era, 2444 to 2744; the
+            /// Chulasakarat, 1301 to 1401 — and one outside it is
+            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// The day and the moment the year changes at the solar New Year of the
+            /// Burmese, Khmer or Lao calendar, as one UTF-8 line, returning the byte
+            /// length written.
+            ///
+            /// Tab-separated: the calendar; the year as given; the fixed day on
+            /// which the new year begins by the country's clock — the day after
+            /// Thingyan's *atat* for `burmese`, the *Laeung Sak* day for `khmer`,
+            /// Dupertuis's table's day for `lao`; the seconds after midnight at
+            /// which the year changes, which the Khmer New Year announcements give
+            /// to the second (02:15:00 on 16 April 2024) and the Lao arithmetic
+            /// gives as the same quantity, and which is empty for `burmese`, whose
+            /// source states the moment as a Julian Date and no announcement of
+            /// the clock time was read; the Chulasakarat year that begins, empty
+            /// for `burmese`; and, for `burmese` alone, the festival's days — the
+            /// *akyo* eve, the *akya* first day, the last *akyat* and the *atat*
+            /// day the old year ends on, as the Myanmar holidays list them
+            /// (13–16 April 2024 for 1386 ME, the New Year on the 17th). The *Maha
+            /// Songkran* moment at which the Khmer and Lao festivals begin, two to
+            /// three days earlier, is not carried, the Cambodian *hora*'s rule for
+            /// the true Sun not having been read. `calendar` is `burmese`, `khmer`
+            /// or `lao`, in any case; another is `HC_ERR_UNKNOWN`. `year` is the
+            /// calendar's own count — the Myanmar Era, 1 to 3000; the Buddhist Era,
+            /// 2444 to 2744; the Chulasakarat, 1301 to 1401 — and one outside it is
+            /// `HC_ERR_OUT_OF_RANGE`. The name's pointer and bytes fail as for
+            /// `hc_parse_iso_date`. A null `buffer` returns the length the text
+            /// needs.
+        }
+        fn hc_solar_new_year(calendar: name(calendar_len), year: i64) -> line =
+            $crate::calendar_values::solar_new_year_line;
     } };
     ("seasons", $backend:ident) => { $backend! {
         c {
@@ -4635,6 +4867,36 @@ macro_rules! exports {
             meridian: name(meridian_len),
         ) -> value(out_fixed: i64) =
             $crate::season_lines::plum_rains_day;
+
+        c {
+            /// Every pentad (候) that begins in a Gregorian year at a meridian,
+            /// named by every tradition at once, as NUL-terminated UTF-8 lines in a
+            /// caller-owned buffer.
+            ///
+            /// The lines are the WebAssembly module's. `meridian` is as for
+            /// `hc_term_in_effect`, and a year outside −1000 to 3000 is
+            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// Every pentad (候) that begins in a Gregorian year at a meridian,
+            /// named by every tradition at once, as UTF-8 lines, returning the byte
+            /// length written.
+            ///
+            /// One line a pentad, in date order, 71 to 73 of them (the 72 候 tile
+            /// the tropical year, not the Gregorian one, so a year holds one
+            /// beginning fewer or one more now and then), tab-separated: the
+            /// pentad's index from the first pentad of 春分 at 0 through 71; the
+            /// fixed day it began at the meridian; the last fixed day before the
+            /// next pentad begins, as `hc_pentad_in_effect` writes them; and its
+            /// name in each tradition `hc_pentad_traditions` lists, one column a
+            /// tradition in that order, `chinese`, `japanese`, `jokyo` and
+            /// `senmyo`. `meridian` is as for `hc_term_in_effect`, and a year
+            /// outside −1000 to 3000 is `HC_ERR_OUT_OF_RANGE`. A null `buffer`
+            /// returns the length the text needs.
+        }
+        fn hc_pentads_in_year(year: i64, meridian: text(meridian_len)) -> line =
+            $crate::season_lines::pentads_in_year_lines;
     } };
     ("holiday", $backend:ident) => { $backend! {
         c {
@@ -5078,7 +5340,16 @@ macro_rules! exports {
             /// whose law was not read; the first day in force and the last, as
             /// `YYYY-MM-DD`, each empty for none; and the ISO 3166-2 codes of the
             /// regions it is the weekend of, joined by `,`, empty for the whole
-            /// table. A table that lists none keeps Saturday and Sunday. Writes the required
+            /// table. A table that lists none keeps Saturday and Sunday. Column 15
+            /// lists the table's weekend-substitution laws the same way, each
+            /// seven fields separated by `/`: the weekdays that trigger a
+            /// substitute, joined by `+`; the direction, `forward`, `backward`,
+            /// `nearest` or `nearest-working-day`; the flags `skip-occupied` and
+            /// `on-collision`, joined by `+`, empty for neither; the weekdays a
+            /// substitute avoids besides the trigger; the first year in force and
+            /// the last, each empty for none; and the regions it is the law of,
+            /// joined by `,`. A table that lists none leaves its holidays on the
+            /// weekend. Writes the required
             /// length, including the terminator, into `written`.
         }
         wasm {
@@ -5102,8 +5373,9 @@ macro_rules! exports {
             /// none; the subdivision and group pairs a rule is scoped to both of,
             /// `region:group`, `;`-separated in code and then identifier order, else
             /// empty; the subdivisions the table's sources were read for,
-            /// `;`-separated in code order, else empty; and the table's weekend
-            /// laws (column 14; see below). A country is named by its CLDR 48
+            /// `;`-separated in code order, else empty; the table's weekend
+            /// laws (column 14; see below); and its weekend-substitution laws
+            /// (column 15). A country is named by its CLDR 48
             /// territory
             /// name in the locale where `hc-i18n` carries one, a country the locale
             /// has no name for by CLDR's English one, and every other table by its
@@ -5117,7 +5389,16 @@ macro_rules! exports {
             /// whose law was not read; the first day in force and the last, as
             /// `YYYY-MM-DD`, each empty for none; and the ISO 3166-2 codes of the
             /// regions it is the weekend of, joined by `,`, empty for the whole
-            /// table. A table that lists none keeps Saturday and Sunday. The locale argument fails as `hc_parse_iso_date`
+            /// table. A table that lists none keeps Saturday and Sunday. Column 15
+            /// lists the table's weekend-substitution laws the same way, each
+            /// seven fields separated by `/`: the weekdays that trigger a
+            /// substitute, joined by `+`; the direction, `forward`, `backward`,
+            /// `nearest` or `nearest-working-day`; the flags `skip-occupied` and
+            /// `on-collision`, joined by `+`, empty for neither; the weekdays a
+            /// substitute avoids besides the trigger; the first year in force and
+            /// the last, each empty for none; and the regions it is the law of,
+            /// joined by `,`. A table that lists none leaves its holidays on the
+            /// weekend. The locale argument fails as `hc_parse_iso_date`
             /// does. A null `buffer` returns the length the text needs.
         }
         fn hc_holiday_tables(locale: text(locale_len)) -> line =
@@ -5643,6 +5924,33 @@ macro_rules! exports {
             |locale| Ok($crate::deep_time_lines::archaeological_periods(locale));
 
         c {
+            /// Every interval of one rank of the geologic time scale, as
+            /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+            ///
+            /// `rank` is 0 for the eons, 1 for the eras, 2 for the periods, 3 for
+            /// the epochs and 4 for the ages; anything else is `HC_ERROR_UNKNOWN`.
+            /// The intervals come youngest first, each a line of the columns
+            /// `hc_place_years_ago` writes, in `megayears-before-present` with the
+            /// chart's own figures and uncertainties, the chart as the source and
+            /// the chart's name in `locale` last. Writes the required length,
+            /// including the terminator, into `written`.
+        }
+        wasm {
+            /// Every interval of one rank of the geologic time scale, as UTF-8
+            /// lines, returning the byte length written.
+            ///
+            /// `rank` is 0 for the eons, 1 for the eras, 2 for the periods, 3 for
+            /// the epochs and 4 for the ages; anything else is `HC_ERR_UNKNOWN`.
+            /// The intervals come youngest first, each a line of the columns
+            /// `hc_place_years_ago` writes, in `megayears-before-present` with the
+            /// chart's own figures and uncertainties, the chart as the source and
+            /// the chart's name in `locale` last. A null `buffer` returns the
+            /// length the text needs.
+        }
+        fn hc_geologic_intervals(rank: u32, locale: text(locale_len)) -> line =
+            $crate::deep_time_lines::intervals_line;
+
+        c {
             /// Every dated event of the far future, as NUL-terminated UTF-8 lines in
             /// a caller-owned buffer.
             ///
@@ -6025,6 +6333,81 @@ macro_rules! exports {
         }
         fn hc_zone_location(zone: name(zone_len), locale: text(locale_len)) -> line =
             $crate::zone_lines::zone_location;
+
+        c {
+            /// Python's `time.localtime(seconds)` in a zone: the wall-clock reading
+            /// of a POSIX second as the nine fields of a `struct_time`, one
+            /// NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is `hc_gmtime`'s, with `tm_isdst` 1 where the zone's rules
+            /// call the time daylight saving and 0 where not. `zone` is a
+            /// NUL-terminated IANA name read as for `hc_zone_offset`; null is
+            /// `HC_ERROR_NULL_POINTER`, a name neither loaded nor built in
+            /// `HC_ERROR_UNKNOWN`, and an instant outside the years the rules answer
+            /// for `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including
+            /// the terminator, into `written`.
+        }
+        wasm {
+            /// Python's `time.localtime(seconds)` in a zone: the wall-clock reading
+            /// of a POSIX second as the nine fields of a `struct_time`, one UTF-8
+            /// line, returning the byte length written.
+            ///
+            /// The line is `hc_gmtime`'s, with `tm_isdst` 1 where the zone's rules
+            /// call the time daylight saving and 0 where not. `zone` is an IANA name
+            /// read as for `hc_zone_offset`; a name neither loaded nor built in is
+            /// `HC_ERR_UNKNOWN`, and an instant outside the years −9 999 994 to
+            /// 9 999 994 by UTC `HC_ERR_OUT_OF_RANGE`. The name's pointer and bytes
+            /// fail as for `hc_parse_iso_date`. A null `buffer` returns the length
+            /// the text needs.
+        }
+        fn hc_localtime(unix_seconds: i64, zone: name(zone_len)) -> line =
+            $crate::python_lines::localtime_line;
+
+        c {
+            /// Python's `time.mktime(tuple)` in a zone: the POSIX second of a
+            /// wall-clock reading given as its year, month, day, hour, minute and
+            /// second, written to `out_unix_seconds`.
+            ///
+            /// Each field is checked as `datetime(*tuple[:6])` checks them; one out
+            /// of range is `HC_ERROR_INVALID_DATE`. `zone` is as for `hc_localtime`.
+            /// `policy` is `earliest`, `latest`, `reject` or `push-forward`, in any
+            /// case, where Python reads `tm_isdst`: a reading two instants name,
+            /// when the clocks go back, is the one it chooses, and one no instant
+            /// names, when they go forward, is what it makes of it; another word
+            /// is `HC_ERROR_UNKNOWN`, and under `reject` either reading
+            /// `HC_ERROR_INVALID_DATE`. A reading outside the years the rules
+            /// answer for is `HC_ERROR_OUT_OF_RANGE`.
+        }
+        wasm {
+            /// Python's `time.mktime(tuple)` in a zone: the POSIX second of a
+            /// wall-clock reading given as its year, month, day, hour, minute and
+            /// second, or an error sentinel.
+            ///
+            /// Each field is checked as `datetime(*tuple[:6])` checks them; one out
+            /// of range is `HC_ERR_INVALID_DATE`. `zone` is as for `hc_localtime`.
+            /// `policy` is `earliest`, `latest`, `reject` or `push-forward`, in any
+            /// case, where Python reads `tm_isdst`: a reading two instants name,
+            /// on the morning the clocks go back, is the one it chooses, and one
+            /// no instant names, when they go forward, is what it makes of it —
+            /// `push-forward` moves it on by the gap, as `java.time` and Temporal's
+            /// `compatible` do; another word is `HC_ERR_UNKNOWN`, and under
+            /// `reject` either reading `HC_ERR_INVALID_DATE`. A reading outside
+            /// the years −9 999 994 to 9 999 994 is `HC_ERR_OUT_OF_RANGE`. The
+            /// names' pointers and bytes fail as for `hc_parse_iso_date`.
+        }
+        fn hc_mktime(
+            year: i64,
+            month: i64,
+            day: i64,
+            hour: i64,
+            minute: i64,
+            second: i64,
+            zone: name(zone_len),
+            policy: name(policy_len),
+        ) -> value(out_unix_seconds: i64) =
+            |year, month, day, hour, minute, second, zone, policy| {
+                $crate::python_lines::mktime([year, month, day, hour, minute, second], zone, policy)
+            };
     } };
     ("sky", $backend:ident) => { $backend! {
         c {
@@ -6847,6 +7230,69 @@ macro_rules! exports {
                     .and_then(|place| {
                         $crate::sky_lines::planetary_hours_of_day_lines(fixed, place, locale)
                     })
+            };
+
+        c {
+            /// Moonrise on a local day at a place against a named horizon, as one
+            /// NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. `horizon`, the place and the
+            /// day are as for `hc_sunrise`. Writes the required length, including
+            /// the terminator, into `written`.
+        }
+        wasm {
+            /// Moonrise on a local day at a place against a named horizon, as one
+            /// UTF-8 line, returning the byte length written.
+            ///
+            /// Tab-separated: the moment the Moon's upper limb rises over the
+            /// horizon, as whole POSIX seconds of Universal Time, rounded down;
+            /// then `moonrise` and the fixed day, which are empty when the Moon
+            /// rises, the first cell being empty instead when it does not — which
+            /// happens about once a month everywhere, the Moon rising some fifty
+            /// minutes later each day and so skipping a local day. The horizon's
+            /// Moon rule, the limb's altitude scaled by the parallax or the fixed
+            /// depression a tradition states, is `hc_horizons`' sixth column.
+            /// `horizon`, the place and the day are as for `hc_sunrise`: a place
+            /// off the globe, or a day outside the years −1000 to 3000, is
+            /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+            /// needs.
+        }
+        fn hc_moonrise(
+            horizon: name(horizon_len),
+            fixed: i64,
+            latitude: f64,
+            longitude: f64,
+            elevation: f64,
+        ) -> line =
+            |horizon, fixed, latitude, longitude, elevation| {
+                $crate::astro_lines::location(latitude, longitude, elevation)
+                    .and_then(|place| $crate::astro_lines::moonrise_line(horizon, fixed, place))
+            };
+
+        c {
+            /// Moonset on a local day at a place against a named horizon, as one
+            /// NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// As `hc_moonrise`, for the upper limb's setting, with `moonset` as the
+            /// missing event.
+        }
+        wasm {
+            /// Moonset on a local day at a place against a named horizon, as one
+            /// UTF-8 line, returning the byte length written.
+            ///
+            /// As `hc_moonrise`, for the upper limb's setting, with `moonset` as the
+            /// missing event.
+        }
+        fn hc_moonset(
+            horizon: name(horizon_len),
+            fixed: i64,
+            latitude: f64,
+            longitude: f64,
+            elevation: f64,
+        ) -> line =
+            |horizon, fixed, latitude, longitude, elevation| {
+                $crate::astro_lines::location(latitude, longitude, elevation)
+                    .and_then(|place| $crate::astro_lines::moonset_line(horizon, fixed, place))
             };
     } };
     ("orbital", $backend:ident) => { $backend! {
@@ -9374,6 +9820,34 @@ macro_rules! exports {
             policy: name(policy_len),
         ) -> line =
             $crate::humanize_lines::approximate_duration_line;
+
+        c {
+            /// The CLDR list patterns a style joins the parts of a duration with, in
+            /// a locale, as one NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. `style` is `long`, `short` or
+            /// `narrow`, in any case; anything else is `HC_ERROR_UNKNOWN`, and null
+            /// `HC_ERROR_NULL_POINTER`. `locale` is as for `hc_relative_time`. Writes
+            /// the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// The CLDR list patterns a style joins the parts of a duration with, in
+            /// a locale, as one UTF-8 line, returning the byte length written.
+            ///
+            /// Tab-separated: the pattern for exactly two items, the one that joins
+            /// the first item to the rest, the one for the middle and the one for
+            /// the last, each with `{0}` and `{1}` where the items go — `{0} and
+            /// {1}`, `{0}, {1}`, `{0}, {1}`, `{0}, and {1}` for `en` in the `long`
+            /// style — and the tag of the `hc-humanize` data the locale resolved
+            /// to. `style` is `long`, `short` or `narrow`, in any case, which take
+            /// CLDR's `standard`, `unit` and `unit-narrow` lists, each falling back
+            /// to the wider where a locale has none; anything else is
+            /// `HC_ERR_UNKNOWN`. `locale` is as for `hc_relative_time`, and fails as
+            /// for `hc_parse_iso_date`. A null `buffer` returns the length the text
+            /// needs.
+        }
+        fn hc_list_forms(style: name(style_len), locale: text(locale_len)) -> line =
+            $crate::humanize_lines::list_forms_line;
     } };
     ("natural", $backend:ident) => { $backend! {
         c {
@@ -9940,6 +10414,53 @@ macro_rules! exports {
             locale: text(locale_len),
         ) -> line =
             $crate::humanize_lines::intcomma_float_line;
+
+        c {
+            /// A number held within a floor and a ceiling and written with a
+            /// format, by Python's `humanize` `clamp`, as one NUL-terminated UTF-8
+            /// line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. `format` is `display`,
+            /// `fixed:N` or `percent:N`, in any case; another word is
+            /// `HC_ERROR_UNKNOWN`, a count that is not a number `HC_ERROR_MALFORMED`
+            /// and one above 255 `HC_ERROR_OUT_OF_RANGE`; null is
+            /// `HC_ERROR_NULL_POINTER`. `floor` and `ceil` are decimal numbers, or
+            /// null or empty for no bound; other text is `HC_ERROR_MALFORMED`.
+            /// `floor_token` and `ceil_token` are the text written before a bound,
+            /// null for none. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// A number held within a floor and a ceiling and written with a
+            /// format, by Python's `humanize` `clamp`, as one UTF-8 line,
+            /// returning the byte length written.
+            ///
+            /// Tab-separated: the text — the value written with `format`, or,
+            /// below `floor` or above `ceil`, that bound written the same way after
+            /// its token, `<0.01`, `>99.00%` — and `en`, as `clamp` writes no word
+            /// a catalogue translates. `format` is Python's `format` argument in
+            /// the three shapes a string takes: `display`, `"{:}"`, the value as
+            /// `str` writes a float; `fixed:N`, `"{:.Nf}"`; or `percent:N`,
+            /// `"{:.N%}"`, the value times a hundred and a percent sign, in any
+            /// case. Python also takes a function, which has no shape at a
+            /// boundary: a caller who needs one formats the value the line gives.
+            /// Another word is `HC_ERR_UNKNOWN`, a count that is not a number
+            /// `HC_ERR_MALFORMED` and one above 255 `HC_ERR_OUT_OF_RANGE`. `floor`
+            /// and `ceil` are decimal numbers, or empty for no bound, `floor` tested
+            /// first as in Python; other text is `HC_ERR_MALFORMED`. A value that is
+            /// not finite is `NaN`, `+Inf` or `-Inf`, as `hc_fractional` writes them.
+            /// The texts fail as for `hc_parse_iso_date`. A null `buffer` returns the
+            /// length the text needs.
+        }
+        fn hc_clamp(
+            value: f64,
+            format: name(format_len),
+            floor: opt(floor_len),
+            ceil: opt(ceil_len),
+            floor_token: text(floor_token_len),
+            ceil_token: text(ceil_token_len),
+        ) -> line =
+            $crate::humanize_lines::clamp_line;
     } };
     ("zone-names", $backend:ident) => { $backend! {
         c {

@@ -218,3 +218,40 @@ fn the_thresholds_and_the_rounding_are_arguments() {
         HC_ERR_UNKNOWN
     );
 }
+
+/// CLDR 48's English list patterns: the `standard` list for the long
+/// style and the `unit` list for the short.
+#[test]
+fn the_list_forms_are_cldrs() {
+    let forms = |style: &str, locale: &str| {
+        read_lines(|buffer, capacity| unsafe {
+            hc_list_forms(
+                style.as_ptr(),
+                style.len(),
+                locale.as_ptr(),
+                locale.len(),
+                buffer,
+                capacity,
+            )
+        })
+    };
+    assert_eq!(
+        forms("long", "en"),
+        "{0} and {1}\t{0}, {1}\t{0}, {1}\t{0}, and {1}\ten\n"
+    );
+    assert_eq!(forms("short", "en").split('\t').nth(3), Some("{0}, {1}"));
+    assert_eq!(forms("narrow", "en").split('\t').nth(3), Some("{0} {1}"));
+    assert_eq!(
+        unsafe {
+            hc_list_forms(
+                "tiny".as_ptr(),
+                4,
+                "en".as_ptr(),
+                2,
+                core::ptr::null_mut(),
+                0,
+            )
+        },
+        HC_ERR_UNKNOWN
+    );
+}

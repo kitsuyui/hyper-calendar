@@ -16,7 +16,7 @@ use hc_i18n::day_periods::{self, FlexibleDayPeriod};
 use hc_i18n::direction::{self, Direction};
 use hc_i18n::names::{self, DayPeriod, NameContext, NameWidth};
 use hc_i18n::plural::{PluralOperands, PluralRules};
-use hc_i18n::week::WeekRule;
+use hc_i18n::week;
 use hc_i18n::{Locale, NumberingSystem};
 
 use crate::boundary::{Answer, Line, Refusal, line};
@@ -276,7 +276,7 @@ pub const LOCALE_INFO_COLUMNS: usize = 19;
 pub fn locale_info_line(tag: &str) -> Answer<String> {
     let locale = strict_locale(tag)?;
     let rules = PluralRules::for_locale(&locale);
-    let rule = WeekRule::for_locale(&locale);
+    let rule = week::for_locale(&locale);
     let parent = locale.parent_step();
     Ok(line(|line| {
         line.cell(&locale.to_tag())

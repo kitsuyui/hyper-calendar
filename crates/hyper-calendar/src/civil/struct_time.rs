@@ -126,12 +126,23 @@ impl StructTime {
     ///
     /// [`CalendarError`] for a month outside 1 to 12, which Python's
     /// `datetime.date(year, month, 1)` refuses, and for a year outside the
-    /// Gregorian range.
+    /// Gregorian range; [`CalendarError::Overflow`] where the sum leaves an
+    /// `i64`, which Python's unbounded integers never do.
     pub fn timegm(&self) -> CalendarResult<i64> {
         let month = u8::try_from(self.tm_mon).map_err(|_| CalendarError::MonthOutOfRange)?;
         let first = gregorian::to_fixed(self.tm_year, month, 1)?.0;
-        let days = first - EPOCH + self.tm_mday - 1;
-        Ok(((days * 24 + self.tm_hour) * 60 + self.tm_min) * 60 + self.tm_sec)
+        let step = |total: i64, scale: i64, field: i64| {
+            total
+                .checked_mul(scale)
+                .and_then(|scaled| scaled.checked_add(field))
+                .ok_or(CalendarError::Overflow)
+        };
+        let days = step(first - EPOCH, 1, self.tm_mday)?
+            .checked_sub(1)
+            .ok_or(CalendarError::Overflow)?;
+        let hours = step(days, 24, self.tm_hour)?;
+        let minutes = step(hours, 60, self.tm_min)?;
+        step(minutes, 60, self.tm_sec)
     }
 
     /// `datetime(*tt[:6])`: the reading the first six fields name.

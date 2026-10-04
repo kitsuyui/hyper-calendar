@@ -300,7 +300,8 @@ them (a probe of both).
   the half-unit idioms, the compact suffixes of *2h30m* and the indefinite
   units (*an hour*).
 - **The boundary**: `hc_relative_time`, `hc_relative_day`,
-  `hc_relative_day_at` and `hc_duration` in every locale carried, and the
+  `hc_relative_day_at` and `hc_duration` in every locale carried,
+  `hc_list_forms`, the CLDR list patterns `hc_duration` joins with, and the
   `natural` layer's `hc_naturaldelta`, `hc_naturaltime`, `hc_precisedelta`,
   `hc_naturalday`, `hc_naturaldate`, `hc_ordinal`, `hc_intword`,
   `hc_intcomma`, `hc_intcomma_float`, `hc_apnumber`, `hc_fractional`,

@@ -254,3 +254,61 @@ fn the_zassetsu_and_the_seasonal_days_cross_the_c_boundary() {
         HC_ERROR_OUT_OF_RANGE
     );
 }
+
+/// Every pentad of 2024 at Japan's meridian, named by every tradition: the
+/// 立春次候 that begins on 9 February is 蟄蟲始振, 黄鶯睍睆, 梅花乃芳 and 蟄虫始振
+/// across the four, as the 暦Wiki's table reads.
+#[test]
+fn the_pentads_of_a_year_are_named_by_every_tradition() {
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_pentads_in_year(2024, c"japan".as_ptr(), buffer, capacity, written)
+    });
+    let rows: Vec<Vec<&str>> = text
+        .lines()
+        .map(|line| line.split('\t').collect())
+        .collect();
+    assert!((71..=73).contains(&rows.len()), "{} pentads", rows.len());
+    assert!(rows.iter().all(|row| row.len() == 7), "{text}");
+    let mut day = 0i64;
+    assert_eq!(
+        unsafe { hc_gregorian_to_fixed(2024, 2, 9, &mut day) },
+        HC_OK
+    );
+    let row = rows.iter().find(|row| row[0] == "64").expect("立春次候");
+    assert_eq!(
+        row[1..],
+        [
+            &day.to_string(),
+            &(day + 4).to_string(),
+            "蟄蟲始振",
+            "黄鶯睍睆",
+            "梅花乃芳",
+            "蟄虫始振"
+        ]
+    );
+    let mut written = 0usize;
+    assert_eq!(
+        unsafe {
+            hc_pentads_in_year(
+                3001,
+                core::ptr::null(),
+                core::ptr::null_mut(),
+                0,
+                &mut written,
+            )
+        },
+        HC_ERROR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe {
+            hc_pentads_in_year(
+                2024,
+                c"mars".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                &mut written,
+            )
+        },
+        HC_ERROR_UNKNOWN
+    );
+}

@@ -332,3 +332,69 @@ fn the_time_lines_refuse_what_python_refuses() {
         HC_ERR_OUT_OF_RANGE
     );
 }
+
+/// `humanize`'s `clamp` examples: `clamp(0.0001, floor=0.01)` is `<0.01`,
+/// `clamp(0.999, format="{:.0%}", ceil=0.99)` is `>99%`, and a value
+/// within the bounds is written as `str` writes a float.
+#[test]
+fn clamp_holds_a_value_within_its_bounds() {
+    let clamp = |value: f64, format: &str, floor: &str, ceil: &str, tokens: (&str, &str)| {
+        read_lines(|buffer, capacity| unsafe {
+            hc_clamp(
+                value,
+                format.as_ptr(),
+                format.len(),
+                floor.as_ptr(),
+                floor.len(),
+                ceil.as_ptr(),
+                ceil.len(),
+                tokens.0.as_ptr(),
+                tokens.0.len(),
+                tokens.1.as_ptr(),
+                tokens.1.len(),
+                buffer,
+                capacity,
+            )
+        })
+    };
+    assert_eq!(
+        clamp(123.456, "display", "", "", ("<", ">")),
+        "123.456\ten\n"
+    );
+    assert_eq!(
+        clamp(0.0001, "display", "0.01", "", ("<", ">")),
+        "<0.01\ten\n"
+    );
+    assert_eq!(
+        clamp(0.999, "PERCENT:0", "", "0.99", ("<", ">")),
+        ">99%\ten\n"
+    );
+    assert_eq!(clamp(0.5, "fixed:2", "", "", ("<", ">")), "0.50\ten\n");
+    assert_eq!(
+        clamp(1e9, "display", "", "1e6", ("", "over ")),
+        "over 1000000.0\ten\n"
+    );
+    assert_eq!(clamp(f64::NAN, "display", "", "", ("", "")), "NaN\ten\n");
+    let null = core::ptr::null_mut();
+    let refused = |format: &str, floor: &str| unsafe {
+        hc_clamp(
+            1.0,
+            format.as_ptr(),
+            format.len(),
+            floor.as_ptr(),
+            floor.len(),
+            core::ptr::null(),
+            0,
+            core::ptr::null(),
+            0,
+            core::ptr::null(),
+            0,
+            null,
+            0,
+        )
+    };
+    assert_eq!(refused("scientific", ""), HC_ERR_UNKNOWN);
+    assert_eq!(refused("fixed:x", ""), HC_ERR_MALFORMED);
+    assert_eq!(refused("fixed:300", ""), HC_ERR_OUT_OF_RANGE);
+    assert_eq!(refused("display", "low"), HC_ERR_MALFORMED);
+}

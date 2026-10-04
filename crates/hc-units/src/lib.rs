@@ -76,7 +76,7 @@ mod tests {
         BEAT, DAY, DECIMAL_MINUTE, FLICK, HELEK, HOUR, JULIAN_YEAR, KE_HUNDRED, KE_NINETY_SIX,
         MILLISECOND, Quantity, SECOND,
     };
-    use super::{Ratio, UnitError};
+    use super::{Ratio, UnitError, unit};
 
     #[test]
     fn a_flick_divides_every_frame_and_sample_rate_exactly() {
@@ -245,6 +245,40 @@ mod tests {
         // the f64 fallback in `Ord`.
         assert!(tiny < huge);
         assert!(huge > tiny);
+    }
+
+    /// A decimal ratio reads as the double its decimal names: `1/10²⁴` is
+    /// the literal `1e-24`, where the quotient of two rounded doubles is a
+    /// unit in the last place off; a ratio with another denominator is the
+    /// quotient, and a numerator too large for the exact path is too.
+    #[test]
+    fn a_decimal_ratio_is_the_double_its_decimal_names() {
+        for (unit, literal) in [
+            (unit::QUECTOSECOND, 1e-30),
+            (unit::RONTOSECOND, 1e-27),
+            (unit::YOCTOSECOND, 1e-24),
+            (unit::ZEPTOSECOND, 1e-21),
+            (unit::ATTOSECOND, 1e-18),
+            (unit::FEMTOSECOND, 1e-15),
+            (unit::PICOSECOND, 1e-12),
+            (unit::NANOSECOND, 1e-9),
+            (unit::MICROSECOND, 1e-6),
+            (unit::MILLISECOND, 1e-3),
+            (unit::SVEDBERG, 1e-13),
+            (unit::DECIMAL_SECOND, 0.864),
+            (unit::SECOND, 1.0),
+            (unit::KILOSECOND, 1e3),
+            (unit::JULIAN_YEAR, 31_557_600.0),
+        ] {
+            assert_eq!(unit.seconds.as_f64(), literal, "{}", unit.id);
+        }
+        assert_eq!(Ratio::literal(-3, 1000).as_f64(), -0.003);
+        assert_eq!(Ratio::literal(1, 3).as_f64(), 1.0 / 3.0);
+        assert_eq!(
+            Ratio::literal(1 << 60, 1000).as_f64(),
+            (1u128 << 60) as f64 / 1000.0
+        );
+        assert_eq!(Ratio::ZERO.as_f64(), 0.0);
     }
 
     #[test]

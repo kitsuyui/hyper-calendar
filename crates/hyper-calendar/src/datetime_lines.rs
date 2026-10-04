@@ -182,18 +182,6 @@ pub fn parse_datetime_line(syntax: &str, text: &str) -> Answer<String> {
     Ok(reading_line(&value))
 }
 
-/// The digits an expanded year of this magnitude is written with: six, and
-/// more for a year of a million or beyond.
-fn expanded_digits(year: i64) -> u8 {
-    let mut digits = 6u8;
-    let mut limit = 1_000_000u64;
-    while year.unsigned_abs() >= limit && digits < 18 {
-        digits += 1;
-        limit *= 10;
-    }
-    digits
-}
-
 /// How much of a time to write: what a caller's `precision` names.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Precision {
@@ -285,12 +273,7 @@ fn iso_date_of(fixed: Rd, form: DateForm, style: Style) -> Answer<IsoDate> {
     // where the calendar year does not, and the other way round: the style
     // follows the year that is written.
     if !matches!(date.parts, DateParts::Calendar { .. }) {
-        let written = date.parts.year();
-        date.year_style = if (0..=9_999).contains(&written) {
-            hc_format::YearStyle::Plain
-        } else {
-            hc_format::YearStyle::Expanded(expanded_digits(written))
-        };
+        date.year_style = hc_format::YearStyle::for_year(date.parts.year());
     }
     Ok(date)
 }

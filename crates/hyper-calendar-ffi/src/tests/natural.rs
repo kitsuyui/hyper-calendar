@@ -322,3 +322,55 @@ fn the_time_lines_refuse_what_python_refuses() {
         HC_ERROR_MALFORMED
     );
 }
+
+/// `humanize`'s `clamp` examples: `clamp(0.0001, floor=0.01)` is `<0.01`
+/// and `clamp(0.999, format="{:.0%}", ceil=0.99)` is `>99%`.
+#[test]
+fn clamp_holds_a_value_within_its_bounds() {
+    let line = read_lines(|buffer, capacity, written| unsafe {
+        hc_clamp(
+            0.0001,
+            c"display".as_ptr(),
+            c"0.01".as_ptr(),
+            core::ptr::null(),
+            c"<".as_ptr(),
+            c">".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert_eq!(line, "<0.01\ten\n");
+    let line = read_lines(|buffer, capacity, written| unsafe {
+        hc_clamp(
+            0.999,
+            c"percent:0".as_ptr(),
+            core::ptr::null(),
+            c"0.99".as_ptr(),
+            core::ptr::null(),
+            c">".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert_eq!(line, ">99%\ten\n");
+    let refused = |format: &core::ffi::CStr| {
+        measured(|buffer, capacity, written| unsafe {
+            hc_clamp(
+                1.0,
+                format.as_ptr(),
+                core::ptr::null(),
+                core::ptr::null(),
+                core::ptr::null(),
+                core::ptr::null(),
+                buffer,
+                capacity,
+                written,
+            )
+        })
+    };
+    assert_eq!(refused(c"scientific"), HC_ERROR_UNKNOWN);
+    assert_eq!(refused(c"fixed:x"), HC_ERROR_MALFORMED);
+    assert_eq!(refused(c"fixed:300"), HC_ERROR_OUT_OF_RANGE);
+}
