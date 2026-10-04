@@ -14667,3 +14667,17 @@
   howpublished = {Wikipedia (en), \url{https://en.wikipedia.org/wiki/Balinese_saka_calendar}},
   note         = {Secondary. The twelve sasih Kasa to Sadha; a month from the day after the new moon, fifteen waxing days to Purnama and fifteen waning to Tilem; two lunar days on one solar day ``every 9 weeks'', the ngunalatri; the intercalary Mala Jiyestha or Mala Sadha ``whenever necessary to prevent'' Tilem Kapitu from falling in December; Nyepi on the first day of Kadasa; no Gregorian date and no Saka year given. Retrieved 2026-10-04}
 }
+
+@misc{cldr48-ordinals,
+  author       = {{Unicode Consortium}},
+  title        = {Unicode {CLDR} 48, \texttt{common/supplemental/ordinals.xml} and \texttt{plurals.xml}},
+  howpublished = {\url{https://github.com/unicode-org/cldr/tree/release-48/common/supplemental}},
+  note         = {Tag \texttt{release-48}. \texttt{ordinals.xml}: 25 \texttt{pluralRules} blocks over 110 locale codes, \texttt{root} among them, each category's rule in the syntax of UTS \#35 Part 3 with its \texttt{@integer} samples (English \texttt{one: n \% 10 = 1 and n \% 100 != 11}, \texttt{two}, \texttt{few}; Welsh \texttt{zero: n = 0,7,8,9}); \texttt{plurals.xml}: 40 blocks over 227 codes, with \texttt{@integer} and \texttt{@decimal} samples and the compact samples \texttt{1c6}. Both read whole by \texttt{scripts/plurals-cldr.py}, over HTTP into memory, 2026-10-04}
+}
+
+@misc{cldr48-date-formats,
+  author       = {{Unicode Consortium}},
+  title        = {Unicode {CLDR} 48, \texttt{common/main/<locale>.xml}: \texttt{dateFormats}, \texttt{timeFormats}, \texttt{dateTimeFormats} and \texttt{availableFormats}},
+  howpublished = {\url{https://github.com/unicode-org/cldr/tree/release-48/common/main}},
+  note         = {Tag \texttt{release-48}. Each carried locale's file over \texttt{root.xml}, \texttt{calendar type} \texttt{gregorian}, \texttt{generic}, \texttt{buddhist}, \texttt{chinese}, \texttt{coptic}, \texttt{dangi}, \texttt{ethiopic}, \texttt{hebrew}, \texttt{indian}, \texttt{islamic}, \texttt{iso8601}, \texttt{japanese}, \texttt{persian} and \texttt{roc}: the four lengths of the date, time and standard date-time formats and the items \texttt{hms}, \texttt{Hms}, \texttt{Gy}, \texttt{d}, \texttt{yMMMMd} and \texttt{yMMMd}, resolved through \texttt{root.xml}'s aliases (\texttt{persian}'s \texttt{dateFormats} to \texttt{generic}'s, its \texttt{timeFormats} to \texttt{gregorian}'s). \texttt{de.xml}: medium date \texttt{dd.MM.y}, medium date-time \texttt{\{1\}, \{0\}}; \texttt{ja.xml}: \texttt{y/MM/dd}, \texttt{hms} \texttt{aK:mm:ss}; \texttt{en.xml}: \texttt{MMM d, y}, \texttt{h:mm:ss a}. Read by \texttt{scripts/formats-cldr.py}, over HTTP into memory, 2026-10-04. The same files' other calendars' months and eras, read by \texttt{scripts/locales-cldr.py} the same day: \texttt{de.xml} \texttt{persian} \texttt{Farwardin} to \texttt{Esfand}, \texttt{ja.xml} \texttt{persian} ファルヴァルディーン, \texttt{zh.xml} \texttt{persian} era 波斯历}
+}

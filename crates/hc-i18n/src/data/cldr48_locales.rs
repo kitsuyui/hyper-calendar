@@ -58,6 +58,7 @@ pub(super) const AR_EG: LocaleData = LocaleData {
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
     calendars: AR_EG_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- en-001: English (world) -------------------------------------------------
@@ -120,6 +121,7 @@ pub(super) const EN_001: LocaleData = LocaleData {
     },
     cycle: SexagenaryNames::EMPTY,
     calendars: EN_001_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- en-GB: British English --------------------------------------------------
@@ -156,16 +158,17 @@ pub(super) const EN_GB: LocaleData = LocaleData {
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
     calendars: EN_GB_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- es-419: Latin American Spanish ------------------------------------------
 //
 // CLDR 48 `es_419.xml`, `es.xml`. It carries the weekdays, the day periods,
 // the quarters, the Gregorian eras, the Minguo eras, the Hijri months, the
-// Hebrew months, the Coptic months and the Indian national months and eras.
-// Every other group is the parent entry's, `es`, as CLDR's inheritance gives
-// it. Templates from `Gy` "y G", `d` "d" and the whole date "d 'de' MMMM 'de'
-// y"; digits `latn`.
+// Hebrew months, the Coptic months and the Indian national months. Every other
+// group is the parent entry's, `es`, as CLDR's inheritance gives it. Templates
+// from `Gy` "y G", `d` "d" and the whole date "d 'de' MMMM 'de' y"; digits
+// `latn`.
 
 const ES_419_TEMPLATES: DateTemplates = DateTemplates {
     year: "{year} {era}",
@@ -201,7 +204,11 @@ const ES_419_CALENDARS: &[CalendarNames] = &[
         &[CalendarId("roc")],
         &[],
         era_names(&["broc", "roc"], &["antes de R.O.C.", "R.O.C."], &[], &[]),
-    ),
+    )
+    .with_templates(DateTemplates {
+        date: "{day} de {month} de {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
     calendar_entry(
         ISLAMIC_CALENDARS,
         &[month_cycle(ContextualNames::same(widths(
@@ -236,7 +243,11 @@ const ES_419_CALENDARS: &[CalendarNames] = &[
             &[],
         )))],
         EraNames::EMPTY,
-    ),
+    )
+    .with_templates(DateTemplates {
+        date: "{day} de {month} de {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
     calendar_entry(
         HEBREW_CALENDARS,
         &[month_cycle(ContextualNames::same(widths(
@@ -253,6 +264,10 @@ const ES_419_CALENDARS: &[CalendarNames] = &[
         intercalary: &[(5, "Adar I")],
         in_leap_years: &[(6, "Adar II")],
         leap_day: None,
+    })
+    .with_templates(DateTemplates {
+        date: "{day} de {month} de {year:1} {era}",
+        ..DateTemplates::NONE
     }),
     calendar_entry(
         COPTIC_CALENDARS,
@@ -276,7 +291,11 @@ const ES_419_CALENDARS: &[CalendarNames] = &[
             &[],
         )))],
         EraNames::EMPTY,
-    ),
+    )
+    .with_templates(DateTemplates {
+        date: "{day} de {month} de {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
     calendar_entry(
         &[CalendarId("indian")],
         &[month_cycle(ContextualNames::same(widths(
@@ -297,8 +316,12 @@ const ES_419_CALENDARS: &[CalendarNames] = &[
             &[],
             &[],
         )))],
-        era_names(&["saka"], &["Saka"], &[], &[]),
-    ),
+        EraNames::EMPTY,
+    )
+    .with_templates(DateTemplates {
+        date: "{day} de {month} de {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
 ];
 
 /// The `es-419` entry.
@@ -333,6 +356,7 @@ pub(super) const ES_419: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["a.m.", "p.m."], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: ES_419_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- mn: Mongolian -----------------------------------------------------------
@@ -504,6 +528,7 @@ pub(super) const MN: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["ү.ө.", "ү.х."], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: MN_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- shi-Latn: Tachelhit (Latin) ---------------------------------------------
@@ -605,6 +630,7 @@ pub(super) const SHI_LATN: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["tifawt", "tadggʷat"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: SHI_LATN_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- ur-IN: Urdu (India) -----------------------------------------------------
@@ -641,6 +667,7 @@ pub(super) const UR_IN: LocaleData = LocaleData {
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
     calendars: UR_IN_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- zh-Hant-HK: Chinese (Traditional, Hong Kong SAR China) ------------------
@@ -722,6 +749,7 @@ pub(super) const ZH_HANT_HK: LocaleData = LocaleData {
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
     calendars: ZH_HANT_HK_CALENDARS,
+    cldr_calendars: &[],
 };
 
 /// CLDR 48's `parentLocales` (`supplementalData.xml`, the default component):

@@ -162,8 +162,15 @@ the Buddhist or Minguo calendar a locale's `-u-ca-` key names
 (`th-u-ca-buddhist` writes `%EY` as พ.ศ. 2569; the Japanese eras, in
 `hc-calendars-regional`, which this crate does not depend on, are given
 by the caller, as the facade's `hc_format_pattern` does for
-`-u-ca-japanese`), `%EX` is `%X`, and a locale
+`-u-ca-japanese`), `%EX` is `%X`, `%Ec` joins `%Ex` and `%X` by the
+locale's date-time format, and a locale
 with no such calendar writes the unmodified conversion, as POSIX says;
+`%c`, `%x`, `%X` and `%r` are the POSIX locale's definitions with no
+locale and, with one, CLDR 48's medium date, time and date-time formats
+and its `hms` item from `hc-i18n`'s `formats` (`de` writes `%x` as
+*21.09.2026* and `%c` as *21.09.2026, 14:30:05*; `ja` *2026/09/21* and
+*2026/09/21 14:30:05*), the calendar being the one the locale's `-u-ca-`
+key names among the Gregorian, Buddhist and Minguo;
 `%Ob` and `%OB` write the stand-alone month, POSIX's nominative
 `alt_mon` (Russian's *сентябрь* for *сентября*); and `%Od` … `%Oy` write the
 number in the locale's alternative digits, CLDR 48's `native` system where

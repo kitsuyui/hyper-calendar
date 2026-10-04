@@ -43,6 +43,17 @@ groups its files resolve to, by the rules above, with `--check` failing where
 one differs. A group no file of an entry states is left as written, and so is
 the rest of the file.
 
+The other calendars of the hand-written entries are generated too, into
+crates/hc-i18n/src/data/cldr48_calendars.rs: for each entry of `HAND_ENTRIES`,
+every CLDR calendar its files state months or eras for — Buddhist, Minguo,
+Hijri, Hebrew, Coptic, Ethiopic, Persian, Indian national, and the Chinese
+and Dangi where the file names the months — that no hand-written entry of
+`src/data.rs` already serves, each with the templates its own date formats
+give where they differ from the entry's Gregorian ones (the `Gy` item, the
+`d` item and the long date format, resolved through `root.xml`'s aliases to
+the `generic` calendar's). The entry's `cldr_calendars:` field names the
+constant, and the lookup reads it after the hand-written `calendars`.
+
 Every entry also has its date templates, which do not inherit between
 entries, read from the resolved Gregorian `Gy` item (the year with its
 era), `d` item (the day) and `yMMMMd` item, else the long date format (the
@@ -76,6 +87,7 @@ from cldr_xml import (ENTRIES, exists, lit, path, resolve, rustfmt, stated,  # n
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT = os.path.join(ROOT_DIR, 'crates/hc-i18n/src/data/cldr48_locales.rs')
+CALENDARS = os.path.join(ROOT_DIR, 'crates/hc-i18n/src/data/cldr48_calendars.rs')
 DATA = os.path.join(ROOT_DIR, 'crates/hc-i18n/src/data.rs')
 READ = '2026-09-29'
 
@@ -252,7 +264,7 @@ def contextual(kind, group):
     return f'ContextualNames {{ format: {rust(written)}, standalone: {rust(alone)} }}'
 
 
-def era_group(tag, chain, calendar, keys, language):
+def era_group(tag, chain, calendar, keys, language, codes=()):
     def one(files, width):
         return [resolve(files, cal(calendar, 'eras', width, ('era', {'type': k}))) for k in keys]
 
@@ -277,6 +289,13 @@ def era_group(tag, chain, calendar, keys, language):
         wide = abbreviated
     if wide is None:
         log.append(f'{tag} {calendar} eras: partial, left out')
+        return None
+    # An era a file names by the code itself (`es.xml`'s `saka` for the
+    # Śaka era) is not carried: a code is an identifier, which no rendered
+    # date may write, so English's name answers instead.
+    if codes and any(name.lower() == code for names in (wide, abbreviated or [], narrow or [])
+                     for name, code in zip(names, codes)):
+        log.append(f'{tag} {calendar} eras: a name is the era code itself, left out')
         return None
     return reduce_widths({'wide': wide, 'abbreviated': abbreviated, 'narrow': narrow},
                          ['wide', 'abbreviated', 'narrow'])
@@ -305,10 +324,10 @@ def convert(pattern, fields):
                 j += 1
             run = pattern[i:j]
             key = 'y' if ch == 'y' else run
-            if run in ('M', 'MM') and pattern[j:j + 1] == '月':
+            if run in ('M', 'MM') and pattern[j:j + 1] in ('月', '월'):
                 # The numbered month with its counter is the abbreviated
-                # name in the Chinese and Japanese files, 9月.
-                key, j = 'M月', j + 1
+                # name in the Chinese, Japanese and Korean files, 9月, 9월.
+                key, j = 'M' + pattern[j], j + 1
             if key not in fields:
                 raise ValueError(f'{pattern!r}: {run} is not carried')
             out += fields[key]
@@ -331,7 +350,7 @@ def templates(chain):
     day = convert(day_item, {'d': '{day}', 'dd': '{day}'})
     date = convert(whole, {'y': '{year}', 'MMMM': '{month}', 'LLLL': '{month}',
                            'MMM': '{month:abbreviated}', 'M月': '{month:abbreviated}',
-                           'd': '{day}', 'dd': '{day}'})
+                           'M월': '{month:abbreviated}', 'd': '{day}', 'dd': '{day}'})
     # A day or year unit's own suffix is the unit template's, so that a date
     # without a day loses it with it: `d日` and `y年M月d日`.
     if day == '{day}':
@@ -342,6 +361,74 @@ def templates(chain):
     if suffix and not suffix.strip().startswith('{') and '{era}' in year.split('{year}')[0]:
         date = date.replace('{year}' + suffix, '{year}')
     return (gy, day_item, whole), year, day, date
+
+
+# `M` is the month's number in a CLDR pattern, and in another calendar than
+# the Gregorian its abbreviated name is not the number with its counter, so
+# `M月` and `M월` are the number here, 4月, as ICU writes a Hijri date in
+# Japanese.
+CALENDAR_FIELDS = {'G': '{era}', 'GGGGG': '{era}', 'y': '{year:1}', 'MMMM': '{month}',
+                   'LLLL': '{month}', 'MMM': '{month:abbreviated}', 'M月': '{month:1}月',
+                   'M월': '{month:1}월', 'd': '{day}', 'dd': '{day}', 'U': '{sexagenary}',
+                   'r': '{extra:related-gregorian-year}'}
+
+
+# The calendars whose years may carry a leap month, which a numbered month
+# in a date would not tell from the month before it.
+LEAP_MONTH_CALENDARS = {'hebrew', 'chinese', 'dangi'}
+
+
+def calendar_templates(chain, calendar, gregorian):
+    """The templates a calendar's own resolved formats give, as Rust fields
+    (year, day, date) that differ from the entry's Gregorian ones, else
+    None: the `Gy` item, the `d` item and the long date format, which
+    `root.xml` aliases to the `generic` calendar's for most calendars. A
+    date that writes its era beside its year, "d. MMMM y G", takes the year
+    as a number, `{year:1}`, and the era where the format puts it; one
+    that writes the year alone takes the rendered year, `{year}`, whose
+    template carries the era."""
+    item = lambda ident: resolve(chain, cal(calendar, 'dateTimeFormats', 'availableFormats',
+                                            ('dateFormatItem', {'id': ident})))[0]
+    gy = item('Gy') or 'G y'
+    day_item = item('d') or 'd'
+    long = resolve(chain, cal(calendar, 'dateFormats', 'dateFormatLength[long]', 'dateFormat',
+                              'pattern'))[0]
+    if long is None or 'E' in long.replace("'", ''):
+        return None
+    try:
+        year = convert(gy, {'G': '{era}', 'y': '{year}', 'U': '{sexagenary}',
+                            'r': '{extra:related-gregorian-year}'})
+        day = convert(day_item, {'d': '{day}', 'dd': '{day}'})
+        fields = dict(CALENDAR_FIELDS)
+        if 'G' not in long and 'U' not in long:
+            fields['y'] = '{year}'
+        if calendar in LEAP_MONTH_CALENDARS:
+            # CLDR numbers the Hebrew months Tishri 1 to Elul 13 with Adar I
+            # as 6, and a Chinese leap month by its own pattern; the crate's
+            # month number is the ordinal, 5 for Shevat and for Adar I, so a
+            # numbered month would write two first-of-months alike. The
+            # name tells them apart: シェバト and アダル I, 五月 and 六月.
+            fields['M月'] = fields['M월'] = '{month}'
+        date = convert(long, fields)
+    except ValueError as error:
+        log.append(f'{chain[0]} {calendar}: templates not read, {error}')
+        return None
+    if day == '{day}':
+        day = ''
+    elif day.startswith('{day}'):
+        date = date.replace(day, '{day}')
+    if '{year}' in date:
+        suffix = year.split('{year}', 1)[1]
+        if suffix and not suffix.strip().startswith('{') and '{era}' in year.split('{year}')[0]:
+            date = date.replace('{year}' + suffix, '{year}')
+    out = {k: v for k, v in (('year', year), ('day', day), ('date', date))
+           if v != gregorian.get(k, '')}
+    return out or None
+
+
+def templates_rust(fields):
+    body = ', '.join(f'{k}: {lit(v)}' for k, v in fields.items())
+    return f'DateTemplates {{ {body}, ..DateTemplates::NONE }}'
 
 
 def chinese_date(tag, calendar, long, lines):
@@ -548,19 +635,23 @@ PROSE = {'buddhist': 'Buddhist', 'roc': 'Minguo', 'islamic': 'Hijri', 'hebrew': 
          'indian': 'Indian national', 'chinese': 'Chinese', 'dangi': 'Dangi'}
 
 
-# --- one entry --------------------------------------------------------------
+# --- the calendars a file states --------------------------------------------
 
-def const_name(tag):
-    return tag.replace('-', '_').upper()
+def cldr_calendars(tag, chain, language, skip, gregorian_fields):
+    """(Rust calendar entries, what they carry in prose, lines to write
+    before them): every CLDR calendar the entry's files state months or eras
+    for, less those in `skip` (the CLDR keys a hand-written entry already
+    serves), each with its own templates where they differ from the
+    Gregorian ones."""
+    calendars, carried, lines_before = [], [], []
 
-
-def entry(tag, chain, parent, region):
-    language = parent is None
-    name = const_name(tag)
-    carried, dump = [], []
-    calendars = []
+    def with_templates(text, calendar):
+        fields = calendar_templates(chain, calendar, gregorian_fields)
+        return f'{text}.with_templates({templates_rust(fields)})' if fields else text
 
     def month_entry(calendar, calendars_rs, count, codes, keys, era_calendars=None):
+        if calendar in skip:
+            return
         group = own_group(tag, chain, calendar, 'months', count, language)
         cycle = None
         if group is not None and calendar == 'hebrew':
@@ -571,7 +662,7 @@ def entry(tag, chain, parent, region):
                 log.append(f'{tag} {calendar}: numbered months, not carried')
             else:
                 cycle = contextual('months', group)
-        eras = era_group(tag, chain, calendar, keys, language) if keys else None
+        eras = era_group(tag, chain, calendar, keys, language, codes) if keys else None
         if cycle is None and eras is None:
             return
         cycles = f'&[month_cycle({cycle})]' if cycle else '&[]'
@@ -581,12 +672,13 @@ def entry(tag, chain, parent, region):
             text += (f'.with_leap_names(LeapMonthNames {{ intercalary: &[(5, {lit(HEBREW[0])})], '
                      f'in_leap_years: &[(6, {lit(HEBREW[1])})], leap_day: None }})')
         if cycle or era != 'EraNames::EMPTY':
-            calendars.append(text)
+            calendars.append(with_templates(text, calendar))
             carried.append(f'the {PROSE[calendar]} ' + ('months' if cycle else '')
                            + (' and eras' if cycle and era != 'EraNames::EMPTY' else
                               'eras' if era != 'EraNames::EMPTY' else ''))
         if eras and era_calendars:
-            calendars.append(f'calendar_entry({era_calendars}, &[], {era_rust(codes, eras)})')
+            calendars.append(with_templates(
+                f'calendar_entry({era_calendars}, &[], {era_rust(codes, eras)})', calendar))
             carried.append(f'the {PROSE[calendar]} eras')
 
     HEBREW = [None, None]
@@ -600,28 +692,32 @@ def entry(tag, chain, parent, region):
         return contextual('months', ({w: cut(v) for w, v in fmt.items()},
                                      {w: cut(v) for w, v in standalone.items()}))
 
-    # The Gregorian months, quarters and eras.
-    months = own_group(tag, chain, 'gregorian', 'months', 12, language)
-    months_rs = contextual('months', months) if months else None
-    quarters = own_group(tag, chain, 'gregorian', 'quarters', 4, language)
-    quarters_rs = contextual('quarters', quarters) if quarters else None
-    eras = era_group(tag, chain, 'gregorian', ['0', '1'], language)
-    if months_rs or quarters_rs or eras:
-        cycles = f'&[month_cycle({months_rs})]' if months_rs else '&[]'
-        era = (f"gregorian_eras({arr(eras.get('wide'))}, {arr(eras.get('abbreviated'))}, "
-               f"{arr(eras.get('narrow'))})") if eras else 'EraNames::EMPTY'
-        calendars.append(f"gregorian({cycles}, {era}, {quarters_rs or 'ContextualNames::EMPTY'})")
-        if tag in BERBER and months_rs:
-            calendars.append(f'calendar_entry(&[CalendarId("berber")], &[month_cycle({months_rs})], '
-                             'EraNames::EMPTY)')
-        carried += [what for what, present in (('the Gregorian months', months_rs),
-                                               ('the quarters', quarters_rs),
-                                               ('the Gregorian eras', eras)) if present]
+    # The Gregorian months, quarters and eras, for a generated entry.
+    if 'gregorian' not in skip:
+        months = own_group(tag, chain, 'gregorian', 'months', 12, language)
+        months_rs = contextual('months', months) if months else None
+        quarters = own_group(tag, chain, 'gregorian', 'quarters', 4, language)
+        quarters_rs = contextual('quarters', quarters) if quarters else None
+        eras = era_group(tag, chain, 'gregorian', ['0', '1'], language)
+        if months_rs or quarters_rs or eras:
+            cycles = f'&[month_cycle({months_rs})]' if months_rs else '&[]'
+            era = (f"gregorian_eras({arr(eras.get('wide'))}, {arr(eras.get('abbreviated'))}, "
+                   f"{arr(eras.get('narrow'))})") if eras else 'EraNames::EMPTY'
+            calendars.append(f"gregorian({cycles}, {era}, {quarters_rs or 'ContextualNames::EMPTY'})")
+            if tag in BERBER and months_rs:
+                calendars.append(f'calendar_entry(&[CalendarId("berber")], '
+                                 f'&[month_cycle({months_rs})], EraNames::EMPTY)')
+            carried += [what for what, present in (('the Gregorian months', months_rs),
+                                                   ('the quarters', quarters_rs),
+                                                   ('the Gregorian eras', eras)) if present]
 
     def era_entry(calendar, calendars_rs, codes, keys):
-        found = era_group(tag, chain, calendar, keys, language)
+        if calendar in skip:
+            return
+        found = era_group(tag, chain, calendar, keys, language, codes)
         if found:
-            calendars.append(f'calendar_entry({calendars_rs}, &[], {era_rust(codes, found)})')
+            calendars.append(with_templates(
+                f'calendar_entry({calendars_rs}, &[], {era_rust(codes, found)})', calendar))
             carried.append(f'the {PROSE[calendar]} era' + ('s' if len(codes) > 1 else ''))
 
     era_entry('buddhist', 'BUDDHIST_CALENDARS', ['be'], ['0'])
@@ -633,25 +729,52 @@ def entry(tag, chain, parent, region):
     month_entry('persian', 'PERSIAN_CALENDARS', 12, ['ap'], ['0'],
                 era_calendars='SOLAR_HIJRI_CALENDARS')
     month_entry('indian', '&[CalendarId("indian")]', 12, ['saka'], ['0'])
-    lines_before = []
     for calendar, calendars_rs in (('chinese', 'CHINESE_AND_VIETNAMESE_CALENDARS'),
                                    ('dangi', 'DANGI_CALENDARS')):
+        if calendar in skip:
+            continue
         group = own_group(tag, chain, calendar, 'months', 12, language)
         if group is None:
             continue
-        if language:
-            log.append(f'{tag} {calendar}: a language entry\'s Chinese months are not read here')
+        wide = group[0]['wide']
+        if wide and all(re.fullmatch(r'\d+月?|M\d+', x) for x in wide):
+            log.append(f'{tag} {calendar}: numbered months, not carried')
             continue
         leap = resolve(chain, cal(calendar, 'monthPatterns', 'monthPatternContext[format]',
                                   'monthPatternWidth[wide]', ('monthPattern', {'type': 'leap'})))[0]
-        assert leap.endswith('{0}'), leap
+        if not leap.endswith('{0}'):
+            log.append(f'{tag} {calendar}: the leap month pattern {leap!r} is a suffix, not carried')
+            continue
         long = resolve(chain, cal(calendar, 'dateFormats', 'dateFormatLength[long]', 'dateFormat',
                                   'pattern'))[0]
-        chinese_templates = chinese_date(tag, calendar, long, lines_before)
+        try:
+            chinese_templates = chinese_date(tag, calendar, long, lines_before)
+        except (AssertionError, ValueError):
+            fields = calendar_templates(chain, calendar, gregorian_fields)
+            if fields is None:
+                log.append(f'{tag} {calendar}: the long date {long!r} is not read, not carried')
+                continue
+            chinese_templates = templates_rust(fields)
         calendars.append(f'lunisolar({calendars_rs}, &[month_cycle({contextual("months", group)})], '
                          f'{lit(leap[:-3])}).with_templates({chinese_templates})')
         carried.append(f'the {PROSE[calendar]} months')
+    return calendars, carried, lines_before
 
+
+# --- one entry --------------------------------------------------------------
+
+def const_name(tag):
+    return tag.replace('-', '_').upper()
+
+
+def entry(tag, chain, parent, region):
+    language = parent is None
+    name = const_name(tag)
+    carried, dump = [], []
+    gregorian_templates = templates(chain)[1:]
+    gregorian_fields = dict(zip(('year', 'day', 'date'), gregorian_templates))
+    calendars, carried, lines_before = cldr_calendars(tag, chain, language, set(),
+                                                      gregorian_fields)
     hand = []
     for constant, what in HAND_WRITTEN.get(tag, []):
         calendars.append(constant)
@@ -738,6 +861,7 @@ def entry(tag, chain, parent, region):
     lines.append(f'    day_periods: {periods_rs or "ContextualNames::EMPTY"},')
     lines.append('    cycle: SexagenaryNames::EMPTY,')
     lines.append(f'    calendars: {name}_CALENDARS,')
+    lines.append('    cldr_calendars: &[],')
     lines.append('};')
     lines.append('')
     dump.append(f'{tag}\tcarried\t{"; ".join(carried)}')
@@ -985,9 +1109,88 @@ def hand_entries(source):
         edits.append((start + found.start(), start + found.end(),
                       f'\n    first_day_of_week: Weekday::{found.group(1)},'
                       f'\n    min_days: {min_days(region)},'))
+    # The other calendars the files state, into cldr48_calendars.rs, and the
+    # `cldr_calendars:` field that names each entry's constant.
+    generated = []
+    for number, (start, name, kind) in enumerate(items):
+        tag = owner.get(name)
+        if kind != 'LocaleData' or tag is None or name == 'ROOT':
+            continue
+        end = items[number + 1][0] if number + 1 < len(items) else len(source)
+        block = source[start:end]
+        field = re.search(r'\n    cldr_calendars: [^,]+,', block)
+        if not field:
+            continue
+        value = '&[]'
+        if tag in HAND_ENTRIES:
+            chain = HAND_ENTRIES[tag]
+            served = served_calendars(source, items, block)
+            try:
+                gregorian_fields = dict(zip(('year', 'day', 'date'), templates(chain)[1:]))
+            except ValueError:
+                # An entry whose Gregorian patterns no template matches yet
+                # (`ta`, `bn`): every calendar template is written whole.
+                gregorian_fields = {}
+            calendars, carried, before = cldr_calendars(tag, chain, tag != 'pt-PT', served,
+                                                        gregorian_fields)
+            if calendars:
+                constant = f'{const_name(tag)}_CLDR'
+                value = f'cldr48_calendars::{constant}'
+                files = ', '.join(f'`{f}.xml`' for f in chain)
+                listed = (', '.join(carried[:-1]) + ' and ' + carried[-1] if len(carried) > 1
+                          else ''.join(carried))
+                text = (f'The other calendars of `{tag}`, CLDR 48 {files}: {listed}; the '
+                        'hand-written entry serves ' + (', '.join(sorted(served)) or 'no other')
+                        + ' already.')
+                generated += ['/// ' + x for x in textwrap.wrap(text, 76, break_long_words=False,
+                                                                 break_on_hyphens=False)]
+                generated += before
+                generated.append(f'pub(super) const {constant}: &[CalendarNames] = &[')
+                generated += [f'    {c},' for c in calendars]
+                generated.append('];')
+                generated.append('')
+        edits.append((start + field.start(), start + field.end(),
+                      f'\n    cldr_calendars: {value},'))
     for begin, end, text in sorted(edits, reverse=True):
         source = source[:begin] + text + source[end:]
-    return source
+    return source, generated
+
+
+# The CLDR calendar each constant or identifier of a hand-written entry's
+# `calendars` list serves, so that the generated entries leave it alone.
+SERVED = {'ISLAMIC_CALENDARS': ['islamic'], 'HEBREW_CALENDARS': ['hebrew'],
+          'COPTIC_CALENDARS': ['coptic'], 'ETHIOPIC_CALENDARS': ['ethiopic'],
+          'PERSIAN_CALENDARS': ['persian'], 'SOLAR_HIJRI_CALENDARS': ['persian'],
+          'BUDDHIST_CALENDARS': ['buddhist'], 'JAPANESE_CALENDARS': ['japanese'],
+          'CHINESE_FAMILY_CALENDARS': ['chinese', 'dangi'],
+          'CHINESE_AND_VIETNAMESE_CALENDARS': ['chinese'],
+          'CHINESE_REGNAL_CALENDARS': ['chinese'], 'DANGI_CALENDARS': ['dangi']}
+SERVED_IDS = {'indian': 'indian', 'roc': 'roc', 'hebrew': 'hebrew', 'coptic': 'coptic',
+              'ethiopic': 'ethiopic', 'buddhist': 'buddhist', 'persian': 'persian',
+              'persian-afghan': 'persian', 'chinese': 'chinese', 'dangi': 'dangi'}
+
+
+def served_calendars(source, items, block):
+    """The CLDR calendars a hand-written entry's `calendars` list already
+    serves, by the constants and identifiers its items name; the Gregorian
+    and the Japanese eras are every entry's own."""
+    served = {'gregorian', 'japanese'}
+    found = re.search(r'\n    calendars: &?([A-Z_0-9]+),', block)
+    text = block
+    if found:
+        for number, (start, name, _) in enumerate(items):
+            if name == found.group(1):
+                end = items[number + 1][0] if number + 1 < len(items) else len(source)
+                text += source[start:end]
+    for constant, calendars in SERVED.items():
+        if re.search(rf'\b{constant}\b', text):
+            served.update(calendars)
+    for ident in re.findall(r'CalendarId\("([a-z0-9-]+)"\)', text):
+        if ident in SERVED_IDS:
+            served.add(SERVED_IDS[ident])
+        elif ident.startswith('islamic'):
+            served.add('islamic')
+    return served
 
 
 def main():
@@ -997,7 +1200,43 @@ def main():
         return
     write_or_check(OUTPUT, rustfmt(text), 'scripts/locales-cldr.py')
     with open(DATA, encoding='utf-8') as handle:
-        write_or_check(DATA, rustfmt(hand_entries(handle.read())), 'scripts/locales-cldr.py')
+        data, generated = hand_entries(handle.read())
+    write_or_check(DATA, rustfmt(data), 'scripts/locales-cldr.py')
+    body = '\n'.join(generated).rstrip('\n') + '\n'
+    used = lambda names: sorted((n for n in names if re.search(rf'\b{n}\b', body)),
+                                key=lambda n: (not n.isupper(), n))
+    helpers = used(['BUDDHIST_CALENDARS', 'CHINESE_AND_VIETNAMESE_CALENDARS', 'CHINESE_TEMPLATES',
+                    'COPTIC_CALENDARS', 'DANGI_CALENDARS', 'ETHIOPIC_CALENDARS',
+                    'HEBREW_CALENDARS', 'ISLAMIC_CALENDARS', 'PERSIAN_CALENDARS',
+                    'SOLAR_HIJRI_CALENDARS', 'calendar_entry', 'era_names', 'lunisolar',
+                    'month_cycle', 'widths'])
+    types = used(['CalendarNames', 'ContextualNames', 'DateTemplates', 'EraNames',
+                  'LeapMonthNames'])
+    header = CALENDARS_HEADER.replace('{imports}', 'use super::{' + ', '.join(helpers) + '};\n')
+    header = header.replace('{names_imports}', 'use crate::names::{' + ', '.join(types) + '};\n')
+    if 'CalendarId(' in body:
+        header = header.replace('{calendar_id}', 'use hc_calendar::CalendarId;\n\n')
+    else:
+        header = header.replace('{calendar_id}', '')
+    write_or_check(CALENDARS, rustfmt(header + body), 'scripts/locales-cldr.py')
+
+
+CALENDARS_HEADER = '''\
+//! The other calendars of the hand-written locale entries, read out of
+//! Unicode CLDR 48, generated.
+//!
+//! **Do not edit.** `scripts/locales-cldr.py` writes this file from CLDR 48
+//! (`release-48`, `common/main/<file>.xml` over `root.xml`;
+//! `cldr48-regional-locales`), as the script's documentation says: for each
+//! hand-written entry of `super` that follows a CLDR file, every calendar
+//! its files state months or eras for that the entry does not serve itself,
+//! with the templates the calendar's own date formats give where they
+//! differ from the entry's Gregorian ones. Each entry's `cldr_calendars`
+//! field names its constant, and `LocaleData::entries_for` reads it after
+//! `calendars`.
+
+{calendar_id}{imports}{names_imports}
+'''
 
 
 if __name__ == '__main__':

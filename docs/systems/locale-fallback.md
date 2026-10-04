@@ -54,9 +54,11 @@ for, so an entry states only what differs from its parent. A zone name a
 file writes as the empty override stops the search with no name
 ([zone-names.md](zone-names.md)).
 
-Two kinds of data are keyed by language, not by locale, and are not looked
-up along the chain. CLDR's plural rules name languages, and a few tags
-(`pt_PT`). The day period rule sets of `dayPeriods.xml` name languages too,
+Two kinds of data are keyed by language, not by locale. CLDR's plural
+rules name languages, and a few tags (`pt_PT`); `PluralRules::for_locale`
+walks the chain, trying the hyphenated rows against each step and then
+the step's language ([plural-rules.md](plural-rules.md)). The day period
+rule sets of `dayPeriods.xml` name languages too,
 and a few tags by script or region (`hi_Latn`, `es_CO`); a locale's rule
 set is found by truncating its tag, `zh-Hant-HK`, `zh-Hant`, `zh`, which
 the chain would not reach.
@@ -111,9 +113,9 @@ Arabic-Indic digits while its names are `ar`'s.
 - `Locale::parent_step` and `ParentRule` (`locale.rs`) name the rule of each
   step. The boundary's `hc_locale_chain` writes the chain with that rule,
   `hc_locale_info` what a locale is (parent, default numbering, `minDays`,
-  direction, casing, plural rules), `hc_plural_category` the cardinal
-  category of a number written as text (ordinal rules and the operands `c`
-  and `e` are not carried), `hc_names`, `hc_case` and `hc_isolate` the names,
+  direction, casing, plural rules), `hc_plural_category` the cardinal or
+  ordinal category of a number written as text (the operands `c` and `e`
+  are not carried), `hc_names`, `hc_case` and `hc_isolate` the names,
   casing and bidi isolates, and `hc_locales` the parent, numbering and
   direction of every carried locale
   (`crates/hyper-calendar/src/i18n_lines.rs`; tests

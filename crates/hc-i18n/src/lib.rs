@@ -18,16 +18,16 @@
 //! language is added by appending one entry to that table — no function in
 //! this crate learns a new branch. The same split holds for
 //! [`numbering::NumberingSystem`] (digit tables plus four Han numeral styles)
-//! and for [`plural::PluralRules`] (one CLDR rule function per language in a
-//! table keyed by language subtag).
+//! and for [`plural::PluralRules`] (every language's CLDR rules as data in a
+//! table keyed by language subtag, read by one evaluator).
 //!
 //! # Modules
 //!
 //! * [`locale`] — BCP 47 tags with the `-u-ca`/`-nu`/`-fw`/`-hc` keys, and
 //!   the CLDR inheritance chain as an iterator.
 //! * [`numbering`] — digit shapes and Han numerals, rendered and parsed.
-//! * [`plural`] — CLDR cardinal plural categories for 55 languages and
-//!   European Portuguese.
+//! * [`plural`] — CLDR 48's cardinal and ordinal plural categories for
+//!   every language its `plurals.xml` and `ordinals.xml` give rules.
 //! * [`names`] — month, weekday, day-period, era, quarter and sexagenary
 //!   vocabulary, keyed by locale, calendar, width and context, and the
 //!   templates a locale writes a date with.
@@ -102,6 +102,7 @@ pub mod error;
 #[cfg(feature = "exemplar-cities")]
 pub mod exemplar_cities;
 pub mod fields;
+pub mod formats;
 pub mod holiday_groups;
 pub mod holiday_names;
 pub mod horizons;
@@ -127,4 +128,4 @@ pub use names::{
     NameWidth, WidthSet,
 };
 pub use numbering::NumberingSystem;
-pub use plural::{PluralCategory, PluralOperands, PluralRules};
+pub use plural::{PluralCategory, PluralOperands, PluralRules, PluralType};

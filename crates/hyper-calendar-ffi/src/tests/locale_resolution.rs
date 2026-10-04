@@ -4,8 +4,8 @@ use super::super::*;
 use super::{measured, read_lines};
 
 /// The chain of `en-AU` (`docs/systems/locale-fallback.md`, from UTS #35
-/// and CLDR 48's `parentLocales`), and CLDR 48's cardinal rules: Russian 2
-/// is `few`.
+/// and CLDR 48's `parentLocales`), and CLDR 48's rules: Russian 2 is `few`
+/// (`plurals.xml`), and the 2nd is `two` in English (`ordinals.xml`).
 #[test]
 fn the_chain_the_description_and_the_category_of_a_locale() {
     let chain = read_lines(|buffer, capacity, written| unsafe {
@@ -30,18 +30,29 @@ fn the_chain_the_description_and_the_category_of_a_locale() {
         )
     });
     assert_eq!(line, "few\tru\t2\t0\t0\t0\t0\n");
+    let ordinal = read_lines(|buffer, capacity, written| unsafe {
+        hc_plural_category(
+            c"en".as_ptr(),
+            c"2".as_ptr(),
+            c"ordinal".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert_eq!(ordinal, "two\ten\t2\t0\t0\t0\t0\n");
     assert_eq!(
         measured(|buffer, capacity, written| unsafe {
             hc_plural_category(
                 c"ru".as_ptr(),
                 c"2".as_ptr(),
-                c"ordinal".as_ptr(),
+                c"fraction".as_ptr(),
                 buffer,
                 capacity,
                 written,
             )
         }),
-        HC_ERROR_NO_DATA
+        HC_ERROR_UNKNOWN
     );
     assert_eq!(
         measured(|buffer, capacity, written| unsafe {

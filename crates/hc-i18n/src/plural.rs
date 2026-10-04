@@ -1,21 +1,33 @@
-//! CLDR cardinal plural rules.
+//! CLDR plural rules, cardinal and ordinal.
 //!
 //! The system is written up in `docs/systems/plural-rules.md`.
 //!
-//! The rule text is that of Unicode CLDR 48, `common/supplemental/
-//! plurals.xml` (`cldr48-supplemental`, tag `release-48`, retrieved
-//! 2026-09-26); the operands and rule syntax are those of UTS #35 version
-//! 48, Part 3 (Numbers), §5 "Language Plural Rules" (`uts35-v48`).
+//! The rules are those of Unicode CLDR 48, `common/supplemental/plurals.xml`
+//! and `common/supplemental/ordinals.xml` (`cldr48-supplemental`, tag
+//! `release-48`, read 2026-10-04), generated into `plural/cldr48.rs` by
+//! `scripts/plurals-cldr.py`; the operands and rule syntax are those of
+//! UTS #35 version 48, Part 3 (Numbers), §5 "Language Plural Rules"
+//! (`uts35-v48`).
 //!
 //! "3 days" is easy; "3 дня", "5 дней" and "21 день" are why this module
 //! exists. A formatter that wants to say "in 2 months" has to ask the
 //! language which of up to six forms the surrounding message should use, and
 //! the answer depends on more than the value: `1`, `1.0` and `1.00` take
-//! different forms in several languages.
+//! different forms in several languages. The ordinal rules answer the other
+//! question, the form of a position: *1st*, *2nd*, *3rd*, *4th*.
+//!
+//! # Data is not code
+//!
+//! A rule is data: a [`PluralCategory`] with a condition, which is an `or`
+//! of `and`s of relations, each relation an operand, an optional modulus,
+//! `=` or `!=` and a list of ranges, exactly as UTS #35 writes it. One
+//! evaluator, [`PluralRules::select`], reads every language's rules; no
+//! language has a function of its own, and a language is added by the
+//! generator alone.
 //!
 //! # Operands
 //!
-//! UTS #35 Part 3 §5.1 defines six operands on the *source string*, not on
+//! UTS #35 Part 3 §5.1 defines the operands on the *source string*, not on
 //! the number:
 //!
 //! | operand | meaning |
@@ -26,6 +38,7 @@
 //! | `w` | count of visible fraction digits, trailing zeros excluded |
 //! | `f` | visible fraction digits as an integer, trailing zeros included |
 //! | `t` | visible fraction digits as an integer, trailing zeros excluded |
+//! | `c`, `e` | the compact decimal exponent |
 //!
 //! So `1.0` has `i=1, v=1, w=0, f=0, t=0`, and English calls it `other`
 //! while plain `1` is `one`. [`PluralOperands::parse`] preserves that
@@ -33,12 +46,15 @@
 //! has no trailing zeros to preserve.
 //!
 //! The compact-notation operands `c` and `e` (CLDR 38 and later) are **not**
-//! modelled. Where a rule has an `e = 0 and …` branch, the `e = 0` case is
-//! implemented and the `e != 0` alternatives are dropped; this only affects
-//! compact forms such as "1M", which this workspace never produces.
+//! modelled: [`PluralOperands::parse`] reads no exponent, and the evaluator
+//! reads the operand as 0, so that a rule's `e = 0 and …` branch applies and
+//! its `e != 0` alternatives never do. This only affects compact forms such
+//! as "1M", which this workspace never produces.
 
 use crate::error::{I18nError, I18nResult};
 use crate::locale::Locale;
+
+mod cldr48;
 
 /// The six CLDR plural categories.
 ///
@@ -93,6 +109,52 @@ impl PluralCategory {
 }
 
 impl core::fmt::Display for PluralCategory {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+/// The two kinds of plural rule UTS #35 defines for a language, which are
+/// independent of one another: the cardinal rules choose the form after a
+/// count, *1 day*, and the ordinal rules the form of a position, *1st*.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PluralType {
+    /// `plurals.xml`: the form after a count.
+    Cardinal,
+    /// `ordinals.xml`: the form of a position.
+    Ordinal,
+}
+
+impl PluralType {
+    /// Both kinds, cardinal first.
+    pub const ALL: [Self; 2] = [Self::Cardinal, Self::Ordinal];
+
+    /// The CLDR keyword, `cardinal` or `ordinal`.
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Cardinal => "cardinal",
+            Self::Ordinal => "ordinal",
+        }
+    }
+
+    /// Parse a CLDR keyword, in either case.
+    #[must_use]
+    pub fn from_keyword(keyword: &str) -> Option<Self> {
+        Self::ALL
+            .into_iter()
+            .find(|kind| kind.as_str().eq_ignore_ascii_case(keyword))
+    }
+
+    const fn table(self) -> &'static [(&'static str, &'static [Rule])] {
+        match self {
+            Self::Cardinal => cldr48::CARDINAL,
+            Self::Ordinal => cldr48::ORDINAL,
+        }
+    }
+}
+
+impl core::fmt::Display for PluralType {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_str(self.as_str())
     }
@@ -221,6 +283,13 @@ impl PluralOperands {
         self.significant_fraction
     }
 
+    /// Operands `c` and `e`: the compact decimal exponent, which this crate
+    /// does not read, so always 0.
+    #[must_use]
+    pub const fn c(&self) -> u64 {
+        0
+    }
+
     /// Operand `n`, as the nearest `f64`.
     ///
     /// The rules themselves never use this — they work on the exact integer
@@ -238,42 +307,6 @@ impl PluralOperands {
     #[must_use]
     pub const fn n_is_integer(&self) -> bool {
         self.fraction == 0
-    }
-
-    /// `n = value`, exactly.
-    const fn n_is(&self, value: u64) -> bool {
-        self.fraction == 0 && self.integer == value
-    }
-
-    /// `n = low..high`, which in CLDR range notation only matches integers.
-    const fn n_in(&self, low: u64, high: u64) -> bool {
-        self.fraction == 0 && self.integer >= low && self.integer <= high
-    }
-
-    /// `n % modulus = low..high`.
-    const fn n_mod_in(&self, modulus: u64, low: u64, high: u64) -> bool {
-        if self.fraction != 0 {
-            return false;
-        }
-        let remainder = self.integer % modulus;
-        remainder >= low && remainder <= high
-    }
-
-    /// `i % modulus = low..high`.
-    const fn i_mod_in(&self, modulus: u64, low: u64, high: u64) -> bool {
-        let remainder = self.integer % modulus;
-        remainder >= low && remainder <= high
-    }
-
-    /// The `many` branch shared by French, Italian, Spanish and Portuguese,
-    /// which marks exact millions: "3 millions de…".
-    ///
-    /// CLDR writes it `e = 0 and i != 0 and i % 1000000 = 0 and v = 0`; the
-    /// `e != 0` alternative belongs to compact notation and is not modelled.
-    const fn is_exact_million(&self) -> bool {
-        self.integer != 0
-            && self.integer.is_multiple_of(1_000_000)
-            && self.visible_fraction_digits == 0
     }
 }
 
@@ -295,69 +328,191 @@ impl From<u64> for PluralOperands {
     }
 }
 
-/// The shape of a plural rule: operands in, category out.
-type RuleFn = fn(&PluralOperands) -> PluralCategory;
+/// An operand of a relation, as UTS #35 names them; `C` stands for both
+/// `c` and `e`, which the specification makes synonyms.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Operand {
+    N,
+    I,
+    V,
+    /// No rule of CLDR 48 reads `w`; it is here because the syntax has it.
+    #[allow(dead_code)]
+    W,
+    F,
+    T,
+    C,
+}
 
-/// The plural rules of one language.
+/// One relation of a rule: `operand [% modulus] (= | !=) ranges`.
+///
+/// `n % 10 = 1` is true of a number whose fraction is zero and whose integer
+/// digits leave 1 modulo 10, because a range in CLDR's syntax matches
+/// integers alone: 21.33 modulo 10 is 1.33, which no range holds. `!=`
+/// negates the whole relation, so `n != 1` is true of 1.5.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Relation {
+    pub(crate) operand: Operand,
+    /// 0 for none.
+    pub(crate) modulus: u64,
+    pub(crate) negated: bool,
+    /// Inclusive `(low, high)` pairs; a value is `(v, v)`.
+    pub(crate) ranges: &'static [(u64, u64)],
+}
+
+impl Relation {
+    fn holds(&self, operands: &PluralOperands) -> bool {
+        let (value, integral) = match self.operand {
+            Operand::N => (operands.i(), operands.n_is_integer()),
+            Operand::I => (operands.i(), true),
+            Operand::V => (u64::from(operands.v()), true),
+            Operand::W => (u64::from(operands.w()), true),
+            Operand::F => (operands.f(), true),
+            Operand::T => (operands.t(), true),
+            Operand::C => (operands.c(), true),
+        };
+        let remainder = if self.modulus == 0 {
+            value
+        } else {
+            value % self.modulus
+        };
+        let within = integral
+            && self
+                .ranges
+                .iter()
+                .any(|(low, high)| remainder >= *low && remainder <= *high);
+        within != self.negated
+    }
+}
+
+/// A block's samples for the differential test: (category, `@integer`
+/// samples, `@decimal` samples), as the file writes them.
+#[cfg(test)]
+pub(crate) type Samples = &'static [(PluralCategory, &'static str, &'static str)];
+
+/// One category's rule: its condition, an `or` of `and`s of relations.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Rule {
+    pub(crate) category: PluralCategory,
+    pub(crate) condition: &'static [&'static [Relation]],
+}
+
+impl Rule {
+    fn holds(&self, operands: &PluralOperands) -> bool {
+        self.condition
+            .iter()
+            .any(|group| group.iter().all(|relation| relation.holds(operands)))
+    }
+}
+
+/// The plural rules of one language, of one kind.
 #[derive(Debug, Clone, Copy)]
 pub struct PluralRules {
     language: &'static str,
-    rule: RuleFn,
+    kind: PluralType,
+    rules: &'static [Rule],
 }
 
 impl PluralRules {
-    /// The rules for a language subtag, or for one of the regional rows
-    /// such as `pt-PT`, if this crate carries them.
+    /// The cardinal rules for a language subtag, or for one of the regional
+    /// rows such as `pt-PT`, if CLDR 48 carries them.
     #[must_use]
     pub fn for_language(language: &str) -> Option<Self> {
-        RULES
-            .iter()
-            .find(|(subtag, _)| *subtag == language)
-            .map(|(subtag, rule)| Self {
-                language: subtag,
-                rule: *rule,
+        Self::of_kind_for_language(PluralType::Cardinal, language)
+    }
+
+    /// The cardinal rules for a locale, walking its fallback chain.
+    ///
+    /// Each step of the chain is matched against the whole row key first,
+    /// so `pt-PT` finds its own row before `pt`. A language CLDR 48 has no
+    /// rules for gets the root behaviour: everything is `other`.
+    #[must_use]
+    pub fn for_locale(locale: &Locale) -> Self {
+        Self::of_kind_for_locale(PluralType::Cardinal, locale)
+    }
+
+    /// The rules of a kind for a language subtag or regional row.
+    #[must_use]
+    pub fn of_kind_for_language(kind: PluralType, language: &str) -> Option<Self> {
+        kind.table()
+            .binary_search_by(|(subtag, _)| subtag.cmp(&language))
+            .ok()
+            .map(|index| {
+                let (subtag, rules) = kind.table()[index];
+                Self {
+                    language: subtag,
+                    kind,
+                    rules,
+                }
             })
     }
 
-    /// The rules for a locale, walking its fallback chain.
-    ///
-    /// Each step of the chain is matched against the whole row key first,
-    /// so `pt-PT` finds its own row before `pt`. A language this crate has
-    /// no rules for gets the root behaviour, which is CLDR's: everything is
-    /// `other`.
+    /// The rules of a kind for a locale, walking its fallback chain as
+    /// [`PluralRules::for_locale`] does.
     #[must_use]
-    pub fn for_locale(locale: &Locale) -> Self {
+    pub fn of_kind_for_locale(kind: PluralType, locale: &Locale) -> Self {
         for candidate in locale.fallback() {
             let identity = candidate.without_extensions();
-            if let Some((subtag, rule)) = RULES
+            if let Some((subtag, rules)) = kind
+                .table()
                 .iter()
                 .find(|(subtag, _)| subtag.contains('-') && identity.matches_tag(subtag))
             {
                 return Self {
                     language: subtag,
-                    rule: *rule,
+                    kind,
+                    rules,
                 };
             }
-            if let Some(rules) = Self::for_language(candidate.language()) {
+            if let Some(rules) = Self::of_kind_for_language(kind, candidate.language()) {
                 return rules;
             }
         }
         Self {
             language: "und",
-            rule: rule_other_only,
+            kind,
+            rules: &[],
         }
     }
 
-    /// The language subtag these rules came from.
+    /// Every language subtag or regional row that has rules of a kind, in
+    /// sorted order.
+    pub fn languages(kind: PluralType) -> impl Iterator<Item = &'static str> {
+        kind.table().iter().map(|(subtag, _)| *subtag)
+    }
+
+    /// The language subtag these rules came from, `und` for root's.
     #[must_use]
     pub const fn language(&self) -> &'static str {
         self.language
     }
 
-    /// The category of a set of operands.
+    /// Whether these are cardinal or ordinal rules.
+    #[must_use]
+    pub const fn kind(&self) -> PluralType {
+        self.kind
+    }
+
+    /// The categories these rules name, in CLDR order, `Other` last.
+    pub fn categories(&self) -> impl Iterator<Item = PluralCategory> + '_ {
+        PluralCategory::ALL.into_iter().filter(move |category| {
+            *category == PluralCategory::Other
+                || self.rules.iter().any(|rule| rule.category == *category)
+        })
+    }
+
+    /// The category of a set of operands: the first rule whose condition
+    /// holds, in the order `zero`, `one`, `two`, `few`, `many`, else
+    /// `other`.
     #[must_use]
     pub fn select(&self, operands: &PluralOperands) -> PluralCategory {
-        (self.rule)(operands)
+        PluralCategory::ALL
+            .into_iter()
+            .find(|category| {
+                self.rules
+                    .iter()
+                    .any(|rule| rule.category == *category && rule.holds(operands))
+            })
+            .unwrap_or(PluralCategory::Other)
     }
 
     /// The category of an integer.
@@ -373,421 +528,6 @@ impl PluralRules {
     /// As [`PluralOperands::parse`].
     pub fn select_decimal(&self, text: &str) -> I18nResult<PluralCategory> {
         Ok(self.select(&PluralOperands::parse(text)?))
-    }
-}
-
-/// Every language whose cardinal rules this crate carries.
-///
-/// Languages sharing a rule share its function: CLDR's own rule text for
-/// Russian and Ukrainian is identical, and so is the text for the whole
-/// `i = 1 and v = 0` group. Adding a language is one row here.
-///
-/// Every locale with names in [`crate::data::LOCALES`] has a row here when
-/// CLDR 48 lists its language in `plurals.xml`. Tunisian Arabic, Libyan
-/// Arabic, Balinese, Coptic, Mandaic, Mixtec, Yucatec Maya, Rif, Sanskrit,
-/// Zapotec and Standard Moroccan Tamazight are not listed there, so they
-/// take root's rule, which is also `other` for everything. `pt-PT` is the
-/// one regional row: CLDR 48 gives Portugal the Italian rule, not Brazil's
-/// `i = 0..1`. `tl` shares Filipino's row,
-/// as `plurals.xml` lists the two together, so that a Tagalog tag chooses
-/// its forms by the rule of the language CLDR carries it as.
-pub static RULES: &[(&str, RuleFn)] = &[
-    ("am", rule_hindi),
-    ("ar", rule_arabic),
-    ("bn", rule_hindi),
-    ("bo", rule_other_only),
-    ("cs", rule_czech),
-    ("cy", rule_welsh),
-    ("da", rule_danish),
-    ("de", rule_one_if_i_is_one_and_v_is_zero),
-    ("en", rule_one_if_i_is_one_and_v_is_zero),
-    ("es", rule_spanish),
-    ("fa", rule_hindi),
-    ("fi", rule_one_if_i_is_one_and_v_is_zero),
-    ("fil", rule_filipino),
-    ("fr", rule_french),
-    ("ga", rule_irish),
-    ("ha", rule_one_if_n_is_one),
-    ("he", rule_hebrew),
-    ("hi", rule_hindi),
-    ("id", rule_other_only),
-    ("it", rule_italian),
-    ("ja", rule_other_only),
-    ("jv", rule_other_only),
-    ("kab", rule_one_if_i_is_zero_or_one),
-    ("ko", rule_other_only),
-    ("lt", rule_lithuanian),
-    ("lv", rule_latvian),
-    ("ml", rule_one_if_n_is_one),
-    ("mn", rule_one_if_n_is_one),
-    ("mr", rule_one_if_n_is_one),
-    ("my", rule_other_only),
-    ("nah", rule_one_if_n_is_one),
-    ("ne", rule_one_if_n_is_one),
-    ("nl", rule_one_if_i_is_one_and_v_is_zero),
-    ("pa", rule_one_if_n_is_zero_to_one),
-    ("pcm", rule_hindi),
-    ("pl", rule_polish),
-    ("ps", rule_one_if_n_is_one),
-    ("pt", rule_portuguese),
-    ("pt-PT", rule_italian),
-    ("ro", rule_romanian),
-    ("ru", rule_east_slavic),
-    ("shi", rule_tachelhit),
-    ("sl", rule_slovenian),
-    ("sv", rule_one_if_i_is_one_and_v_is_zero),
-    ("sw", rule_one_if_i_is_one_and_v_is_zero),
-    ("syr", rule_one_if_n_is_one),
-    ("ta", rule_one_if_n_is_one),
-    ("te", rule_one_if_n_is_one),
-    ("th", rule_other_only),
-    ("tl", rule_filipino),
-    ("tr", rule_one_if_n_is_one),
-    ("uk", rule_east_slavic),
-    ("ur", rule_one_if_i_is_one_and_v_is_zero),
-    ("vi", rule_other_only),
-    ("yue", rule_other_only),
-    ("zh", rule_other_only),
-];
-
-/// Languages with no grammatical number agreement on the numeral.
-fn rule_other_only(_operands: &PluralOperands) -> PluralCategory {
-    PluralCategory::Other
-}
-
-/// `one: i = 1 and v = 0` — English, German, Dutch, Swedish, Finnish.
-///
-/// The `v = 0` is what makes "1.0 days" plural in English.
-fn rule_one_if_i_is_one_and_v_is_zero(operands: &PluralOperands) -> PluralCategory {
-    if operands.i() == 1 && operands.v() == 0 {
-        PluralCategory::One
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// Danish: `one: n = 1 or t != 0 and i = 0,1`.
-fn rule_danish(operands: &PluralOperands) -> PluralCategory {
-    if operands.n_is(1) || (operands.t() != 0 && (operands.i() == 0 || operands.i() == 1)) {
-        PluralCategory::One
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// `one: n = 1` — Turkish, Malayalam, Nahuatl, Nepali, Pashto, Syriac,
-/// Tamil.
-fn rule_one_if_n_is_one(operands: &PluralOperands) -> PluralCategory {
-    if operands.n_is(1) {
-        PluralCategory::One
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// `one: n = 0..1` — Punjabi: 0 and 1, and 0.0 and 1.0, but no other
-/// fraction.
-fn rule_one_if_n_is_zero_to_one(operands: &PluralOperands) -> PluralCategory {
-    if operands.n_in(0, 1) {
-        PluralCategory::One
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// Filipino and Tagalog: `one: v = 0 and i = 1,2,3 or v = 0 and i % 10 !=
-/// 4,6,9 or v != 0 and f % 10 != 4,6,9` — every number but those ending in
-/// 4, 6 or 9.
-fn rule_filipino(operands: &PluralOperands) -> PluralCategory {
-    let ends_in_4_6_9 = |digit: u64| matches!(digit % 10, 4 | 6 | 9);
-    let one = if operands.v() == 0 {
-        matches!(operands.i(), 1..=3) || !ends_in_4_6_9(operands.i())
-    } else {
-        !ends_in_4_6_9(operands.f())
-    };
-    if one {
-        PluralCategory::One
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// Spanish: `one: n = 1`, plus the exact-million `many`.
-fn rule_spanish(operands: &PluralOperands) -> PluralCategory {
-    if operands.n_is(1) {
-        PluralCategory::One
-    } else if operands.is_exact_million() {
-        PluralCategory::Many
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// French: `one: i = 0,1`, plus the exact-million `many`.
-fn rule_french(operands: &PluralOperands) -> PluralCategory {
-    if operands.i() == 0 || operands.i() == 1 {
-        PluralCategory::One
-    } else if operands.is_exact_million() {
-        PluralCategory::Many
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// Kabyle: `one: i = 0,1`, the French `one` without its `many`.
-fn rule_one_if_i_is_zero_or_one(operands: &PluralOperands) -> PluralCategory {
-    if operands.i() <= 1 {
-        PluralCategory::One
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// Tachelhit: `one: i = 0 or n = 1`, `few: n = 2..10` (CLDR 48
-/// `plurals.xml`).
-fn rule_tachelhit(operands: &PluralOperands) -> PluralCategory {
-    if operands.i() == 0 || operands.n_is(1) {
-        PluralCategory::One
-    } else if operands.n_in(2, 10) {
-        PluralCategory::Few
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// Portuguese: `one: i = 0..1`, plus the exact-million `many`.
-fn rule_portuguese(operands: &PluralOperands) -> PluralCategory {
-    if operands.i() <= 1 {
-        PluralCategory::One
-    } else if operands.is_exact_million() {
-        PluralCategory::Many
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// Italian: `one: i = 1 and v = 0`, plus the exact-million `many`.
-fn rule_italian(operands: &PluralOperands) -> PluralCategory {
-    if operands.i() == 1 && operands.v() == 0 {
-        PluralCategory::One
-    } else if operands.is_exact_million() {
-        PluralCategory::Many
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// Hebrew: `one: i = 1 and v = 0 or i = 0 and v != 0`; `two: i = 2 and v = 0`.
-fn rule_hebrew(operands: &PluralOperands) -> PluralCategory {
-    if (operands.i() == 1 && operands.v() == 0) || (operands.i() == 0 && operands.v() != 0) {
-        PluralCategory::One
-    } else if operands.i() == 2 && operands.v() == 0 {
-        PluralCategory::Two
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// `one: i = 0 or n = 1` — Hindi, Amharic, Bengali, Persian.
-fn rule_hindi(operands: &PluralOperands) -> PluralCategory {
-    if operands.i() == 0 || operands.n_is(1) {
-        PluralCategory::One
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// Arabic: the full six-way system.
-///
-/// `zero: n = 0`, `one: n = 1`, `two: n = 2`,
-/// `few: n % 100 = 3..10`, `many: n % 100 = 11..99`.
-fn rule_arabic(operands: &PluralOperands) -> PluralCategory {
-    if operands.n_is(0) {
-        PluralCategory::Zero
-    } else if operands.n_is(1) {
-        PluralCategory::One
-    } else if operands.n_is(2) {
-        PluralCategory::Two
-    } else if operands.n_mod_in(100, 3, 10) {
-        PluralCategory::Few
-    } else if operands.n_mod_in(100, 11, 99) {
-        PluralCategory::Many
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// Russian and Ukrainian, whose CLDR rule text is identical.
-///
-/// `one: v = 0 and i % 10 = 1 and i % 100 != 11`;
-/// `few: v = 0 and i % 10 = 2..4 and i % 100 != 12..14`;
-/// `many: v = 0 and (i % 10 = 0 or i % 10 = 5..9 or i % 100 = 11..14)`.
-fn rule_east_slavic(operands: &PluralOperands) -> PluralCategory {
-    if operands.v() != 0 {
-        return PluralCategory::Other;
-    }
-    if operands.i_mod_in(10, 1, 1) && !operands.i_mod_in(100, 11, 11) {
-        PluralCategory::One
-    } else if operands.i_mod_in(10, 2, 4) && !operands.i_mod_in(100, 12, 14) {
-        PluralCategory::Few
-    } else if operands.i_mod_in(10, 0, 0)
-        || operands.i_mod_in(10, 5, 9)
-        || operands.i_mod_in(100, 11, 14)
-    {
-        PluralCategory::Many
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// Polish, which differs from Russian in `one` and in the `many` branch.
-///
-/// `one: i = 1 and v = 0`;
-/// `few: v = 0 and i % 10 = 2..4 and i % 100 != 12..14`;
-/// `many: v = 0 and i != 1 and i % 10 = 0..1 or v = 0 and i % 10 = 5..9 or
-/// v = 0 and i % 100 = 12..14`.
-fn rule_polish(operands: &PluralOperands) -> PluralCategory {
-    if operands.i() == 1 && operands.v() == 0 {
-        return PluralCategory::One;
-    }
-    if operands.v() != 0 {
-        return PluralCategory::Other;
-    }
-    if operands.i_mod_in(10, 2, 4) && !operands.i_mod_in(100, 12, 14) {
-        PluralCategory::Few
-    } else if (operands.i() != 1 && operands.i_mod_in(10, 0, 1))
-        || operands.i_mod_in(10, 5, 9)
-        || operands.i_mod_in(100, 12, 14)
-    {
-        PluralCategory::Many
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// Czech: `one: i = 1 and v = 0`; `few: i = 2..4 and v = 0`; `many: v != 0`.
-///
-/// Czech is the language that makes `many` a *fraction* category rather than
-/// a large-number one.
-fn rule_czech(operands: &PluralOperands) -> PluralCategory {
-    if operands.v() != 0 {
-        return PluralCategory::Many;
-    }
-    if operands.i() == 1 {
-        PluralCategory::One
-    } else if (2..=4).contains(&operands.i()) {
-        PluralCategory::Few
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// Romanian: `one: i = 1 and v = 0`;
-/// `few: v != 0 or n = 0 or n != 1 and n % 100 = 1..19`.
-///
-/// The `other` form is the one that takes "de": *21 de zile*, against the
-/// `few` form *19 zile*.
-fn rule_romanian(operands: &PluralOperands) -> PluralCategory {
-    if operands.i() == 1 && operands.v() == 0 {
-        return PluralCategory::One;
-    }
-    if operands.v() != 0 || operands.n_is(0) || (!operands.n_is(1) && operands.n_mod_in(100, 1, 19))
-    {
-        PluralCategory::Few
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// Lithuanian: `one: n % 10 = 1 and n % 100 != 11..19`;
-/// `few: n % 10 = 2..9 and n % 100 != 11..19`; `many: f != 0`.
-fn rule_lithuanian(operands: &PluralOperands) -> PluralCategory {
-    if operands.n_mod_in(10, 1, 1) && !operands.n_mod_in(100, 11, 19) {
-        PluralCategory::One
-    } else if operands.n_mod_in(10, 2, 9) && !operands.n_mod_in(100, 11, 19) {
-        PluralCategory::Few
-    } else if operands.f() != 0 {
-        PluralCategory::Many
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// Latvian, the language with a genuine `zero` for every multiple of ten.
-///
-/// `zero: n % 10 = 0 or n % 100 = 11..19 or v = 2 and f % 100 = 11..19`;
-/// `one: n % 10 = 1 and n % 100 != 11 or v = 2 and f % 10 = 1 and
-/// f % 100 != 11 or v != 2 and f % 10 = 1`.
-///
-/// The `one` branch is kept in CLDR's own redundant form rather than the
-/// minimal Boolean equivalent, so that it can be read against the published
-/// rule text.
-#[allow(clippy::nonminimal_bool)]
-fn rule_latvian(operands: &PluralOperands) -> PluralCategory {
-    let fraction = operands.f();
-    let v = operands.v();
-    if operands.n_mod_in(10, 0, 0)
-        || operands.n_mod_in(100, 11, 19)
-        || (v == 2 && (11..=19).contains(&(fraction % 100)))
-    {
-        PluralCategory::Zero
-    } else if (operands.n_mod_in(10, 1, 1) && !operands.n_mod_in(100, 11, 11))
-        || (v == 2 && fraction % 10 == 1 && fraction % 100 != 11)
-        || (v != 2 && fraction % 10 == 1)
-    {
-        PluralCategory::One
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// Slovenian, whose dual survives: `one: v = 0 and i % 100 = 1`;
-/// `two: v = 0 and i % 100 = 2`; `few: v = 0 and i % 100 = 3..4 or v != 0`.
-fn rule_slovenian(operands: &PluralOperands) -> PluralCategory {
-    if operands.v() == 0 && operands.i_mod_in(100, 1, 1) {
-        PluralCategory::One
-    } else if operands.v() == 0 && operands.i_mod_in(100, 2, 2) {
-        PluralCategory::Two
-    } else if (operands.v() == 0 && operands.i_mod_in(100, 3, 4)) || operands.v() != 0 {
-        PluralCategory::Few
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// Irish: `one: n = 1`; `two: n = 2`; `few: n = 3..6`; `many: n = 7..10`.
-fn rule_irish(operands: &PluralOperands) -> PluralCategory {
-    if operands.n_is(1) {
-        PluralCategory::One
-    } else if operands.n_is(2) {
-        PluralCategory::Two
-    } else if operands.n_in(3, 6) {
-        PluralCategory::Few
-    } else if operands.n_in(7, 10) {
-        PluralCategory::Many
-    } else {
-        PluralCategory::Other
-    }
-}
-
-/// Welsh, the language that uses all six categories.
-///
-/// `zero: n = 0`; `one: n = 1`; `two: n = 2`; `few: n = 3`; `many: n = 6`.
-/// The `many` for six alone is not a typo: *chwe blwyddyn* mutates where
-/// other numbers do not.
-fn rule_welsh(operands: &PluralOperands) -> PluralCategory {
-    if operands.n_is(0) {
-        PluralCategory::Zero
-    } else if operands.n_is(1) {
-        PluralCategory::One
-    } else if operands.n_is(2) {
-        PluralCategory::Two
-    } else if operands.n_is(3) {
-        PluralCategory::Few
-    } else if operands.n_is(6) {
-        PluralCategory::Many
-    } else {
-        PluralCategory::Other
     }
 }
 
@@ -841,6 +581,7 @@ mod tests {
             (long.i(), long.v(), long.w(), long.f(), long.t()),
             (1234, 4, 3, 5060, 506)
         );
+        assert_eq!(long.c(), 0);
     }
 
     #[test]
@@ -920,6 +661,18 @@ mod tests {
                 (Many, &["11", "12", "26", "99", "111", "1011"]),
                 (Other, &["100", "101", "102", "200", "1000", "0.1", "1.5"]),
             ],
+        );
+        let arabic = PluralRules::for_language("ar").unwrap();
+        assert_eq!(
+            arabic.categories().collect::<Vec<_>>(),
+            [Zero, One, Two, Few, Many, Other]
+        );
+        assert_eq!(
+            PluralRules::for_language("ja")
+                .unwrap()
+                .categories()
+                .collect::<Vec<_>>(),
+            [Other]
         );
     }
 
@@ -1137,97 +890,119 @@ mod tests {
         );
     }
 
+    /// Languages the earlier hand-written table did not carry, with CLDR
+    /// 48's samples: Greek and Hungarian `n = 1`; Icelandic's `one` for
+    /// every number ending in 1 but 11; Maltese's four categories; Breton's
+    /// five; Scottish Gaelic's `one` for 1 and 11 and `two` for 2 and 12.
     #[test]
-    fn the_name_locales_take_their_cldr_48_rules() {
-        // `i = 0 or n = 1`, samples from CLDR 48 for `am bn fa`.
-        for language in ["am", "bn", "fa"] {
+    fn the_languages_beyond_the_old_table_follow_cldrs_samples() {
+        for language in ["el", "hu"] {
             assert_samples(
                 language,
-                &[
-                    (One, &["0", "1", "0.0", "0.5", "1.0", "0.04"]),
-                    (Other, &["2", "17", "100", "1.1", "2.6", "10.0"]),
-                ],
+                &[(One, &["1", "1.0"]), (Other, &["0", "2", "0.5", "1.5"])],
             );
         }
-        // `n = 1`, samples from CLDR 48 for `ml nah ne ps syr ta`.
-        for language in ["ml", "nah", "ne", "ps", "syr", "ta"] {
-            assert_samples(
-                language,
-                &[
-                    (One, &["1", "1.0", "1.00", "1.000"]),
-                    (Other, &["0", "2", "16", "0.9", "1.1", "10.0"]),
-                ],
-            );
-        }
-        // `i = 0,1`, samples from CLDR 48 for `kab`.
         assert_samples(
-            "kab",
+            "is",
             &[
-                (One, &["0", "1", "0.0", "1.5"]),
-                (Other, &["2", "17", "100", "2.0", "3.5"]),
+                (One, &["1", "21", "31", "101", "0.1", "1.1", "21.1"]),
+                (Other, &["0", "2", "11", "100", "0.0", "0.2", "11.0"]),
             ],
         );
-        for language in ["bo", "jv", "my"] {
-            assert_samples(language, &[(Other, &["0", "1", "15", "1.0", "1.5"])]);
-        }
+        assert_samples(
+            "mt",
+            &[
+                (One, &["1"]),
+                (Two, &["2"]),
+                (Few, &["0", "3", "4", "10", "103", "1003"]),
+                (Many, &["11", "12", "19", "111", "1011"]),
+                (Other, &["20", "21", "100", "1000", "0.5", "1.5"]),
+            ],
+        );
+        assert_samples(
+            "gd",
+            &[
+                (One, &["1", "11"]),
+                (Two, &["2", "12"]),
+                (Few, &["3", "10", "13", "19"]),
+                (Other, &["0", "20", "100", "0.5"]),
+            ],
+        );
+        assert_samples(
+            "br",
+            &[
+                (One, &["1", "21", "31", "101"]),
+                (Two, &["2", "22", "32", "102"]),
+                (Few, &["3", "4", "9", "23", "103"]),
+                (Many, &["1000000"]),
+                (Other, &["0", "5", "11", "71", "91", "100", "1.5"]),
+            ],
+        );
     }
 
-    /// The samples CLDR 48 `plurals.xml` gives the rules of the languages
-    /// added for the most-spoken thirty.
+    /// CLDR 48's `ordinals.xml`: English's four forms, Welsh's six, and
+    /// the languages whose positions take one form.
     #[test]
-    fn the_most_spoken_languages_follow_cldrs_samples() {
-        // `n = 0..1`: ak bho csw guw ln mg nso pa ti wa.
-        assert_samples(
-            "pa",
-            &[
-                (One, &["0", "1", "0.0", "1.0", "0.00", "1.000"]),
-                (
-                    Other,
-                    &["2", "17", "100", "0.1", "0.9", "1.1", "1.7", "10.0"],
-                ),
-            ],
+    fn the_ordinal_rules_choose_the_form_of_a_position() {
+        let english = PluralRules::of_kind_for_language(PluralType::Ordinal, "en").unwrap();
+        assert_eq!(english.kind(), PluralType::Ordinal);
+        assert_eq!(english.language(), "en");
+        for (value, expected) in [
+            (1, One),
+            (2, Two),
+            (3, Few),
+            (4, Other),
+            (11, Other),
+            (12, Other),
+            (13, Other),
+            (21, One),
+            (22, Two),
+            (23, Few),
+            (101, One),
+            (111, Other),
+        ] {
+            assert_eq!(english.select_integer(value), expected, "en {value}");
+        }
+        assert_eq!(
+            english.categories().collect::<Vec<_>>(),
+            [One, Two, Few, Other]
         );
-        // `v = 0 and i = 1,2,3 or v = 0 and i % 10 != 4,6,9 or v != 0 and
-        // f % 10 != 4,6,9`: ceb fil tl.
-        for language in ["fil", "tl"] {
-            assert_samples(
-                language,
-                &[
-                    (
-                        One,
-                        &[
-                            "0", "1", "2", "3", "5", "7", "8", "10", "13", "15", "20", "21", "100",
-                            "0.0", "0.3", "0.5", "1.0", "1.8", "2.1", "10.0",
-                        ],
-                    ),
-                    (
-                        Other,
-                        &[
-                            "4", "6", "9", "14", "16", "19", "24", "26", "104", "1004", "0.4",
-                            "0.6", "0.9", "1.4", "2.6", "1000.4",
-                        ],
-                    ),
-                ],
-            );
+        let welsh =
+            PluralRules::of_kind_for_locale(PluralType::Ordinal, &Locale::parse("cy-GB").unwrap());
+        for (value, expected) in [
+            (0, Zero),
+            (7, Zero),
+            (8, Zero),
+            (9, Zero),
+            (1, One),
+            (2, Two),
+            (3, Few),
+            (4, Few),
+            (5, Many),
+            (6, Many),
+            (10, Other),
+        ] {
+            assert_eq!(welsh.select_integer(value), expected, "cy {value}");
         }
-        // `i = 1 and v = 0`: sw ur; `n = 1`: ha mr te; `i = 0 or n = 1`: pcm.
-        for language in ["sw", "ur"] {
-            assert_samples(
-                language,
-                &[(One, &["1"]), (Other, &["0", "2", "1.0", "0.5"])],
-            );
-        }
-        for language in ["ha", "mr", "te"] {
-            assert_samples(
-                language,
-                &[(One, &["1", "1.0"]), (Other, &["0", "2", "0.5"])],
-            );
-        }
-        assert_samples(
-            "pcm",
-            &[(One, &["0", "1", "0.5", "1.0"]), (Other, &["2", "1.5"])],
+        let french = PluralRules::of_kind_for_language(PluralType::Ordinal, "fr").unwrap();
+        assert_eq!(french.select_integer(1), One);
+        assert_eq!(french.select_integer(2), Other);
+        let italian = PluralRules::of_kind_for_language(PluralType::Ordinal, "it").unwrap();
+        assert_eq!(italian.select_integer(8), Many);
+        assert_eq!(italian.select_integer(11), Many);
+        assert_eq!(italian.select_integer(3), Other);
+        let german = PluralRules::of_kind_for_language(PluralType::Ordinal, "de").unwrap();
+        assert_eq!(german.select_integer(1), Other);
+        assert_eq!(
+            PluralRules::of_kind_for_locale(PluralType::Ordinal, &Locale::parse("ru").unwrap())
+                .select_integer(1),
+            Other
         );
-        assert_samples("yue", &[(Other, &["0", "1", "15", "1.0", "1.5"])]);
+        // Portugal's cardinal row has no ordinal counterpart: `pt-PT`
+        // takes Portuguese's ordinal rules.
+        let portugal =
+            PluralRules::of_kind_for_locale(PluralType::Ordinal, &Locale::parse("pt-PT").unwrap());
+        assert_eq!(portugal.language(), "pt");
     }
 
     #[test]
@@ -1258,20 +1033,30 @@ mod tests {
         let locale = Locale::parse("xx-YY").unwrap();
         let rules = PluralRules::for_locale(&locale);
         assert_eq!(rules.language(), "und");
+        assert_eq!(rules.kind(), PluralType::Cardinal);
         assert_eq!(rules.select_integer(1), Other);
+        assert_eq!(rules.categories().collect::<Vec<_>>(), [Other]);
         assert!(PluralRules::for_language("xx").is_none());
+        assert!(PluralRules::for_language("root").is_none());
     }
 
     #[test]
-    fn the_rule_table_is_sorted_and_free_of_duplicates() {
-        for pair in RULES.windows(2) {
-            assert!(pair[0].0 < pair[1].0, "{} !< {}", pair[0].0, pair[1].0);
+    fn the_rule_tables_are_sorted_and_free_of_duplicates() {
+        for kind in PluralType::ALL {
+            let languages: Vec<_> = PluralRules::languages(kind).collect();
+            for pair in languages.windows(2) {
+                assert!(pair[0] < pair[1], "{kind}: {} !< {}", pair[0], pair[1]);
+            }
         }
-        assert_eq!(RULES.len(), 56);
+        // CLDR 48's `plurals.xml` lists 227 locales and `ordinals.xml` 110,
+        // `root` among each.
+        assert_eq!(PluralRules::languages(PluralType::Cardinal).count(), 226);
+        assert_eq!(PluralRules::languages(PluralType::Ordinal).count(), 109);
+        assert!(PluralRules::languages(PluralType::Cardinal).any(|l| l == "pt-PT"));
     }
 
     #[test]
-    fn category_keywords_round_trip() {
+    fn category_and_kind_keywords_round_trip() {
         for category in PluralCategory::ALL {
             assert_eq!(
                 PluralCategory::from_keyword(category.as_str()),
@@ -1279,5 +1064,95 @@ mod tests {
             );
         }
         assert!(PluralCategory::from_keyword("plural").is_none());
+        for kind in PluralType::ALL {
+            assert_eq!(PluralType::from_keyword(kind.as_str()), Some(kind));
+        }
+        assert_eq!(
+            PluralType::from_keyword("ORDINAL"),
+            Some(PluralType::Ordinal)
+        );
+        assert!(PluralType::from_keyword("fractions").is_none());
+    }
+
+    /// Expand one `@integer` or `@decimal` sample list of `plurals.xml` or
+    /// `ordinals.xml`: values and `low~high` ranges, whose step is the
+    /// place of the endpoints' last digit, the trailing `…` dropped and a
+    /// compact sample such as `1c6` skipped, since the exponent operands
+    /// are not carried.
+    fn expand_samples(text: &str) -> Vec<String> {
+        let mut out = Vec::new();
+        for item in text.split(',') {
+            let item = item.trim();
+            if item.is_empty() || item == "…" || item.contains(['c', 'e']) {
+                continue;
+            }
+            let (low, high) = match item.split_once('~') {
+                Some((low, high)) => (low.trim(), high.trim()),
+                None => (item, item),
+            };
+            let places = low.split_once('.').map_or(0, |(_, f)| f.len());
+            assert_eq!(
+                high.split_once('.').map_or(0, |(_, f)| f.len()),
+                places,
+                "{item}"
+            );
+            let scaled = |s: &str| s.replace('.', "").parse::<u64>().unwrap();
+            for value in scaled(low)..=scaled(high) {
+                if places == 0 {
+                    out.push(value.to_string());
+                } else {
+                    let divisor = 10u64.pow(places as u32);
+                    out.push(format!(
+                        "{}.{:0places$}",
+                        value / divisor,
+                        value % divisor,
+                        places = places
+                    ));
+                }
+            }
+        }
+        out
+    }
+
+    /// Every block's samples, `@integer` and `@decimal`, against the
+    /// evaluator: the differential test of the generated rules against
+    /// CLDR 48's own sample ranges.
+    #[test]
+    fn every_block_answers_cldrs_own_samples() {
+        let mut checked = 0;
+        for (kind, table) in [
+            (PluralType::Cardinal, cldr48::CARDINAL_SAMPLES),
+            (PluralType::Ordinal, cldr48::ORDINAL_SAMPLES),
+        ] {
+            for (language, samples) in table {
+                let rules = PluralRules::of_kind_for_language(kind, language)
+                    .unwrap_or_else(|| panic!("{kind}: no rules for {language}"));
+                for (expected, integer, decimal) in *samples {
+                    for sample in expand_samples(integer)
+                        .into_iter()
+                        .chain(expand_samples(decimal))
+                    {
+                        let actual = rules.select_decimal(&sample).unwrap();
+                        assert_eq!(
+                            actual, *expected,
+                            "{kind} {language}: {sample} should be {expected}, got {actual}"
+                        );
+                        checked += 1;
+                    }
+                }
+            }
+        }
+        // 3 767 samples on 2026-10-04.
+        assert!(checked > 3_000, "{checked} samples");
+    }
+
+    #[test]
+    fn samples_expand_as_the_specification_says() {
+        assert_eq!(expand_samples("0, 2~4, 1c6, …"), ["0", "2", "3", "4"]);
+        assert_eq!(
+            expand_samples("0.0~0.3, 1.5, 10.0, …"),
+            ["0.0", "0.1", "0.2", "0.3", "1.5", "10.0"]
+        );
+        assert_eq!(expand_samples("1.00~1.02"), ["1.00", "1.01", "1.02"]);
     }
 }

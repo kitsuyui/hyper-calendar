@@ -929,9 +929,9 @@ name is looked up along, one line per step with the rule that led to it;
 `hc_locale_info(locale, ...)` one line of what the locale is, its subtags
 and keys, parent, default numbering, first day of the week and `minDays`,
 direction, casing and plural rules;
-`hc_plural_category(locale, number, kind, ...)` the CLDR cardinal category a
-number written as text has (`kind` `cardinal`; `ordinal` is
-`HC_ERROR_NO_DATA`, since the ordinal rules are not carried);
+`hc_plural_category(locale, number, kind, ...)` the CLDR category a number
+written as text has (`kind` `cardinal`, the form after a count, or
+`ordinal`, the form of a position);
 `hc_names(locale, calendar, width, context, ...)` the names a locale has
 for a calendar; `hc_case(locale, mode, text, ...)` a text recased as the
 locale cases it; and `hc_isolate(locale, mode, text, ...)` a text wrapped

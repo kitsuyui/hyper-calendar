@@ -16,7 +16,12 @@
 //!   calendar [`FormatContext::era_calendar`] names, or that the locale's
 //!   `-u-ca-` key names where it is the Buddhist or the Minguo calendar:
 //!   `th-u-ca-buddhist` writes `%EY` as พ.ศ. 2569. `%Ex` writes that
-//!   calendar's date and `%Ec` the date and `%X`; `%EX` is `%X`.
+//!   calendar's date as the locale writes one and `%Ec` the date and `%X`
+//!   joined by the locale's date-time format; `%EX` is `%X`.
+//! * `%c`, `%x`, `%X` and `%r` are the POSIX locale's definitions with no
+//!   locale, and with one CLDR 48's medium date, time and date-time formats
+//!   and its `hms` item ([`hc_i18n::formats`]): `de` writes `%x` as
+//!   *21.09.2026* and `%c` as *21.09.2026, 14:30:05*.
 //! * `%Ob` and `%OB` write the month's stand-alone name, what POSIX's
 //!   `alt_mon` "shall be used to denote": the nominative case where a
 //!   language has one, Russian's *сентябрь* for the genitive *сентября*.
@@ -321,12 +326,106 @@ fn write_conversion<W: fmt::Write>(
         'F' => expand(out, "%Y-%m-%d", context, fields, depth + 1),
         'T' => expand(out, "%H:%M:%S", context, fields, depth + 1),
         'R' => expand(out, "%H:%M", context, fields, depth + 1),
-        'D' | 'x' => expand(out, "%m/%d/%y", context, fields, depth + 1),
-        'X' => expand(out, "%H:%M:%S", context, fields, depth + 1),
-        'r' => expand(out, "%I:%M:%S %p", context, fields, depth + 1),
-        'c' => expand(out, "%a %b %e %H:%M:%S %Y", context, fields, depth + 1),
+        'D' => expand(out, "%m/%d/%y", context, fields, depth + 1),
+        'x' | 'X' | 'r' | 'c' => write_locale_composite(out, conversion, context, fields, depth),
         other => Err(FormatError::UnknownField(other)),
     }
+}
+
+/// `%c`, `%x`, `%X` and `%r`: POSIX's "locale's appropriate" date and time
+/// representations. With no locale they are the POSIX locale's, `%a %b %e
+/// %T %Y`, `%m/%d/%y`, `%T` and `%I:%M:%S %p`. With a locale they are
+/// CLDR 48's medium formats of the calendar the locale's `-u-ca-` key names
+/// (the Gregorian with none), written by the CLDR engine: `%x` the medium
+/// date, `%X` the medium time, `%c` the medium date-time format with the
+/// two in it, and `%r` the `hms` item, the time with seconds on the
+/// 12-hour clock, as POSIX asks. UTS #35 names no default length; the
+/// medium one is the choice here, as `docs/systems/date-patterns.md` says.
+fn write_locale_composite<W: fmt::Write>(
+    out: &mut W,
+    conversion: char,
+    context: &FormatContext<'_>,
+    fields: &Fields,
+    depth: u8,
+) -> FormatResult<()> {
+    use hc_i18n::formats::{self, FormatLength};
+    let Some(locale) = context.locale else {
+        let pattern = match conversion {
+            'x' => "%m/%d/%y",
+            'X' => "%H:%M:%S",
+            'r' => "%I:%M:%S %p",
+            _ => "%a %b %e %H:%M:%S %Y",
+        };
+        return expand(out, pattern, context, fields, depth + 1);
+    };
+    let calendar = formats::calendar_key_for_locale(locale);
+    let missing = || FormatError::Unrepresentable("a locale format CLDR does not give");
+    match conversion {
+        'x' => {
+            let date = formats::date_pattern(locale, calendar, FormatLength::Medium)
+                .ok_or_else(missing)?;
+            super::cldr::format(out, date, context)
+        }
+        'X' => {
+            let time = formats::time_pattern(locale, calendar, FormatLength::Medium)
+                .ok_or_else(missing)?;
+            super::cldr::format(out, time, context)
+        }
+        'r' => {
+            let hms = formats::available_format(locale, calendar, "hms").ok_or_else(missing)?;
+            super::cldr::format(out, hms, context)
+        }
+        _ => {
+            let joined = formats::date_time_pattern(locale, calendar, FormatLength::Medium)
+                .ok_or_else(missing)?;
+            let date = formats::date_pattern(locale, calendar, FormatLength::Medium)
+                .ok_or_else(missing)?;
+            let time = formats::time_pattern(locale, calendar, FormatLength::Medium)
+                .ok_or_else(missing)?;
+            write_joined(
+                out,
+                joined,
+                context,
+                |out| super::cldr::format(out, date, context),
+                |out| super::cldr::format(out, time, context),
+            )
+        }
+    }
+}
+
+/// Write a CLDR `dateTimeFormat`, `{1}, {0}` or `{1} 'um' {0}`: `{1}` by
+/// `date`, `{0}` by `time`, and the text between them as the CLDR pattern
+/// literal it is, quotes included.
+pub(crate) fn write_joined<W: fmt::Write>(
+    out: &mut W,
+    pattern: &str,
+    context: &FormatContext<'_>,
+    mut date: impl FnMut(&mut W) -> FormatResult<()>,
+    mut time: impl FnMut(&mut W) -> FormatResult<()>,
+) -> FormatResult<()> {
+    let mut rest = pattern;
+    while !rest.is_empty() {
+        let Some(open) = rest.find('{') else {
+            super::cldr::format(out, rest, context)?;
+            break;
+        };
+        if open > 0 {
+            super::cldr::format(out, rest.get(..open).unwrap_or(""), context)?;
+        }
+        let tail = rest.get(open..).unwrap_or("");
+        if let Some(after) = tail.strip_prefix("{1}") {
+            date(out)?;
+            rest = after;
+        } else if let Some(after) = tail.strip_prefix("{0}") {
+            time(out)?;
+            rest = after;
+        } else {
+            return Err(FormatError::Unrepresentable(
+                "a date-time format's placeholder",
+            ));
+        }
+    }
+    Ok(())
 }
 
 /// `%Ec`, `%EC`, `%Ex`, `%EX`, `%Ey` and `%EY`: POSIX's alternative era.
@@ -368,9 +467,20 @@ fn write_era_conversion<W: fmt::Write>(
         'Y' => crate::label::write_label(calendar, &date, Unit::Year, &locale, out)?,
         'x' => crate::label::write_date(calendar, &date, &locale, out)?,
         _ => {
-            crate::label::write_date(calendar, &date, &locale, out)?;
-            out.write_char(' ')?;
-            write_conversion(out, 'X', unmodified, context, fields, depth)?;
+            let key = hc_i18n::formats::calendar_key(calendar.meta().id);
+            let joined = hc_i18n::formats::date_time_pattern(
+                &locale,
+                key,
+                hc_i18n::formats::FormatLength::Medium,
+            )
+            .unwrap_or("{1} {0}");
+            write_joined(
+                out,
+                joined,
+                context,
+                |out| Ok(crate::label::write_date(calendar, &date, &locale, out)?),
+                |out| write_conversion(out, 'X', unmodified, context, fields, depth),
+            )?;
         }
     }
     Ok(())
@@ -983,7 +1093,13 @@ mod tests {
         );
         assert_eq!(
             render_in("%EC|%Ey|%EY|%Ex|%EX", "en"),
-            "20|26|2026|09/21/26|14:30:05"
+            "20|26|2026|Sep 21, 2026|2:30:05\u{202f}PM"
+        );
+        // `%Ec` joins the era calendar's date and `%X` by the locale's
+        // date-time format: Thai's "{1} {0}" for the Buddhist calendar.
+        assert_eq!(
+            render_in("%Ex|%Ec", "th-u-ca-buddhist"),
+            "21 กันยายน พ.ศ. 2569|21 กันยายน พ.ศ. 2569 14:30:05"
         );
         assert_eq!(render("%EY"), "2026");
         let minguo = hc_calendar::DynAdapter::new(hc_calendars_solar::minguo::MinguoCalendar);
@@ -1046,6 +1162,56 @@ mod tests {
         assert_eq!(render("%R"), "14:30");
         assert_eq!(render("%r"), "02:30:05 PM");
         assert_eq!(render("%c"), "Mon Sep 21 14:30:05 2026");
+        assert_eq!(render("%x|%X"), "09/21/26|14:30:05");
+    }
+
+    /// POSIX's `%x`, `%X`, `%c` and `%r` in a locale: CLDR 48's medium
+    /// date, time and date-time formats and its `hms` item (`hc-i18n`'s
+    /// `formats`, from `de.xml`, `ja.xml`, `fr.xml`, `en.xml`, `en_001.xml`,
+    /// `ru.xml`, `zh.xml`, `ar.xml` and `th.xml`). Node 22.15's
+    /// `Intl.DateTimeFormat` (ICU 76.1, CLDR 46), run 2026-10-04 with
+    /// `dateStyle` and `timeStyle` `medium`, and with `hourCycle: "h12"`
+    /// for the last cell, wrote the same text for every cell.
+    #[test]
+    fn the_composites_take_the_locales_medium_formats() {
+        assert_eq!(
+            render_in("%x|%X|%c|%r", "de"),
+            "21.09.2026|14:30:05|21.09.2026, 14:30:05|2:30:05\u{202f}PM"
+        );
+        assert_eq!(
+            render_in("%x|%X|%c|%r", "ja"),
+            "2026/09/21|14:30:05|2026/09/21 14:30:05|午後2:30:05"
+        );
+        assert_eq!(
+            render_in("%x|%X|%c|%r", "fr"),
+            "21 sept. 2026|14:30:05|21 sept. 2026, 14:30:05|2:30:05\u{202f}PM"
+        );
+        assert_eq!(
+            render_in("%x|%X|%c|%r", "en"),
+            "Sep 21, 2026|2:30:05\u{202f}PM|Sep 21, 2026, 2:30:05\u{202f}PM|2:30:05\u{202f}PM"
+        );
+        assert_eq!(
+            render_in("%x|%X|%c|%r", "en-GB"),
+            "21 Sept 2026|14:30:05|21 Sept 2026, 14:30:05|2:30:05\u{202f}pm"
+        );
+        // CLDR 48's `ru.xml` writes a narrow no-break space before г. and
+        // in its `hms` item, where ICU 76 (CLDR 46) wrote a space.
+        assert_eq!(
+            render_in("%x|%X|%c|%r", "ru"),
+            "21 сент. 2026\u{202f}г.|14:30:05|21 сент. 2026\u{202f}г., 14:30:05|2:30:05\u{202f}PM"
+        );
+        assert_eq!(
+            render_in("%x|%X|%c|%r", "zh-Hans"),
+            "2026年9月21日|14:30:05|2026年9月21日 14:30:05|下午2:30:05"
+        );
+        assert_eq!(
+            render_in("%x|%X|%c|%r", "ar"),
+            "21\u{200f}/09\u{200f}/2026|2:30:05 م|21\u{200f}/09\u{200f}/2026، 2:30:05 م|2:30:05 م"
+        );
+        // The Buddhist calendar's own medium date in `th.xml`.
+        assert_eq!(render_in("%x", "th-u-ca-buddhist"), "21 ก.ย. 2569");
+        // A tag with no entry takes root's formats.
+        assert_eq!(render_in("%x|%X", "xx"), "2026 M09 21|14:30:05");
     }
 
     #[test]

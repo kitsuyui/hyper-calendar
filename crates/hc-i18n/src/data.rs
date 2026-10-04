@@ -93,6 +93,7 @@
 use hc_calendar::cycle::readings;
 use hc_calendar::{CalendarId, Weekday};
 
+mod cldr48_calendars;
 mod cldr48_locales;
 mod japanese_eras;
 
@@ -222,7 +223,7 @@ const fn cycle(kind: &'static str, names: &'static [&'static str]) -> CycleNames
 }
 
 /// The ten Hijri calendars, which share one set of Arabic month names.
-const ISLAMIC_CALENDARS: &[CalendarId] = &[
+pub(crate) const ISLAMIC_CALENDARS: &[CalendarId] = &[
     CalendarId("islamic-civil"),
     CalendarId("islamic-tbla"),
     CalendarId("islamic-umalqura"),
@@ -237,7 +238,8 @@ const ISLAMIC_CALENDARS: &[CalendarId] = &[
 
 /// The Hebrew calendar, and the prediction of its observational
 /// predecessor, which numbers its months and years the same way.
-const HEBREW_CALENDARS: &[CalendarId] = &[CalendarId("hebrew"), CalendarId("hebrew-observational")];
+pub(crate) const HEBREW_CALENDARS: &[CalendarId] =
+    &[CalendarId("hebrew"), CalendarId("hebrew-observational")];
 
 /// The Babylonian calendar of the Seleucid era, and the Arsacid era on
 /// the same months, which names its era for itself.
@@ -308,7 +310,7 @@ const NUMBERED_LUNISOLAR_CALENDARS: &[CalendarId] = &[
 /// its sexagenary count. The Chinese regnal calendar shares the months but
 /// writes its year by the reign, so it is served beside these and not
 /// among them.
-const CHINESE_FAMILY_CALENDARS: &[CalendarId] = &[
+pub(crate) const CHINESE_FAMILY_CALENDARS: &[CalendarId] = &[
     CalendarId("chinese"),
     CalendarId("dangi"),
     CalendarId("dangi-kasi"),
@@ -347,7 +349,7 @@ const CHINESE_AND_VIETNAMESE_CALENDARS: &[CalendarId] = &[
 ];
 
 /// The Dangi on its own, in both readings of its months before 1912.
-const DANGI_CALENDARS: &[CalendarId] = &[CalendarId("dangi"), CalendarId("dangi-kasi")];
+pub(crate) const DANGI_CALENDARS: &[CalendarId] = &[CalendarId("dangi"), CalendarId("dangi-kasi")];
 
 /// The Chinese regnal calendar on its own: the months of the Chinese
 /// family, the year of the reign.
@@ -398,7 +400,7 @@ const YERM_CALENDARS: &[CalendarId] = &[CalendarId("yerm")];
 /// `hc-calendars-equinox`, `persian` and `persian-apparent-noon`. Their
 /// months have the same names, and so do those of `persian-imperial`, the
 /// same days under the imperial year of 1976–1978.
-const PERSIAN_CALENDARS: &[CalendarId] = &[
+pub(crate) const PERSIAN_CALENDARS: &[CalendarId] = &[
     CalendarId("persian-arithmetic"),
     CalendarId("persian-arithmetic-33"),
     CalendarId("persian"),
@@ -411,7 +413,7 @@ const PERSIAN_CALENDARS: &[CalendarId] = &[
 /// names of the zodiac signs. They share an era, and CLDR's one `persian`
 /// calendar is all of them, so a locale that follows CLDR's month names
 /// for it — Pashto — serves all of them too.
-const SOLAR_HIJRI_CALENDARS: &[CalendarId] = &[
+pub(crate) const SOLAR_HIJRI_CALENDARS: &[CalendarId] = &[
     CalendarId("persian-arithmetic"),
     CalendarId("persian-arithmetic-33"),
     CalendarId("persian"),
@@ -445,7 +447,7 @@ const ARMENIAN_CALENDARS: &[CalendarId] = &[CalendarId("armenian"), CalendarId("
 
 /// The Japanese era calendars, in every court reading and both era
 /// reckonings — they share their month names.
-const JAPANESE_CALENDARS: &[CalendarId] = &[
+pub(crate) const JAPANESE_CALENDARS: &[CalendarId] = &[
     CalendarId("japanese"),
     CalendarId("japanese-northern"),
     CalendarId("japanese-southern"),
@@ -1900,6 +1902,7 @@ pub static ROOT: LocaleData = LocaleData {
             leap_day: None,
         }),
     ],
+    cldr_calendars: &[],
 };
 
 // --- Amharic --------------------------------------------------------------
@@ -2003,6 +2006,7 @@ const AM: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["ጥዋት", "ከሰዓት"], &[], &["ጠ", "ከ"])),
     cycle: SexagenaryNames::EMPTY,
     calendars: AM_CALENDARS,
+    cldr_calendars: cldr48_calendars::AM_CLDR,
 };
 
 // --- Arabic ---------------------------------------------------------------
@@ -2119,6 +2123,7 @@ const AR: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["ص", "م"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: AR_CALENDARS,
+    cldr_calendars: cldr48_calendars::AR_CLDR,
 };
 
 // --- Balinese -------------------------------------------------------------
@@ -2264,6 +2269,7 @@ const BAN: LocaleData = LocaleData {
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
     calendars: BAN_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- Bengali --------------------------------------------------------------
@@ -2457,6 +2463,7 @@ const BN: LocaleData = LocaleData {
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
     calendars: BN_CALENDARS,
+    cldr_calendars: cldr48_calendars::BN_CLDR,
 };
 
 // --- Tibetan --------------------------------------------------------------
@@ -2687,6 +2694,7 @@ const BO: LocaleData = LocaleData {
         ]),
     },
     calendars: BO_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- Coptic ---------------------------------------------------------------
@@ -2754,6 +2762,7 @@ const COP: LocaleData = LocaleData {
             &[],
         ),
     ],
+    cldr_calendars: &[],
 };
 
 // --- Czech ----------------------------------------------------------------
@@ -2858,6 +2867,7 @@ const CS: LocaleData = LocaleData {
             )),
         ),
     ],
+    cldr_calendars: cldr48_calendars::CS_CLDR,
 };
 
 // --- German ---------------------------------------------------------------
@@ -2942,6 +2952,7 @@ const DE: LocaleData = LocaleData {
             &[],
         )),
     )],
+    cldr_calendars: cldr48_calendars::DE_CLDR,
 };
 
 // --- English --------------------------------------------------------------
@@ -4169,6 +4180,7 @@ const EN: LocaleData = LocaleData {
         joiner: "-",
     },
     calendars: EN_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- Spanish --------------------------------------------------------------
@@ -4240,6 +4252,7 @@ const ES: LocaleData = LocaleData {
             &[],
         )),
     )],
+    cldr_calendars: cldr48_calendars::ES_CLDR,
 };
 
 // --- Persian --------------------------------------------------------------
@@ -4344,6 +4357,7 @@ const FA: LocaleData = LocaleData {
         // `fa-AF` takes this one.
         dated(SOLAR_HIJRI_CALENDARS, &[], &["ap"], &["ه.ش."]),
     ],
+    cldr_calendars: cldr48_calendars::FA_CLDR,
 };
 
 // --- French ---------------------------------------------------------------
@@ -4425,6 +4439,7 @@ const FR: LocaleData = LocaleData {
             ),
         ),
     ],
+    cldr_calendars: cldr48_calendars::FR_CLDR,
 };
 
 // --- Hebrew ---------------------------------------------------------------
@@ -4552,6 +4567,7 @@ const HE: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["לפנה״צ", "אחה״צ"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: HE_CALENDARS,
+    cldr_calendars: cldr48_calendars::HE_CLDR,
 };
 
 // --- Hindi ----------------------------------------------------------------
@@ -4753,6 +4769,7 @@ const HI: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["पूर्वाह्न", "अपराह्न"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: HI_CALENDARS,
+    cldr_calendars: cldr48_calendars::HI_CLDR,
 };
 
 // --- Indonesian -----------------------------------------------------------
@@ -4821,6 +4838,7 @@ const ID: LocaleData = LocaleData {
             )),
         ),
     ],
+    cldr_calendars: cldr48_calendars::ID_CLDR,
 };
 
 // --- Italian --------------------------------------------------------------
@@ -4892,6 +4910,7 @@ const IT: LocaleData = LocaleData {
             &[],
         )),
     )],
+    cldr_calendars: cldr48_calendars::IT_CLDR,
 };
 
 // --- Japanese -------------------------------------------------------------
@@ -5051,6 +5070,7 @@ const JA: LocaleData = LocaleData {
         ]),
     },
     calendars: JA_CALENDARS,
+    cldr_calendars: cldr48_calendars::JA_CLDR,
 };
 
 // --- Javanese -------------------------------------------------------------
@@ -5154,6 +5174,7 @@ const JV: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["Isuk", "Wengi"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: JV_CALENDARS,
+    cldr_calendars: cldr48_calendars::JV_CLDR,
 };
 
 // --- Kabyle ---------------------------------------------------------------
@@ -5275,6 +5296,7 @@ const KAB: LocaleData = LocaleData {
     )),
     cycle: SexagenaryNames::EMPTY,
     calendars: KAB_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- Korean ---------------------------------------------------------------
@@ -5388,6 +5410,7 @@ const KO: LocaleData = LocaleData {
             &["중화민국전", "중화민국"],
         ),
     ],
+    cldr_calendars: cldr48_calendars::KO_CLDR,
 };
 
 // --- Mandaic --------------------------------------------------------------
@@ -5442,6 +5465,7 @@ const MID: LocaleData = LocaleData {
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
     calendars: &[gregorian(&[], EraNames::EMPTY, ContextualNames::EMPTY)],
+    cldr_calendars: &[],
 };
 
 // --- Malayalam ------------------------------------------------------------
@@ -5604,6 +5628,7 @@ const ML: LocaleData = LocaleData {
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
     calendars: ML_CALENDARS,
+    cldr_calendars: cldr48_calendars::ML_CLDR,
 };
 
 // --- Burmese --------------------------------------------------------------
@@ -5733,6 +5758,7 @@ const MY: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["နံနက်", "ညနေ"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: MY_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- Nahuatl --------------------------------------------------------------
@@ -5838,6 +5864,7 @@ const NAH: LocaleData = LocaleData {
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
     calendars: NAH_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- Zapotec --------------------------------------------------------------
@@ -5913,6 +5940,7 @@ const ZAP: LocaleData = LocaleData {
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
     calendars: ZAP_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- Nepali ---------------------------------------------------------------
@@ -6175,6 +6203,7 @@ const NE: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["पूर्वाह्न", "अपराह्न"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: NE_CALENDARS,
+    cldr_calendars: cldr48_calendars::NE_CLDR,
 };
 
 // --- Dutch ----------------------------------------------------------------
@@ -6248,6 +6277,7 @@ const NL: LocaleData = LocaleData {
             )),
         ),
     ],
+    cldr_calendars: cldr48_calendars::NL_CLDR,
 };
 
 // --- Polish ---------------------------------------------------------------
@@ -6337,6 +6367,7 @@ const PL: LocaleData = LocaleData {
             &[],
         )),
     )],
+    cldr_calendars: cldr48_calendars::PL_CLDR,
 };
 
 // --- Pashto ---------------------------------------------------------------
@@ -6479,6 +6510,7 @@ const PS: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["غ.م.", "غ.و."], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: PS_CALENDARS,
+    cldr_calendars: cldr48_calendars::PS_CLDR,
 };
 
 // --- Portuguese -----------------------------------------------------------
@@ -6555,6 +6587,7 @@ const PT: LocaleData = LocaleData {
             &[],
         )),
     )],
+    cldr_calendars: cldr48_calendars::PT_CLDR,
 };
 
 // --- Russian --------------------------------------------------------------
@@ -6690,6 +6723,7 @@ const RU: LocaleData = LocaleData {
         )
         .with_templates(RU_GENERIC_TEMPLATES),
     ],
+    cldr_calendars: cldr48_calendars::RU_CLDR,
 };
 
 // --- Sanskrit -------------------------------------------------------------
@@ -6893,6 +6927,7 @@ const SA: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["पूर्वाह्न", "अपराह्न"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: SA_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- Syriac ---------------------------------------------------------------
@@ -7063,6 +7098,7 @@ const SYR: LocaleData = LocaleData {
     )),
     cycle: SexagenaryNames::EMPTY,
     calendars: SYR_CALENDARS,
+    cldr_calendars: cldr48_calendars::SYR_CLDR,
 };
 
 // --- Tamil ----------------------------------------------------------------
@@ -7253,6 +7289,7 @@ const TA: LocaleData = LocaleData {
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
     calendars: TA_CALENDARS,
+    cldr_calendars: cldr48_calendars::TA_CLDR,
 };
 
 // --- Thai -----------------------------------------------------------------
@@ -7354,6 +7391,7 @@ const TH: LocaleData = LocaleData {
         )
         .with_templates(TH_ROC_TEMPLATES),
     ],
+    cldr_calendars: cldr48_calendars::TH_CLDR,
 };
 
 // --- Turkish --------------------------------------------------------------
@@ -7407,6 +7445,7 @@ const TR: LocaleData = LocaleData {
             &["1.", "2.", "3.", "4."],
         )),
     )],
+    cldr_calendars: cldr48_calendars::TR_CLDR,
 };
 
 // --- Vietnamese -----------------------------------------------------------
@@ -7535,6 +7574,7 @@ const VI: LocaleData = LocaleData {
             .with_leap_month_suffix(" Nhuận")
             .with_templates(VI_CHINESE_TEMPLATES),
     ],
+    cldr_calendars: &[],
 };
 
 // --- Yucatec Maya ---------------------------------------------------------
@@ -7615,6 +7655,7 @@ const YUA: LocaleData = LocaleData {
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
     calendars: YUA_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- the Berber calendar's other spellings ---------------------------------
@@ -7716,6 +7757,7 @@ const fn calendar_only(
         day_periods: ContextualNames::EMPTY,
         cycle: SexagenaryNames::EMPTY,
         calendars,
+        cldr_calendars: &[],
     }
 }
 
@@ -7916,6 +7958,7 @@ const ZGH: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["ⵜⵉⴼⴰⵡⵜ", "ⵜⴰⴷⴳⴳⵯⴰⵜ"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: ZGH_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- Chinese, simplified --------------------------------------------------
@@ -8056,6 +8099,7 @@ const ZH_HANS: LocaleData = LocaleData {
         ]),
     },
     calendars: ZH_HANS_CALENDARS,
+    cldr_calendars: cldr48_calendars::ZH_HANS_CLDR,
 };
 
 // --- Chinese, traditional -------------------------------------------------
@@ -8175,6 +8219,7 @@ const ZH_HANT: LocaleData = LocaleData {
         ]),
     },
     calendars: ZH_HANT_CALENDARS,
+    cldr_calendars: cldr48_calendars::ZH_HANT_CLDR,
 };
 
 // --- the locales of the most-spoken languages -----------------------------
@@ -8335,6 +8380,7 @@ const FIL: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &["am", "pm"])),
     cycle: SexagenaryNames::EMPTY,
     calendars: FIL_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- Hausa ---------------------------------------------------------------
@@ -8455,6 +8501,7 @@ const HA: LocaleData = LocaleData {
     },
     cycle: SexagenaryNames::EMPTY,
     calendars: HA_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- Marathi -------------------------------------------------------------
@@ -8750,6 +8797,7 @@ const MR: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &["a", "p"])),
     cycle: SexagenaryNames::EMPTY,
     calendars: MR_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- Punjabi, Arabic script ----------------------------------------------
@@ -8811,6 +8859,7 @@ const PA_ARAB: LocaleData = LocaleData {
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
     calendars: PA_ARAB_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- Punjabi, Gurmukhi script --------------------------------------------
@@ -9119,6 +9168,7 @@ const PA_GURU: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: PA_GURU_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- Nigerian Pidgin -----------------------------------------------------
@@ -9226,6 +9276,7 @@ const PCM: LocaleData = LocaleData {
     },
     cycle: SexagenaryNames::EMPTY,
     calendars: PCM_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- European Portuguese -------------------------------------------------
@@ -9311,6 +9362,7 @@ const PT_PT: LocaleData = LocaleData {
     },
     cycle: SexagenaryNames::EMPTY,
     calendars: PT_PT_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- Swahili -------------------------------------------------------------
@@ -9383,6 +9435,7 @@ const SW: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &["am", "pm"])),
     cycle: SexagenaryNames::EMPTY,
     calendars: SW_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- Telugu --------------------------------------------------------------
@@ -9610,6 +9663,7 @@ const TE: LocaleData = LocaleData {
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
     calendars: TE_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- Urdu ----------------------------------------------------------------
@@ -9910,6 +9964,7 @@ const UR: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &["a", "p"])),
     cycle: SexagenaryNames::EMPTY,
     calendars: UR_CALENDARS,
+    cldr_calendars: &[],
 };
 
 // --- Cantonese, simplified -----------------------------------------------
@@ -10154,6 +10209,7 @@ const YUE_HANS: LocaleData = LocaleData {
         ]),
     },
     calendars: YUE_HANS_CALENDARS,
+    cldr_calendars: &[],
 };
 
 /// The months Cantonese numbers, as `yue.xml` and `yue_Hans.xml` write the
@@ -10407,6 +10463,7 @@ const YUE_HANT: LocaleData = LocaleData {
         ]),
     },
     calendars: YUE_HANT_CALENDARS,
+    cldr_calendars: &[],
 };
 
 /// Every locale this crate ships, in tag order.
@@ -10518,7 +10575,7 @@ mod tests {
             ("dayperiods/format", &data.day_periods.format),
             ("dayperiods/standalone", &data.day_periods.standalone),
         ];
-        for calendar in data.calendars {
+        for calendar in data.all_calendars() {
             for cycle in calendar.cycles {
                 sets.push((cycle.kind, &cycle.names.format));
                 sets.push((cycle.kind, &cycle.names.standalone));
@@ -10634,7 +10691,7 @@ mod tests {
     #[test]
     fn every_width_of_a_cycle_has_the_same_number_of_names() {
         for data in every_entry() {
-            for calendar in data.calendars {
+            for calendar in data.all_calendars() {
                 for cycle in calendar.cycles {
                     for set in [&cycle.names.format, &cycle.names.standalone] {
                         let mut expected: Option<usize> = None;
@@ -10675,7 +10732,7 @@ mod tests {
                         names.len()
                     );
                 }
-                for calendar in data.calendars {
+                for calendar in data.all_calendars() {
                     for set in [&calendar.quarters.format, &calendar.quarters.standalone] {
                         let names = set.exact(width);
                         assert!(
@@ -10694,7 +10751,7 @@ mod tests {
     #[test]
     fn era_codes_and_era_names_stay_parallel() {
         for data in every_entry() {
-            for calendar in data.calendars {
+            for calendar in data.all_calendars() {
                 let eras = &calendar.eras;
                 for width in NameWidth::ALL {
                     let names = eras.names.exact(width);
@@ -10729,7 +10786,7 @@ mod tests {
     #[test]
     fn no_calendar_has_one_cycle_named_twice_in_a_locale() {
         for data in every_entry() {
-            for entry in data.calendars {
+            for entry in data.all_calendars() {
                 for id in entry.calendars {
                     for kind in ["month", "weekday", "decade-day"] {
                         let carriers = data
@@ -10803,7 +10860,7 @@ mod tests {
         // September and Září are the same word in Czech in both contexts, so
         // the check is on adjacent months, which no language conflates.
         for data in every_entry() {
-            for calendar in data.calendars {
+            for calendar in data.all_calendars() {
                 let months = calendar.months();
                 for set in [&months.format, &months.standalone] {
                     for width in NameWidth::ALL {
@@ -10932,10 +10989,10 @@ mod tests {
         }
         for data in every_entry() {
             check(data.tag, &data.templates);
-            for entry in data.calendars {
+            for entry in data.all_calendars() {
                 check(data.tag, &entry.templates);
             }
-            for entry in data.calendars {
+            for entry in data.all_calendars() {
                 for (ordinal, name) in entry
                     .leap_names
                     .intercalary

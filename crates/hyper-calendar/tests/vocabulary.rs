@@ -161,7 +161,7 @@ fn every_calendar_a_locale_names_is_one_the_registry_answers_to() {
     let known = |id: CalendarId| registered.contains(&id);
     let mut unknown: BTreeSet<String> = BTreeSet::new();
     for locale in LOCALES {
-        for entry in locale.calendars {
+        for entry in locale.all_calendars() {
             for id in entry.calendars {
                 if !known(*id) {
                     unknown.insert(format!("{} names {}", locale.tag, id.0));
@@ -337,7 +337,7 @@ fn every_named_cycle_is_one_the_calendar_declares() {
     let declared = declared_cycles();
     let mut wrong: Vec<String> = Vec::new();
     for locale in LOCALES {
-        for entry in locale.calendars {
+        for entry in locale.all_calendars() {
             for cycle in entry.cycles {
                 for id in entry.calendars {
                     let Some(shapes) = declared.get(id.0) else {
@@ -377,7 +377,7 @@ fn every_name_list_is_as_long_as_the_cycle_it_names() {
     use hyper_calendar::hc_i18n::names::{NameContext, NameWidth};
     let declared = declared_cycles();
     for locale in LOCALES {
-        for entry in locale.calendars {
+        for entry in locale.all_calendars() {
             for cycle in entry.cycles {
                 for id in entry.calendars {
                     let Some(shapes) = declared.get(id.0) else {
