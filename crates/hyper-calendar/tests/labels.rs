@@ -169,13 +169,17 @@ fn the_hebrew_and_hijri_calendars_are_labelled_as_their_sources_write_them() {
     assert_eq!(label_on(hebrew, rosh_hashanah, Unit::Month, "en"), "Tishri");
     assert_eq!(label_on(hebrew, rosh_hashanah, Unit::Year, "he"), "5784");
     assert_eq!(label_on(hebrew, rosh_hashanah, Unit::Month, "he"), "תשרי");
-    // Japanese has no words for the Hebrew months, so a Japanese request
-    // is answered in English, not in Hebrew; only `native` asks for Hebrew.
+    // Japanese names the Hebrew months (CLDR 48 `ja.xml`, `calendar
+    // type="hebrew"`, ティスレ), so a Japanese request is answered in
+    // Japanese, never in Hebrew; only `native` asks for Hebrew.
     assert_eq!(
         label::locale_for(hebrew, Some(&locale("ja"))).to_string(),
-        "en"
+        "ja"
     );
-    assert_eq!(label_on(hebrew, rosh_hashanah, Unit::Month, "ja"), "Tishri");
+    assert_eq!(
+        label_on(hebrew, rosh_hashanah, Unit::Month, "ja"),
+        "ティスレ"
+    );
     assert_eq!(label::locale_for(hebrew, None).to_string(), "he");
     let adar_i = day(2024, 2, 11);
     assert_eq!(label_on(hebrew, adar_i, Unit::Month, "en"), "Adar I");
@@ -215,9 +219,9 @@ fn the_hebrew_and_hijri_calendars_are_labelled_as_their_sources_write_them() {
     assert_eq!(label_on(hijri, ramadan, Unit::Year, "ar-SA"), "١٤٤٥ هـ");
     assert_eq!(label_on(hijri, ramadan, Unit::Month, "ar"), "رمضان");
     assert_eq!(date_on(hijri, ramadan, "ar-EG"), "١ رمضان ١٤٤٥ هـ");
-    // Japanese names neither, so a Japanese request is answered in
-    // English, not in Arabic.
-    assert_eq!(label_on(hijri, ramadan, Unit::Month, "ja"), "Ramadan");
+    // Japanese names the Hijri months from CLDR 48 `ja.xml` (ラマダーン),
+    // so a Japanese request is answered in Japanese, never in Arabic.
+    assert_eq!(label_on(hijri, ramadan, Unit::Month, "ja"), "ラマダーン");
 }
 
 #[test]
@@ -403,10 +407,11 @@ fn the_lines_carry_the_labels_and_name_the_locale_used() {
         .find(|row| row[0] == "japanese")
         .expect("japanese");
     assert_eq!(japanese[15..17], ["令和8年9月21日", "ja"]);
-    // Japanese does not name the Hebrew calendar, so it is English, not
-    // Hebrew: a named locale never borrows the calendar's own language.
+    // Japanese names the Hebrew calendar from `ja.xml`, so it answers
+    // itself, never in Hebrew: a named locale never borrows the calendar's
+    // own language.
     let hebrew = rows.iter().find(|row| row[0] == "hebrew").expect("hebrew");
-    assert_eq!(hebrew[16], "en");
+    assert_eq!(hebrew[16], "ja");
     // The last cell names the civil day a day is named after, and is empty
     // for a midnight start.
     assert_eq!(hebrew[17], "end");
@@ -509,8 +514,12 @@ fn the_dangi_calendar_is_named_as_cldr_names_it_in_both_chinese_scripts() {
     assert_eq!(calendar_name("ja", "dangi"), "ダンギ暦");
 }
 
+/// CLDR 48 `ja.xml` names the Hijri months (ムハッラム …) and leaves the
+/// era to root's `AH`; its `generic` long date is "Gy年M月d日", the month by
+/// its number, as ICU 76.1 (Node 22.15, CLDR 46) writes
+/// `ja-u-ca-islamic-umalqura`: AH1448年4月15日 for 2026-09-26.
 #[test]
-fn a_japanese_request_writes_the_umm_al_qura_calendar_in_english() {
+fn a_japanese_request_writes_the_umm_al_qura_calendar_in_japanese() {
     let registry = registry();
     let on = day(2026, 9, 26);
     let row = |tag: &str| -> Vec<String> {
@@ -521,8 +530,7 @@ fn a_japanese_request_writes_the_umm_al_qura_calendar_in_english() {
             .expect("islamic-umalqura")
     };
     let japanese = row("ja");
-    // The English month name as CLDR 48 `en.xml` spells it.
-    assert_eq!(japanese[15..17], ["Rabiʻ II 15, 1448 AH", "en"]);
+    assert_eq!(japanese[15..17], ["AH1448年4月15日", "ja"]);
     assert!(
         !japanese[15]
             .chars()
@@ -537,5 +545,5 @@ fn a_japanese_request_writes_the_umm_al_qura_calendar_in_english() {
         .expect("islamic-umalqura");
     let units = lines::calendar_units(umalqura, Unit::Month, on, day(2026, 9, 27), "ja")
         .expect("within the cap");
-    assert!(units.trim_end().ends_with("\ten"), "{units}");
+    assert!(units.trim_end().ends_with("\tja"), "{units}");
 }

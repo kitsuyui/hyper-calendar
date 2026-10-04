@@ -28,6 +28,11 @@
 # scripts/zone-names-cldr.py: the metazone names of 55 locales (Indonesian
 # "Standar", Turkish "Standart", French "normale"), checked against CLDR
 # rather than corrected by hand.
+# hc-i18n's data/cldr48_calendars.rs and plural/cldr48.rs are generated from
+# CLDR 48 by scripts/locales-cldr.py and scripts/plurals-cldr.py: the other
+# calendars' month names in 29 languages (French "tich." for Tishri, "hed."
+# for Hedar) and the locale codes of plurals.xml (`seh`, Sena), checked
+# against CLDR rather than corrected by hand.
 # hc-humanize's natural/catalogues.rs is generated from the gettext
 # catalogues of the Python `humanize` package (release 4.16.0) by
 # scripts/humanize-gettext.py: its 35 translations (Portuguese "momento",
@@ -36,7 +41,9 @@
 extend-exclude = [
     "Cargo.lock",
     "crates/hc-humanize/src/natural/catalogues.rs",
+    "crates/hc-i18n/src/data/cldr48_calendars.rs",
     "crates/hc-i18n/src/place_names/cldr48.rs",
+    "crates/hc-i18n/src/plural/cldr48.rs",
     "crates/hc-i18n/src/zone_names/cldr48.rs",
     "crates/hyper-calendar/tests/line_digests.txt",
     "crates/hyper-calendar/tests/line_digests_holidays.txt",

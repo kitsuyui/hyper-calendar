@@ -316,17 +316,18 @@ pub fn locale_info_line(tag: &str) -> Answer<String> {
 pub const PLURAL_COLUMNS: usize = 7;
 
 /// The line of `hc_plural_category`: the plural category a number has in a
-/// locale, by CLDR 48's cardinal rules — `zero`, `one`, `two`, `few`,
-/// `many` or `other`; the language of the rules that decided it (`ru`,
-/// `pt-PT`, `und` where none is carried and everything is `other`); and the
-/// operands UTS #35 reads from the number as written, `i`, `v`, `w`, `f`
-/// and `t`: `1.0` and `1` are different questions.
+/// locale, by CLDR 48's rules — `zero`, `one`, `two`, `few`, `many` or
+/// `other`; the language of the rules that decided it (`ru`, `pt-PT`, `und`
+/// where none is carried and everything is `other`); and the operands
+/// UTS #35 reads from the number as written, `i`, `v`, `w`, `f` and `t`:
+/// `1.0` and `1` are different questions.
 ///
 /// `number` is a plain decimal, an optional minus sign, digits and an
 /// optional point with digits, so that a trailing zero can be given. `kind`
-/// is `cardinal`. `ordinal` is [`Refusal::NoData`]: `hc-i18n` carries the
-/// cardinal rules of `plurals.xml` and no ordinal rule of `ordinals.xml`.
-/// The compact-notation operands `c` and `e` are not carried either.
+/// is `cardinal`, the form after a count (`plurals.xml`), or `ordinal`,
+/// the form of a position (`ordinals.xml`: English 1 `one`, 2 `two`, 3
+/// `few`, 4 `other`), in either case. The compact-notation operands `c`
+/// and `e` are not carried.
 ///
 /// # Errors
 ///
@@ -334,18 +335,13 @@ pub const PLURAL_COLUMNS: usize = 7;
 /// not a plain decimal, [`Refusal::OutOfRange`] for digits beyond a `u64`
 /// and [`Refusal::Unknown`] for a kind that is neither.
 pub fn plural_category_line(tag: &str, number: &str, kind: &str) -> Answer<String> {
-    if matches(kind, "ordinal") {
-        return Err(Refusal::NoData);
-    }
-    if !matches(kind, "cardinal") {
-        return Err(Refusal::Unknown);
-    }
+    let kind = hc_i18n::PluralType::from_keyword(kind.trim()).ok_or(Refusal::Unknown)?;
     let locale = strict_locale(tag)?;
     let operands = PluralOperands::parse(number.trim()).map_err(|error| match error {
         hc_i18n::I18nError::NumberOutOfRange => Refusal::OutOfRange,
         _ => Refusal::Malformed,
     })?;
-    let rules = PluralRules::for_locale(&locale);
+    let rules = PluralRules::of_kind_for_locale(kind, &locale);
     Ok(line(|line| {
         line.cell(rules.select(&operands).as_str())
             .cell(rules.language())
@@ -772,10 +768,20 @@ mod tests {
         assert_eq!(category("ja", "1"), "other");
         let line = plural_category_line("en", "1.30", "CARDINAL").expect("a category");
         assert_eq!(cells(&line), ["other", "en", "1", "2", "1", "30", "3"]);
-        assert_eq!(
-            plural_category_line("en", "1", "ordinal"),
-            Err(Refusal::NoData)
-        );
+        // CLDR 48's `ordinals.xml`: English 1st, 2nd, 3rd, 4th, 11th, 21st;
+        // Welsh 7 `zero`; German has one form, so `other`.
+        let ordinal = |tag: &str, number: &str| {
+            all_cells(&plural_category_line(tag, number, "ordinal").expect("a category")).remove(0)
+        };
+        assert_eq!(ordinal("en", "1")[..2], ["one", "en"]);
+        assert_eq!(ordinal("en", "2")[0], "two");
+        assert_eq!(ordinal("en", "3")[0], "few");
+        assert_eq!(ordinal("en", "4")[0], "other");
+        assert_eq!(ordinal("en", "11")[0], "other");
+        assert_eq!(ordinal("en-GB", "21")[0], "one");
+        assert_eq!(ordinal("cy", "7")[0], "zero");
+        assert_eq!(ordinal("de", "1")[..2], ["other", "de"]);
+        assert_eq!(ordinal("xx", "1")[..2], ["other", "und"]);
         assert_eq!(
             plural_category_line("en", "1", "fractions"),
             Err(Refusal::Unknown)

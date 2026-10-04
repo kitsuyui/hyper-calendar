@@ -2173,16 +2173,17 @@ macro_rules! exports {
             /// The line is the WebAssembly module's. `number` is a plain decimal, an
             /// optional minus sign and digits, and a point and digits where a trailing
             /// zero is meant: *1* and *1.0* are different questions. `kind` is
-            /// `cardinal`, in any case; `ordinal` is `HC_ERROR_NO_DATA` and another
-            /// `HC_ERROR_UNKNOWN`; null `number` or `kind` is `HC_ERROR_NULL_POINTER`.
+            /// `cardinal`, the form after a count, or `ordinal`, the form of a position,
+            /// in any case; another is `HC_ERROR_UNKNOWN`; null `number` or `kind` is
+            /// `HC_ERROR_NULL_POINTER`.
             /// Text that is not a decimal, or a tag that does not parse, is
             /// `HC_ERROR_MALFORMED`, and digits beyond a `uint64_t` are
             /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
             /// terminator, into `written`.
         }
         wasm {
-            /// The plural category a number has in a locale, by CLDR 48's cardinal rules,
-            /// as one UTF-8 line, returning the byte length written.
+            /// The plural category a number has in a locale, by CLDR 48's cardinal or
+            /// ordinal rules, as one UTF-8 line, returning the byte length written.
             ///
             /// Tab-separated: `zero`, `one`, `two`, `few`, `many` or `other`; the
             /// language of the rules that decided it, `ru`, `pt-PT`, or `und` where none
@@ -2190,10 +2191,11 @@ macro_rules! exports {
             /// the number as written, `i`, `v`, `w`, `f` and `t`. `number` is a plain
             /// decimal, an optional minus sign and digits, with a point and digits where a
             /// trailing zero is meant: *1* is `one` in English and *1.0* is `other`.
-            /// `kind` is `cardinal`, in any case. `ordinal` is `HC_ERR_NO_DATA`: `hc-i18n`
-            /// carries the cardinal rules of `plurals.xml` and no ordinal rules, and no
-            /// compact-notation operands `c` and `e`. Any other kind, the empty string
-            /// included, is `HC_ERR_UNKNOWN`. Text that is not a decimal and a tag that
+            /// `kind` is `cardinal`, the form after a count (`plurals.xml`), or `ordinal`,
+            /// the form of a position (`ordinals.xml`: English 1 is `one`, 2 `two`, 3
+            /// `few` and 4 `other`), in any case; the compact-notation operands `c` and
+            /// `e` are not carried. Any other kind, the empty string included, is
+            /// `HC_ERR_UNKNOWN`. Text that is not a decimal and a tag that
             /// does not parse are `HC_ERR_MALFORMED`; digits beyond a `u64` are
             /// `HC_ERR_OUT_OF_RANGE`. `locale` is as for `hc_locale_chain`. A null `buffer`
             /// returns the length the text needs.

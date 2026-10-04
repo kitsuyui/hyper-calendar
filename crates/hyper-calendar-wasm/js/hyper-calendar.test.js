@@ -354,13 +354,14 @@ describe("describeDay", () => {
     assert.equal(inLocale("ur", "gregory")?.formatted, "21 ستمبر، 2026");
     assert.equal(inLocale("mr", "gregory")?.formatted, "२१ सप्टेंबर, २०२६");
     assert.equal(inLocale("ur", "islamic-civil")?.localeUsed, "ur");
-    // Japanese has no words for the Hebrew months, so the Hebrew calendar
-    // answers in English, not Hebrew, and says so; only `native` borrows a
-    // calendar's own language.
+    // Japanese names the Hebrew and Hijri months from CLDR 48 ja.xml, so
+    // both calendars answer in Japanese, never in Hebrew or Arabic, and say
+    // so; only `native` borrows a calendar's own language.
     const hebrew = rows.find((row) => row.id === "hebrew");
-    assert.equal(hebrew?.localeUsed, "en");
+    assert.equal(hebrew?.localeUsed, "ja");
+    assert.ok(!/[\u0590-\u05FF]/.test(hebrew?.formatted ?? ""), hebrew?.formatted);
     const umalqura = rows.find((row) => row.id === "islamic-umalqura");
-    assert.equal(umalqura?.localeUsed, "en");
+    assert.equal(umalqura?.localeUsed, "ja");
     assert.ok(!/[\u0600-\u06FF]/.test(umalqura?.formatted ?? ""), umalqura?.formatted);
     assert.equal(hc.describeDay(739_880, "en").find((row) => row.id === "gregory")?.monthLabel, "September");
     assert.equal(hc.describeDay(739_880, "en").find((row) => row.id === "gregory")?.formatted, "September 21, 2026");
@@ -822,7 +823,14 @@ describe("how a locale resolves", () => {
     assert.deepEqual(hc.pluralCategory("en", "1.30"), {
       category: "other", rules: "en", operands: { i: 1n, v: 2, w: 1, f: 30n, t: 3n },
     });
-    refused(() => hc.pluralCategory("en", "1", "ordinal"), "no-data");
+    // CLDR 48's ordinals.xml: 1st, 2nd, 3rd, 4th, 11th, 21st; German has one form.
+    assert.equal(hc.pluralCategory("en", "1", "ordinal").category, "one");
+    assert.equal(hc.pluralCategory("en", "2", "ordinal").category, "two");
+    assert.equal(hc.pluralCategory("en", "3", "ordinal").category, "few");
+    assert.equal(hc.pluralCategory("en", "4", "ordinal").category, "other");
+    assert.equal(hc.pluralCategory("en", "11", "ordinal").category, "other");
+    assert.equal(hc.pluralCategory("en", "21", "ordinal").rules, "en");
+    assert.equal(hc.pluralCategory("de", "1", "ordinal").category, "other");
     refused(() => hc.pluralCategory("en", "1", /** @type {any} */ ("fraction")), "unknown");
     refused(() => hc.pluralCategory("en", "one"), "malformed");
     refused(() => hc.pluralCategory("en", "9".repeat(25)), "out-of-range");

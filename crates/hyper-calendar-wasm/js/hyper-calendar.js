@@ -5259,11 +5259,11 @@ export class HyperCalendar {
   }
 
   /**
-   * The plural category a number has in a locale, by CLDR 48's cardinal
-   * rules, with the operands read from the number as written: `"1"` is
-   * `one` in English and `"1.0"` is `other`. `kind` is `cardinal`;
-   * `ordinal` is refused as `no-data`, since the ordinal rules are not
-   * carried.
+   * The plural category a number has in a locale, by CLDR 48's rules,
+   * with the operands read from the number as written: `"1"` is `one` in
+   * English and `"1.0"` is `other`. `kind` is `cardinal`, the form after a
+   * count, or `ordinal`, the form of a position: the English 2 is `two`
+   * (2nd) and 3 `few` (3rd).
    *
    * @param {string} locale
    * @param {string} number a plain decimal, as text

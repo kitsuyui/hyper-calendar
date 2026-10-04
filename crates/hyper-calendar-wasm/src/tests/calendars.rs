@@ -233,11 +233,16 @@ fn a_converted_day_decodes_column_by_column() {
     assert_eq!(gregorian[4..10], ["2026", "9", "0", "9月", "21", "0"]);
     assert_eq!(gregorian[11..14], ["", "", "in-use"]);
     assert_eq!(gregorian[15..17], ["2026年9月21日", "ja"]);
-    // Japanese has no words for the Hebrew months, so the Hebrew
-    // calendar answers in English, not Hebrew, and says so.
+    // Japanese names the Hebrew months from CLDR 48 `ja.xml`, so the
+    // Hebrew calendar answers in Japanese, never in Hebrew, and says so.
     let hebrew = row(&rows, "hebrew");
-    assert_eq!(hebrew[16], "en");
-    assert!(hebrew[7].is_ascii(), "{hebrew:?}");
+    assert_eq!(hebrew[16], "ja");
+    assert!(
+        !hebrew[7]
+            .chars()
+            .any(|c| ('\u{0590}'..='\u{05FF}').contains(&c)),
+        "{hebrew:?}"
+    );
     // The last column names the civil day a day is named after: the
     // Hebrew day that begins at sunset by the one it ends on, the
     // Julian Day that begins at noon by the one it begins on.

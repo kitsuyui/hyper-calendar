@@ -1723,7 +1723,7 @@ export interface LocaleInfo {
   pluralRules: string;
 }
 
-/** The kinds of plural rule. `ordinal` is not carried. */
+/** The kinds of plural rule: the form after a count, and the form of a position (1st, 2nd). */
 export type PluralKind = "cardinal" | "ordinal";
 
 /** A CLDR plural category. */

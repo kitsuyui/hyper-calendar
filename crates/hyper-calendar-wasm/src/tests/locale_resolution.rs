@@ -30,9 +30,9 @@ fn the_chain_and_the_description_of_a_locale() {
 }
 
 /// CLDR 48's `plurals.xml`: Russian 2 is `few` and 5 `many`; English 1 is
-/// `one` and 1.0 `other`.
+/// `one` and 1.0 `other`. Its `ordinals.xml`: the English 3rd is `few`.
 #[test]
-fn a_number_has_a_category_and_ordinals_are_not_carried() {
+fn a_number_has_a_cardinal_and_an_ordinal_category() {
     let category = |locale: &str, number: &str, kind: &str| {
         read_lines(|buffer, capacity| unsafe {
             hc_plural_category(
@@ -53,19 +53,8 @@ fn a_number_has_a_category_and_ordinals_are_not_carried() {
         category("en", "1.0", "cardinal"),
         "other\ten\t1\t1\t0\t0\t0\n"
     );
-    let ordinal = unsafe {
-        hc_plural_category(
-            "en".as_ptr(),
-            2,
-            "1".as_ptr(),
-            1,
-            "ordinal".as_ptr(),
-            7,
-            core::ptr::null_mut(),
-            0,
-        )
-    };
-    assert_eq!(ordinal, HC_ERR_NO_DATA);
+    assert_eq!(category("en", "3", "ordinal"), "few\ten\t3\t0\t0\t0\t0\n");
+    assert_eq!(category("de", "3", "ordinal"), "other\tde\t3\t0\t0\t0\t0\n");
     let unknown = unsafe {
         hc_plural_category(
             "en".as_ptr(),
