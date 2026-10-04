@@ -194,6 +194,7 @@ export const METHODS = Object.freeze([
   { method: "holidaysOn", export: "hc_holidays_on", feature: "holiday" },
   { method: "holidayTables", export: "hc_holiday_tables", feature: "holiday" },
   { method: "holidayGroups", export: "hc_holiday_groups", feature: "holiday" },
+  { method: "holidayCoverage", export: "hc_holiday_coverage", feature: "holiday" },
   { method: "holidaysOnIn", export: "hc_holidays_on_in", feature: "holiday" },
   { method: "lectionary", export: "hc_lectionary", feature: "holiday" },
   { method: "astronomicalEaster", export: "hc_astronomical_easter", feature: "holiday" },
@@ -424,7 +425,7 @@ export const COLUMNS = Object.freeze({
   ]),
   holidaysInYear: Object.freeze([
     "date", "name", "local name", "kind", "confidence", "substitute", "observed for", "region",
-    "group", "id", "source", "bridged",
+    "group", "id", "source", "bridged", "window first", "window last",
   ]),
   holidaysOn: Object.freeze([
     "table", "table name", "name", "local name", "kind", "confidence", "source",
@@ -602,6 +603,9 @@ export const COLUMNS = Object.freeze({
   commonWorship: Object.freeze(["title", "rank", "rank name", "id"]),
   roman1960Office: Object.freeze(["role", "title", "class", "class name", "transferred from"]),
   holidayGroups: Object.freeze(["group", "name", "locale used", "english name"]),
+  holidayCoverage: Object.freeze([
+    "region", "first read", "answered from", "answered until", "complete", "weekend from", "reason",
+  ]),
   dayPeriod: Object.freeze(["half", "half name", "period", "abbreviated", "wide", "narrow", "locale used"]),
   numberingSystems: Object.freeze(["system", "algorithmic", "digits"]),
   calendarEras: Object.freeze(["code", "wide", "abbreviated", "narrow", "calendar", "locale used"]),
@@ -2380,7 +2384,7 @@ function gregorianAdoption(cells) {
  * @returns {import("./hyper-calendar.d.ts").HolidayInYear}
  */
 function holidayInYear(cells) {
-  const [date, name, localName, kind, confidence, substitute, observedFor, region, group, id, source, bridged] =
+  const [date, name, localName, kind, confidence, substitute, observedFor, region, group, id, source, bridged, windowFirst, windowLast] =
     cells;
   return {
     date: optional(date),
@@ -2395,6 +2399,8 @@ function holidayInYear(cells) {
     id,
     source: optional(source),
     bridged: flag(bridged, "bridged"),
+    windowFirst: optional(windowFirst),
+    windowLast: optional(windowLast),
   };
 }
 
@@ -7550,6 +7556,35 @@ export class HyperCalendar {
       localeUsed: optional(localeUsed),
       englishName,
     }));
+  }
+
+  /**
+   * The years a holiday table answers for, nationwide and in each
+   * subdivision it answers for: the first year any rule is read for, the
+   * first year from which none is a gap for want of reading, the last year
+   * no announced list has run out in, whether every rule is read in some
+   * year, the first year the weekend law is read, and the rule that sets the
+   * later start. A year before the first is a gap that `holidaysInYear`
+   * writes.
+   *
+   * @param {string} code
+   * @returns {import("./hyper-calendar.d.ts").HolidayCoverage[]}
+   */
+  holidayCoverage(code) {
+    const fn = this.#export("hc_holiday_coverage");
+    const text = this.#withText(code, "code", (pointer, len) =>
+      this.#text("hc_holiday_coverage", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.holidayCoverage, "hc_holiday_coverage").map(
+      ([region, firstRead, answeredFrom, answeredUntil, complete, weekendFrom, reason]) => ({
+        region: optional(region),
+        firstRead: optionalInteger(firstRead, "first read"),
+        answeredFrom: optionalInteger(answeredFrom, "answered from"),
+        answeredUntil: optionalInteger(answeredUntil, "answered until"),
+        complete: flag(complete, "complete"),
+        weekendFrom: optionalInteger(weekendFrom, "weekend from"),
+        reason: optional(reason),
+      }),
+    );
   }
 
   /**

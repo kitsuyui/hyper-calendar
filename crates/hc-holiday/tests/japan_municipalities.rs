@@ -259,8 +259,7 @@ fn own(region: &str, year: i64, month: u8, day: u8) -> Vec<Holiday> {
 
 fn gap_names(region: &str, year: i64) -> Vec<&'static str> {
     HolidayCalendar::for_year(&JAPAN, Some(region), year)
-        .gaps()
-        .iter()
+        .holiday_gaps()
         .map(|gap| gap.local_name)
         .collect()
 }
@@ -386,8 +385,7 @@ fn a_city_read_is_answered_and_a_city_not_read_is_a_gap() {
     // 鎌倉市, 14204, was not read: Kanagawa's days, and a gap for its own.
     assert_eq!(
         HolidayCalendar::for_year(&JAPAN, Some("JP-14-204"), 2026)
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .map(|gap| gap.name)
             .collect::<Vec<_>>(),
         [UNREAD_SUBDIVISION]

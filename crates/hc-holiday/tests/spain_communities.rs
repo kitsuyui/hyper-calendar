@@ -140,8 +140,7 @@ fn the_years_whose_resolution_was_not_read_are_gaps() {
     // gap for it; 2012 has the gap.
     let ceuta_gap = |year| {
         HolidayCalendar::for_year(&SPAIN, Some("ES-CE"), year)
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .any(|gap| gap.local_name == "Día de Ceuta")
     };
     assert!(!ceuta_gap(2015));
@@ -151,8 +150,7 @@ fn the_years_whose_resolution_was_not_read_are_gaps() {
     // community keeping Epiphany, and Epiphany a gap in any other.
     let gaps = |year| {
         HolidayCalendar::for_year(&SPAIN, None, year)
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .map(|gap| gap.name)
             .collect::<Vec<_>>()
     };

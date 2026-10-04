@@ -61,7 +61,7 @@ use crate::computus::offsets::{
     TRINITY_SUNDAY,
 };
 use crate::rule::{
-    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions, dated,
+    Days, HolidayRule, Kind, NO_WEEKEND, Rule, RuleSet, SourceDate, Subdivisions, dated,
 };
 
 /// The year the calendar begins in: *Common Worship* was "launched on the
@@ -351,7 +351,7 @@ pub static COMMON_WORSHIP: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Church of England, Common Worship, \"Rules to Order the Christian Year\" \
               and \"A Table of Transferences\" (churchofengland.org, `cw-rules`), \

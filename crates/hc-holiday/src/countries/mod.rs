@@ -82,6 +82,7 @@ pub mod switzerland;
 mod taiwan_scoped;
 pub mod united_states;
 pub mod vanuatu;
+pub(crate) mod weekends;
 
 pub use africa_middle_east::{
     ALGERIA, ANGOLA, BAHRAIN, BENIN, BOTSWANA, BURKINA_FASO, BURUNDI, CABO_VERDE, CAMEROON, CHAD,

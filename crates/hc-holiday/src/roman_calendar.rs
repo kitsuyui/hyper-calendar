@@ -64,9 +64,7 @@ use alloc::vec::Vec;
 use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
 
-use crate::rule::{
-    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions,
-};
+use crate::rule::{Days, HolidayRule, Kind, NO_WEEKEND, Rule, RuleSet, SourceDate, Subdivisions};
 
 /// The rank of a celebration, as the Universal Norms on the Liturgical
 /// Year give them (nos. 10–14).
@@ -495,7 +493,7 @@ pub static GENERAL_ROMAN_CALENDAR: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "General Roman Calendar and Universal Norms on the Liturgical Year and the General \
               Roman Calendar (approved by Mysterii Paschalis, 14 February 1969), as the Liturgy \

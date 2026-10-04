@@ -766,7 +766,7 @@ fn china_s_article_5_commemorations_are_observances_without_a_day_off() {
     let local: Vec<&str> = old.all().iter().map(|holiday| holiday.local_name).collect();
     assert!(local.contains(&"教师节") && local.contains(&"植树节"));
     assert!(!local.contains(&"记者节") && !local.contains(&"二七纪念日"));
-    let gaps: Vec<&str> = old.gaps().iter().map(|gap| gap.name).collect();
+    let gaps: Vec<&str> = old.holiday_gaps().map(|gap| gap.name).collect();
     for name in ["February 7th Memorial Day", "Nurses' Day"] {
         assert!(gaps.contains(&name), "{name}: {gaps:?}");
     }
@@ -859,8 +859,7 @@ fn china_keeps_each_years_arrangement() {
     let calendar = HolidayCalendar::for_year(table("CN"), None, 1998);
     assert!(
         calendar
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .any(|gap| gap.year == 1998 && gap.name == "Statutory holidays"),
         "{:?}",
         calendar.gaps()
@@ -882,8 +881,7 @@ fn china_keeps_each_years_arrangement() {
     assert!(calendar.is_holiday(ymd(1999, 10, 1)));
     assert!(
         !calendar
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .any(|gap| gap.name == "Statutory holidays")
     );
 }
@@ -1100,7 +1098,7 @@ fn india_central_government_holidays() {
     );
     let before = HolidayCalendar::for_year(table("IN"), None, 2024);
     assert!(before.in_year(2024).is_empty());
-    assert!(before.gaps().iter().any(|gap| gap.name == "Republic Day"));
+    assert!(before.holiday_gaps().any(|gap| gap.name == "Republic Day"));
     // India has no observed-day rule: 26 January 2025 was a Sunday.
     expect_working("IN", None, &[(2025, 1, 27)]);
     // The Department of Personnel and Training's Diwali of 2017, 2018 and
@@ -1259,7 +1257,7 @@ fn thailand_keeps_its_buddhist_days_on_the_thai_lunar_calendar() {
     // guesses.
     for year in [1991, 2028] {
         let calendar = HolidayCalendar::for_year(table("TH"), None, year);
-        let missing: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
+        let missing: Vec<&str> = calendar.holiday_gaps().map(|gap| gap.name).collect();
         for name in [
             "Makha Bucha",
             "Visakha Bucha",
@@ -1506,7 +1504,7 @@ fn indonesia_keeps_the_days_its_joint_decrees_date() {
     // Before the lists read, the Islamic days are the tabular prediction,
     // and Nyepi, whose calendar is not carried, is a gap.
     let early = HolidayCalendar::for_year(table("ID"), None, 2019);
-    assert!(early.gaps().iter().any(|gap| gap.name == "Nyepi"));
+    assert!(early.holiday_gaps().any(|gap| gap.name == "Nyepi"));
     assert!(
         early
             .all()
@@ -1774,8 +1772,7 @@ fn the_philippines_keeps_the_proclaimed_special_days() {
     );
     assert!(
         later
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .any(|gap| gap.name == "Proclaimed special days")
     );
     assert!(HolidayCalendar::for_year(table("PH"), None, 2027).is_complete());
@@ -1854,20 +1851,18 @@ fn the_philippines_keeps_the_proclaimed_days_of_2012_to_2019() {
     assert!(!earlier.is_holiday(ymd(2011, 4, 23)));
     assert!(
         earlier
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .any(|gap| gap.name == "Proclaimed special days")
     );
 }
 
 #[test]
-fn nepal_keeps_a_one_day_weekend_until_2026() {
+fn nepal_keeps_a_one_day_weekend_until_april_2026() {
     let country = table("NP");
-    let old = HolidayCalendar::for_year(country, None, 2024);
-    // Saturday is the weekend; Sunday is an ordinary working day.
-    assert!(old.is_weekend(ymd(2024, 3, 2)));
-    assert!(!old.is_weekend(ymd(2024, 3, 3)));
-    assert!(old.is_business_day(ymd(2024, 3, 3)));
+    // The Saturday-only weekend is read from 2026; 2024's is not.
+    let unread = HolidayCalendar::for_year(country, None, 2024);
+    assert!(!unread.weekend_is_read(ymd(2024, 3, 2)));
+    assert!(!unread.is_weekend(ymd(2024, 3, 2)));
     // The two-day weekend from Monday 6 April 2026: Sunday 5 April was
     // still a working day, and Sunday 12 April the first one off.
     let new = HolidayCalendar::for_year(country, None, 2026);
@@ -2424,7 +2419,7 @@ fn bangladesh_keeps_its_hijri_days_as_the_notifications_date_them_and_predicts_t
     // days among those reported.
     let before = HolidayCalendar::for_year(table("BD"), None, 2024);
     assert!(before.in_year(2024).is_empty());
-    assert!(before.gaps().iter().any(|gap| gap.name == "Shab-e-Barat"));
+    assert!(before.holiday_gaps().any(|gap| gap.name == "Shab-e-Barat"));
     assert!(!before.is_holiday(ymd(2024, 12, 16)));
 }
 
@@ -2448,7 +2443,7 @@ fn bangladesh_reports_the_years_its_notifications_do_not_cover_as_gaps() {
     );
     let beyond = HolidayCalendar::for_year(table("BD"), None, 2027);
     assert!(!beyond.is_complete());
-    assert!(beyond.gaps().iter().any(|gap| gap.name == "Janmashtami"));
+    assert!(beyond.holiday_gaps().any(|gap| gap.name == "Janmashtami"));
     assert_eq!(beyond.name_on(ymd(2027, 12, 16)), Some("Victory Day"));
 }
 
@@ -2574,18 +2569,18 @@ fn mongolia_reports_a_skipped_or_repeated_lunar_day_as_a_gap_and_moves_nothing()
     // second are given, and the third is a gap, iKon.mn having reported
     // three days off and the Government then deciding nothing.
     let calendar = HolidayCalendar::for_year(table("MN"), None, 2022);
-    let missing: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
+    let missing: Vec<&str> = calendar.holiday_gaps().map(|gap| gap.name).collect();
     assert_eq!(missing, ["Tsagaan Sar"]);
     assert_eq!(calendar.name_on(ymd(2022, 2, 2)), Some("Tsagaan Sar"));
     assert_eq!(calendar.name_on(ymd(2022, 2, 3)), Some("Tsagaan Sar"));
     assert!(!calendar.is_holiday(ymd(2022, 2, 4)));
     // 2034 repeats the fifteenth of the first summer month.
     let calendar = HolidayCalendar::for_year(table("MN"), None, 2034);
-    let missing: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
+    let missing: Vec<&str> = calendar.holiday_gaps().map(|gap| gap.name).collect();
     assert_eq!(missing, ["Buddha's Birthday"]);
     // Children's Day 2024 fell on a Saturday and stays there.
     let calendar = HolidayCalendar::for_year(table("MN"), None, 2024);
-    assert!(calendar.is_weekend(ymd(2024, 6, 1)));
+    assert_eq!(calendar.name_on(ymd(2024, 6, 1)), Some("Children's Day"));
     assert!(calendar.is_business_day(ymd(2024, 6, 3)));
     assert!(calendar.on(ymd(2024, 6, 3)).is_empty());
 }
@@ -2721,7 +2716,9 @@ fn cambodia_moves_nothing_off_its_sunday_weekend() {
     // Visak Bochea 2025 fell on Sunday 11 May and Independence Day on Sunday
     // 9 November; guideline No. 028/22 says a Sunday holiday is not moved.
     let calendar = HolidayCalendar::for_year(table("KH"), None, 2025);
-    assert!(calendar.is_weekend(ymd(2025, 5, 11)));
+    // The Sunday weekend is read from 2026, so 2025's is not read; 2026's is.
+    assert!(!calendar.weekend_is_read(ymd(2025, 5, 11)));
+    assert!(HolidayCalendar::for_year(table("KH"), None, 2026).is_weekend(ymd(2026, 3, 8)));
     assert!(calendar.on(ymd(2025, 5, 12)).is_empty());
     assert!(calendar.on(ymd(2025, 11, 10)).is_empty());
     // Saturday is a working day under article 147 of the Labour Law.
@@ -2745,7 +2742,7 @@ fn cambodia_reports_the_years_its_sub_decrees_do_not_cover_as_gaps() {
         (2028, &["Khmer New Year"][..]),
     ] {
         let calendar = HolidayCalendar::for_year(table("KH"), None, year);
-        let mut missing: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
+        let mut missing: Vec<&str> = calendar.holiday_gaps().map(|gap| gap.name).collect();
         missing.dedup();
         assert_eq!(missing, expected, "{year}");
     }
@@ -2816,7 +2813,7 @@ fn laos_reports_the_years_its_notices_do_not_cover_as_gaps() {
     assert!(HolidayCalendar::for_year(table("LA"), None, 2026).is_complete());
     let beyond = HolidayCalendar::for_year(table("LA"), None, 2027);
     assert!(!beyond.is_complete());
-    assert!(beyond.gaps().iter().any(|gap| gap.name == "Lao New Year"));
+    assert!(beyond.holiday_gaps().any(|gap| gap.name == "Lao New Year"));
     assert_eq!(beyond.name_on(ymd(2027, 12, 2)), Some("National Day"));
 }
 
@@ -3069,7 +3066,7 @@ fn bhutan_predicts_its_bhutanese_calendar_days_beyond_the_lists() {
     );
     let before = HolidayCalendar::for_year(table("BT"), None, 2024);
     assert!(!before.is_holiday(ymd(2024, 2, 10)));
-    assert!(before.gaps().iter().any(|gap| gap.name == "Losar"));
+    assert!(before.holiday_gaps().any(|gap| gap.name == "Losar"));
     for (year, month, day, name) in [
         (2027, 2, 7, "Losar"),
         (2028, 11, 9, "Descending Day of Lord Buddha"),
@@ -3080,7 +3077,7 @@ fn bhutan_predicts_its_bhutanese_calendar_days_beyond_the_lists() {
         );
     }
     let beyond = HolidayCalendar::for_year(table("BT"), None, 2027);
-    let mut missing: Vec<&str> = beyond.gaps().iter().map(|gap| gap.name).collect();
+    let mut missing: Vec<&str> = beyond.holiday_gaps().map(|gap| gap.name).collect();
     missing.sort_unstable();
     // The Blessed Rainy Day and Dassain, taken from the lists alone, and
     // Guru Rinpoche's birthday, whose 10th day of the 5th month 2027 skips
@@ -3136,7 +3133,7 @@ fn bhutans_losar_of_2003_is_predicted_by_the_arithmetic_a_day_after_the_governme
     expect_rule_dates("BT", None, &[(2003, 3, 4, "Losar"), (2003, 3, 5, "Losar")]);
     let calendar = HolidayCalendar::for_year(table("BT"), None, 2003);
     assert!(!calendar.is_holiday(ymd(2003, 3, 4)));
-    assert!(calendar.gaps().iter().any(|gap| gap.name == "Losar"));
+    assert!(calendar.holiday_gaps().any(|gap| gap.name == "Losar"));
 }
 
 #[test]
@@ -3243,11 +3240,11 @@ fn afghanistan_keeps_the_emirates_solar_days_and_reports_the_announced_eid_days(
     // read.
     for year in [2023, 2025, 2026] {
         let calendar = HolidayCalendar::for_year(table("AF"), None, year);
-        let missing: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
+        let missing: Vec<&str> = calendar.holiday_gaps().map(|gap| gap.name).collect();
         assert_eq!(missing, ["Eid al-Fitr"], "{year}");
     }
     let unread = HolidayCalendar::for_year(table("AF"), None, 2024);
-    assert!(unread.gaps().iter().any(|gap| gap.name == "Eid al-Adha"));
+    assert!(unread.holiday_gaps().any(|gap| gap.name == "Eid al-Adha"));
     // Nowruz is not a holiday; nothing before 2023 is claimed.
     expect_working("AF", None, &[(2026, 3, 21), (2025, 3, 21), (2022, 8, 19)]);
 }
@@ -3646,7 +3643,7 @@ fn pakistan_carries_iqbal_day_only_in_the_years_it_was_a_holiday() {
         let calendar = HolidayCalendar::for_year(table("PK"), None, year);
         assert!(!calendar.is_holiday(ymd(year, 11, 9)), "{year}");
         assert!(
-            calendar.gaps().iter().any(|gap| gap.name == "Iqbal Day"),
+            calendar.holiday_gaps().any(|gap| gap.name == "Iqbal Day"),
             "{year}"
         );
     }
@@ -4975,7 +4972,7 @@ fn bosnia_and_herzegovina_has_no_state_holidays_and_three_laws_beneath() {
     // 9 January is known from the Ministry's notices to 2026 and no
     // further.
     let later = HolidayCalendar::for_year(table("BA"), Some("BA-SRP"), 2027);
-    assert!(later.gaps().iter().any(|gap| gap.name == "Republic Day"));
+    assert!(later.holiday_gaps().any(|gap| gap.name == "Republic Day"));
 
     // Brčko: District Day on Sunday 8 March 2026 gave Monday 9 March, and
     // the Assembly's decisions give each religious holiday one day.
@@ -5008,8 +5005,7 @@ fn bosnia_and_herzegovina_has_no_state_holidays_and_three_laws_beneath() {
     );
     // Past the decisions read, the religious days are a gap, not absent.
     let gaps: Vec<&str> = HolidayCalendar::for_year(table("BA"), Some("BA-BRC"), 2027)
-        .gaps()
-        .iter()
+        .holiday_gaps()
         .map(|gap| gap.name)
         .collect();
     assert!(gaps.contains(&"Catholic Easter"), "{gaps:?}");
@@ -6366,8 +6362,7 @@ fn the_democratic_republic_of_the_congo_follows_the_ministers_communiques_from_2
     let unread = HolidayCalendar::for_year(table("CD"), None, 2027);
     assert!(
         unread
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .any(|gap| gap.name == "Weekend holiday moved by communiqué"),
         "{:?}",
         unread.gaps()
@@ -6517,8 +6512,7 @@ fn burkina_faso_gave_a_sundays_monday_until_the_2026_law() {
     let transition = HolidayCalendar::for_year(table("BF"), None, 2026);
     assert!(
         transition
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .any(|gap| gap.name == "Day after a Sunday holiday")
     );
     assert!(HolidayCalendar::for_year(table("BF"), None, 2025).is_complete());
@@ -6559,8 +6553,7 @@ fn cabo_verde_keeps_law_16_iv_91_and_13_january_from_2020() {
     let before = HolidayCalendar::for_year(table("CV"), None, 2016);
     assert!(
         before
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .any(|gap| gap.name == "Freedom and Democracy Day")
     );
     assert!(HolidayCalendar::for_year(table("CV"), None, 2020).is_complete());
@@ -7566,8 +7559,7 @@ fn palestine_s_fourth_table_gives_the_samaritan_employees_their_feasts() {
     let later = HolidayCalendar::for_year(table("PS"), None, 2026);
     assert!(
         later
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .any(|gap| gap.name == "Samaritan New Year")
     );
 }
@@ -7637,9 +7629,10 @@ fn yemen_follows_law_2_of_2000_with_five_day_eids_and_nothing_moved() {
     assert_eq!(mawlid, [("Prophet's Birthday", Kind::Observance)]);
     // Thursday and Friday until 2013, Friday and Saturday since.
     assert!(calendar.is_weekend(ymd(2026, 5, 2)));
-    let calendar = HolidayCalendar::for_year(table("YE"), None, 2012);
-    assert!(calendar.is_weekend(ymd(2012, 5, 3)));
-    assert!(!calendar.is_weekend(ymd(2012, 5, 5)));
+    let calendar = HolidayCalendar::for_year(table("YE"), None, 2013);
+    assert!(calendar.is_weekend(ymd(2013, 5, 2)));
+    assert!(!calendar.is_weekend(ymd(2013, 5, 4)));
+    assert!(!HolidayCalendar::for_year(table("YE"), None, 2012).weekend_is_read(ymd(2012, 5, 3)));
 }
 
 #[test]
@@ -7822,7 +7815,7 @@ fn vatican_city_keeps_the_holy_days_of_obligation_and_the_popes_days() {
     // Saturday is a working day, and nothing moves off a Sunday.
     assert_eq!(
         table("VA").weekend_on(ymd(2026, 1, 1)),
-        &[hc_calendar::Weekday::Sunday]
+        Some(&[hc_calendar::Weekday::Sunday][..])
     );
     assert!(table("VA").substitution.is_empty());
     // Canon 1246's fixed days are solemnities of the General Roman
@@ -7851,8 +7844,7 @@ fn vatican_city_keeps_the_holy_days_of_obligation_and_the_popes_days() {
     }
     // Who reigns after 2026 is not known, and the calendar says so.
     let gaps: Vec<&str> = HolidayCalendar::for_year(table("VA"), None, 2027)
-        .gaps()
-        .iter()
+        .holiday_gaps()
         .map(|gap| gap.name)
         .collect();
     assert_eq!(
@@ -8119,8 +8111,7 @@ fn madagascar_keeps_the_yearly_decrees_and_reports_their_undated_days_as_gaps() 
     expect_working("MG", None, &[(2024, 3, 8), (2023, 1, 2), (2026, 3, 30)]);
     assert!(HolidayCalendar::for_year(table("MG"), None, 2025).is_complete());
     let missing: Vec<&str> = HolidayCalendar::for_year(table("MG"), None, 2026)
-        .gaps()
-        .iter()
+        .holiday_gaps()
         .map(|gap| gap.name)
         .collect();
     assert!(missing.contains(&"Malagasy New Year"), "{missing:?}");
@@ -8197,8 +8188,7 @@ fn lesotho_keeps_the_acts_days_and_reports_the_changed_ones_as_gaps_before_2026(
     );
     assert!(HolidayCalendar::for_year(table("LS"), None, 2026).is_complete());
     let missing: Vec<&str> = HolidayCalendar::for_year(table("LS"), None, 2025)
-        .gaps()
-        .iter()
+        .holiday_gaps()
         .map(|gap| gap.name)
         .collect();
     for name in ["Heroes' Day", "King's Birthday", "Boxing Day"] {
@@ -8240,8 +8230,7 @@ fn chad_moves_only_article_2s_paid_days_off_a_sunday() {
     // article 1's days, stays.
     expect_working("TD", None, &[(2018, 3, 8), (2021, 11, 29), (2022, 12, 26)]);
     let missing: Vec<&str> = HolidayCalendar::for_year(table("TD"), None, 2010)
-        .gaps()
-        .iter()
+        .holiday_gaps()
         .map(|gap| gap.name)
         .collect();
     assert!(missing.contains(&"Independence Day"), "{missing:?}");
@@ -8545,11 +8534,14 @@ fn ukraine_gives_no_day_off_under_martial_law() {
 #[test]
 fn saudi_arabia_changed_its_weekend_in_2013() {
     let country = table("SA");
-    let before = HolidayCalendar::for_year(country, None, 2012);
-    // 2012-03-01 was a Thursday.
-    assert!(before.is_weekend(ymd(2012, 3, 1)));
-    assert!(before.is_weekend(ymd(2012, 3, 2)));
-    assert!(!before.is_weekend(ymd(2012, 3, 3)));
+    // The Thursday-and-Friday weekend is read from 2013.
+    let before = HolidayCalendar::for_year(country, None, 2013);
+    // 2013-03-07 was a Thursday.
+    assert!(before.is_weekend(ymd(2013, 3, 7)));
+    assert!(before.is_weekend(ymd(2013, 3, 8)));
+    assert!(!before.is_weekend(ymd(2013, 3, 9)));
+    let unread = HolidayCalendar::for_year(country, None, 2012);
+    assert!(!unread.weekend_is_read(ymd(2012, 3, 1)));
     let after = HolidayCalendar::for_year(country, None, 2014);
     // 2014-03-06 was a Thursday.
     assert!(!after.is_weekend(ymd(2014, 3, 6)));
@@ -9117,9 +9109,9 @@ fn fiji_reports_the_years_its_lists_do_not_cover_as_gaps() {
     assert!(HolidayCalendar::for_year(table("FJ"), None, 2019).is_complete());
     assert!(HolidayCalendar::for_year(table("FJ"), None, 2026).is_complete());
     let before = HolidayCalendar::for_year(table("FJ"), None, 2018);
-    assert!(before.gaps().iter().any(|gap| gap.name == "Fiji Day"));
+    assert!(before.holiday_gaps().any(|gap| gap.name == "Fiji Day"));
     let beyond = HolidayCalendar::for_year(table("FJ"), None, 2027);
-    assert!(beyond.gaps().iter().any(|gap| gap.name == "Diwali"));
+    assert!(beyond.holiday_gaps().any(|gap| gap.name == "Diwali"));
     // Easter is the Schedule's, and known in any year.
     assert_eq!(beyond.name_on(ymd(2027, 3, 26)), Some("Good Friday"));
 }
@@ -9161,11 +9153,10 @@ fn kiribati_reports_the_years_its_orders_were_not_read_as_gaps() {
     assert!(HolidayCalendar::for_year(table("KI"), None, 2025).is_complete());
     assert!(HolidayCalendar::for_year(table("KI"), None, 2026).is_complete());
     let before = HolidayCalendar::for_year(table("KI"), None, 2024);
-    assert!(before.gaps().iter().any(|gap| gap.name == "National Day"));
+    assert!(before.holiday_gaps().any(|gap| gap.name == "National Day"));
     assert!(
         !before
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .any(|gap| gap.name == "Special Day in honour of Pope Francis")
     );
     assert!(!HolidayCalendar::for_year(table("KI"), None, 2027).is_complete());
@@ -9278,8 +9269,7 @@ fn liberia_keeps_its_acts_and_moves_a_sunday_holiday_to_the_monday() {
     let act_year = HolidayCalendar::for_year(table("LR"), None, 1960);
     assert!(
         act_year
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .any(|gap| gap.name == "National Unification Day")
     );
     assert!(HolidayCalendar::for_year(table("LR"), None, 2026).is_complete());
@@ -9288,8 +9278,7 @@ fn liberia_keeps_its_acts_and_moves_a_sunday_holiday_to_the_monday() {
 /// The names of the gaps of a country's calendar for a year.
 fn gap_names(code: &str, year: i64) -> Vec<&'static str> {
     HolidayCalendar::for_year(table(code), None, year)
-        .gaps()
-        .iter()
+        .holiday_gaps()
         .map(|gap| gap.name)
         .collect()
 }
@@ -9678,8 +9667,7 @@ fn taiwan_made_up_only_the_lunar_new_year_before_2015() {
     let calendar = HolidayCalendar::for_year(table("TW"), None, 2012);
     assert!(
         calendar
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .any(|gap| gap.name == "Children's Day")
     );
 }

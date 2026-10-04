@@ -217,6 +217,45 @@ fn the_groups_a_holiday_may_be_given_to_are_lines() {
     assert_eq!(first[3], "women");
 }
 
+/// Japan's civil service weekend is read from 1 May 1992, its days from the
+/// Public Holidays Act of 1948, and Osaka's own days from 1989.
+#[cfg(feature = "holiday")]
+#[test]
+fn the_years_a_holiday_table_answers_for_are_lines() {
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_holiday_coverage("JP".as_ptr(), 2, buffer, capacity)
+    });
+    let first = cells(text.lines().next().expect("a scope"));
+    assert_eq!(
+        first,
+        [
+            "",
+            "1948",
+            "1949",
+            "",
+            "1",
+            "1992",
+            "Holidays before the Public Holidays Act"
+        ]
+    );
+    let osaka = text
+        .lines()
+        .map(cells)
+        .find(|row| row[0] == "JP-27")
+        .expect("Osaka");
+    assert_eq!(osaka[2], "1989");
+    assert_eq!(osaka[6], "JP-27");
+    // A table read in no year has no first year to give.
+    let bosnia = read_lines(|buffer, capacity| unsafe {
+        hc_holiday_coverage("BA".as_ptr(), 2, buffer, capacity)
+    });
+    assert_eq!(cells(bosnia.lines().next().expect("a scope"))[4], "0");
+    assert_eq!(
+        unsafe { hc_holiday_coverage("ZZ".as_ptr(), 2, core::ptr::null_mut(), 0) },
+        HC_ERR_UNKNOWN
+    );
+}
+
 /// Nayrouz, 11 September 2025, is named by the Bohairic Coptic names.
 #[cfg(feature = "holiday")]
 #[test]
@@ -281,10 +320,13 @@ fn business_days_skip_the_holidays_and_refuse_what_they_cannot_count() {
     assert_eq!(between(tuesday - 1, monday), 6);
     assert_eq!(between(monday, tuesday - 1), -6);
     assert_eq!(between(tuesday, tuesday), 0);
-    // Newfoundland and Labrador's Victoria Day of 2025 is a gap, so the
-    // walk across Friday 16 May is open, not counted on a guess.
+    // A day of 2151 may be one of China's lunisolar festivals, so a walk over
+    // it is open, not counted on a guess; Canada's weekend of 2025 is read
+    // from 2026.
+    let monday = hc_gregorian_to_fixed(2151, 3, 3);
+    assert_eq!(add("CN", "", monday, 1), HC_ERR_NO_DATA);
     let friday = hc_gregorian_to_fixed(2025, 5, 16);
-    assert_eq!(add("CA", "CA-NL", friday, 1), HC_ERR_NO_DATA);
+    assert_eq!(add("CA", "CA-NL", friday, 1), HC_ERR_OUT_OF_RANGE);
     // Kedah's weekend law of 2012 was not read: the walk is out of range.
     let wednesday = hc_gregorian_to_fixed(2012, 5, 9);
     assert_eq!(add("MY", "MY-02", wednesday, 1), HC_ERR_OUT_OF_RANGE);

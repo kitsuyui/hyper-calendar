@@ -342,7 +342,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-295 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+296 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -502,6 +502,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_holidays_on(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `holiday` | Every holiday on one fixed day across every table, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_holiday_tables(const char *locale, char *buffer, size_t capacity, size_t *written);` | `holiday` | Every holiday table with its kind, names and sources, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_holiday_groups(const char *locale, char *buffer, size_t capacity, size_t *written);` | `holiday` | Every group of people a holiday may be given to alone, named in a locale, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_holiday_coverage(const char *code, char *buffer, size_t capacity, size_t *written);` | `holiday` | The years a holiday table answers for, nationwide and in each subdivision it answers for, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_holidays_on_in(int64_t fixed, const char *locale, char *buffer, size_t capacity, size_t *written);` | `holiday` | `hc_holidays_on`'s lines, each with the day's name in a locale and the tag that named it, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_lectionary(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `holiday` | The lectionary cycles of a fixed day, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_astronomical_easter(int64_t year, int64_t *out_fixed);` | `holiday` | The fixed day of Easter Sunday of a Gregorian year by the astronomical reckoning at the meridian of Jerusalem. |
@@ -1209,11 +1210,14 @@ entry. A subdivision's lines are only the entries the nationwide calendar
 does not have, and a group's the entries the calendar for everyone does
 not, so a nationwide holiday is written once. A `gap` line is a holiday the table
 could not place in the day's year — its calendar's range ended, or the
-year's announcement has not been read — reported so the caller can say so.
+year's announcement has not been read — reported so the caller can say so,
+on the days it could fall on and on no other.
 Each table is evaluated for the one day (`HolidayCalendar::for_day`), which
 answers exactly what the whole year would at about a third of the cost.
 
-`hc_holiday_groups(locale, buffer, capacity, written)` writes the module's
+`hc_holiday_coverage(code, buffer, capacity, written)` writes the module's
+lines of the years a table answers for, in the seven columns of the
+WebAssembly module's README, and `hc_holiday_groups(locale, buffer, capacity, written)` writes the module's
 lines of every group a holiday may be given to alone, named in the locale,
 and `hc_holidays_on_in(fixed, locale, buffer, capacity, written)`
 `hc_holidays_on`'s lines with three more cells, the day's name in the locale

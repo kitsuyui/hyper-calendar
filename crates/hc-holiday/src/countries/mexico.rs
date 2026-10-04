@@ -15,9 +15,8 @@ use hc_calendar::Weekday;
 use hc_calendars_solar::gregorian;
 
 use super::read_all;
-use crate::rule::{
-    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions,
-};
+use super::weekends;
+use crate::rule::{Days, HolidayRule, Kind, Rule, RuleSet, SourceDate, Subdivisions};
 
 /// The presidential handover day, Ley Federal del Trabajo art. 74 VI.
 ///
@@ -134,7 +133,7 @@ pub static MEXICO: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::MX,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Ley Federal del Trabajo, artículo 74, as reformed in 2006 and by the decree \
               reforming fracción VII (DOF 30 September 2024); the Cámara de Diputados text \

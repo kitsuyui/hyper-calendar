@@ -52,9 +52,7 @@ use hc_calendar::Weekday;
 use hc_calendars_solar::gregorian;
 
 use crate::computus::offsets::{ASCENSION, EASTER_SUNDAY, PENTECOST, TRINITY_SUNDAY};
-use crate::rule::{
-    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions,
-};
+use crate::rule::{Days, HolidayRule, Kind, NO_WEEKEND, Rule, RuleSet, SourceDate, Subdivisions};
 
 /// The year of the book: before it the calendar is absent.
 const BOOK_YEAR: i32 = 1662;
@@ -307,7 +305,7 @@ pub static BOOK_OF_COMMON_PRAYER_1871: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "The Book of Common Prayer: \"The Calendar, with the Table of Lessons (The New \
               Lectionary, introduced in 1871.)\" in Lynda Howell's transcription \
@@ -328,7 +326,7 @@ pub static BOOK_OF_COMMON_PRAYER_1662: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "The Book of Common Prayer (1662): \"A Table of all the Feasts that are to be \
               observed in the Church of England through the year\" and the Tables and Rules for \

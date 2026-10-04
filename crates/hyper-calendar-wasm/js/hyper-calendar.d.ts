@@ -1140,6 +1140,7 @@ export const COLUMNS: {
   readonly commonWorship: ReadonlyArray<string>;
   readonly roman1960Office: ReadonlyArray<string>;
   readonly holidayGroups: ReadonlyArray<string>;
+  readonly holidayCoverage: ReadonlyArray<string>;
   readonly dayPeriod: ReadonlyArray<string>;
   readonly numberingSystems: ReadonlyArray<string>;
   readonly calendarEras: ReadonlyArray<string>;
@@ -1826,6 +1827,14 @@ export interface HolidayInYear {
   source: string | null;
   /** Whether a bridge policy made this entry, Japan's 国民の休日 between two holidays. */
   bridged: boolean;
+  /**
+   * The first day a gap's holiday could fall on, ISO 8601, or `null`: on an entry, and on a gap
+   * nothing narrows, whose whole year is open. Only the days from `windowFirst` to `windowLast`
+   * are refused for a gap that has them.
+   */
+  windowFirst: string | null;
+  /** The last day a gap's holiday could fall on, as `windowFirst`. */
+  windowLast: string | null;
 }
 
 /** One line of `hc_holidays_on`: one entry of one table on one day. */
@@ -2986,6 +2995,24 @@ export interface HolidayGroup {
   name: string | null;
   localeUsed: string | null;
   englishName: string;
+}
+
+/** One line of `hc_holiday_coverage`: the years a table answers for in one scope. */
+export interface HolidayCoverage {
+  /** The subdivision's ISO 3166-2 code, or `null` for the whole country. */
+  region: string | null;
+  /** The first year any rule of the scope is read for, or `null` where some rule has no first year. */
+  firstRead: number | null;
+  /** The first year from which no rule of the scope is a gap for want of reading, or `null` where no rule declares one. */
+  answeredFrom: number | null;
+  /** The last year no announced list in the scope has run out in, or `null` where none runs out. */
+  answeredUntil: number | null;
+  /** `false` where some rule of the scope is read in no year, so that the scope is a gap in every year after `answeredFrom`. */
+  complete: boolean;
+  /** The first year the scope's weekend law is read, or `null` for a table whose weekend has no first year. */
+  weekendFrom: number | null;
+  /** The rule, or the subdivision, that sets `answeredFrom`, or `null`. */
+  reason: string | null;
 }
 
 /** One line of `hc_holidays_on_in`. */
@@ -4871,6 +4898,8 @@ export class HyperCalendar {
   commonWorshipOn(fixed: number | bigint): CommonWorshipCelebration[];
   /** `hc_holiday_groups`: every group a holiday may be given to alone, named in a locale. */
   holidayGroups(locale?: string): HolidayGroup[];
+  /** `hc_holiday_coverage`: the years a table answers for, nationwide and in each subdivision it answers for. A code naming no table is `unknown`. */
+  holidayCoverage(code: string): HolidayCoverage[];
   /** `hc_holidays_on_in`: `holidaysOn`'s entries with the day's name in a locale. */
   holidaysOnIn(fixed: number | bigint, locale?: string): HolidayOnIn[];
   /** `hc_day_period`: the day periods of a time of day in a locale. */

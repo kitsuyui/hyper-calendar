@@ -10,13 +10,14 @@ use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
 
 use super::read_all;
+use super::weekends;
 use crate::computus::offsets::{
     ASCENSION, ASH_WEDNESDAY, CORPUS_CHRISTI, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY,
     HOLY_SATURDAY, MAUNDY_THURSDAY, PENTECOST, SHROVE_TUESDAY, WHIT_MONDAY,
 };
 use crate::rule::{
-    CalendarSystem, Days, HolidayRule, Kind, ListedEntry, Listing, Rule, RuleSet, SATURDAY_SUNDAY,
-    SourceDate, Subdivisions, SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
+    CalendarSystem, Days, HolidayRule, Kind, ListedEntry, Listing, Rule, RuleSet, SourceDate,
+    Subdivisions, SubstituteDirection, SubstitutionPolicy,
 };
 
 /// The British and Irish shift: a bank holiday on a weekend is kept on the
@@ -174,7 +175,7 @@ pub static UNITED_KINGDOM: RuleSet = RuleSet {
     substitution: BRITISH_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::GB,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Banking and Financial Dealings Act 1971 (c. 80), section 1 and schedule 1, \
               as amended by the St Andrew's Day Bank Holiday (Scotland) Act 2007 (asp 2), \
@@ -272,7 +273,7 @@ pub static IRELAND: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::IE,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Organisation of Working Time Act 1997 (No. 20 of 1997), section 21 and \
               the Second Schedule, revised to 20 January 2025, on the Law Reform \
@@ -355,7 +356,7 @@ pub static FRANCE: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::FR,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Code du travail, article L3133-1, in force since 10 August 2016 (loi n° \
               2016-1088 du 8 août 2016, art. 8), on Légifrance \
@@ -508,7 +509,7 @@ pub static GERMANY: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::DE,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Einigungsvertrag, Art. 2 Abs. 2, for 3 October, on gesetze-im-internet.de \
               (gesetze-im-internet.de/einigvtr/art_2.html); Brandenburg's Feiertagsgesetz \
@@ -626,7 +627,7 @@ pub static ITALY: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::IT,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Legge 27 maggio 1949, n. 260, Disposizioni in materia di ricorrenze festive, \
               articles 1 and 2, in the text in force updated to 10 October 2025, on Normattiva \
@@ -730,7 +731,7 @@ pub static PORTUGAL: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::PT,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Código do Trabalho (Lei n.º 7/2009, de 12 de fevereiro), artigo 234.º, in the \
               wording of Lei n.º 8/2016, de 1 de abril, consolidated to Lei n.º 32/2025, de 27 \
@@ -809,7 +810,7 @@ pub static NETHERLANDS: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::NL,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Algemene termijnenwet, artikel 3, in force from 10 October 2010 \
               (wetten.overheid.nl/BWBR0002448), and the Besluit van 30 januari 2013, nr. \
@@ -865,7 +866,7 @@ pub static BELGIUM: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::BE,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Arrêté royal du 18 avril 1974 déterminant les modalités générales d'exécution de \
               la loi du 4 janvier 1974 relative aux jours fériés / koninklijk besluit van 18 \
@@ -925,7 +926,7 @@ pub static AUSTRIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::AT,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Arbeitsruhegesetz, BGBl. Nr. 144/1983, § 7 Abs. 2, as amended by BGBl. I Nr. \
               22/2019, which repealed Abs. 3 on Good Friday, read on jusline.at (secondary; \
@@ -1020,7 +1021,7 @@ pub static SWEDEN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::SE,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Lag (1989:253) om allmänna helgdagar, §§ 1 and 2, as amended by lag (2004:1320), \
               which traded Annandag pingst for the National Day, on riksdagen.se \
@@ -1077,7 +1078,7 @@ pub static NORWAY: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::NO,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Lov om helligdager og helligdagsfred (LOV-1995-02-24-12), § 2, as amended to \
               LOV-2021-05-07-34, and lov om 1. og 17. mai som høgtidsdager (LOV-1947-04-26-1), \
@@ -1136,7 +1137,7 @@ pub static DENMARK: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::DK,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Lov nr. 214 af 6. marts 2023 om konsekvenser ved afskaffelsen af store bededag \
               som helligdag, in force 1 January 2024, known from Retsinformation's search \
@@ -1219,7 +1220,7 @@ pub static FINLAND: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::FI,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Laki itsenäisyyspäivän viettämisestä yleisenä juhla- ja vapaapäivänä (388/1937), \
               whose Finlex page (finlex.fi/en/legislation/1937/388) did not display its text, \
@@ -1302,7 +1303,7 @@ pub static POLAND: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::PL,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Ustawa z dnia 18 stycznia 1951 r. o dniach wolnych od pracy (Dz.U. 1951 nr 4 \
               poz. 28; consolidated text Dz.U. 2025 poz. 296), art. 1, as amended by the \
@@ -1377,7 +1378,7 @@ pub static CZECHIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::CZ,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Zákon č. 245/2000 Sb., o státních svátcích, o ostatních svátcích, o významných \
               dnech a o dnech pracovního klidu, §§ 1 and 2, as amended by zákon č. 359/2015 \
@@ -1447,7 +1448,7 @@ pub static GREECE: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::GR,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Νόμος 4808/2021, άρθρο 60, the mandatory holidays, read on taxheaven.gr \
               (secondary; the ΦΕΚ not read), and the Ministry of Labour's circular \
@@ -1514,7 +1515,7 @@ pub static HUNGARY: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::HU,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "2012. évi I. törvény a munka törvénykönyvéről, § 102, as amended \
               in 2016 to add Good Friday from 2017; Wikipedia, \"Public \
@@ -1614,7 +1615,7 @@ pub static ROMANIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::RO,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Codul muncii (Legea 53/2003) art. 139, as amended by Legea \
               147/2012 (Saint Andrew), Legea 171/2016 (24 January), Legea \
@@ -1906,7 +1907,7 @@ pub static RUSSIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::RU,
     sources_checked: SourceDate::new(2026, 10, 3),
     sources: "Трудовой кодекс Российской Федерации, статья 112, as amended \
               (Federal Law 201-ФЗ of 29 December 2004 for the 2005 list, \
@@ -2128,7 +2129,7 @@ pub static UKRAINE: RuleSet = RuleSet {
     substitution: UA_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::UA,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Кодекс законів про працю України, статті 67 and 73, in the \
               Verkhovna Rada's consolidated text of 31 July 2026 \
@@ -2233,7 +2234,7 @@ pub static CROATIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::HR,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Zakon o blagdanima, spomendanima i neradnim danima u Republici Hrvatskoj, NN \
               110/2019 and 72/2025, članak 1, on zakon.hr (secondary; narodne-novine.nn.hr not \
@@ -2412,7 +2413,7 @@ pub static SLOVAKIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::SK,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Zákon č. 241/1993 Z. z. o štátnych sviatkoch, dňoch pracovného pokoja a \
               pamätných dňoch, § 1, § 2 and § 4b, as amended last by zákon č. 261/2025 \
@@ -2503,7 +2504,7 @@ pub static SLOVENIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::SI,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Zakon o praznikih in dela prostih dnevih v Republiki Sloveniji (ZPDPD), Uradni \
               list RS, št. 26/91, as amended last by ZPDPD-H, Uradni list RS, št. 12/26, členi \
@@ -2613,7 +2614,7 @@ pub static ICELAND: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::IS,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Lög um 40 stunda vinnuviku nr. 88/1971, 6. gr., and lög nr. 32/1997 um frið \
               vegna helgihalds, 2. gr., in Lagasafn 157c (1 September 2026) on althingi.is \
@@ -2727,7 +2728,7 @@ pub static BULGARIA: RuleSet = RuleSet {
     substitution: BG_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::BG,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Council of Ministers of the Republic of Bulgaria, \"Bulgarian public \
               holidays\", gov.bg, retrieved 2026-09-22, for the list and the \
@@ -2844,7 +2845,7 @@ pub static CYPRUS: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::CY,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Ο περί Τραπεζικών Αργιών Νόμος του 1996 (13(I)/1996), άρθρο 5, on CyLaw \
               (cylaw.org/nomoi/enop/non-ind/1996_1_13/full.html), retrieved 2026-09-26, for \
@@ -2979,7 +2980,7 @@ pub static ESTONIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::EE,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Pühade ja tähtpäevade seadus, adopted 27 January 1998, and the act of \
               8 February 1994 it replaced, as reproduced with their amendment \
@@ -3241,7 +3242,7 @@ pub static LATVIA: RuleSet = RuleSet {
     substitution: LV_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::LV,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Likums \"Par svētku, atceres un atzīmējamām dienām\", consolidated text \
               in force from 18 March 2025, likumi.lv, retrieved 2026-09-22; the \
@@ -3350,7 +3351,7 @@ pub static LITHUANIA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::LT,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Lietuvos Respublikos darbo kodeksas, 123 straipsnis, as listed by the \
               Lithuanian Wikipedia, \"Sąrašas:Lietuvos šventės\", and Wikipedia, \
@@ -3468,7 +3469,7 @@ pub static ALBANIA: RuleSet = RuleSet {
     substitution: AL_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::AL,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "The Albanian Wikipedia, \"Lista e festave në Shqipëri\", and Wikipedia, \
               \"Public holidays in Albania\", both retrieved 2026-09-22, for the list, \
@@ -3642,7 +3643,7 @@ pub static MONTENEGRO: RuleSet = RuleSet {
     substitution: ME_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::ME,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Zakon o državnim i drugim praznicima, as reproduced by paragraf.me, \
               retrieved 2026-09-22, for the state and other holidays, the two-day \
@@ -3815,7 +3816,7 @@ pub static NORTH_MACEDONIA: RuleSet = RuleSet {
     substitution: MK_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::MK,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Закон за празниците на Република Македонија, as reproduced on the \
               Macedonian Wikisource, retrieved 2026-09-22, for articles 2 and 3 and \
@@ -3978,7 +3979,7 @@ pub static SERBIA: RuleSet = RuleSet {
     substitution: RS_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::RS,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Zakon o državnim i drugim praznicima u Republici Srbiji, as reproduced \
               by paragraf.rs, retrieved 2026-09-22, for the articles and the \
@@ -4141,7 +4142,19 @@ const fn ba_srpska_religious(name: &'static str, local: &'static str, rule: Rule
         .read_from(BA_SRPSKA_FIRST)
 }
 
+/// The three entities whose own laws set the holidays.
+const BA_ENTITIES: &[&str] = &["BA-BIH", "BA-SRP", "BA-BRC"];
+
 static BA_RULES: &[HolidayRule] = &[
+    // No law of the state sets public holidays that any source read gives:
+    // each entity's law does. A request with no entity has no list to answer
+    // with, and says so in every year.
+    HolidayRule::public("Holidays of the entities", "", Rule::UNREAD)
+        .except_in(BA_ENTITIES)
+        .cited(
+            "no state-level law on public holidays was found among the state's regulations \
+             listed on Paragraf Lex; the entities' laws are the sources below",
+        ),
     // The Federation: the Law on Holidays the Republic took over in 1992
     // and the two laws of 1995.
     HolidayRule::public("New Year's Day", "Nova godina", Rule::gregorian(1, 1))
@@ -4410,7 +4423,7 @@ pub static BOSNIA_AND_HERZEGOVINA: RuleSet = RuleSet {
     substitution: BA_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::BA,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Federation: the Federal Ministry of Labour and Social Policy's notices on \
               fbihvlada.gov.ba for 1 May 2016, 1 May 2021 and New Year 2023, citing the Law \
@@ -4530,7 +4543,7 @@ pub static BELARUS: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::BY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "The President of the Republic of Belarus, \"Государственные праздники \
               Беларуси\", president.gov.by, retrieved 2026-09-22, for Decree 157's \
@@ -4598,7 +4611,7 @@ pub static LUXEMBOURG: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::LU,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Inspection du travail et des mines, \"Jours fériés légaux\", itm.public.lu, \
               retrieved 2026-09-22, for article L. 232-2 and the law of 25 April \
@@ -4679,7 +4692,7 @@ pub static MALTA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::MT,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "National Holidays and Other Public Holidays Act, Cap. 252, legislation.mt, \
               retrieved 2026-09-22, for the Act and its amendments; Wikipedia, \
@@ -4785,7 +4798,7 @@ pub static MOLDOVA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::MD,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Codul muncii al Republicii Moldova, art. 111, as listed by zilelibere.md, a \
               private aggregator (secondary; the Code on legis.md not read), \
@@ -4871,7 +4884,7 @@ pub static LIECHTENSTEIN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::LI,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Gesetz über die Arbeit in Industrie, Gewerbe und Handel (Arbeitsgesetz), \
               LGBl. 1967 Nr. 6, article 18(2) as amended by LGBl. 1986 Nr. 85, from \
@@ -4961,7 +4974,7 @@ pub static MONACO: RuleSet = RuleSet {
     substitution: MC_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::MC,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Loi n° 798 du 18 février 1966 portant fixation des jours fériés légaux, \
               article 1, as Legimonaco publishes it, retrieved 2026-09-22; the Prince's \
@@ -5084,7 +5097,7 @@ pub static SAN_MARINO: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::SM,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Legge 30 ottobre 2013 n. 152 replacing article 2 of Legge 18 dicembre 1990 \
               n. 152, Calendario delle Festività, from the Consiglio Grande e Generale's \
@@ -5298,7 +5311,7 @@ pub static VATICAN_CITY: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: VA_WEEKEND,
+    weekend: weekends::VA,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Regolamento generale per il personale del Governatorato dello Stato della Città \
               del Vaticano (21 November 2010), articles 26 and 27, from vatican.va and from the \
@@ -5311,14 +5324,3 @@ pub static VATICAN_CITY: RuleSet = RuleSet {
               2026-09-23",
     subdivisions: Subdivisions::Read(&[]),
 };
-
-/// Sunday alone: the regulations' "day of weekly rest, which coincides
-/// with Sunday".
-static VA_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
-    days: &[Weekday::Sunday],
-    regions: &[],
-    valid_from: None,
-    valid_from_day: None,
-    valid_until: None,
-    valid_until_day: None,
-}];

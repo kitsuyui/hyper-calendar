@@ -318,10 +318,6 @@ const FIRST_YEARS: &[(&str, i64, &str)] = &[
     ),
 ];
 
-/// Tables whose every rule is established in a year of its own, so that no
-/// rule needs a first year read: Tunisia's, from décret 61-144 of 1961.
-const ALL_ESTABLISHED: &[&str] = &["TN"];
-
 /// Tables that name no day of their first year: Togo's days of the law of
 /// 1987 are each a gap, their dates for the years before 2024 not read.
 const NO_DAY_AT_FIRST_YEAR: &[&str] = &["TG"];
@@ -342,14 +338,11 @@ fn every_table_is_a_gap_before_its_first_year_and_answers_from_it() {
         if !long_before.in_year(1700).is_empty() {
             failures.push(format!("{code} answers for 1700"));
         }
-        if ALL_ESTABLISHED.contains(&code) {
-            continue;
-        }
         let before = HolidayCalendar::for_year(table, None, first - 1);
-        if long_before.gaps().is_empty() {
+        if long_before.is_complete() {
             failures.push(format!("{code} 1700 is not a gap ({source})"));
         }
-        if before.gaps().is_empty() {
+        if before.is_complete() {
             failures.push(format!("{code} {} is not a gap ({source})", first - 1));
         }
         if before.gaps().len() <= at.gaps().len() && !NO_DAY_AT_FIRST_YEAR.contains(&code) {
@@ -364,17 +357,33 @@ fn every_table_is_a_gap_before_its_first_year_and_answers_from_it() {
 }
 
 #[test]
-fn a_table_whose_every_rule_is_established_has_no_gap_before_its_first_year() {
+fn tunisia_s_days_of_the_first_decree_are_a_gap_before_it_and_the_later_days_are_absent() {
     let tunisia = countries::by_code("TN").unwrap_or_else(|| panic!("no TN"));
+    // Décret 61-144 of 30 March 1961 is the first text read: the days it
+    // lists are read from 1961, and nothing read dates their establishment,
+    // so the years before are a gap, not years without a holiday.
     for year in [1700, 1960] {
         let calendar = HolidayCalendar::for_year(tunisia, None, year);
         assert!(calendar.in_year(year).is_empty(), "TN {year}");
-        assert!(calendar.is_complete(), "TN {year}");
+        assert!(!calendar.is_complete(), "TN {year}");
+        let names: Vec<&str> = calendar.holiday_gaps().map(|gap| gap.name).collect();
+        assert!(names.contains(&"Independence Day"), "TN {year}: {names:?}");
+        // Evacuation Day was added by décret 64-13 of 1964: not a gap before.
+        assert!(!names.contains(&"Evacuation Day"), "TN {year}: {names:?}");
     }
     assert!(
         !HolidayCalendar::for_year(tunisia, None, 1961)
             .in_year(1961)
             .is_empty()
+    );
+    // 1961 to 1963 answer without Evacuation Day, which is absent, not open.
+    let calendar = HolidayCalendar::for_year(tunisia, None, 1962);
+    assert!(calendar.is_complete());
+    assert!(
+        calendar
+            .in_year(1962)
+            .iter()
+            .all(|holiday| holiday.name != "Evacuation Day")
     );
 }
 
@@ -383,8 +392,7 @@ fn a_day_established_before_the_first_year_is_a_gap_from_its_establishment() {
     let gap_names = |code: &str, year: i64| -> Vec<&'static str> {
         let table = countries::by_code(code).unwrap_or_else(|| panic!("no {code}"));
         HolidayCalendar::for_year(table, None, year)
-            .gaps()
-            .iter()
+            .holiday_gaps()
             .map(|gap| gap.name)
             .collect()
     };
@@ -417,12 +425,12 @@ fn australia_is_carried_from_2000_and_a_state_s_own_days_from_2026() {
     let au = countries::by_code("AU").unwrap_or_else(|| panic!("no AU"));
     // The two Acts read, the Holidays Act 1983 (Qld) and the Statutory
     // Holidays Act 2000 (Tas), give the days every state keeps.
-    assert!(!HolidayCalendar::for_year(au, None, 1999).gaps().is_empty());
-    assert!(HolidayCalendar::for_year(au, None, 2000).gaps().is_empty());
+    assert!(!HolidayCalendar::for_year(au, None, 1999).is_complete());
+    assert!(HolidayCalendar::for_year(au, None, 2000).is_complete());
     // A state's own day rests on a list of 2026 and on sources that are not
     // the state's Act, so an earlier year is a gap, not an answer.
     let vic_2025 = HolidayCalendar::for_year(au, Some("AU-VIC"), 2025);
-    assert!(!vic_2025.gaps().is_empty());
+    assert!(!vic_2025.is_complete());
     assert!(
         !vic_2025
             .in_year(2025)

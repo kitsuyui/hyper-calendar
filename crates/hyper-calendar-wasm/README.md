@@ -215,7 +215,7 @@ out of range is `out-of-range`, never an unrecognised number.
 | a byte length | `hc_attributions_on` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERR_OUT_OF_RANGE`, and a meridian not read `HC_ERR_UNKNOWN` |
 | a byte length | `hc_harvest_moon` | `year` −999 through 3000; any other is `HC_ERR_OUT_OF_RANGE`, and a meridian not read `HC_ERR_UNKNOWN` |
 | a byte length | `hc_orbit_rate_offset`, `hc_rocket`, `hc_flip_and_burn`, `hc_doppler`, `hc_velocity_add`, `hc_schwarzschild_radius`, `hc_proper_time_uncertain`, `hc_planck_units`, `hc_bp_convert`, `hc_deep_convert`, `hc_deep_compare`, `hc_daily_insolation`, `hc_edtf_parse`, `hc_edtf_relations`, `hc_significant`, `hc_significant_op`, `hc_uncertain`, `hc_uncertain_op`, `hc_units`, `hc_rates`, `hc_frame_period`, `hc_fiscal_profiles`, `hc_week_year_systems`, `hc_name_day_lists`, `hc_attribution_authorities` | no `i64` input: text, or `f64` and `u32` values whose range each export's documentation states |
-| a byte length | `hc_version`, `hc_calendar_list`, `hc_locales`, `hc_gregorian_adoption`, `hc_holiday_codes`, `hc_holiday_tables`, `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals`, `hc_orbit_at`, `hc_orbit_series`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_horizons`, `hc_missions`, `hc_bodies`, `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies`, `hc_ccsds_decode`, `hc_ccsds_ascii_parse`, `hc_six_hour_clock`, `hc_prayer_methods`, `hc_night_watch`, `hc_irig_formats`, `hc_french_decimal_time`, `hc_civil_from_french_decimal_time`, `hc_day_period`, `hc_fractional`, `hc_scientific`, `hc_metric`, `hc_naturalsize`, `hc_naturallist`, `hc_intword`, `hc_intcomma`, `hc_intcomma_float`, `hc_parse_datetime`, `hc_iso_date_parts`, `hc_iso_duration`, `hc_iso_interval`, `hc_parse_pattern`, `hc_parse_pattern_in`, `hc_locale_chain`, `hc_locale_info`, `hc_plural_category`, `hc_names`, `hc_case`, `hc_isolate`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_holiday_groups`, `hc_irig_frame_start` | no `i64` input: text, or `f64` values whose range each export's documentation states; a length is never negative, so it never nears the floor |
+| a byte length | `hc_version`, `hc_calendar_list`, `hc_locales`, `hc_gregorian_adoption`, `hc_holiday_codes`, `hc_holiday_tables`, `hc_holiday_coverage`, `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals`, `hc_orbit_at`, `hc_orbit_series`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_horizons`, `hc_missions`, `hc_bodies`, `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies`, `hc_ccsds_decode`, `hc_ccsds_ascii_parse`, `hc_six_hour_clock`, `hc_prayer_methods`, `hc_night_watch`, `hc_irig_formats`, `hc_french_decimal_time`, `hc_civil_from_french_decimal_time`, `hc_day_period`, `hc_fractional`, `hc_scientific`, `hc_metric`, `hc_naturalsize`, `hc_naturallist`, `hc_intword`, `hc_intcomma`, `hc_intcomma_float`, `hc_parse_datetime`, `hc_iso_date_parts`, `hc_iso_duration`, `hc_iso_interval`, `hc_parse_pattern`, `hc_parse_pattern_in`, `hc_locale_chain`, `hc_locale_info`, `hc_plural_category`, `hc_names`, `hc_case`, `hc_isolate`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_holiday_groups`, `hc_irig_frame_start` | no `i64` input: text, or `f64` values whose range each export's documentation states; a length is never negative, so it never nears the floor |
 
 [`crates/hyper-calendar/tests/abi.rs`](../hyper-calendar/tests/abi.rs)
 walks every `i64` export in the source and fails when one has no row
@@ -419,6 +419,7 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `holidaysOn(fixed)` | `hc_holidays_on` | `HolidayOn[]` |
 | `holidayTables(locale)` | `hc_holiday_tables` | `HolidayTable[]` |
 | `holidayGroups(locale)`, `holidaysOnIn(fixed, locale)` | `hc_holiday_groups`, `hc_holidays_on_in` | `HolidayGroup[]`; `HolidayOnIn[]` |
+| `holidayCoverage(code)` | `hc_holiday_coverage` | `HolidayCoverage[]`, the years a table answers for |
 | `lectionary(fixed)`, `astronomicalEaster(year)`, `astronomicalPaschalFullMoon(year)` | `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon` | a `Lectionary`; a fixed day number |
 | `holyYearOn(fixed)`, `commonWorshipOn(fixed)`, `roman1960OfficeOn(fixed)` | `hc_holy_year_on`, `hc_common_worship_on`, `hc_roman_1960_office_on` | a `HolyYear` or `null`; `CommonWorshipCelebration[]`; `Roman1960Office[]` |
 | `orthodoxFastOn(reckoning, fixed)`, `orthodoxFastSeasons(reckoning, year)` | `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | an `OrthodoxFastDay`; `OrthodoxFastSeason[]` |
@@ -614,7 +615,7 @@ warning an error, one job a layer.
 | `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai_minus_utc_exact`, `hc_utc_from_tai_exact`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_uuid_timestamp_encode`, `hc_ntp_encode`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`, `hc_tt_bipm`, `hc_dotnet_ticks_from_unix`, `hc_unix_from_dotnet_ticks`, `hc_six_hour_clock`, `hc_civil_from_six_hour_clock`, `hc_french_decimal_time`, `hc_civil_from_french_decimal_time`: POSIX time to and from TAI, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, Julian and Besselian epochs, TT(BIPM) from a caller's series, .NET ticks, and the Ethiopian and Swahili six-hour clocks | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time`, `epoch_notation`, `tt_bipm` and `dotnet`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` and `east_african_hours` | 125,507 | 123 KiB |
 | `time-codes` | `hc_ccsds_decode`, `hc_ccsds_encode`, `hc_ccsds_decode_from_epoch`, `hc_ccsds_encode_from_epoch`, `hc_ccsds_ascii_parse`, `hc_ccsds_ascii_format`, `hc_radio_decode`, `hc_radio_encode`, `hc_jjy_call_sign_decode`, `hc_jjy_call_sign_encode`, `hc_irig_decode`, `hc_irig_encode`, `hc_irig_formats`, `hc_irig_frame_start`: the CCSDS time codes, binary and ASCII, the long-wave radio time codes of JJY, DCF77 and WWVB, and the IRIG serial time codes, read and written; a layer of its own so that `timestamps` stays small | nothing beyond `civil`'s crates: `hc-core`'s `ccsds`, `hc-format`'s `ccsds`, `radio` and `irig` | 116,418 | 114 KiB |
 | `calendars` | `hc_describe_day`, `hc_day_extras`, `hc_calendar_units`, `hc_parse_date`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_day_period`, `hc_format_number`, `hc_parse_number`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_gregorian_adoption`, `hc_naming_period_on`, `hc_locale_chain`, `hc_locale_info`, `hc_plural_category`, `hc_names`, `hc_case`, `hc_isolate`, `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_tithi_at`, `hc_tithis_of_day`, `hc_ayanamsas`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor`, `hc_festival_readings`, `hc_janmashtami`, `hc_vaishnava_day`, `hc_vishti_free_span`, `hc_rahu_at`, `hc_rahu_ingresses`, `hc_era_new_year`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_ioc_olympiad_on`, `hc_olympic_games`, `hc_era_table`, `hc_babylonian_regnal_year`, `hc_equinox_new_year_margin`, `hc_shmuel_tekufah`, `hc_day_name`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_chinese_age`, `hc_chinese_almanac_solar_terms`, `hc_hebrew_sabbatical_cycle_year`, `hc_asian_day`, `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_kalam`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_at`, `hc_nakshatra_of_day`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_rounichi`, `hc_mansion_undertakings`, `hc_almanac_person_days`, `hc_tibetan_almanac_day`, `hc_tibetan_planets`, `hc_bhutanese_winter_solstice`, `hc_tibetan_festival_day`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_kumbh_yogas`, `hc_pushkaram_rivers`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale, and a date written in one read back; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_at`, `hc_nakshatra_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_ioc_olympiad_on`, `hc_babylonian_regnal_year`, `hc_equinox_new_year_margin`, `hc_shmuel_tekufah`, `hc_day_name`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_chinese_age`, `hc_chinese_almanac_solar_terms`, `hc_asian_day`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_rounichi`, `hc_mansion_undertakings`, `hc_almanac_person_days`, `hc_tibetan_almanac_day`, `hc_tibetan_planets`, `hc_bhutanese_winter_solstice`, `hc_tibetan_festival_day`; `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`: the northern year's name, the choghadiya, Panchak, the Kumbh and Pushkaram conditions, the folk days and the night watches, each named in a locale; `hc_tithi_at`, `hc_tithis_of_day`, `hc_ayanamsas`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor`, `hc_festival_readings`, `hc_janmashtami`, `hc_vaishnava_day`, `hc_vishti_free_span`, `hc_rahu_at`, `hc_rahu_ingresses`, `hc_era_new_year`, `hc_era_table`, `hc_olympic_games`, `hc_kumbh_yogas`, `hc_pushkaram_rivers`: the tithi with its span, the repeated and skipped ones, the named ayanāṃśas and a value of one, the Smārta and Vaiṣṇava readings of Janmāṣṭamī, Rāhu and Ketu, and the new years of the Indian eras, the eras of three tables, the Olympic Games, and the Kumbh conditions and the Pushkaram rivers | every `hc-calendars-*` crate, `hc-astro`, `hc-almanac`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 1,520,268 | 1.45 MiB |
-| `holiday` | `hc_holiday_is_day_off`, `hc_holiday_add_business_days`, `hc_holiday_business_days_between`, `hc_holiday_is_weekend`, `hc_holiday_next`, `hc_holiday_previous`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_holiday_groups`, `hc_holidays_on_in`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_roman_1960_office_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 2,441,344 | 2.33 MiB |
+| `holiday` | `hc_holiday_is_day_off`, `hc_holiday_add_business_days`, `hc_holiday_business_days_between`, `hc_holiday_is_weekend`, `hc_holiday_next`, `hc_holiday_previous`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_holiday_groups`, `hc_holiday_coverage`, `hc_holidays_on_in`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_roman_1960_office_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 2,441,344 | 2.33 MiB |
 | `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day`, `hc_plum_rains`, `hc_pentad_traditions`, `hc_pentad_in_tradition`, `hc_zassetsu_in_year`, `hc_seasonal_days_in_year` | `hc-seasons`, `hc-astro` | 124,575 | 122 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals`, `hc_planck_units`, `hc_bp_convert`, `hc_deep_convert`, `hc_deep_compare` | `hc-deep-time`, `hc-uncertainty` | 197,595 | 193 KiB |
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zone_offset`, `hc_zones`, `hc_zone_location`: the day and the offset by a zone's rules, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` or `zone-names` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 101,054 | 99 KiB |
@@ -686,7 +687,7 @@ not pass CI.
 
 ### Exports
 
-299 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+300 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -850,6 +851,7 @@ not pass CI.
 | `hc_holidays_on(fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | Every holiday on one fixed day across every table, as UTF-8 lines, returning the byte length written. |
 | `hc_holiday_tables(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | Every holiday table with its kind, names and sources, as UTF-8 lines, returning the byte length written. |
 | `hc_holiday_groups(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | Every group of people a holiday may be given to alone, named in a locale, as UTF-8 lines, returning the byte length written. |
+| `hc_holiday_coverage(code: *const u8, code_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The years a holiday table answers for, nationwide and in each subdivision it answers for, as UTF-8 lines, returning the byte length written. |
 | `hc_holidays_on_in(fixed: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | `hc_holidays_on`'s lines, each with the day's name in a locale and the tag that named it, as UTF-8 lines, returning the byte length written. |
 | `hc_lectionary(fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The lectionary cycles of a fixed day, as one UTF-8 line, returning the byte length written. |
 | `hc_astronomical_easter(year: i64) -> i64` | `holiday` | The fixed day of Easter Sunday of a Gregorian year by the astronomical reckoning at the meridian of Jerusalem, or an error sentinel. |
@@ -3539,7 +3541,7 @@ Identifier Code (`XNYS`), a tradition's slug (`christian-western`) or
 answers for one day; `hc_holidays_in_year` writes a year as tab-separated
 lines — the ISO date, the name, the local name, the kind, the confidence,
 `1` for a substitute day, the date it stands in for, the region, the group,
-the identifier, the source and `1` for a bridged day — and, called with a null buffer, returns the
+the identifier, the source, `1` for a bridged day, the first day a gap's holiday could fall on and the last — and, called with a null buffer, returns the
 length the text needs so the caller can allocate exactly. The region is the subdivision whose own entry the
 line is: asked for `JP` in the region `JP-13`, the lines are Japan's
 nationwide days and Tokyo's 都民の日, and only 都民の日 carries `JP-13`. A
@@ -3578,7 +3580,12 @@ date and confidence, the kind `gap`, and the region and group whose own
 gap it is — a holiday whose calendar's range ended, whose announcement was
 not read, whose sources were not read for the year, or the days of a
 subdivision not read. `CN` for `women` in 1998, before the statute's text
-read, is everyone's days and a gap line for the half day of 8 March.
+read, is everyone's days and a gap line for the half day of 8 March. A gap
+whose holiday the table can place if it was kept — a rule before its first
+year, or an announcement that has run out — carries the first and the last
+day it could fall on in the last two cells, and only those days are refused
+by `holidayIsDayOff` and the business-day arithmetic; a gap with nothing to
+narrow it has both empty and leaves the whole year open.
 
 The string arguments fail the same way in both, and the same way as in the C
 library: a null pointer with a non-zero length is `HC_ERR_NULL_POINTER`, a
@@ -3743,7 +3750,9 @@ of 8 March is a line of `CN` with `women` in column 11.
 
 A `gap` line is a holiday the table could not place in the day's year — its
 calendar's range ended, or the year's announcement has not been read — with
-columns 6 and 7 empty. It is reported rather than left out so a page can say
+columns 6 and 7 empty, written on the days its holiday could fall on and on
+no other (and the `unread-weekend` gap on a day whose weekend law was not
+read). It is reported rather than left out so a page can say
 "no announcement read for this year" instead of showing nothing; policy §4.
 A day with no Gregorian year is `HC_ERR_OUT_OF_RANGE`.
 
@@ -3866,6 +3875,26 @@ is the `region`'s where it keeps one of its own (column 14 of
 Friday and Saturday. A count past 36 500, or two days more than a hundred
 years apart, or a walk that reaches a day whose weekend law the region's
 sources did not read, is `HC_ERR_OUT_OF_RANGE`.
+
+### Years a table answers for
+
+`hc_holiday_coverage(code_ptr, code_len, buffer, capacity)` writes, for a
+table, the years it answers for: one line for the whole country, then one for
+each subdivision the table answers for or reads from a year, in code order.
+A year before the first is a gap that `hc_holidays_in_year` writes. The
+ranges of the calendars the rules count in are not repeated here.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | region | the subdivision's ISO 3166-2 code, or empty for the whole country |
+| 2 | first read | the first year any rule of the scope is read for, or empty where some rule has no first year |
+| 3 | answered from | the first year from which no rule of the scope is a gap for want of reading, or empty where no rule declares one |
+| 4 | answered until | the last year no announced list in the scope has run out in, or empty where none runs out |
+| 5 | complete | `1` where every rule of the scope is read in some year, `0` where one is read in none |
+| 6 | weekend from | the first year the scope's weekend law is read, or empty where the table's weekend has none |
+| 7 | reason | the rule, or the subdivision, that sets `answered from`, or empty |
+
+A code that names no table is `HC_ERR_UNKNOWN`.
 
 ### Groups and names in a locale
 

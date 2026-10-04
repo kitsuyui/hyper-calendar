@@ -65,7 +65,8 @@ fn the_rule_based_days_fall_where_their_pages_put_them() {
 
 #[test]
 fn every_day_is_an_observance_that_cites_its_instrument_and_gives_nobody_a_day_off() {
-    let calendar = HolidayCalendar::for_year(&UNITED_NATIONS, None, 2026);
+    // 2028 is after the last year any day is read from, 2027.
+    let calendar = HolidayCalendar::for_year(&UNITED_NATIONS, None, 2028);
     assert!(calendar.all().len() > 200, "{}", calendar.all().len());
     assert!(calendar.is_complete());
     for holiday in calendar.all() {

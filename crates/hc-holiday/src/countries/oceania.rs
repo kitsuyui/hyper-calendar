@@ -3,13 +3,14 @@
 use hc_calendar::Weekday;
 
 use super::read_all;
+use super::weekends;
 use crate::computus::offsets::{
     ASCENSION, EASTER_MONDAY, EASTER_SUNDAY, EASTER_TUESDAY, GOOD_FRIDAY, HOLY_SATURDAY,
     WHIT_MONDAY,
 };
 use crate::rule::{
-    HolidayRule, Kind, ListedEntry, Listing, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
-    Subdivisions, SubstituteDirection, SubstitutionPolicy,
+    HolidayRule, Kind, ListedEntry, Listing, Rule, RuleSet, SourceDate, Subdivisions,
+    SubstituteDirection, SubstitutionPolicy,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -164,7 +165,7 @@ pub static AUSTRALIA: RuleSet = RuleSet {
     substitution: AU_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::AU,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Fair Work Act 2009 (Cth), s 115, compilation C2026C00355 of 7 July 2026, its \
               text not read; the Holidays Act 1983 (Qld) and the Statutory Holidays Act 2000 \
@@ -265,7 +266,7 @@ pub static NEW_ZEALAND: RuleSet = RuleSet {
     substitution: NZ_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::NZ,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Holidays Act 2003, sections 44, 45 and 45A, and the Holidays (Full Recognition \
               of Waitangi Day and ANZAC Day) Amendment Act 2013; Te Kāhui o Matariki Public \
@@ -347,7 +348,7 @@ pub static MICRONESIA: RuleSet = RuleSet {
     substitution: FM_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::FM,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Code of the Federated States of Micronesia (2014), title 1, chapter 6, \
               sections 601 to 603, and Public Laws 13-38, 16-27 and 21-209, as the FSM \
@@ -407,7 +408,7 @@ pub static MARSHALL_ISLANDS: RuleSet = RuleSet {
     substitution: MH_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::MH,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Public Holidays Act 1988, 1 MIRC Ch. 9, the Nitijela's consolidation \
               (rmiparliament.org, 1988-0016_2.pdf) as the Internet Archive holds it, \
@@ -536,7 +537,7 @@ pub static NAURU: RuleSet = RuleSet {
     substitution: NR_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::NR,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Public Service Act 2016, section 81, RONLAW consolidation (service 6); \
               Government Gazette No. 330 of 30 December 2022 \
@@ -599,7 +600,7 @@ pub static PALAU: RuleSet = RuleSet {
     substitution: PW_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::PW,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Palau National Code Annotated, title 1, sections 701 and 702 (Supp. 12), \
               PacLII's copy (pncgpt1409.pdf) as the Internet Archive holds it, captured \
@@ -671,7 +672,7 @@ pub static PAPUA_NEW_GUINEA: RuleSet = RuleSet {
     substitution: PG_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::PG,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Public Holidays Act 1953 (Chapter 321), sections 1 to 5, PacLII's \
               consolidation (pha1953163) and its 1982 revised-edition PDF as the \
@@ -739,7 +740,7 @@ pub static SOLOMON_ISLANDS: RuleSet = RuleSet {
     substitution: SB_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::SB,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Public Holidays Act (Cap. 151), 1996 edition, PacLII's consolidation \
               (pha163) as the Internet Archive holds it, captured 2024-12-22, PacLII \
@@ -861,7 +862,7 @@ pub static TONGA: RuleSet = RuleSet {
     substitution: TO_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::TO,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Public Holidays Act, Chapter 8.11, 2020 Revised Edition, section 2 and \
               endnotes (ago.gov.to); Prime Minister's Office media releases \"Tonga Public \
@@ -942,7 +943,7 @@ pub static TUVALU: RuleSet = RuleSet {
     substitution: TV_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::TV,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Public Holidays Act, Cap. 4.50, 2022 Revised Edition, and Cap. 22.10, 2008 \
               Revised Edition, section 2 and Schedule (tuvalu-legislation.tv), retrieved \
@@ -1013,7 +1014,7 @@ pub static VANUATU: RuleSet = RuleSet {
     substitution: VU_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::VU,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Public Holidays Act [Cap. 114], Consolidated Edition 2006, sections 1 to 3 \
               and Schedule (moia.gov.vu; the same text on NATLEX); Government of Vanuatu, \
@@ -1112,7 +1113,7 @@ pub static SAMOA: RuleSet = RuleSet {
     substitution: WS_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::WS,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Public Holidays Act 2008, section 2, revised to 31 December 2023 \
               (ag.gov.ws); Ministry of Commerce, Industry and Labour, \"Public holidays \
@@ -1271,7 +1272,7 @@ pub static FIJI: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::FJ,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Public Holidays Act (Cap. 101), 1985 edition, sections 2 and 6 and Schedule, and \
               the Public Holidays (Amendment) Acts 1994 (No. 14 of 1995) and 2003 (No. 8 of \
@@ -1434,7 +1435,7 @@ pub static KIRIBATI: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::KI,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Public Holidays Ordinance (Cap. 81), 1977 revised edition, sections 2 and 6 \
               and Schedule, and the Public Holidays (Amendment) Acts 1992, 2002 and 2005, \

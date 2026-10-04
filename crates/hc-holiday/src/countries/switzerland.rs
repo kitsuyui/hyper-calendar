@@ -28,12 +28,11 @@
 use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
 
+use super::weekends;
 use crate::computus::offsets::{
     ASCENSION, CORPUS_CHRISTI, EASTER_MONDAY, GOOD_FRIDAY, WHIT_MONDAY,
 };
-use crate::rule::{
-    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions, joined,
-};
+use crate::rule::{Days, HolidayRule, Kind, Rule, RuleSet, SourceDate, Subdivisions, joined};
 
 /// The Jeûne genevois, "le jeudi qui suit le premier dimanche du mois de
 /// septembre": the first Thursday on or after 5 September.
@@ -1537,7 +1536,7 @@ pub static SWITZERLAND: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::CH,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Arbeitsgesetz (SR 822.11), Art. 20a Abs. 1, in the consolidation of 1 September 2023 \
               on Fedlex, retrieved 2026-09-29; Bundesverfassung (SR 101), Art. 110 Abs. 3, and \

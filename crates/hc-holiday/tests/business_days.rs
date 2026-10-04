@@ -77,8 +77,8 @@ fn subtracting_business_days_walks_the_same_holidays_backwards() {
 
 #[test]
 fn adding_and_subtracting_business_days_are_inverses_from_a_business_day() {
-    let uk = calendar("GB", 2024, 2026);
-    let mut cursor = ymd(2024, 6, 3);
+    let uk = calendar("GB", 2026, 2028);
+    let mut cursor = ymd(2026, 6, 1);
     for step in 1..=200 {
         let forward = uk.add_business_days(cursor, 1).expect("in range");
         let back = uk.add_business_days(forward, -1).expect("in range");
@@ -109,10 +109,10 @@ fn business_days_between_counts_the_half_open_interval() {
 
 #[test]
 fn business_days_between_composes_over_a_split_point() {
-    let germany = calendar("DE", 2025, 2025);
-    let start = ymd(2025, 1, 2);
-    let middle = ymd(2025, 6, 2);
-    let end = ymd(2025, 12, 1);
+    let germany = calendar("DE", 2026, 2026);
+    let start = ymd(2026, 1, 2);
+    let middle = ymd(2026, 6, 1);
+    let end = ymd(2026, 12, 1);
     let first = germany
         .business_days_between(start, middle)
         .expect("in range");
@@ -164,36 +164,50 @@ fn the_gulf_arithmetic_crosses_a_holiday_and_a_friday_saturday_weekend() {
 }
 
 #[test]
-fn saudi_arabia_before_2013_rested_on_thursday_and_friday() {
-    let saudi = calendar("SA", 2010, 2010);
-    // 2010-03-03 was a Wednesday.
-    assert!(saudi.is_business_day(ymd(2010, 3, 3)));
-    assert!(!saudi.is_business_day(ymd(2010, 3, 4)));
-    assert!(!saudi.is_business_day(ymd(2010, 3, 5)));
-    assert!(saudi.is_business_day(ymd(2010, 3, 6)));
-    // The table's sources begin after 2010, so the year is a gap and the
-    // walk is refused rather than counted on a guess (ADR 0013): the
-    // weekend is the law's, the holidays of the year are not known.
-    assert_eq!(saudi.add_business_days(ymd(2010, 3, 3), 1), None);
+fn saudi_arabia_before_the_second_half_of_2013_rested_on_thursday_and_friday() {
+    // The weekend is read from 2013, the year of the report of the old one;
+    // 2013-03-06 was a Wednesday.
+    let saudi = calendar("SA", 2013, 2013);
+    assert!(saudi.is_business_day(ymd(2013, 3, 6)));
+    assert!(!saudi.is_business_day(ymd(2013, 3, 7)));
+    assert!(!saudi.is_business_day(ymd(2013, 3, 8)));
+    assert!(saudi.is_business_day(ymd(2013, 3, 9)));
+    // The table's holidays are unread in 2013, but none falls on these days,
+    // so the walk is answered.
+    assert_eq!(
+        saudi.add_business_days(ymd(2013, 3, 6), 1),
+        Some(ymd(2013, 3, 9))
+    );
+    // A year before the weekend was read refuses the walk.
+    let earlier = calendar("SA", 2010, 2010);
+    assert_eq!(earlier.add_business_days(ymd(2010, 3, 3), 1), None);
 }
 
 #[test]
-fn nepal_gets_six_business_days_a_week_before_2026() {
-    let nepal = calendar("NP", 2024, 2024);
-    // 2024-03-17 was a Sunday; only Saturday is the weekend, and no Nepali
-    // holiday falls in that week.
+fn nepal_gets_six_business_days_a_week_before_april_2026() {
+    // Saturday alone was the weekend until the cabinet's decision of 5 April
+    // 2026, read from 2026. 2026-03-22 was a Sunday, and no Nepali holiday
+    // falls in that week.
+    let nepal = calendar("NP", 2026, 2026);
     assert_eq!(
-        nepal.business_days_between(ymd(2024, 3, 17), ymd(2024, 3, 24)),
+        nepal.business_days_between(ymd(2026, 3, 22), ymd(2026, 3, 29)),
         Some(6)
     );
-    // The week before has one fewer, because 8 March is a holiday.
+    // The week before has one fewer, because Eid al-Fitr, Friday 20 March, is
+    // a holiday.
     assert_eq!(
-        nepal.business_days_between(ymd(2024, 3, 3), ymd(2024, 3, 10)),
+        nepal.business_days_between(ymd(2026, 3, 15), ymd(2026, 3, 22)),
         Some(5)
     );
     assert_eq!(
-        nepal.add_business_days(ymd(2024, 3, 8), 1),
-        Some(ymd(2024, 3, 10))
+        nepal.add_business_days(ymd(2026, 3, 19), 1),
+        Some(ymd(2026, 3, 22))
+    );
+    // The year before is a gap in the weekend law.
+    let before = calendar("NP", 2024, 2024);
+    assert_eq!(
+        before.business_days_between(ymd(2024, 3, 17), ymd(2024, 3, 24)),
+        None
     );
 }
 
@@ -302,14 +316,14 @@ fn a_year_has_roughly_the_number_of_business_days_it_should() {
     // country in this crate falls into, and it is a cheap guard against a
     // table that has accidentally duplicated or lost a holiday.
     for code in ["JP", "US", "GB", "DE", "FR", "CA", "AU", "NZ", "SE", "PL"] {
-        let calendar = calendar(code, 2025, 2025);
+        let calendar = calendar(code, 2026, 2026);
         let count = calendar
-            .business_days_between(ymd(2025, 1, 1), ymd(2026, 1, 1))
-            .or_else(|| calendar.business_days_between(ymd(2025, 1, 1), ymd(2025, 12, 31)))
+            .business_days_between(ymd(2026, 1, 1), ymd(2027, 1, 1))
+            .or_else(|| calendar.business_days_between(ymd(2026, 1, 1), ymd(2026, 12, 31)))
             .expect("in range");
         assert!(
             (235..=256).contains(&count),
-            "{code} has {count} business days in 2025"
+            "{code} has {count} business days in 2026"
         );
     }
 }

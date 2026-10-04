@@ -1008,6 +1008,8 @@ describe("holidays", () => {
       id: "new-years-day",
       source: null,
       bridged: false,
+      windowFirst: null,
+      windowLast: null,
     });
     // 3 May 2026 is a Sunday; Constitution Memorial Day is taken on the 6th.
     const substitute = year.find((holiday) => holiday.substitute);
@@ -1024,10 +1026,12 @@ describe("holidays", () => {
       id: "constitution-memorial-day",
       source: null,
       bridged: false,
+      windowFirst: null,
+      windowLast: null,
     });
     assert.equal(hc.holidaysInYear("JP", "", 2026n).length, year.length);
     // A year before any rule applies is an empty list, not an error.
-    assert.deepEqual(hc.holidaysInYear("JP", "", -5000), []);
+    assert.deepEqual(hc.holidaysInYear("JP", "", -5000).filter((day) => day.kind !== "gap"), []);
   });
 
   test("one day across every table decodes column by column", () => {
@@ -1229,6 +1233,9 @@ describe("holidays", () => {
       id: "womens-day",
       source: womensGap.source,
       bridged: false,
+      // The half day is 8 March, so only that day is open.
+      windowFirst: "1998-03-08",
+      windowLast: "1998-03-08",
     });
     // A state whose code was not read is a gap row with its region.
     const hampshire = hc.holidaysInYear("US", "US-NH", 2026).filter((day) => day.kind === "gap");
@@ -1250,14 +1257,16 @@ describe("holidays", () => {
   test("a table's weekend laws are listed, with the regions that keep their own", () => {
     const tables = hc.holidayTables("en");
     assert.deepEqual(tables.find((table) => table.code === "JP")?.weekend, [
-      { days: [6, 7], first: null, last: null, regions: [] },
+      { days: null, first: null, last: "1992-04-30", regions: [] },
+      { days: [6, 7], first: "1992-05-01", last: null, regions: [] },
     ]);
     const malaysia = tables.find((table) => table.code === "MY")?.weekend ?? [];
-    assert.deepEqual(malaysia[0], { days: [6, 7], first: null, last: null, regions: [] });
+    assert.deepEqual(malaysia[0], { days: null, first: null, last: "2013-11-24", regions: [] });
+    assert.deepEqual(malaysia[1], { days: [6, 7], first: "2013-11-25", last: null, regions: [] });
     // Johor's Friday-Saturday years, and the years to 1994 that were not read.
-    assert.deepEqual(malaysia[1], { days: null, first: null, last: "1994-12-31", regions: ["MY-01"] });
-    assert.deepEqual(malaysia[2], { days: [5, 6], first: "2014-01-01", last: "2024-12-31", regions: ["MY-01"] });
-    assert.deepEqual(malaysia[4], {
+    assert.deepEqual(malaysia[2], { days: null, first: null, last: "1994-12-31", regions: ["MY-01"] });
+    assert.deepEqual(malaysia[4], { days: [5, 6], first: "2014-01-01", last: "2024-12-31", regions: ["MY-01"] });
+    assert.deepEqual(malaysia[6], {
       days: [5, 6],
       first: "2013-11-25",
       last: null,
@@ -2844,7 +2853,7 @@ describe("the buffer protocol", () => {
     assert.deepEqual(small.cosmicEvents(), hc.cosmicEvents());
     assert.deepEqual(small.earliestEvidence(), hc.earliestEvidence());
     assert.deepEqual(small.geologicIntervals("age"), hc.geologicIntervals("age"));
-    assert.deepEqual(small.holidaysInYear("JP", "", -5000), []);
+    assert.deepEqual(small.holidaysInYear("JP", "", -5000).filter((day) => day.kind !== "gap"), []);
     assert.deepEqual(small.skyAt(1_789_948_800), hc.skyAt(1_789_948_800));
     assert.deepEqual(small.moonPhasesBetween(0, 0), []);
     assert.deepEqual(small.orbitAt(21_000), hc.orbitAt(21_000));
@@ -3994,6 +4003,25 @@ describe("day periods, numbering systems, eras, groups and holiday names in a lo
     refused(() => hc.calendarEras("no-such", "ja"), "unknown");
   });
 
+  test("the years a table answers for are listed, and a gap names the days it leaves open", () => {
+    const [country, ...regions] = hc.holidayCoverage("JP");
+    assert.deepEqual(country, {
+      region: null, firstRead: 1948, answeredFrom: 1949, answeredUntil: null, complete: true, weekendFrom: 1992,
+      reason: "Holidays before the Public Holidays Act",
+    });
+    assert.equal(regions.find((row) => row.region === "JP-27")?.answeredFrom, 1989);
+    assert.equal(hc.holidayCoverage("BA")[0].complete, false);
+    refused(() => hc.holidayCoverage("ZZ"), "unknown");
+    // Malaysia's weekend is read from 25 November 2013, so 2010's is a gap of
+    // the year, and a gap of a rule the table can place has only the days it
+    // could fall on.
+    const gaps = hc.holidaysInYear("MY", "", 2010).filter((day) => day.kind === "gap");
+    assert.ok(gaps.some((gap) => gap.id === "unread-weekend" && gap.windowFirst === null));
+    const newYear = gaps.find((gap) => gap.id === "new-years-day");
+    assert.deepEqual([newYear?.windowFirst, newYear?.windowLast], ["2009-12-25", "2010-01-08"]);
+    assert.equal(hc.holidaysInYear("JP", "", 2026)[0].windowFirst, null);
+  });
+
   test("the groups are listed, and Nayrouz has its Coptic name", () => {
     assert.equal(hc.holidayGroups("en")[0].group, "women");
     const nayrouz = hc.holidaysOnIn(hc.gregorianToFixed(2025, 9, 11), "cop").find((day) => day.table === "coptic-orthodox");
@@ -4030,9 +4058,9 @@ describe("the new exports' i64 arguments", () => {
 
 describe("a day the table cannot answer, the weekend, and the next holiday", () => {
   test("a gap is refused as no-data, and a weekend law not read as out-of-range", () => {
-    // Victoria Day 2025 is a gap in Newfoundland and Labrador.
+    // Canada's weekend is read from 2026, so a day of 2025 is refused for that.
     const victoria = hc.gregorianToFixed(2025, 5, 19);
-    refused(() => hc.holidayIsDayOff("CA", "CA-NL", victoria), "no-data");
+    refused(() => hc.holidayIsDayOff("CA", "CA-NL", victoria), "out-of-range");
     assert.equal(hc.holidayIsDayOff("CA", "CA-NL", hc.gregorianToFixed(2025, 12, 25)), true);
     assert.equal(hc.holidayIsDayOff("JP", "", hc.gregorianToFixed(2026, 3, 4)), false);
     // A subdivision no source was read for has its own days open.
@@ -4040,8 +4068,9 @@ describe("a day the table cannot answer, the weekend, and the next holiday", () 
     // Kedah's weekend law before 25 November 2013 was not read.
     refused(() => hc.holidayIsDayOff("MY", "MY-02", hc.gregorianToFixed(2012, 5, 11)), "out-of-range");
     // The walk that would count or skip the open day is refused, whichever way it runs.
-    refused(() => hc.holidayAddBusinessDays("CA", "CA-NL", hc.gregorianToFixed(2025, 5, 16), 1), "no-data");
-    refused(() => hc.holidayBusinessDaysBetween("CA", "CA-NL", hc.gregorianToFixed(2025, 5, 16), hc.gregorianToFixed(2025, 5, 21)), "no-data");
+    refused(() => hc.holidayAddBusinessDays("US", "US-NH", hc.gregorianToFixed(2026, 3, 2), 1), "no-data");
+    refused(() => hc.holidayBusinessDaysBetween("US", "US-NH", hc.gregorianToFixed(2026, 3, 2), hc.gregorianToFixed(2026, 3, 9)), "no-data");
+    refused(() => hc.holidayAddBusinessDays("CA", "CA-NL", hc.gregorianToFixed(2025, 5, 16), 1), "out-of-range");
     refused(() => hc.holidayAddBusinessDays("MY", "MY-02", hc.gregorianToFixed(2012, 5, 9), 1), "out-of-range");
   });
 
@@ -4077,14 +4106,16 @@ describe("a day the table cannot answer, the weekend, and the next holiday", () 
       id: "showa-day",
       source: null,
       bridged: false,
+      windowFirst: null,
+      windowLast: null,
     });
     const previous = hc.holidayPrevious("JP", "", hc.gregorianToFixed(2026, 5, 7));
     assert.equal(previous.date, "2026-05-06");
     assert.equal(previous.substitute, true);
     assert.equal(previous.observedFor, "2026-05-03");
     assert.equal(hc.holidayNext("JP", "JP-13", hc.gregorianToFixed(2026, 9, 1), "", "school").region, "JP-13");
-    refused(() => hc.holidayNext("CA", "CA-NL", hc.gregorianToFixed(2025, 5, 1)), "no-data");
-    refused(() => hc.holidayPrevious("CA", "CA-NL", hc.gregorianToFixed(2025, 7, 15)), "no-data");
+    refused(() => hc.holidayNext("US", "US-NH", hc.gregorianToFixed(2026, 3, 1)), "no-data");
+    refused(() => hc.holidayPrevious("US", "US-NH", hc.gregorianToFixed(2026, 7, 15)), "no-data");
     refused(() => hc.holidayNext("un-days", "", hc.gregorianToFixed(2026, 1, 1)), "no-data");
     assert.equal(hc.holidayNext("un-days", "", hc.gregorianToFixed(2026, 1, 1), "", "observance").kind, "observance");
     refused(() => hc.holidayNext("ZZ", "", 0), "unknown");

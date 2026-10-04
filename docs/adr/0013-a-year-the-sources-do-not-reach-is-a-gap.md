@@ -93,12 +93,28 @@ A rule carries both facts, and the engine reports the difference.
 - A day a gap leaves open is refused, not answered. `HolidayCalendar::day_off`
   and `business_day` say `Err(Unanswered::Gap)` for a day without an entry
   when a gap of a kind that stops work (or, for a weekend day, a work day)
-  lies in its year, and the boundary writes `HC_ERR_NO_DATA`: a holiday the
+  could fall on it, and the boundary writes `HC_ERR_NO_DATA`: a holiday the
   table could not place may be that very day, and `false` would be a guess.
   A day the table lists is answered whatever else is open; the arithmetic
   and `hc_holiday_next` and `hc_holiday_previous` refuse in the same way.
   A weekend law not read is `HC_ERR_OUT_OF_RANGE`, as
   ADR 0015 has it.
+- **A gap carries the days it could fall on.** `Gap::window` is the first
+  and the last day the holiday could fall on, both included, and only those
+  days are refused; `None` leaves the whole year open. A rule whose shape the
+  year can compute gives the days it would place, widened by seven days where
+  the table has a substitution or a bridge policy; a table of announced
+  dates that has run out gives the span of dates the day took in the years it
+  lists; a rule read in no year, a calendar whose range ended and a
+  subdivision not read have no window. `hc_holidays_in_year` writes the
+  window in two columns after the bridge flag, and `hc_holidays_on` writes
+  a gap on the days it could fall on and on no other.
+- **A table says which years it answers for.** `RuleSet::coverage` gives,
+  for the country and for each subdivision, the first year any rule is read
+  for, the first year from which no rule is a gap for want of reading, the
+  last year no announced list has run out in, whether some rule is read in no
+  year, and the first year the weekend is read; `hc_holiday_coverage` writes
+  them, with the rule that sets the later start.
 
 ## Consequences
 

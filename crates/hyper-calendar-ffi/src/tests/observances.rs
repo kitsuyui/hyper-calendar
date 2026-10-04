@@ -80,7 +80,10 @@ fn the_tables_the_lectionary_and_easter_cross_the_boundary() {
         ["", ""],
         "Japan gives no day to a group alone"
     );
-    assert_eq!(japan[13], "6+7///", "and keeps Saturday and Sunday");
+    assert_eq!(
+        japan[13], "unread//1992-04-30/;6+7/1992-05-01//",
+        "and keeps Saturday and Sunday from 1 May 1992"
+    );
     // A region with only a weekend law of its own is listed.
     let cells = |code: &str| -> Vec<&str> {
         english
@@ -211,6 +214,24 @@ fn the_groups_and_the_named_days_cross() {
     assert!(
         text.lines()
             .any(|line| line.ends_with("\tⲡⲓⲭⲗⲟⲙ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ\tcop\tnayrouz-new-year\t0"))
+    );
+}
+
+/// Japan's civil service weekend is read from 1 May 1992, and every year to
+/// 1948 is a gap; a code that names no table is unknown.
+#[test]
+fn the_years_a_table_answers_for_cross_the_boundary() {
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_holiday_coverage(c"JP".as_ptr(), buffer, capacity, written)
+    });
+    assert!(
+        text.starts_with("\t1948\t1949\t\t1\t1992\tHolidays before the Public Holidays Act\n"),
+        "{text}"
+    );
+    let mut written = 0usize;
+    assert_eq!(
+        unsafe { hc_holiday_coverage(c"ZZ".as_ptr(), core::ptr::null_mut(), 0, &mut written) },
+        HC_ERROR_UNKNOWN
     );
 }
 

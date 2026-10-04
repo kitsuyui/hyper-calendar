@@ -77,6 +77,7 @@ use crate::computus::offsets::{
     GOOD_FRIDAY, HOLY_SATURDAY, MAUNDY_THURSDAY, PALM_SUNDAY, PENTECOST, SACRED_HEART,
     TRINITY_SUNDAY, WHIT_MONDAY,
 };
+use crate::countries::read_all;
 use crate::hindu::{
     AKSHAYA_TRITIYA, ANANT_CHATURDASHI, BUDDHA_PURNIMA, DIWALI, DRIK_HOLI, DRIK_HOLI_FIRST,
     DRIK_HOLI_LAST, DURGA_ASHTAMI, GANESH_CHATURTHI, GURU_GOBIND_SINGH_PARKASH, GURU_NANAK_JAYANTI,
@@ -85,7 +86,7 @@ use crate::hindu::{
     SAMVATSARI, UGADI, VIJAYA_DASHAMI,
 };
 use crate::rule::{
-    CalendarSystem, Confidence, Days, HolidayRule, Kind, Listing, Rule, RuleSet, SATURDAY_SUNDAY,
+    CalendarSystem, Confidence, Days, HolidayRule, Kind, Listing, NO_WEEKEND, Rule, RuleSet,
     SourceDate, Subdivisions, TibetanDayRule, TibetanMonth, dated, joined,
 };
 
@@ -104,56 +105,59 @@ const fn feast(name: &'static str, local: &'static str, rule: Rule) -> HolidayRu
 // Christianity, Western
 // ─────────────────────────────────────────────────────────────────────────
 
-static CHRISTIAN_WESTERN_RULES: &[HolidayRule] = &[
-    feast(
-        "Solemnity of Mary, Mother of God",
-        "",
-        Rule::gregorian(1, 1),
-    ),
-    feast("Epiphany", "", Rule::gregorian(1, 6)),
-    feast(
-        "Candlemas",
-        "Presentation of the Lord",
-        Rule::gregorian(2, 2),
-    ),
-    feast("Ash Wednesday", "", Rule::easter(ASH_WEDNESDAY)),
-    feast("Annunciation", "", Rule::gregorian(3, 25)),
-    feast("Palm Sunday", "", Rule::easter(PALM_SUNDAY)),
-    feast("Maundy Thursday", "", Rule::easter(MAUNDY_THURSDAY)),
-    feast("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    feast("Holy Saturday", "", Rule::easter(HOLY_SATURDAY)),
-    feast("Easter Sunday", "", Rule::easter(EASTER_SUNDAY)),
-    feast("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    feast("Divine Mercy Sunday", "", Rule::easter(DIVINE_MERCY_SUNDAY)),
-    feast("Ascension of the Lord", "", Rule::easter(ASCENSION)),
-    feast("Pentecost", "", Rule::easter(PENTECOST)),
-    feast("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
-    feast("Trinity Sunday", "", Rule::easter(TRINITY_SUNDAY)),
-    feast("Corpus Christi", "", Rule::easter(CORPUS_CHRISTI)),
-    feast("Sacred Heart of Jesus", "", Rule::easter(SACRED_HEART)),
-    feast("Nativity of John the Baptist", "", Rule::gregorian(6, 24)),
-    feast("Saints Peter and Paul", "", Rule::gregorian(6, 29)),
-    feast("Transfiguration", "", Rule::gregorian(8, 6)),
-    feast("Assumption of Mary", "", Rule::gregorian(8, 15)),
-    feast("All Saints' Day", "", Rule::gregorian(11, 1)),
-    feast("All Souls' Day", "", Rule::gregorian(11, 2)),
-    // The first Sunday of Advent is the Sunday falling 27 November to
-    // 3 December, four Sundays before Christmas.
-    feast(
-        "First Sunday of Advent",
-        "",
-        Rule::WeekdayOnOrAfter {
-            month: 11,
-            day: 27,
-            weekday: Weekday::Sunday,
-        },
-    ),
-    feast("Immaculate Conception", "", Rule::gregorian(12, 8)),
-    feast("Christmas Eve", "", Rule::gregorian(12, 24)),
-    feast("Christmas Day", "", Rule::gregorian(12, 25)),
-    feast("St Stephen's Day", "", Rule::gregorian(12, 26)),
-    feast("Holy Innocents", "", Rule::gregorian(12, 28)),
-];
+static CHRISTIAN_WESTERN_RULES: &[HolidayRule] = &read_all(
+    1583,
+    [
+        feast(
+            "Solemnity of Mary, Mother of God",
+            "",
+            Rule::gregorian(1, 1),
+        ),
+        feast("Epiphany", "", Rule::gregorian(1, 6)),
+        feast(
+            "Candlemas",
+            "Presentation of the Lord",
+            Rule::gregorian(2, 2),
+        ),
+        feast("Ash Wednesday", "", Rule::easter(ASH_WEDNESDAY)),
+        feast("Annunciation", "", Rule::gregorian(3, 25)),
+        feast("Palm Sunday", "", Rule::easter(PALM_SUNDAY)),
+        feast("Maundy Thursday", "", Rule::easter(MAUNDY_THURSDAY)),
+        feast("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        feast("Holy Saturday", "", Rule::easter(HOLY_SATURDAY)),
+        feast("Easter Sunday", "", Rule::easter(EASTER_SUNDAY)),
+        feast("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        feast("Divine Mercy Sunday", "", Rule::easter(DIVINE_MERCY_SUNDAY)),
+        feast("Ascension of the Lord", "", Rule::easter(ASCENSION)),
+        feast("Pentecost", "", Rule::easter(PENTECOST)),
+        feast("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
+        feast("Trinity Sunday", "", Rule::easter(TRINITY_SUNDAY)),
+        feast("Corpus Christi", "", Rule::easter(CORPUS_CHRISTI)),
+        feast("Sacred Heart of Jesus", "", Rule::easter(SACRED_HEART)),
+        feast("Nativity of John the Baptist", "", Rule::gregorian(6, 24)),
+        feast("Saints Peter and Paul", "", Rule::gregorian(6, 29)),
+        feast("Transfiguration", "", Rule::gregorian(8, 6)),
+        feast("Assumption of Mary", "", Rule::gregorian(8, 15)),
+        feast("All Saints' Day", "", Rule::gregorian(11, 1)),
+        feast("All Souls' Day", "", Rule::gregorian(11, 2)),
+        // The first Sunday of Advent is the Sunday falling 27 November to
+        // 3 December, four Sundays before Christmas.
+        feast(
+            "First Sunday of Advent",
+            "",
+            Rule::WeekdayOnOrAfter {
+                month: 11,
+                day: 27,
+                weekday: Weekday::Sunday,
+            },
+        ),
+        feast("Immaculate Conception", "", Rule::gregorian(12, 8)),
+        feast("Christmas Eve", "", Rule::gregorian(12, 24)),
+        feast("Christmas Day", "", Rule::gregorian(12, 25)),
+        feast("St Stephen's Day", "", Rule::gregorian(12, 26)),
+        feast("Holy Innocents", "", Rule::gregorian(12, 28)),
+    ],
+);
 
 /// Western Christianity: the Gregorian computus and the Gregorian-dated
 /// fixed feasts.
@@ -164,7 +168,7 @@ pub static CHRISTIAN_WESTERN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "The General Roman Calendar and the Universal Norms on the Liturgical \
               Year and the General Roman Calendar, as `roman_calendar` cites them \
@@ -181,55 +185,58 @@ pub static CHRISTIAN_WESTERN: RuleSet = RuleSet {
 /// them by, and the movable cycle from the Julian computus, which every
 /// Orthodox church keeps whichever calendar it dates the fixed feasts in.
 macro_rules! orthodox_feasts {
-    ($system:expr) => {
-        &[
-            feast("Nativity of Christ", "", Rule::in_calendar($system, 12, 25)),
-            feast("Theophany", "", Rule::in_calendar($system, 1, 6)),
-            feast("Meeting of the Lord", "", Rule::in_calendar($system, 2, 2)),
-            feast("Annunciation", "", Rule::in_calendar($system, 3, 25)),
-            feast("Transfiguration", "", Rule::in_calendar($system, 8, 6)),
-            feast(
-                "Dormition of the Theotokos",
-                "",
-                Rule::in_calendar($system, 8, 15),
-            ),
-            feast(
-                "Nativity of the Theotokos",
-                "",
-                Rule::in_calendar($system, 9, 8),
-            ),
-            feast(
-                "Exaltation of the Cross",
-                "",
-                Rule::in_calendar($system, 9, 14),
-            ),
-            feast(
-                "Presentation of the Theotokos",
-                "",
-                Rule::in_calendar($system, 11, 21),
-            ),
-            feast("Clean Monday", "", Rule::paschal(ASH_WEDNESDAY - 2)),
-            feast("Lazarus Saturday", "", Rule::paschal(-8)),
-            feast("Palm Sunday", "", Rule::paschal(PALM_SUNDAY)),
-            feast("Holy Friday", "", Rule::paschal(GOOD_FRIDAY)),
-            feast("Pascha", "", Rule::paschal(EASTER_SUNDAY)),
-            feast("Bright Monday", "", Rule::paschal(EASTER_MONDAY)),
-            feast("Ascension", "", Rule::paschal(ASCENSION)),
-            feast("Pentecost", "", Rule::paschal(PENTECOST)),
-            feast("All Saints", "", Rule::paschal(TRINITY_SUNDAY)),
-        ]
+    ($first:expr, $system:expr) => {
+        &read_all(
+            $first,
+            [
+                feast("Nativity of Christ", "", Rule::in_calendar($system, 12, 25)),
+                feast("Theophany", "", Rule::in_calendar($system, 1, 6)),
+                feast("Meeting of the Lord", "", Rule::in_calendar($system, 2, 2)),
+                feast("Annunciation", "", Rule::in_calendar($system, 3, 25)),
+                feast("Transfiguration", "", Rule::in_calendar($system, 8, 6)),
+                feast(
+                    "Dormition of the Theotokos",
+                    "",
+                    Rule::in_calendar($system, 8, 15),
+                ),
+                feast(
+                    "Nativity of the Theotokos",
+                    "",
+                    Rule::in_calendar($system, 9, 8),
+                ),
+                feast(
+                    "Exaltation of the Cross",
+                    "",
+                    Rule::in_calendar($system, 9, 14),
+                ),
+                feast(
+                    "Presentation of the Theotokos",
+                    "",
+                    Rule::in_calendar($system, 11, 21),
+                ),
+                feast("Clean Monday", "", Rule::paschal(ASH_WEDNESDAY - 2)),
+                feast("Lazarus Saturday", "", Rule::paschal(-8)),
+                feast("Palm Sunday", "", Rule::paschal(PALM_SUNDAY)),
+                feast("Holy Friday", "", Rule::paschal(GOOD_FRIDAY)),
+                feast("Pascha", "", Rule::paschal(EASTER_SUNDAY)),
+                feast("Bright Monday", "", Rule::paschal(EASTER_MONDAY)),
+                feast("Ascension", "", Rule::paschal(ASCENSION)),
+                feast("Pentecost", "", Rule::paschal(PENTECOST)),
+                feast("All Saints", "", Rule::paschal(TRINITY_SUNDAY)),
+            ],
+        )
     };
 }
 
 // The fixed feasts are stated in the Julian calendar, so they appear
 // thirteen days later on a civil calendar for as long as the two calendars
 // are thirteen days apart, which is until 2100.
-static CHRISTIAN_ORTHODOX_RULES: &[HolidayRule] = orthodox_feasts!(CalendarSystem::JULIAN);
+static CHRISTIAN_ORTHODOX_RULES: &[HolidayRule] = orthodox_feasts!(326, CalendarSystem::JULIAN);
 
 // The same feasts in the Revised Julian calendar, which gives them the
 // Gregorian dates until 2800.
 static CHRISTIAN_ORTHODOX_REVISED_JULIAN_RULES: &[HolidayRule] =
-    orthodox_feasts!(CalendarSystem::REVISED_JULIAN);
+    orthodox_feasts!(1925, CalendarSystem::REVISED_JULIAN);
 
 /// Where every Orthodox table here takes its rules from, and what is not
 /// read.
@@ -255,7 +262,7 @@ pub static CHRISTIAN_ORTHODOX: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: ORTHODOX_SOURCES,
     subdivisions: Subdivisions::Undivided,
@@ -284,7 +291,7 @@ pub static CHRISTIAN_ORTHODOX_REVISED_JULIAN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "As christian-orthodox for the feasts and the Pascha. For the calendar's \
               adoption: Wikipedia, \"Revised Julian calendar\" (secondary, citing Clogg \
@@ -325,45 +332,48 @@ const ABIY_TSOM: i16 = -55;
 const DEBRE_ZEIT: i16 = -28;
 const REKBE_KAHNAT: i16 = 24;
 
-static ETHIOPIAN_ORTHODOX_RULES: &[HolidayRule] = &[
-    ethiopic_feast("Enkutatash (New Year)", "እንቁጣጣሽ", 1, 1),
-    ethiopic_feast("Meskel (Finding of the True Cross)", "መስቀል", 1, 17),
-    // Genna on 25 December of the Julian calendar, as the Coptic Nativity:
-    // 29 Tahsas, and 28 Tahsas after an Ethiopic leap year (eotc-ma-calendar).
-    feast(
-        "Genna (Christmas)",
-        "ገና",
-        Rule::in_calendar(CalendarSystem::JULIAN, 12, 25),
-    ),
-    ethiopic_feast("Timkat (Epiphany)", "ጥምቀት", 5, 11),
-    ethiopic_feast("Debre Tabor (Transfiguration)", "ደብረ ታቦር", 12, 13),
-    // The movable cycle of Bahire Hasab, as offsets from Tinsae.
-    feast(
-        "Tsome Nenewe (Fast of Nineveh) begins",
-        "ጾመ ነነዌ",
-        Rule::paschal(TSOME_NENEWE),
-    ),
-    feast(
-        "Abiy Tsom (Great Lent) begins",
-        "ዐቢይ ጾም",
-        Rule::paschal(ABIY_TSOM),
-    ),
-    feast(
-        "Debre Zeit (Mid-Lent)",
-        "ደብረ ዘይት",
-        Rule::paschal(DEBRE_ZEIT),
-    ),
-    feast("Hosanna (Palm Sunday)", "ሆሣዕና", Rule::paschal(PALM_SUNDAY)),
-    feast("Siklet (Good Friday)", "ስቅለት", Rule::paschal(GOOD_FRIDAY)),
-    feast("Fasika (Easter)", "ፋሲካ", Rule::paschal(EASTER_SUNDAY)),
-    feast(
-        "Rekbe Kahnat (Mid-Pentecost)",
-        "ርክበ ካህናት",
-        Rule::paschal(REKBE_KAHNAT),
-    ),
-    feast("Erget (Ascension)", "ዕርገት", Rule::paschal(ASCENSION)),
-    feast("Paraclete (Pentecost)", "ጰራቅሊጦስ", Rule::paschal(PENTECOST)),
-];
+static ETHIOPIAN_ORTHODOX_RULES: &[HolidayRule] = &read_all(
+    401,
+    [
+        ethiopic_feast("Enkutatash (New Year)", "እንቁጣጣሽ", 1, 1),
+        ethiopic_feast("Meskel (Finding of the True Cross)", "መስቀል", 1, 17),
+        // Genna on 25 December of the Julian calendar, as the Coptic Nativity:
+        // 29 Tahsas, and 28 Tahsas after an Ethiopic leap year (eotc-ma-calendar).
+        feast(
+            "Genna (Christmas)",
+            "ገና",
+            Rule::in_calendar(CalendarSystem::JULIAN, 12, 25),
+        ),
+        ethiopic_feast("Timkat (Epiphany)", "ጥምቀት", 5, 11),
+        ethiopic_feast("Debre Tabor (Transfiguration)", "ደብረ ታቦር", 12, 13),
+        // The movable cycle of Bahire Hasab, as offsets from Tinsae.
+        feast(
+            "Tsome Nenewe (Fast of Nineveh) begins",
+            "ጾመ ነነዌ",
+            Rule::paschal(TSOME_NENEWE),
+        ),
+        feast(
+            "Abiy Tsom (Great Lent) begins",
+            "ዐቢይ ጾም",
+            Rule::paschal(ABIY_TSOM),
+        ),
+        feast(
+            "Debre Zeit (Mid-Lent)",
+            "ደብረ ዘይት",
+            Rule::paschal(DEBRE_ZEIT),
+        ),
+        feast("Hosanna (Palm Sunday)", "ሆሣዕና", Rule::paschal(PALM_SUNDAY)),
+        feast("Siklet (Good Friday)", "ስቅለት", Rule::paschal(GOOD_FRIDAY)),
+        feast("Fasika (Easter)", "ፋሲካ", Rule::paschal(EASTER_SUNDAY)),
+        feast(
+            "Rekbe Kahnat (Mid-Pentecost)",
+            "ርክበ ካህናት",
+            Rule::paschal(REKBE_KAHNAT),
+        ),
+        feast("Erget (Ascension)", "ዕርገት", Rule::paschal(ASCENSION)),
+        feast("Paraclete (Pentecost)", "ጰራቅሊጦስ", Rule::paschal(PENTECOST)),
+    ],
+);
 
 /// The feasts of the Ethiopian Orthodox Tewahedo Church.
 ///
@@ -405,7 +415,7 @@ pub static ETHIOPIAN_ORTHODOX: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "The calendar page of ethiopianorthodox.org (ethiopianorthodox.org/english/\
               calendar.html, \"©2003 Ethiopian Orthodox Tewahedo Church\"), retrieved \
@@ -444,67 +454,70 @@ const fn coptic_feast(name: &'static str, local: &'static str, month: u8, day: u
 /// The Sunday after Easter, which the Coptic Church keeps for Thomas.
 const THOMAS_SUNDAY: i16 = 7;
 
-static COPTIC_ORTHODOX_RULES: &[HolidayRule] = &[
-    coptic_feast("Nayrouz (New Year)", "عيد النيروز", 1, 1),
-    coptic_feast("Feast of the Cross", "عيد الصليب", 1, 17),
-    // The Nativity on 25 December of the Julian calendar: 29 Koiak, and
-    // 28 Koiak in the Coptic year after a Coptic leap year, 7 January from
-    // 1900 to 2099 (st-takla-nativity-fast; ramzy-nativity-2004).
-    feast(
-        "Nativity (Christmas)",
-        "عيد الميلاد المجيد",
-        Rule::in_calendar(CalendarSystem::JULIAN, 12, 25),
-    ),
-    coptic_feast("Circumcision of the Lord", "عيد الختان", 5, 6),
-    coptic_feast("Theophany (Epiphany)", "عيد الغطاس", 5, 11),
-    coptic_feast("Wedding at Cana", "عرس قانا الجليل", 5, 13),
-    coptic_feast("Dormition of St Mary", "نياحة السيدة العذراء", 5, 21),
-    coptic_feast(
-        "Entry of the Lord into the Temple",
-        "دخول السيد المسيح الهيكل",
-        6,
-        8,
-    ),
-    coptic_feast("Feast of the Cross (second)", "عيد الصليب", 7, 10),
-    coptic_feast("Annunciation", "عيد البشارة", 7, 29),
-    coptic_feast(
-        "Entry of the Holy Family into Egypt",
-        "دخول السيد المسيح أرض مصر",
-        9,
-        24,
-    ),
-    coptic_feast("Feast of the Apostles", "عيد الرسل", 11, 5),
-    coptic_feast("Transfiguration", "عيد التجلي", 12, 13),
-    coptic_feast("Assumption of St Mary", "صعود جسد السيدة العذراء", 12, 16),
-    // The movable cycle: the Coptic Church keeps the Alexandrian computus,
-    // which is the Julian Paschalion's Sunday, and the same tewsak as the
-    // Ethiopian table.
-    feast(
-        "Fast of Nineveh (Jonah) begins",
-        "صوم يونان",
-        Rule::paschal(TSOME_NENEWE),
-    ),
-    feast(
-        "Great Lent begins",
-        "الصوم الكبير",
-        Rule::paschal(ABIY_TSOM),
-    ),
-    feast("Palm Sunday", "أحد الشعانين", Rule::paschal(PALM_SUNDAY)),
-    feast(
-        "Covenant Thursday",
-        "خميس العهد",
-        Rule::paschal(MAUNDY_THURSDAY),
-    ),
-    feast("Good Friday", "الجمعة العظيمة", Rule::paschal(GOOD_FRIDAY)),
-    feast(
-        "Easter (Resurrection)",
-        "عيد القيامة المجيد",
-        Rule::paschal(EASTER_SUNDAY),
-    ),
-    feast("Thomas Sunday", "أحد توما", Rule::paschal(THOMAS_SUNDAY)),
-    feast("Ascension", "عيد الصعود", Rule::paschal(ASCENSION)),
-    feast("Pentecost", "عيد العنصرة", Rule::paschal(PENTECOST)),
-];
+static COPTIC_ORTHODOX_RULES: &[HolidayRule] = &read_all(
+    326,
+    [
+        coptic_feast("Nayrouz (New Year)", "عيد النيروز", 1, 1),
+        coptic_feast("Feast of the Cross", "عيد الصليب", 1, 17),
+        // The Nativity on 25 December of the Julian calendar: 29 Koiak, and
+        // 28 Koiak in the Coptic year after a Coptic leap year, 7 January from
+        // 1900 to 2099 (st-takla-nativity-fast; ramzy-nativity-2004).
+        feast(
+            "Nativity (Christmas)",
+            "عيد الميلاد المجيد",
+            Rule::in_calendar(CalendarSystem::JULIAN, 12, 25),
+        ),
+        coptic_feast("Circumcision of the Lord", "عيد الختان", 5, 6),
+        coptic_feast("Theophany (Epiphany)", "عيد الغطاس", 5, 11),
+        coptic_feast("Wedding at Cana", "عرس قانا الجليل", 5, 13),
+        coptic_feast("Dormition of St Mary", "نياحة السيدة العذراء", 5, 21),
+        coptic_feast(
+            "Entry of the Lord into the Temple",
+            "دخول السيد المسيح الهيكل",
+            6,
+            8,
+        ),
+        coptic_feast("Feast of the Cross (second)", "عيد الصليب", 7, 10),
+        coptic_feast("Annunciation", "عيد البشارة", 7, 29),
+        coptic_feast(
+            "Entry of the Holy Family into Egypt",
+            "دخول السيد المسيح أرض مصر",
+            9,
+            24,
+        ),
+        coptic_feast("Feast of the Apostles", "عيد الرسل", 11, 5),
+        coptic_feast("Transfiguration", "عيد التجلي", 12, 13),
+        coptic_feast("Assumption of St Mary", "صعود جسد السيدة العذراء", 12, 16),
+        // The movable cycle: the Coptic Church keeps the Alexandrian computus,
+        // which is the Julian Paschalion's Sunday, and the same tewsak as the
+        // Ethiopian table.
+        feast(
+            "Fast of Nineveh (Jonah) begins",
+            "صوم يونان",
+            Rule::paschal(TSOME_NENEWE),
+        ),
+        feast(
+            "Great Lent begins",
+            "الصوم الكبير",
+            Rule::paschal(ABIY_TSOM),
+        ),
+        feast("Palm Sunday", "أحد الشعانين", Rule::paschal(PALM_SUNDAY)),
+        feast(
+            "Covenant Thursday",
+            "خميس العهد",
+            Rule::paschal(MAUNDY_THURSDAY),
+        ),
+        feast("Good Friday", "الجمعة العظيمة", Rule::paschal(GOOD_FRIDAY)),
+        feast(
+            "Easter (Resurrection)",
+            "عيد القيامة المجيد",
+            Rule::paschal(EASTER_SUNDAY),
+        ),
+        feast("Thomas Sunday", "أحد توما", Rule::paschal(THOMAS_SUNDAY)),
+        feast("Ascension", "عيد الصعود", Rule::paschal(ASCENSION)),
+        feast("Pentecost", "عيد العنصرة", Rule::paschal(PENTECOST)),
+    ],
+);
 
 /// The feasts of the Coptic Orthodox Church of Alexandria.
 ///
@@ -538,7 +551,7 @@ pub static COPTIC_ORTHODOX: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "The Feasts of the Church, Coptic Orthodox Diocese of Los Angeles \
               (lacopts.org), retrieved 2026-09-22, for the fixed dates; St-Takla.org, \
@@ -606,7 +619,7 @@ pub static ISLAMIC: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "The tabular civil Hijri calendar, CLDR `islamic-civil`. These \
               are computations, not announcements. The Shia days from \
@@ -677,40 +690,43 @@ const SEVENTEENTH_OF_TAMMUZ: Rule = Rule::moved_by_weekday(&TAMMUZ_17, AFTER_THE
 /// Dershowitz's `tishah-be-av` gives it.
 const TISHA_BAV: Rule = Rule::moved_by_weekday(&AV_9, AFTER_THE_SABBATH);
 
-static JEWISH_RULES: &[HolidayRule] = &[
-    hebrew_day("Rosh Hashanah", "ראש השנה", 1, 1),
-    hebrew_day("Rosh Hashanah (second day)", "ראש השנה", 1, 2),
-    feast("Fast of Gedaliah", "צום גדליה", FAST_OF_GEDALIAH),
-    hebrew_day("Yom Kippur", "יום כיפור", 1, 10),
-    hebrew_day("Sukkot", "סוכות", 1, 15),
-    hebrew_day("Hoshana Rabbah", "הושענא רבה", 1, 21),
-    hebrew_day("Shemini Atzeret", "שמיני עצרת", 1, 22),
-    hebrew_day("Simchat Torah", "שמחת תורה", 1, 23),
-    hebrew_day("Hanukkah", "חנוכה", 3, 25),
-    hebrew_day("Tenth of Tevet", "עשרה בטבת", 4, 10),
-    hebrew_day("Tu BiShvat", "ט\"ו בשבט", 5, 15),
-    feast("Ta'anit Esther", "תענית אסתר", TAANIT_ESTHER),
-    hebrew_day("Purim", "פורים", 6, 14),
-    hebrew_day("Shushan Purim", "שושן פורים", 6, 15),
-    feast("Ta'anit Bechorot", "תענית בכורות", TAANIT_BECHOROT),
-    hebrew_day("Passover", "פסח", 7, 15),
-    hebrew_day("Seventh Day of Passover", "שביעי של פסח", 7, 21),
-    hebrew_day("Lag BaOmer", "ל\"ג בעומר", 8, 18),
-    hebrew_day("Shavuot", "שבועות", 9, 6),
-    feast(
-        "Seventeenth of Tammuz",
-        "שבעה עשר בתמוז",
-        SEVENTEENTH_OF_TAMMUZ,
-    ),
-    feast("Tisha B'Av", "תשעה באב", TISHA_BAV),
-    // Sh'ela, the first day of the prayer for rain outside the Land of
-    // Israel: 26 Hatur, in the Coptic calendar's third month.
-    feast(
-        "Sh'ela (prayer for rain, outside the Land of Israel)",
-        "שאלה",
-        Rule::in_calendar(CalendarSystem::COPTIC, 3, 26),
-    ),
-];
+static JEWISH_RULES: &[HolidayRule] = &read_all(
+    359,
+    [
+        hebrew_day("Rosh Hashanah", "ראש השנה", 1, 1),
+        hebrew_day("Rosh Hashanah (second day)", "ראש השנה", 1, 2),
+        feast("Fast of Gedaliah", "צום גדליה", FAST_OF_GEDALIAH),
+        hebrew_day("Yom Kippur", "יום כיפור", 1, 10),
+        hebrew_day("Sukkot", "סוכות", 1, 15),
+        hebrew_day("Hoshana Rabbah", "הושענא רבה", 1, 21),
+        hebrew_day("Shemini Atzeret", "שמיני עצרת", 1, 22),
+        hebrew_day("Simchat Torah", "שמחת תורה", 1, 23),
+        hebrew_day("Hanukkah", "חנוכה", 3, 25),
+        hebrew_day("Tenth of Tevet", "עשרה בטבת", 4, 10),
+        hebrew_day("Tu BiShvat", "ט\"ו בשבט", 5, 15),
+        feast("Ta'anit Esther", "תענית אסתר", TAANIT_ESTHER),
+        hebrew_day("Purim", "פורים", 6, 14),
+        hebrew_day("Shushan Purim", "שושן פורים", 6, 15),
+        feast("Ta'anit Bechorot", "תענית בכורות", TAANIT_BECHOROT),
+        hebrew_day("Passover", "פסח", 7, 15),
+        hebrew_day("Seventh Day of Passover", "שביעי של פסח", 7, 21),
+        hebrew_day("Lag BaOmer", "ל\"ג בעומר", 8, 18),
+        hebrew_day("Shavuot", "שבועות", 9, 6),
+        feast(
+            "Seventeenth of Tammuz",
+            "שבעה עשר בתמוז",
+            SEVENTEENTH_OF_TAMMUZ,
+        ),
+        feast("Tisha B'Av", "תשעה באב", TISHA_BAV),
+        // Sh'ela, the first day of the prayer for rain outside the Land of
+        // Israel: 26 Hatur, in the Coptic calendar's third month.
+        feast(
+            "Sh'ela (prayer for rain, outside the Land of Israel)",
+            "שאלה",
+            Rule::in_calendar(CalendarSystem::COPTIC, 3, 26),
+        ),
+    ],
+);
 
 /// Judaism.
 ///
@@ -751,7 +767,7 @@ pub static JEWISH: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "The arithmetic Hebrew calendar as `hc-calendars-lunar` \
               implements it, following Dershowitz and Reingold, \
@@ -883,7 +899,7 @@ pub static BAHAI: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "Badíʿ dates 172 to 221 BE, prepared by an ad hoc committee at the \
               Bahá'í World Centre from data of HM Nautical Almanac Office, \
@@ -966,7 +982,7 @@ pub static HINDU: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: "The Rashtriya Panchang, Positional Astronomy Centre, India \
               Meteorological Department, Śaka 1945 and 1946 (2023–2025), \
@@ -1061,7 +1077,7 @@ pub static WHEEL_OF_THE_YEAR: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Wikipedia, \"Wheel of the Year\", retrieved 2026-09-22, for the eight \
               festivals, their dates in each hemisphere and the cycle's \
@@ -1079,7 +1095,7 @@ pub static WHEEL_OF_THE_YEAR_SOUTH: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Wikipedia, \"Wheel of the Year\", retrieved 2026-09-22, southern-hemisphere \
               column. Secondary: no body defines the Wheel of the Year for all who keep it, so there is no primary to replace it",
@@ -1164,7 +1180,7 @@ pub static BUDDHIST_THAI: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "The Makha, Visakha and Asalha Bucha (to 2006 Khao Phansa) dates of \
               the Bank of Thailand's financial-institution holiday lists for \
@@ -1181,14 +1197,16 @@ pub static BUDDHIST_THAI: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 
 static BUDDHIST_EAST_ASIAN_RULES: &[HolidayRule] = &[
-    feast("Nirvana Day", "涅槃会", Rule::gregorian(2, 15)),
-    feast("Buddha's Birthday", "灌仏会", Rule::gregorian(4, 8)),
+    // The Japanese days are on the Gregorian calendar from the Meiji
+    // reform of 1873; the lunar reckoning follows its own calendar.
+    feast("Nirvana Day", "涅槃会", Rule::gregorian(2, 15)).read_from(1873),
+    feast("Buddha's Birthday", "灌仏会", Rule::gregorian(4, 8)).read_from(1873),
     feast(
         "Buddha's Birthday (lunar reckoning)",
         "佛誕",
         Rule::in_calendar(CalendarSystem::CHINESE, 4, 8),
     ),
-    feast("Bodhi Day", "成道会", Rule::gregorian(12, 8)),
+    feast("Bodhi Day", "成道会", Rule::gregorian(12, 8)).read_from(1873),
 ];
 
 /// East Asian Mahāyāna Buddhism: the Japanese days on the Gregorian
@@ -1209,7 +1227,7 @@ pub static BUDDHIST_EAST_ASIAN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Secondary sources only, all retrieved 2026-09-26: the Japanese \
               Wikipedia, \"灌仏会\", for 8 April in Japan and the Chinese \
@@ -1385,7 +1403,7 @@ pub static CHINESE_FOLK: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "The Chinese lunisolar calendar and the 24 solar terms, both \
               computed at the Beijing meridian by `hc-calendars-lunar` and \
@@ -1428,7 +1446,7 @@ macro_rules! xiaonian {
             substitution: &[],
             bridges: &[],
             includes: &[],
-            weekend: SATURDAY_SUNDAY,
+            weekend: NO_WEEKEND,
             sources_checked: SourceDate::new(2026, 9, 27),
             sources: XIAONIAN_SOURCES,
             subdivisions: Subdivisions::Undivided,
@@ -1541,7 +1559,7 @@ pub static TAOIST: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Secondary sources only, all retrieved 2026-09-26: Wikipedia (zh), \
               \"下元節\", for the Three Officials' birthdays on 正月十五, 七月十五 and \
@@ -1621,7 +1639,7 @@ pub static KOREAN_FOLK: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Wikipedia (ko), \"한국의 명절\", for the lunar days, including 영등날 on \
               2/1 and 시월보름 on 10/15 (secondary); Encyclopedia of Korean Culture \
@@ -1679,7 +1697,7 @@ pub static VIETNAMESE_FOLK: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Ngô Trọng Bình, \"Ý nghĩa của những ngày tết tính theo âm lịch\", TTXVN/Vietnam+ \
               (vietnamplus.vn), 21 January 2012 (`vnplus-tet-am-lich`), for the days; \
@@ -1728,7 +1746,7 @@ pub static GOSEKKU: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Wikipedia (ja), \"節句\", retrieved 2026-09-26, for the five, their \
               names and dates, and their abolition by 太政官第1号布告 of 4 January 1873 \
@@ -1920,7 +1938,7 @@ pub static OBON_JULY: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: OBON_SOURCES,
     subdivisions: Subdivisions::Undivided,
@@ -1937,7 +1955,7 @@ pub static OBON_AUGUST: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: OBON_SOURCES,
     subdivisions: Subdivisions::Undivided,
@@ -1975,7 +1993,7 @@ pub static OBON_LUNAR: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: OBON_SOURCES,
     subdivisions: Subdivisions::Undivided,
@@ -2004,7 +2022,7 @@ pub static TORI_NO_ICHI: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Wikipedia (ja), \"酉の市\", retrieved 2026-09-27 (`wikipedia-ja-tori-no-ichi`), \
               for the 酉 days of November and the third 酉 when the first is on 1 to 6 \
@@ -2047,7 +2065,7 @@ pub static HATSUUMA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: HATSUUMA_SOURCES,
     subdivisions: Subdivisions::Undivided,
@@ -2068,7 +2086,7 @@ pub static HATSUUMA_LUNAR: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: HATSUUMA_SOURCES,
     subdivisions: Subdivisions::Undivided,
@@ -2101,7 +2119,7 @@ pub static INOKO: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: INOKO_SOURCES,
     subdivisions: Subdivisions::Undivided,
@@ -2122,7 +2140,7 @@ pub static INOKO_NOVEMBER: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: INOKO_SOURCES,
     subdivisions: Subdivisions::Undivided,
@@ -2152,7 +2170,7 @@ pub static TOKANYA: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: TOKANYA_SOURCES,
     subdivisions: Subdivisions::Undivided,
@@ -2173,7 +2191,7 @@ pub static TOKANYA_NOVEMBER: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: TOKANYA_SOURCES,
     subdivisions: Subdivisions::Undivided,
@@ -2307,7 +2325,7 @@ pub static BUDDHIST_TIBETAN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: BUDDHIST_TIBETAN_SOURCES,
     subdivisions: Subdivisions::Undivided,
@@ -2326,7 +2344,7 @@ pub static BUDDHIST_TIBETAN_BERZIN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "As `buddhist-tibetan`; Svante Janson, \"Tibetan calendar mathematics\" \
               (arXiv:1401.6285, `janson2014`), §11, for Berzin's rule, which Janson has \
@@ -2397,7 +2415,7 @@ pub static BUDDHIST_TIBETAN_HENNING: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Edward Henning's computed Phugpa almanacs (kalacakra.org, tdata/pl_*.txt, \
               `kalacakra-org`), read 2026-09-29 for 1990 and 2024 to 2026: every festival \
@@ -2513,7 +2531,7 @@ pub static BUDDHIST_UPOSATHA_THAI: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Wikipedia (th), \"วันพระ\", for \"วันขึ้น 8 ค่ำ, วันขึ้น 15 ค่ำ (วันเพ็ญ), วันแรม \
               8 ค่ำ และวันแรม 15 ค่ำ (หากเดือนใดเป็นเดือนขาด ถือเอาวันแรม 14 ค่ำ)\"; Wikipedia, \
@@ -2529,30 +2547,33 @@ pub static BUDDHIST_UPOSATHA_THAI: RuleSet = RuleSet {
 // Plough Monday, Plough Sunday and Distaff Day
 // ─────────────────────────────────────────────────────────────────────────
 
-static PLOUGH_DAYS_RULES: &[HolidayRule] = &[
-    HolidayRule::observance("Distaff Day", "St Distaff's Day", Rule::gregorian(1, 7)),
-    // "The Sunday between 7 January and 13 January".
-    feast(
-        "Plough Sunday",
-        "",
-        Rule::WeekdayOnOrAfter {
-            month: 1,
-            day: 7,
-            weekday: Weekday::Sunday,
-        },
-    ),
-    // "The first Monday after Twelfth-day": after 6 January, so 13 January
-    // when the 6th is itself a Monday, as in 2025.
-    HolidayRule::observance(
-        "Plough Monday",
-        "",
-        Rule::WeekdayOnOrAfter {
-            month: 1,
-            day: 7,
-            weekday: Weekday::Monday,
-        },
-    ),
-];
+static PLOUGH_DAYS_RULES: &[HolidayRule] = &read_all(
+    1753,
+    [
+        HolidayRule::observance("Distaff Day", "St Distaff's Day", Rule::gregorian(1, 7)),
+        // "The Sunday between 7 January and 13 January".
+        feast(
+            "Plough Sunday",
+            "",
+            Rule::WeekdayOnOrAfter {
+                month: 1,
+                day: 7,
+                weekday: Weekday::Sunday,
+            },
+        ),
+        // "The first Monday after Twelfth-day": after 6 January, so 13 January
+        // when the 6th is itself a Monday, as in 2025.
+        HolidayRule::observance(
+            "Plough Monday",
+            "",
+            Rule::WeekdayOnOrAfter {
+                month: 1,
+                day: 7,
+                weekday: Weekday::Monday,
+            },
+        ),
+    ],
+);
 
 /// The English folk days that end Christmas: Distaff Day, St Distaff's
 /// Day, on 7 January, "the day after Epiphany", when the women went back
@@ -2576,7 +2597,7 @@ pub static PLOUGH_DAYS: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "William Hone, The Every-Day Book, vol. 1 (London: Hunt and Clarke, 1826; \
               read in William Tegg and Co.'s reissue as Project Gutenberg's eBook 53275 \
@@ -2640,7 +2661,7 @@ pub static CHAHARSHANBE_SURI: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Wikipedia (fa), \"چهارشنبه‌سوری\", for the night of the last Wednesday of \
               the year from Tuesday's sunset and 28 Esfand 1404, 17 March 2026; Wikipedia, \
@@ -2695,7 +2716,7 @@ pub static IRANIAN_FESTIVALS: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Wikipedia, \"Tirgan\" (Tir 13), \"Mehregan\" (8 October), \"Yaldā Night\" \
               (the night between the last day of Azar and 1 Dey, 21 December or 20 in a \
@@ -2759,7 +2780,7 @@ pub static ZOROASTRIAN_IRANIAN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Wikipedia (fa), \"جشن‌های زرتشتی\" (`wikipedia-fa-zoroastrian-festivals`), \
               the twelve monthly feasts with their Zoroastrian and their present Iranian \
@@ -2839,7 +2860,7 @@ pub static TENRIKYO: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Tenrikyo Church Headquarters, \"祭典\" (tenrikyo.or.jp/jpn/service/, \
               `tenrikyo-saiten`), for 元旦祭 on 1 January, 春季大祭 on 26 January, \
@@ -2905,11 +2926,14 @@ fn sacred_wednesdays(year: i64) -> Days {
 /// years against the calendar's own range.
 const SACRED_WEDNESDAYS_YEARS: (i64, i64) = (-3_099, 6_899);
 
-static UNLUCKY_FRIDAYS_RULES: &[HolidayRule] = &[HolidayRule::observance(
-    "Friday the 13th",
-    "",
-    Rule::Computed(unlucky_fridays),
-)];
+static UNLUCKY_FRIDAYS_RULES: &[HolidayRule] = &read_all(
+    2000,
+    [HolidayRule::observance(
+        "Friday the 13th",
+        "",
+        Rule::Computed(unlucky_fridays),
+    )],
+);
 
 /// Friday the 13th, as Reingold and Dershowitz compute it in their
 /// `unlucky-fridays`: every Friday of a Gregorian year that is the 13th of
@@ -2923,7 +2947,7 @@ pub static UNLUCKY_FRIDAYS: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Edward M. Reingold and Nachum Dershowitz, calendar-code2, `calendar.l` \
               (`reingold2018code`), `unlucky-fridays` and `unlucky-fridays-in-range`, \
@@ -2932,15 +2956,18 @@ pub static UNLUCKY_FRIDAYS: RuleSet = RuleSet {
     subdivisions: Subdivisions::Undivided,
 };
 
-static SACRED_WEDNESDAYS_RULES: &[HolidayRule] = &[HolidayRule::observance(
-    "Wednesday on the eighth lunar day",
-    "",
-    Rule::Tabulated {
-        function: sacred_wednesdays,
-        first_year: SACRED_WEDNESDAYS_YEARS.0,
-        last_year: SACRED_WEDNESDAYS_YEARS.1,
-    },
-)];
+static SACRED_WEDNESDAYS_RULES: &[HolidayRule] = &read_all(
+    2000,
+    [HolidayRule::observance(
+        "Wednesday on the eighth lunar day",
+        "",
+        Rule::Tabulated {
+            function: sacred_wednesdays,
+            first_year: SACRED_WEDNESDAYS_YEARS.0,
+            last_year: SACRED_WEDNESDAYS_YEARS.1,
+        },
+    )],
+);
 
 /// Reingold and Dershowitz's `sacred-wednesdays`: the Wednesdays that are
 /// day 8 of a Hindu lunar month, which is the eighth tithi of the bright
@@ -2964,7 +2991,7 @@ pub static SACRED_WEDNESDAYS: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Edward M. Reingold and Nachum Dershowitz, calendar-code2, `calendar.l` \
               (`reingold2018code`), `sacred-wednesdays` and \
@@ -3124,7 +3151,7 @@ pub static CHURCH_OF_THE_EAST: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Rev. Tower Andrious, \"The Ecclesiastical Liturgical Year for the Church \
               of the East\" (Assyrian Church of the East, Beth Kokheh, \
@@ -3236,7 +3263,7 @@ pub static JAIN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Wikipedia, \"Paryushana\", retrieved 2026-09-22, for the eight \
               Śvetāmbara days ending with Saṃvatsarī on Bhadrapada śukla 4, the \
@@ -3259,24 +3286,27 @@ static RISSHUN: Rule = Rule::SolarTerm {
     meridian: Meridian::JAPAN,
 };
 
-static SHINTO_RULES: &[HolidayRule] = &[
-    HolidayRule::observance("Hatsumōde", "初詣", Rule::gregorian(1, 1)),
-    HolidayRule::observance(
-        "Setsubun",
-        "節分",
-        Rule::Offset {
-            base: &RISSHUN,
-            days: -1,
-        },
-    ),
-    feast("Nagoshi no Ōharae", "夏越の大祓", Rule::gregorian(6, 30)),
-    HolidayRule::observance("Shichi-Go-San", "七五三", Rule::gregorian(11, 15)),
-    feast(
-        "Toshikoshi no Ōharae",
-        "年越の大祓",
-        Rule::gregorian(12, 31),
-    ),
-];
+static SHINTO_RULES: &[HolidayRule] = &read_all(
+    1873,
+    [
+        HolidayRule::observance("Hatsumōde", "初詣", Rule::gregorian(1, 1)),
+        HolidayRule::observance(
+            "Setsubun",
+            "節分",
+            Rule::Offset {
+                base: &RISSHUN,
+                days: -1,
+            },
+        ),
+        feast("Nagoshi no Ōharae", "夏越の大祓", Rule::gregorian(6, 30)),
+        HolidayRule::observance("Shichi-Go-San", "七五三", Rule::gregorian(11, 15)),
+        feast(
+            "Toshikoshi no Ōharae",
+            "年越の大祓",
+            Rule::gregorian(12, 31),
+        ),
+    ],
+);
 
 /// Shinto, as the year is kept at a shrine and at home: the New Year
 /// visit, 節分 on the eve of 立春, the two 大祓 purifications at the half
@@ -3297,7 +3327,7 @@ pub static SHINTO: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Wikipedia (ja), \"節分\", retrieved 2026-09-22, for the rule — the \
               day before 立春, the Sun at longitude 315° — and its dates by \
@@ -3324,71 +3354,74 @@ const fn equinox_rite(name: &'static str, local: &'static str, term: SolarTerm) 
     )
 }
 
-static KYUCHU_SAISHI_RULES: &[HolidayRule] = &[
-    rite("Shihōhai", "四方拝", 1, 1),
-    rite("Saitansai", "歳旦祭", 1, 1),
-    rite("Genshisai", "元始祭", 1, 3),
-    rite("Sōjihajime", "奏事始", 1, 4),
-    rite("Shōwa Tennō-sai", "昭和天皇祭", 1, 7),
-    rite("Kōmei Tennō reisai", "孝明天皇例祭", 1, 30),
-    // 紀元節祭 until 1948; the 三殿御拝 since.
-    rite("Sanden gohai", "三殿御拝", 2, 11).years(Some(1949), None),
-    rite("Kinensai", "祈年祭", 2, 17),
-    // The present Emperor's birthday, a Tenchōsai from 2020.
-    rite("Tenchōsai", "天長祭", 2, 23).years(Some(2020), None),
-    equinox_rite("Shunki Kōreisai", "春季皇霊祭", SolarTerm::SPRING_EQUINOX),
-    equinox_rite("Shunki Shindensai", "春季神殿祭", SolarTerm::SPRING_EQUINOX),
-    rite("Jinmu Tennō-sai", "神武天皇祭", 4, 3),
-    rite("Kōreiden Mikagura", "皇霊殿御神楽", 4, 3),
-    rite("Kōjun Kōgō reisai", "香淳皇后例祭", 6, 16),
-    rite("Yoori", "節折", 6, 30),
-    rite("Ōharai", "大祓", 6, 30),
-    rite("Meiji Tennō reisai", "明治天皇例祭", 7, 30),
-    equinox_rite("Shūki Kōreisai", "秋季皇霊祭", SolarTerm::AUTUMN_EQUINOX),
-    equinox_rite("Shūki Shindensai", "秋季神殿祭", SolarTerm::AUTUMN_EQUINOX),
-    rite("Kannamesai", "神嘗祭", 10, 17),
-    rite("Niinamesai", "新嘗祭", 11, 23),
-    rite("Taishō Tennō reisai", "大正天皇例祭", 12, 25),
-    rite("Yoori", "節折", 12, 31),
-    rite("Ōharai", "大祓", 12, 31),
-    // The 旬祭 on the first, eleventh and twenty-first of every month.
-    rite("Shunsai", "旬祭", 1, 1),
-    rite("Shunsai", "旬祭", 1, 11),
-    rite("Shunsai", "旬祭", 1, 21),
-    rite("Shunsai", "旬祭", 2, 1),
-    rite("Shunsai", "旬祭", 2, 11),
-    rite("Shunsai", "旬祭", 2, 21),
-    rite("Shunsai", "旬祭", 3, 1),
-    rite("Shunsai", "旬祭", 3, 11),
-    rite("Shunsai", "旬祭", 3, 21),
-    rite("Shunsai", "旬祭", 4, 1),
-    rite("Shunsai", "旬祭", 4, 11),
-    rite("Shunsai", "旬祭", 4, 21),
-    rite("Shunsai", "旬祭", 5, 1),
-    rite("Shunsai", "旬祭", 5, 11),
-    rite("Shunsai", "旬祭", 5, 21),
-    rite("Shunsai", "旬祭", 6, 1),
-    rite("Shunsai", "旬祭", 6, 11),
-    rite("Shunsai", "旬祭", 6, 21),
-    rite("Shunsai", "旬祭", 7, 1),
-    rite("Shunsai", "旬祭", 7, 11),
-    rite("Shunsai", "旬祭", 7, 21),
-    rite("Shunsai", "旬祭", 8, 1),
-    rite("Shunsai", "旬祭", 8, 11),
-    rite("Shunsai", "旬祭", 8, 21),
-    rite("Shunsai", "旬祭", 9, 1),
-    rite("Shunsai", "旬祭", 9, 11),
-    rite("Shunsai", "旬祭", 9, 21),
-    rite("Shunsai", "旬祭", 10, 1),
-    rite("Shunsai", "旬祭", 10, 11),
-    rite("Shunsai", "旬祭", 10, 21),
-    rite("Shunsai", "旬祭", 11, 1),
-    rite("Shunsai", "旬祭", 11, 11),
-    rite("Shunsai", "旬祭", 11, 21),
-    rite("Shunsai", "旬祭", 12, 1),
-    rite("Shunsai", "旬祭", 12, 11),
-    rite("Shunsai", "旬祭", 12, 21),
-];
+static KYUCHU_SAISHI_RULES: &[HolidayRule] = &read_all(
+    2020,
+    [
+        rite("Shihōhai", "四方拝", 1, 1),
+        rite("Saitansai", "歳旦祭", 1, 1),
+        rite("Genshisai", "元始祭", 1, 3),
+        rite("Sōjihajime", "奏事始", 1, 4),
+        rite("Shōwa Tennō-sai", "昭和天皇祭", 1, 7),
+        rite("Kōmei Tennō reisai", "孝明天皇例祭", 1, 30),
+        // 紀元節祭 until 1948; the 三殿御拝 since.
+        rite("Sanden gohai", "三殿御拝", 2, 11).years(Some(1949), None),
+        rite("Kinensai", "祈年祭", 2, 17),
+        // The present Emperor's birthday, a Tenchōsai from 2020.
+        rite("Tenchōsai", "天長祭", 2, 23).years(Some(2020), None),
+        equinox_rite("Shunki Kōreisai", "春季皇霊祭", SolarTerm::SPRING_EQUINOX),
+        equinox_rite("Shunki Shindensai", "春季神殿祭", SolarTerm::SPRING_EQUINOX),
+        rite("Jinmu Tennō-sai", "神武天皇祭", 4, 3),
+        rite("Kōreiden Mikagura", "皇霊殿御神楽", 4, 3),
+        rite("Kōjun Kōgō reisai", "香淳皇后例祭", 6, 16),
+        rite("Yoori", "節折", 6, 30),
+        rite("Ōharai", "大祓", 6, 30),
+        rite("Meiji Tennō reisai", "明治天皇例祭", 7, 30),
+        equinox_rite("Shūki Kōreisai", "秋季皇霊祭", SolarTerm::AUTUMN_EQUINOX),
+        equinox_rite("Shūki Shindensai", "秋季神殿祭", SolarTerm::AUTUMN_EQUINOX),
+        rite("Kannamesai", "神嘗祭", 10, 17),
+        rite("Niinamesai", "新嘗祭", 11, 23),
+        rite("Taishō Tennō reisai", "大正天皇例祭", 12, 25),
+        rite("Yoori", "節折", 12, 31),
+        rite("Ōharai", "大祓", 12, 31),
+        // The 旬祭 on the first, eleventh and twenty-first of every month.
+        rite("Shunsai", "旬祭", 1, 1),
+        rite("Shunsai", "旬祭", 1, 11),
+        rite("Shunsai", "旬祭", 1, 21),
+        rite("Shunsai", "旬祭", 2, 1),
+        rite("Shunsai", "旬祭", 2, 11),
+        rite("Shunsai", "旬祭", 2, 21),
+        rite("Shunsai", "旬祭", 3, 1),
+        rite("Shunsai", "旬祭", 3, 11),
+        rite("Shunsai", "旬祭", 3, 21),
+        rite("Shunsai", "旬祭", 4, 1),
+        rite("Shunsai", "旬祭", 4, 11),
+        rite("Shunsai", "旬祭", 4, 21),
+        rite("Shunsai", "旬祭", 5, 1),
+        rite("Shunsai", "旬祭", 5, 11),
+        rite("Shunsai", "旬祭", 5, 21),
+        rite("Shunsai", "旬祭", 6, 1),
+        rite("Shunsai", "旬祭", 6, 11),
+        rite("Shunsai", "旬祭", 6, 21),
+        rite("Shunsai", "旬祭", 7, 1),
+        rite("Shunsai", "旬祭", 7, 11),
+        rite("Shunsai", "旬祭", 7, 21),
+        rite("Shunsai", "旬祭", 8, 1),
+        rite("Shunsai", "旬祭", 8, 11),
+        rite("Shunsai", "旬祭", 8, 21),
+        rite("Shunsai", "旬祭", 9, 1),
+        rite("Shunsai", "旬祭", 9, 11),
+        rite("Shunsai", "旬祭", 9, 21),
+        rite("Shunsai", "旬祭", 10, 1),
+        rite("Shunsai", "旬祭", 10, 11),
+        rite("Shunsai", "旬祭", 10, 21),
+        rite("Shunsai", "旬祭", 11, 1),
+        rite("Shunsai", "旬祭", 11, 11),
+        rite("Shunsai", "旬祭", 11, 21),
+        rite("Shunsai", "旬祭", 12, 1),
+        rite("Shunsai", "旬祭", 12, 11),
+        rite("Shunsai", "旬祭", 12, 21),
+    ],
+);
 
 /// The rites of the imperial court, 宮中祭祀, on the schedule the source
 /// gives for the Reiwa era: the 大祭 and 小祭 of the year, the 旬祭 three
@@ -3408,7 +3441,7 @@ pub static KYUCHU_SAISHI: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "宮内庁, \"主要祭儀一覧\" (kunaicho.go.jp/about/gokomu/kyuchu/saishi/saishi01.html, \
               `kunaicho-saishi`), \
@@ -3521,7 +3554,7 @@ pub static SIKH_NANAKSHAHI_2003: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Wikipedia, \"Nanakshahi calendar\", retrieved 2026-09-22: the table \
               of festivals and events of the 2003 version for every fixed \
@@ -3617,7 +3650,7 @@ pub static SIKH_SGPC: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 28),
     sources: "SGPC, \"Gurpurbs\" (sgpc.net/gurpurbs, sgpc-gurpurbs), for Poh sudi 7, \
               Kartik Puranmashi and the observances it names; The Tribune, 16 January 2024 \
@@ -3770,7 +3803,7 @@ pub static ZOROASTRIAN_FASLI: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: ZOROASTRIAN_SOURCES,
     subdivisions: Subdivisions::Undivided,
@@ -3787,7 +3820,7 @@ pub static ZOROASTRIAN_SHAHANSHAHI: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: ZOROASTRIAN_SOURCES,
     subdivisions: Subdivisions::Undivided,
@@ -3803,7 +3836,7 @@ pub static ZOROASTRIAN_QADIMI: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: ZOROASTRIAN_SOURCES,
     subdivisions: Subdivisions::Undivided,
@@ -3944,7 +3977,7 @@ pub static EMBER_BCP1662: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Church of England, Book of Common Prayer (1662), \"A Table of the Vigils, \
               Fasts, and Days of Abstinence, to be observed in the year\" \
@@ -4063,7 +4096,7 @@ pub static EMBER_COMMON_WORSHIP: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Church of England, Common Worship, \"Rules to Order the Christian Year\", \
               \"Ember Days\" and \"Eastertide\" (churchofengland.org, prayer-and-worship/\
@@ -4120,7 +4153,7 @@ pub static ROGATION_ROMAN_1960: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Code of Rubrics, approved by John XXIII's motu proprio Rubricarum instructum \
               of 25 July 1960, General Rubrics nos. 80 and 87, in the English translation \
@@ -4208,7 +4241,7 @@ pub static SAMARITAN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "The Samaritans, \"The Samaritan Calendar\" and its upcoming festivals of \
               2026, and the festival pages \"The Festival of the Matzot\", \"The Festival \
@@ -4317,7 +4350,7 @@ pub static MANDAEAN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "E. S. Drower, The Mandaeans of Iraq and Iran (Oxford: Clarendon Press, \
               1937), pp. 60, 84–92 and 211, read in the archive.org text \
@@ -4343,16 +4376,19 @@ const fn qumran(name: &'static str, month: u8, day: u8) -> HolidayRule {
     .approximate()
 }
 
-static QUMRAN_RULES: &[HolidayRule] = &[
-    qumran("Passover", 1, 14),
-    qumran("Feast of Unleavened Bread", 1, 15),
-    qumran("Waving of the Omer", 1, 26),
-    qumran("Second Passover", 2, 14),
-    qumran("Feast of Weeks", 3, 15),
-    qumran("Day of Remembrance", 7, 1),
-    qumran("Day of Atonement", 7, 10),
-    qumran("Feast of Booths", 7, 15),
-];
+static QUMRAN_RULES: &[HolidayRule] = &read_all(
+    -133,
+    [
+        qumran("Passover", 1, 14),
+        qumran("Feast of Unleavened Bread", 1, 15),
+        qumran("Waving of the Omer", 1, 26),
+        qumran("Second Passover", 2, 14),
+        qumran("Feast of Weeks", 3, 15),
+        qumran("Day of Remembrance", 7, 1),
+        qumran("Day of Atonement", 7, 10),
+        qumran("Feast of Booths", 7, 15),
+    ],
+);
 
 /// The festivals of the 364-day year of the Qumran scrolls, on `qumran`,
 /// each on the same weekday every year: the Passover lamb on Tuesday 14/I,
@@ -4371,9 +4407,11 @@ static QUMRAN_RULES: &[HolidayRule] = &[
 /// no source read dates them.
 ///
 /// Every entry is approximate: the weekday is the scrolls', but the
-/// Gregorian date is the convention's, and no source read says in which
-/// years the covenanters kept the calendar, so no year is a gap or absent,
-/// and none is more than a position in the convention.
+/// Gregorian date is the convention's, and none is more than a position in
+/// the convention. No source read says in which years the covenanters kept
+/// the calendar, so the table is read from 134 BCE, year −133, the earliest
+/// year Wikipedia's "Qumran" dates the Hasmonean settlement to (secondary),
+/// and every earlier year is a gap.
 pub static QUMRAN: RuleSet = RuleSet {
     code: "qumran-festivals",
     english_name: "Qumran festivals",
@@ -4381,7 +4419,7 @@ pub static QUMRAN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Shemaryahu Talmon, \"Calendars and Mishmarot\", Encyclopedia of the Dead \
               Sea Scrolls (2000), pp. 110–111 (`talmon2000`), read 2026-09-26 in a scanned \
@@ -4490,23 +4528,26 @@ const fn pawukon_day(
     HolidayRule::observance(name, local, Rule::Computed(function))
 }
 
-static BALINESE_PAWUKON_DAYS_RULES: &[HolidayRule] = &[
-    around("Penyekeban", &GALUNGAN, -3),
-    around("Penyajaan", &GALUNGAN, -2),
-    around("Penampahan", &GALUNGAN, -1),
-    feast("Galungan", "Galungan", Rule::Computed(galungan)),
-    around("Manis Galungan", &GALUNGAN, 1),
-    feast("Kuningan", "Kuningan", Rule::Computed(kuningan)),
-    around("Manis Kuningan", &KUNINGAN, 1),
-    pawukon_day("Tumpek Landep", "Tumpek Landep", tumpek::<2>),
-    pawukon_day("Tumpek Wariga", "Tumpek Wariga", tumpek::<7>),
-    pawukon_day("Tumpek Kuningan", "Tumpek Kuningan", tumpek::<12>),
-    pawukon_day("Tumpek Krulut", "Tumpek Krulut", tumpek::<17>),
-    pawukon_day("Tumpek Uye", "Tumpek Uye", tumpek::<22>),
-    pawukon_day("Tumpek Wayang", "Tumpek Wayang", tumpek::<27>),
-    pawukon_day("Kajeng Kliwon", "Kajeng Kliwon", kajeng_kliwon_first_half),
-    pawukon_day("Kajeng Kliwon", "Kajeng Kliwon", kajeng_kliwon_second_half),
-];
+static BALINESE_PAWUKON_DAYS_RULES: &[HolidayRule] = &read_all(
+    2000,
+    [
+        around("Penyekeban", &GALUNGAN, -3),
+        around("Penyajaan", &GALUNGAN, -2),
+        around("Penampahan", &GALUNGAN, -1),
+        feast("Galungan", "Galungan", Rule::Computed(galungan)),
+        around("Manis Galungan", &GALUNGAN, 1),
+        feast("Kuningan", "Kuningan", Rule::Computed(kuningan)),
+        around("Manis Kuningan", &KUNINGAN, 1),
+        pawukon_day("Tumpek Landep", "Tumpek Landep", tumpek::<2>),
+        pawukon_day("Tumpek Wariga", "Tumpek Wariga", tumpek::<7>),
+        pawukon_day("Tumpek Kuningan", "Tumpek Kuningan", tumpek::<12>),
+        pawukon_day("Tumpek Krulut", "Tumpek Krulut", tumpek::<17>),
+        pawukon_day("Tumpek Uye", "Tumpek Uye", tumpek::<22>),
+        pawukon_day("Tumpek Wayang", "Tumpek Wayang", tumpek::<27>),
+        pawukon_day("Kajeng Kliwon", "Kajeng Kliwon", kajeng_kliwon_first_half),
+        pawukon_day("Kajeng Kliwon", "Kajeng Kliwon", kajeng_kliwon_second_half),
+    ],
+);
 
 /// The holy days of Balinese Hinduism that the 210-day Pawukon,
 /// `balinese-pawukon`, dates by its concurrent weeks: Galungan on Buda
@@ -4537,7 +4578,7 @@ pub static BALINESE_PAWUKON_DAYS: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Edward M. Reingold and Nachum Dershowitz, calendar-code2, `calendar.l` \
               (`reingold2018code`), `tumpek` and `kajeng-keliwon`, read 2026-09-29; \
@@ -4586,82 +4627,85 @@ fn st_mark_greek(year: i64) -> Option<Days> {
     after_pascha_if_late(year, 25, 2)
 }
 
-static NAME_DAYS_GREEK_MOVABLE_RULES: &[HolidayRule] = &[
-    HolidayRule::observance(
-        "Chloe",
-        "Χλόη",
-        Rule::WeekdayOnOrAfter {
-            month: 2,
-            day: 13,
-            weekday: Weekday::Sunday,
-        },
-    ),
-    movable_name_day(
-        "Saturday of St Theodore (Theodore, Theodora)",
-        "Αγίου Θεοδώρου",
-        -43,
-    ),
-    movable_name_day(
-        "Sunday of Orthodoxy (Orthodoxia)",
-        "Κυριακή της Ορθοδοξίας",
-        -42,
-    ),
-    movable_name_day("Gregory Palamas (Gregory)", "Γρηγορίου του Παλαμά", -35),
-    movable_name_day("Lazarus Saturday (Lazarus)", "Σάββατο του Λαζάρου", -8),
-    movable_name_day("Palm Sunday (Vaios, Vaia)", "Κυριακή των Βαΐων", -7),
-    movable_name_day("Holy Monday (Pangalos)", "Μεγάλη Δευτέρα", -6),
-    movable_name_day("Holy Thursday (Alitheia)", "Μεγάλη Πέμπτη", -3),
-    movable_name_day("Pascha (Anastasios, Anastasia)", "Το Άγιο Πάσχα", 0),
-    movable_name_day(
-        "Bright Tuesday (Raphael, Nicholas and Irene of Mytilene)",
-        "Τρίτη της Διακαινησίμου",
-        2,
-    ),
-    movable_name_day(
-        "Bright Wednesday (Theocharis)",
-        "Τετάρτη της Διακαινησίμου",
-        3,
-    ),
-    movable_name_day("Life-giving Spring (Zoe, Pigi)", "Ζωοδόχου Πηγής", 5),
-    movable_name_day("Thomas Sunday (Thomas)", "Του Θωμά", 7),
-    movable_name_day(
-        "Sunday of the Myrrh-bearers (Myrofora)",
-        "Των Μυροφόρων",
-        14,
-    ),
-    movable_name_day("Sunday of the Paralytic (Vithesda)", "Του Παραλύτου", 21),
-    movable_name_day(
-        "Sunday of the Samaritan Woman (Photini)",
-        "Της Σαμαρείτιδος",
-        28,
-    ),
-    movable_name_day("Ascension (Nefeli)", "Ανάληψη του Χριστού", 39),
-    movable_name_day("Monday of the Holy Spirit (Triada)", "Αγίου Πνεύματος", 50),
-    movable_name_day(
-        "All Saints (the names with no saint of their own)",
-        "Αγίων Πάντων",
-        56,
-    ),
-    HolidayRule::observance(
-        "St George (George, Georgia)",
-        "Αγίου Γεωργίου",
-        Rule::Unsettled(st_george_greek),
-    ),
-    HolidayRule::observance(
-        "St Mark (Mark)",
-        "Μάρκου του Αποστόλου",
-        Rule::Unsettled(st_mark_greek),
-    ),
-    HolidayRule::observance(
-        "Sunday of the Forefathers",
-        "Κυριακή των Προπατόρων",
-        Rule::WeekdayOnOrAfter {
-            month: 12,
-            day: 11,
-            weekday: Weekday::Sunday,
-        },
-    ),
-];
+static NAME_DAYS_GREEK_MOVABLE_RULES: &[HolidayRule] = &read_all(
+    1925,
+    [
+        HolidayRule::observance(
+            "Chloe",
+            "Χλόη",
+            Rule::WeekdayOnOrAfter {
+                month: 2,
+                day: 13,
+                weekday: Weekday::Sunday,
+            },
+        ),
+        movable_name_day(
+            "Saturday of St Theodore (Theodore, Theodora)",
+            "Αγίου Θεοδώρου",
+            -43,
+        ),
+        movable_name_day(
+            "Sunday of Orthodoxy (Orthodoxia)",
+            "Κυριακή της Ορθοδοξίας",
+            -42,
+        ),
+        movable_name_day("Gregory Palamas (Gregory)", "Γρηγορίου του Παλαμά", -35),
+        movable_name_day("Lazarus Saturday (Lazarus)", "Σάββατο του Λαζάρου", -8),
+        movable_name_day("Palm Sunday (Vaios, Vaia)", "Κυριακή των Βαΐων", -7),
+        movable_name_day("Holy Monday (Pangalos)", "Μεγάλη Δευτέρα", -6),
+        movable_name_day("Holy Thursday (Alitheia)", "Μεγάλη Πέμπτη", -3),
+        movable_name_day("Pascha (Anastasios, Anastasia)", "Το Άγιο Πάσχα", 0),
+        movable_name_day(
+            "Bright Tuesday (Raphael, Nicholas and Irene of Mytilene)",
+            "Τρίτη της Διακαινησίμου",
+            2,
+        ),
+        movable_name_day(
+            "Bright Wednesday (Theocharis)",
+            "Τετάρτη της Διακαινησίμου",
+            3,
+        ),
+        movable_name_day("Life-giving Spring (Zoe, Pigi)", "Ζωοδόχου Πηγής", 5),
+        movable_name_day("Thomas Sunday (Thomas)", "Του Θωμά", 7),
+        movable_name_day(
+            "Sunday of the Myrrh-bearers (Myrofora)",
+            "Των Μυροφόρων",
+            14,
+        ),
+        movable_name_day("Sunday of the Paralytic (Vithesda)", "Του Παραλύτου", 21),
+        movable_name_day(
+            "Sunday of the Samaritan Woman (Photini)",
+            "Της Σαμαρείτιδος",
+            28,
+        ),
+        movable_name_day("Ascension (Nefeli)", "Ανάληψη του Χριστού", 39),
+        movable_name_day("Monday of the Holy Spirit (Triada)", "Αγίου Πνεύματος", 50),
+        movable_name_day(
+            "All Saints (the names with no saint of their own)",
+            "Αγίων Πάντων",
+            56,
+        ),
+        HolidayRule::observance(
+            "St George (George, Georgia)",
+            "Αγίου Γεωργίου",
+            Rule::Unsettled(st_george_greek),
+        ),
+        HolidayRule::observance(
+            "St Mark (Mark)",
+            "Μάρκου του Αποστόλου",
+            Rule::Unsettled(st_mark_greek),
+        ),
+        HolidayRule::observance(
+            "Sunday of the Forefathers",
+            "Κυριακή των Προπατόρων",
+            Rule::WeekdayOnOrAfter {
+                month: 12,
+                day: 11,
+                weekday: Weekday::Sunday,
+            },
+        ),
+    ],
+);
 
 /// The Greek name days that move, as the Greek Orthodox calendar keeps
 /// them: the feasts counted from Pascha by the Julian computus on which
@@ -4686,7 +4730,7 @@ pub static NAME_DAYS_GREEK_MOVABLE: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "eortologio.gr, \"Υπολογισμός ημέρας του Πάσχα και κινητών γιορτών\" \
               (eortologio.gr/arthra/pasxa.php, `eortologio-pasxa`), the table of the \
@@ -4698,21 +4742,24 @@ pub static NAME_DAYS_GREEK_MOVABLE: RuleSet = RuleSet {
     subdivisions: Subdivisions::Undivided,
 };
 
-static NAME_DAYS_BULGARIAN_MOVABLE_RULES: &[HolidayRule] = &[
-    movable_name_day("Todorovden (Todor, Teodora)", "Тодоровден", -43),
-    movable_name_day("Lazarovden (Lazar)", "Лазаровден", -8),
-    movable_name_day("Tsvetnitsa (names of flowers and plants)", "Цветница", -7),
-    movable_name_day("Velikden (Veliko, Velika)", "Великден", 0),
-    movable_name_day("Bright Friday (Zhivko, Zhivka)", "Светли петък", 5),
-    movable_name_day("Thomas Sunday (Toma)", "Томина неделя", 7),
-    movable_name_day("Spasovden (Spas)", "Спасовден", 39),
-    movable_name_day("All Saints (Panayot)", "Всички светии", 56),
-    movable_name_day(
-        "All Bulgarian Saints (Rumen, Rumyana)",
-        "Всички български светии",
-        63,
-    ),
-];
+static NAME_DAYS_BULGARIAN_MOVABLE_RULES: &[HolidayRule] = &read_all(
+    2010,
+    [
+        movable_name_day("Todorovden (Todor, Teodora)", "Тодоровден", -43),
+        movable_name_day("Lazarovden (Lazar)", "Лазаровден", -8),
+        movable_name_day("Tsvetnitsa (names of flowers and plants)", "Цветница", -7),
+        movable_name_day("Velikden (Veliko, Velika)", "Великден", 0),
+        movable_name_day("Bright Friday (Zhivko, Zhivka)", "Светли петък", 5),
+        movable_name_day("Thomas Sunday (Toma)", "Томина неделя", 7),
+        movable_name_day("Spasovden (Spas)", "Спасовден", 39),
+        movable_name_day("All Saints (Panayot)", "Всички светии", 56),
+        movable_name_day(
+            "All Bulgarian Saints (Rumen, Rumyana)",
+            "Всички български светии",
+            63,
+        ),
+    ],
+);
 
 /// The Bulgarian name days that move with Великден, Pascha by the Julian
 /// computus: Тодоровден, the Saturday at the end of the first week of
@@ -4729,7 +4776,7 @@ pub static NAME_DAYS_BULGARIAN_MOVABLE: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Wikipedia (bg), \"Имен ден\" (`bgwiki-imen-den`), \"Подвижни имени дни в \
               България\": each feast's rule and names, and its table of the days of \
@@ -4762,41 +4809,44 @@ const SHAWWAL_1: Rule = Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1);
 const WINTER_FAST_FIRST: Rule = Rule::in_calendar(CalendarSystem::JULIAN, 11, 28);
 const WINTER_FAST_LAST: Rule = Rule::in_calendar(CalendarSystem::JULIAN, 11, 30);
 
-static YAZIDI_RULES: &[HolidayRule] = &[
-    feast("Serêsal (New Year)", "Serêsal", Rule::Computed(seresal)),
-    eastern(
-        "Chilleyê Havînan (Forty Days of Summer) begins",
-        "Chilleyê Havînan",
-        6,
-        10,
-    ),
-    eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 23),
-    eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 24),
-    eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 25),
-    eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 26),
-    eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 27),
-    eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 28),
-    eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 29),
-    eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 30),
-    feast(
-        "Winter fast",
-        "",
-        Rule::span(&WINTER_FAST_FIRST, &WINTER_FAST_LAST),
-    ),
-    eastern("Bêlinde", "Bêlinde", 12, 1),
-    // The mobile feasts, on the Islamic calendar (pp. 157–158).
-    hijri("Sheva Berat", "Sheva Berat", 8, 15),
-    feast(
-        "Feast of Ramadan (Sheykh Khal Shemsan)",
-        "Sheykh Khal Shemsan",
-        Rule::Offset {
-            base: &SHAWWAL_1,
-            days: -2,
-        },
-    )
-    .approximate(),
-    hijri("Feast of ‘Erefat", "Jezhna ‘Erefat", 12, 9),
-];
+static YAZIDI_RULES: &[HolidayRule] = &read_all(
+    1901,
+    [
+        feast("Serêsal (New Year)", "Serêsal", Rule::Computed(seresal)),
+        eastern(
+            "Chilleyê Havînan (Forty Days of Summer) begins",
+            "Chilleyê Havînan",
+            6,
+            10,
+        ),
+        eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 23),
+        eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 24),
+        eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 25),
+        eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 26),
+        eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 27),
+        eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 28),
+        eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 29),
+        eastern("Festival of the Assembly", "Jezhna Jema‘iyye", 9, 30),
+        feast(
+            "Winter fast",
+            "",
+            Rule::span(&WINTER_FAST_FIRST, &WINTER_FAST_LAST),
+        ),
+        eastern("Bêlinde", "Bêlinde", 12, 1),
+        // The mobile feasts, on the Islamic calendar (pp. 157–158).
+        hijri("Sheva Berat", "Sheva Berat", 8, 15),
+        feast(
+            "Feast of Ramadan (Sheykh Khal Shemsan)",
+            "Sheykh Khal Shemsan",
+            Rule::Offset {
+                base: &SHAWWAL_1,
+                days: -2,
+            },
+        )
+        .approximate(),
+        hijri("Feast of ‘Erefat", "Jezhna ‘Erefat", 12, 9),
+    ],
+);
 
 /// The Yazidi feasts that Kreyenbroek dates, on the Eastern calendar.
 ///
@@ -4834,7 +4884,7 @@ pub static YAZIDI: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Philip G. Kreyenbroek, Yezidism: Its Background, Observances and Textual \
               Tradition (Lewiston: Edwin Mellen Press, 1995), pp. 150–158 and 164 n. 53, \
@@ -4863,7 +4913,7 @@ const TO_SUNDAY_ON_OR_AFTER: &[(Weekday, i16)] = &[
 /// six fixed feasts, the feasts on the Sunday nearest a date, and the
 /// paschal cycle.
 macro_rules! armenian_table {
-    ($module:ident, $system:expr, $paschal:path) => {
+    ($module:ident, $first:expr, $system:expr, $paschal:path) => {
         mod $module {
             use super::*;
 
@@ -4884,71 +4934,79 @@ macro_rules! armenian_table {
             const ADVENT_SUNDAY: Rule =
                 Rule::moved_by_weekday(&ADVENT_SUNDAY_EARLIEST, TO_SUNDAY_ON_OR_AFTER);
 
-            pub(super) static RULES: &[HolidayRule] = &[
-                feast(
-                    "Theophany (Nativity and Baptism of Christ)",
-                    "",
-                    Rule::in_calendar($system, 1, 6),
-                ),
-                feast(
-                    "Presentation of the Lord to the Temple",
-                    "",
-                    Rule::in_calendar($system, 2, 14),
-                ),
-                feast("Annunciation", "", Rule::in_calendar($system, 4, 7)),
-                feast(
-                    "Nativity of the Mother of God",
-                    "",
-                    Rule::in_calendar($system, 9, 8),
-                ),
-                feast(
-                    "Presentation of the Mother of God to the Temple",
-                    "",
-                    Rule::in_calendar($system, 11, 21),
-                ),
-                feast(
-                    "Conception of the Mother of God",
-                    "",
-                    Rule::in_calendar($system, 12, 9),
-                ),
-                feast("Fast of the Catechumens begins", "", $paschal(-69)),
-                feast("Great Lent begins", "", $paschal(-48)),
-                feast("Easter", "", $paschal(EASTER_SUNDAY)),
-                feast("Apparition of the Cross", "", APPARITION),
-                feast("Transfiguration (Vardavar)", "Վարդավառ", $paschal(98)),
-                feast("Assumption of the Mother of God", "", ASSUMPTION),
-                feast("Exaltation of the Holy Cross", "", EXALTATION),
-                feast(
-                    "Holy Cross of Varak",
-                    "",
-                    Rule::Offset {
-                        base: &EXALTATION,
-                        days: 21,
-                    },
-                ),
-                feast(
-                    "Discovery of the Holy Cross",
-                    "",
-                    Rule::Offset {
-                        base: &EXALTATION,
-                        days: 49,
-                    },
-                ),
-                feast(
-                    "Advent (Hisnag) begins",
-                    "",
-                    Rule::Offset {
-                        base: &ADVENT_SUNDAY,
-                        days: 1,
-                    },
-                ),
-            ];
+            pub(super) static RULES: &[HolidayRule] = &read_all(
+                $first,
+                [
+                    feast(
+                        "Theophany (Nativity and Baptism of Christ)",
+                        "",
+                        Rule::in_calendar($system, 1, 6),
+                    ),
+                    feast(
+                        "Presentation of the Lord to the Temple",
+                        "",
+                        Rule::in_calendar($system, 2, 14),
+                    ),
+                    feast("Annunciation", "", Rule::in_calendar($system, 4, 7)),
+                    feast(
+                        "Nativity of the Mother of God",
+                        "",
+                        Rule::in_calendar($system, 9, 8),
+                    ),
+                    feast(
+                        "Presentation of the Mother of God to the Temple",
+                        "",
+                        Rule::in_calendar($system, 11, 21),
+                    ),
+                    feast(
+                        "Conception of the Mother of God",
+                        "",
+                        Rule::in_calendar($system, 12, 9),
+                    ),
+                    feast("Fast of the Catechumens begins", "", $paschal(-69)),
+                    feast("Great Lent begins", "", $paschal(-48)),
+                    feast("Easter", "", $paschal(EASTER_SUNDAY)),
+                    feast("Apparition of the Cross", "", APPARITION),
+                    feast("Transfiguration (Vardavar)", "Վարդավառ", $paschal(98)),
+                    feast("Assumption of the Mother of God", "", ASSUMPTION),
+                    feast("Exaltation of the Holy Cross", "", EXALTATION),
+                    feast(
+                        "Holy Cross of Varak",
+                        "",
+                        Rule::Offset {
+                            base: &EXALTATION,
+                            days: 21,
+                        },
+                    ),
+                    feast(
+                        "Discovery of the Holy Cross",
+                        "",
+                        Rule::Offset {
+                            base: &EXALTATION,
+                            days: 49,
+                        },
+                    ),
+                    feast(
+                        "Advent (Hisnag) begins",
+                        "",
+                        Rule::Offset {
+                            base: &ADVENT_SUNDAY,
+                            days: 1,
+                        },
+                    ),
+                ],
+            );
         }
     };
 }
 
-armenian_table!(armenian_gregorian, CalendarSystem::GREGORIAN, Rule::easter);
-armenian_table!(armenian_julian, CalendarSystem::JULIAN, Rule::paschal);
+armenian_table!(
+    armenian_gregorian,
+    1583,
+    CalendarSystem::GREGORIAN,
+    Rule::easter
+);
+armenian_table!(armenian_julian, 326, CalendarSystem::JULIAN, Rule::paschal);
 
 /// Where both Armenian tables take their rules from.
 const ARMENIAN_SOURCES: &str = "Armenian Apostolic Church of Holy Resurrection, Sydney, \
@@ -4990,7 +5048,7 @@ pub static CHRISTIAN_ARMENIAN: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: ARMENIAN_SOURCES,
     subdivisions: Subdivisions::Undivided,
@@ -5010,7 +5068,7 @@ pub static CHRISTIAN_ARMENIAN_JERUSALEM: RuleSet = RuleSet {
     substitution: &[],
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: NO_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: ARMENIAN_SOURCES,
     subdivisions: Subdivisions::Undivided,

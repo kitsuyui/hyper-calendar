@@ -2,10 +2,10 @@
 
 use hc_calendar::Weekday;
 
+use super::weekends;
 use crate::computus::offsets::{EASTER_MONDAY, GOOD_FRIDAY};
 use crate::rule::{
-    HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions, SubstituteDirection,
-    SubstitutionPolicy,
+    HolidayRule, Rule, RuleSet, SourceDate, Subdivisions, SubstituteDirection, SubstitutionPolicy,
 };
 
 // The provinces and territories with a day of their own, by ISO 3166-2
@@ -175,11 +175,18 @@ const NO_BOXING_DAY: &[&str] = &[
     "CA-SK", "CA-YT",
 ];
 
+/// The first year the federal days are read for: the Canada Labour Code as
+/// R.S.C. 1985, c. L-2 consolidates it, whose section 166 lists the general
+/// holidays. Earlier texts of the Code were not read.
+const FEDERAL_READ: i32 = 1985;
+
 static CA_RULES: &[HolidayRule] = &[
     // ── The federal days, of federally regulated employers ──────────────
-    HolidayRule::public("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
+    HolidayRule::public("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1))
+        .read_from(FEDERAL_READ),
     HolidayRule::public("Good Friday", "Vendredi saint", Rule::easter(GOOD_FRIDAY))
-        .except_in(NO_GOOD_FRIDAY),
+        .except_in(NO_GOOD_FRIDAY)
+        .read_from(FEDERAL_READ),
     // Victoria Day is the Monday preceding 25 May.
     HolidayRule::public(
         "Victoria Day",
@@ -190,36 +197,43 @@ static CA_RULES: &[HolidayRule] = &[
             weekday: Weekday::Monday,
         },
     )
-    .except_in(NO_VICTORIA_DAY),
+    .except_in(NO_VICTORIA_DAY)
+    .read_from(FEDERAL_READ),
     HolidayRule::public("Canada Day", "Fête du Canada", Rule::gregorian(7, 1))
-        .except_in(NO_CANADA_DAY),
+        .except_in(NO_CANADA_DAY)
+        .read_from(FEDERAL_READ),
     HolidayRule::public(
         "Labour Day",
         "Fête du Travail",
         Rule::nth(9, 1, Weekday::Monday),
-    ),
+    )
+    .read_from(FEDERAL_READ),
     HolidayRule::public(
         "National Day for Truth and Reconciliation",
         "Journée nationale de la vérité et de la réconciliation",
         Rule::gregorian(9, 30),
     )
     .years(Some(2021), None)
-    .except_in(NO_TRUTH_AND_RECONCILIATION),
+    .except_in(NO_TRUTH_AND_RECONCILIATION)
+    .read_from(FEDERAL_READ),
     HolidayRule::public(
         "Thanksgiving",
         "Action de grâce",
         Rule::nth(10, 2, Weekday::Monday),
     )
-    .except_in(NO_THANKSGIVING),
+    .except_in(NO_THANKSGIVING)
+    .read_from(FEDERAL_READ),
     HolidayRule::public(
         "Remembrance Day",
         "Jour du Souvenir",
         Rule::gregorian(11, 11),
     )
-    .except_in(NO_REMEMBRANCE_DAY),
-    HolidayRule::public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+    .except_in(NO_REMEMBRANCE_DAY)
+    .read_from(FEDERAL_READ),
+    HolidayRule::public("Christmas Day", "Noël", Rule::gregorian(12, 25)).read_from(FEDERAL_READ),
     HolidayRule::public("Boxing Day", "Lendemain de Noël", Rule::gregorian(12, 26))
-        .except_in(NO_BOXING_DAY),
+        .except_in(NO_BOXING_DAY)
+        .read_from(FEDERAL_READ),
     // ── The federal days a province's text read leaves out ─────────────
     not_kept("Victoria Day", "Fête de la Reine", CA_NB, NB_DAY),
     not_kept("Victoria Day", "", CA_NL, NL_SOURCE),
@@ -569,7 +583,7 @@ pub static CANADA: RuleSet = RuleSet {
     substitution: CA_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: weekends::CA,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Canada Labour Code (R.S.C. 1985, c. L-2), s. 166, and the Holidays Act (R.S.C. \
               1985, c. H-5), both current to 2026-09-03, on the Justice Laws Website \
