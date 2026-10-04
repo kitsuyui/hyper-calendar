@@ -65,8 +65,8 @@ duration and a reading, or a duration, and repeats with `R5/` or `R/`.
 | RFC 3339 §5.8's four examples read to their instants | [rfc3339], Python's `datetime` | `rfc_3339_readings_are_instants` | agrees; the 1937 instant floors where Python truncates |
 | IMF-fixdate `Sun, 06 Nov 1994 08:49:37 GMT` is 784 111 777 | [rfc9110], Python's `email.utils` | `an_email_date_is_read_as_one` | agrees |
 | `2026-09-21` is `2026-W39-1` and `2026-264`; 2021-01-03 is `2020-W53-7` | Python's `isocalendar` and `%j` | `a_date_is_written_as_a_week_or_an_ordinal_date` | agrees |
-| `P3Y6M4DT12H30M5S` is nominal; `PT36H` is 129 600 s; `P1W` 604 800 s | [wikipedia-iso-8601-examples], Python's `timedelta` | `a_duration_is_its_components` | agrees |
-| The interval and the repeating interval of the examples | [wikipedia-iso-8601-examples], Python's `calendar.timegm` | `an_interval_is_its_ends` | agrees |
+| `P3Y6M4DT12H30M5S` is nominal; `PT36H` is 129 600 s; `P1W` 604 800 s | [wikipedia-iso-8601], Python's `timedelta` | `a_duration_is_its_components` | agrees |
+| The interval and the repeating interval of the examples | [wikipedia-iso-8601], Python's `calendar.timegm` | `an_interval_is_its_ends` | agrees |
 | `isoformat` of an instant with microseconds and a zero offset | Python's `datetime.isoformat` | `an_instant_is_written_in_each_syntax` | agrees |
 | `strptime` of `%H:%M` is on 1900-01-01 | Python's `datetime.strptime` | `a_text_is_read_against_a_pattern` | agrees |
 
@@ -74,8 +74,7 @@ duration and a reading, or a duration, and repeats with `R5/` or `R/`.
 
 | Key | What it gives | Read |
 | --- | --- | --- |
-| [wikipedia-iso-8601] | What ISO 8601 allows; the ISO texts are sold | Yes, 2026-09-26 |
-| [wikipedia-iso-8601-examples] | The duration, interval and repeating-interval examples | Yes, 2026-10-03, through a page summary |
+| [wikipedia-iso-8601] | What ISO 8601 allows; the duration, interval and repeating-interval examples; the ISO texts are sold | Yes, 2026-09-26, and 2026-10-03 through a page summary for the examples |
 | [rfc3339] | The internet profile; §5.8's examples | Yes, 2026-10-03, §5.8 through a page summary |
 | [rfc9110] | IMF-fixdate, §5.6.7 | Yes, 2026-10-03, through a page summary |
 | [python-datetime-docs] | `isoformat`, `fromisoformat`, `strptime` | Yes, 2026-09-26 |

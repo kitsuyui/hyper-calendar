@@ -10,11 +10,10 @@
 //! worked by hand; this page summarises it and states the code's own
 //! facts.
 //!
-//! Every cycle turns at the First Sunday of Advent, the Sunday between
-//! 27 November and 3 December. A liturgical year is named here by the
-//! civil year that holds its Easter, as the Liturgy Office of England and
-//! Wales heads its table (`liturgyoffice-moveable`): the year that begins
-//! on 30 November 2025 is 2026. Year A is the one whose Advent falls in a
+//! A year here is the liturgical year, which turns at the First Sunday of
+//! Advent and takes the number of the civil year that holds its Easter
+//! (`liturgyoffice-moveable`): the year that begins on 30 November 2025 is
+//! 2026. Year A is the one whose Advent falls in a
 //! civil year divisible by three (CCT, *Revised Common Lectionary:
 //! Introduction*, §8, `cct-rcl`), so 2026 is Year A; the weekday cycle is
 //! Year I when the liturgical year is odd (Wikipedia, "Lectionary", and
@@ -33,16 +32,11 @@
 //!
 //! The cycles are arithmetic, and answer from the day the reform they
 //! belong to went into effect to the last liturgical year whose Easter the
-//! Gregorian computus gives, 4099. The Sunday and weekday cycles and
-//! Ordinary Time are the Roman reform's: Paul VI's *Mysterii Paschalis* of
-//! 14 February 1969 approved the new calendar and "the general norms
-//! concerning the arrangement of the liturgical year", which "will go into
-//! effect on January 1, 1970" (vatican.va, retrieved 2026-09-29), so
-//! before [`ROMAN_REFORM_IN_EFFECT`] they are `None`. The RCL's Propers
-//! begin with Advent 1992 (`cct-rcl`, §8), and before it
-//! [`rcl_proper`] is `None`. [`liturgical_year`] and
-//! [`first_sunday_of_advent`] name and date a year and are not the
-//! reform's.
+//! Gregorian computus gives, 4099: the Roman cycles from
+//! [`ROMAN_REFORM_IN_EFFECT`], 1 January 1970 (`mysterii-paschalis`), the
+//! RCL's Propers from Advent 1992 (`cct-rcl`, §8), and `None` before.
+//! [`liturgical_year`] and [`first_sunday_of_advent`] name and date a year
+//! and are not the reform's.
 
 use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;

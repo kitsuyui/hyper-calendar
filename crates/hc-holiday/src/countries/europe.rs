@@ -165,9 +165,8 @@ static UK_RULES: &[HolidayRule] = &read_all(
 
 /// The United Kingdom, with its three bank-holiday jurisdictions as regions.
 ///
-/// Read from 1971: the Banking and Financial Dealings Act 1971. Every earlier
-/// year is a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 1971; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static UNITED_KINGDOM: RuleSet = RuleSet {
     code: "GB",
     english_name: "United Kingdom",
@@ -262,10 +261,8 @@ static IE_RULES: &[HolidayRule] = &read_all(
 /// work". The one-off days of 31 December 1999 and 14 September 2001 are
 /// not carried.
 ///
-/// Read from 1998: the Organisation of Working Time Act 1997, section 21 and
-/// the Second Schedule, from the first whole year after it. Every earlier
-/// year is a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 1998; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static IRELAND: RuleSet = RuleSet {
     code: "IE",
     english_name: "Ireland",
@@ -342,10 +339,8 @@ static FR_RULES: &[HolidayRule] = &read_all(
 
 /// France.
 ///
-/// Read from 2017: article L3133-1 of the Code du travail, in force since 10
-/// August 2016, from the first whole year; the versions before it were not
-/// read. Every earlier year is a gap (ADR 0013); the reasons for every
-/// table's first year are in docs/systems/holiday-first-years.md.
+/// Read from 2017; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static FRANCE: RuleSet = RuleSet {
     code: "FR",
     english_name: "France",
@@ -498,10 +493,8 @@ static DE_RULES: &[HolidayRule] = &read_all(
 
 /// Germany, with all sixteen *Länder* as regions.
 ///
-/// Read from 1990: the Einigungsvertrag of 1990; the Länder's laws read are
-/// Brandenburg's of 1991 (to 2015) and Berlin's, and the other fourteen were
-/// not read. Every earlier year is a gap (ADR 0013); the reasons for every
-/// table's first year are in docs/systems/holiday-first-years.md.
+/// Read from 1990; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static GERMANY: RuleSet = RuleSet {
     code: "DE",
     english_name: "Germany",
@@ -617,9 +610,8 @@ static IT_RULES: &[HolidayRule] = &read_all(
 /// to 1976. The Sunday commemorations of 2 June and 4 November in the
 /// meantime are not carried.
 ///
-/// Read from 1949: legge 27 maggio 1949, n. 260. Every earlier year is a gap
-/// (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 1949; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static ITALY: RuleSet = RuleSet {
     code: "IT",
     english_name: "Italy",
@@ -719,11 +711,8 @@ static PT_RULES: &[HolidayRule] = &read_all(
 
 /// Portugal.
 ///
-/// Read from 2016: the Código do Trabalho article 234 in the wording of Lei
-/// n.º 8/2016, from 2016; Lei n.º 23/2012, which suspended four holidays for
-/// 2013 to 2015, was not read. Every earlier year is a gap (ADR 0013); the
-/// reasons for every table's first year are in docs/systems/holiday-first-
-/// years.md.
+/// Read from 2016; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static PORTUGAL: RuleSet = RuleSet {
     code: "PT",
     english_name: "Portugal",
@@ -799,10 +788,8 @@ static NL_RULES: &[HolidayRule] = &read_all(
 
 /// The Netherlands.
 ///
-/// Read from 2011: the Algemene termijnenwet, article 3, in force from 10
-/// October 2010, from the first whole year. Every earlier year is a gap (ADR
-/// 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2011; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static NETHERLANDS: RuleSet = RuleSet {
     code: "NL",
     english_name: "Netherlands",
@@ -853,9 +840,8 @@ static BE_RULES: &[HolidayRule] = &read_all(
 /// Sunday and Whit Sunday, which the decree does not list, are Sundays and
 /// are not carried.
 ///
-/// Read from 1975: the royal decree of 18 April 1974, from its first whole
-/// year. Every earlier year is a gap (ADR 0013); the reasons for every
-/// table's first year are in docs/systems/holiday-first-years.md.
+/// Read from 1975; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static BELGIUM: RuleSet = RuleSet {
     code: "BE",
     english_name: "Belgium",
@@ -914,11 +900,8 @@ static AT_RULES: &[HolidayRule] = &read_all(
 
 /// Austria.
 ///
-/// Read from 1968: the Feiertagsruhegesetz 1957 as amended by BGBl. Nr.
-/// 264/1967, in force from 26 July 1967, from the first whole year; the
-/// Arbeitsruhegesetz of 1983 keeps the list. Every earlier year is a gap (ADR
-/// 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 1968; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static AUSTRIA: RuleSet = RuleSet {
     code: "AT",
     english_name: "Austria",
@@ -1011,9 +994,8 @@ static SE_RULES: &[HolidayRule] = &read_all(
 
 /// Sweden.
 ///
-/// Read from 1989: lag (1989:253) om allmänna helgdagar. Every earlier year
-/// is a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 1989; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static SWEDEN: RuleSet = RuleSet {
     code: "SE",
     english_name: "Sweden",
@@ -1068,9 +1050,8 @@ static NO_RULES: &[HolidayRule] = &read_all(
 
 /// Norway.
 ///
-/// Read from 1995: LOV-1995-02-24-12, with lov om 1. og 17. mai
-/// (LOV-1947-04-26-1). Every earlier year is a gap (ADR 0013); the reasons
-/// for every table's first year are in docs/systems/holiday-first-years.md.
+/// Read from 1995; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static NORWAY: RuleSet = RuleSet {
     code: "NO",
     english_name: "Norway",
@@ -1125,11 +1106,8 @@ static DK_RULES: &[HolidayRule] = &read_all(
 
 /// Denmark.
 ///
-/// Read from 2024: Lov nr. 214 of 6 March 2023, in force on 1 January 2024:
-/// the statute that lists the other helligdage was not read, so every earlier
-/// year is a gap, Store bededag's last year included. Every earlier year is a
-/// gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2024; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static DENMARK: RuleSet = RuleSet {
     code: "DK",
     english_name: "Denmark",
@@ -1209,10 +1187,8 @@ static FI_RULES: &[HolidayRule] = &read_all(
 
 /// Finland.
 ///
-/// Read from 2026: the only list read, the Finnish Wikipedia's "Pyhäpäivä";
-/// the statutes were not read. Every earlier year is a gap (ADR 0013); the
-/// reasons for every table's first year are in docs/systems/holiday-first-
-/// years.md.
+/// Read from 2026; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static FINLAND: RuleSet = RuleSet {
     code: "FI",
     english_name: "Finland",
@@ -1288,11 +1264,8 @@ static PL_RULES: &[HolidayRule] = &read_all(
 
 /// Poland.
 ///
-/// Read from 2011: the ustawa of 18 January 1951 as consolidated in 2025 and
-/// amended in 2010 (Epiphany from 2011); the amendments between 1951 and
-/// 2010, such as those of 1989 and 1990, were not read. Every earlier year is
-/// a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2011; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static POLAND: RuleSet = RuleSet {
     code: "PL",
     english_name: "Poland",
@@ -1368,9 +1341,8 @@ static CZ_RULES: &[HolidayRule] = &read_all(
 
 /// Czechia.
 ///
-/// Read from 2001: zákon č. 245/2000 Sb., from its first whole year. Every
-/// earlier year is a gap (ADR 0013); the reasons for every table's first year
-/// are in docs/systems/holiday-first-years.md.
+/// Read from 2001; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static CZECHIA: RuleSet = RuleSet {
     code: "CZ",
     english_name: "Czechia",
@@ -1438,9 +1410,8 @@ static GR_RULES: &[HolidayRule] = &read_all(
 
 /// Greece.
 ///
-/// Read from 2022: Νόμος 4808/2021, from its first whole year. Every earlier
-/// year is a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2022; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static GREECE: RuleSet = RuleSet {
     code: "GR",
     english_name: "Greece",
@@ -1504,10 +1475,8 @@ static HU_RULES: &[HolidayRule] = &read_all(
 /// holiday's Friday becomes a day off and a Saturday a working day — and
 /// those *áthelyezett munkanapok* are set annually and are not carried.
 ///
-/// Read from 2013: the Labour Code of 2012 (2012. évi I. törvény), in force
-/// from 1 July 2012, from its first whole year. Every earlier year is a gap
-/// (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2013; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static HUNGARY: RuleSet = RuleSet {
     code: "HU",
     english_name: "Hungary",
@@ -1604,10 +1573,8 @@ static RO_RULES: &[HolidayRule] = &read_all(
 /// Good Friday from 2018, Epiphany and Saint John from 2024. No
 /// substitution.
 ///
-/// Read from 2012: the Codul muncii, article 139, as the Wikipedia list dates
-/// its amendments, the earliest being Legea 147/2012. Every earlier year is a
-/// gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2012; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static ROMANIA: RuleSet = RuleSet {
     code: "RO",
     english_name: "Romania",
@@ -1896,10 +1863,8 @@ pub(super) static RU_RULES: &[HolidayRule] = &read_all(
 /// here is a gap. The President's non-working days of 2020 and 2021 are
 /// not carried: the production calendar does not count them either.
 ///
-/// Read from 1991: the changes Wikipedia dates from 1991, on no statute read;
-/// the Labour Code's article 112 is read for 2005 onward. Every earlier year
-/// is a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 1991; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static RUSSIA: RuleSet = RuleSet {
     code: "RU",
     english_name: "Russia",
@@ -2118,10 +2083,8 @@ static UA_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 /// and this table has to change; `sources_checked` says when that was
 /// last looked for.
 ///
-/// Read from 2015: the Kodeks zakoniv pro pratsyu, article 73, with the
-/// amendments read from law 238-VIII (2015); the text before it was not read.
-/// Every earlier year is a gap (ADR 0013); the reasons for every table's
-/// first year are in docs/systems/holiday-first-years.md.
+/// Read from 2015; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static UKRAINE: RuleSet = RuleSet {
     code: "UA",
     english_name: "Ukraine",
@@ -2224,9 +2187,8 @@ static HR_RULES: &[HolidayRule] = &read_all(
 /// those who keep other religious calendars not to work on their own
 /// feasts is personal and not carried. No substitution.
 ///
-/// Read from 2002: the consolidated text of the Act in NN 136/2002, from
-/// 2002. Every earlier year is a gap (ADR 0013); the reasons for every
-/// table's first year are in docs/systems/holiday-first-years.md.
+/// Read from 2002; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static CROATIA: RuleSet = RuleSet {
     code: "HR",
     english_name: "Croatia",
@@ -2402,10 +2364,8 @@ static SK_RULES: &[HolidayRule] = &read_all(
 /// off in its years as one and an observance in the others. No
 /// substitution.
 ///
-/// Read from 2021: the Act's version in force from 1 November 2025 and the
-/// years Wikipedia dates, the earliest being 2021. Every earlier year is a
-/// gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2021; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static SLOVAKIA: RuleSet = RuleSet {
     code: "SK",
     english_name: "Slovakia",
@@ -2494,9 +2454,8 @@ static SI_RULES: &[HolidayRule] = &read_all(
 /// Reformation Day from 1992. The five state holidays that are working
 /// days are not carried, nor the pre-1991 names. No substitution.
 ///
-/// Read from 1992: the ZPDPD, Uradni list RS 26/91, from its first whole
-/// year. Every earlier year is a gap (ADR 0013); the reasons for every
-/// table's first year are in docs/systems/holiday-first-years.md.
+/// Read from 1992; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static SLOVENIA: RuleSet = RuleSet {
     code: "SI",
     english_name: "Slovenia",
@@ -2603,10 +2562,8 @@ static IS_RULES: &[HolidayRule] = &read_all(
 /// half days as Sweden's and Denmark's are. The
 /// flag days are not carried. No substitution.
 ///
-/// Read from 1998: lög nr. 32/1997 um frið vegna helgihalds and lög nr.
-/// 88/1971, article 6, in the Lagasafn of 1 September 2026, from the first
-/// year after 1997. Every earlier year is a gap (ADR 0013); the reasons for
-/// every table's first year are in docs/systems/holiday-first-years.md.
+/// Read from 1998; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static ICELAND: RuleSet = RuleSet {
     code: "IS",
     english_name: "Iceland",
@@ -2717,10 +2674,8 @@ static BG_RULES: &[HolidayRule] = &read_all(
 /// paid for long weekends before 2017, are not carried; nor are the years
 /// the fixed days were introduced, which the sources do not give.
 ///
-/// Read from 2017: the Labour Code article 154(2) as amended by SG 105/2016,
-/// in force from 1 January 2017. Every earlier year is a gap (ADR 0013); the
-/// reasons for every table's first year are in docs/systems/holiday-first-
-/// years.md.
+/// Read from 2017; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static BULGARIA: RuleSet = RuleSet {
     code: "BG",
     english_name: "Bulgaria",
@@ -2834,10 +2789,8 @@ static CY_RULES: &[HolidayRule] = &read_all(
 /// Day fall on Saturdays and moves nothing. The north of the island is not
 /// carried.
 ///
-/// Read from 2026: the only list read, the Greek Wikipedia's, and the bank
-/// holidays law as CyLaw gives it undated. Every earlier year is a gap (ADR
-/// 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2026; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static CYPRUS: RuleSet = RuleSet {
     code: "CY",
     english_name: "Cyprus",
@@ -2969,10 +2922,8 @@ static EE_RULES: &[HolidayRule] = &read_all(
 /// No substitution; the three-hour shortening of the working day before
 /// some of these, which the Employment Contracts Act sets, is not carried.
 ///
-/// Read from 1994: the Public Holidays and Days of National Importance Act of
-/// 1994 and the act of 27 January 1998. Every earlier year is a gap (ADR
-/// 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 1994; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static ESTONIA: RuleSet = RuleSet {
     code: "EE",
     english_name: "Estonia",
@@ -3232,9 +3183,8 @@ static LV_RULES: &[HolidayRule] = &read_all(1995, [
 /// Orthodox and Old Believers to keep Easter, Pentecost and Christmas by
 /// their own calendars is personal and not carried.
 ///
-/// Read from 1995: the earliest year the Latvian Wikipedia dates among the
-/// amending laws. Every earlier year is a gap (ADR 0013); the reasons for
-/// every table's first year are in docs/systems/holiday-first-years.md.
+/// Read from 1995; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static LATVIA: RuleSet = RuleSet {
     code: "LV",
     english_name: "Latvia",
@@ -3341,9 +3291,8 @@ static LT_RULES: &[HolidayRule] = &read_all(
 /// holiday on a weekend stays there. The seventy-odd memorable days of the
 /// separate Law on Memorable Days are not carried.
 ///
-/// Read from 1990: the Law on Holidays of 1990. Every earlier year is a gap
-/// (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 1990; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static LITHUANIA: RuleSet = RuleSet {
     code: "LT",
     english_name: "Lithuania",
@@ -3459,9 +3408,8 @@ static AL_RULES: &[HolidayRule] = &read_all(
 /// decision of 11 January 2024; the rest are not dated. The extra days
 /// the Council of Ministers declares around a holiday are not carried.
 ///
-/// Read from 1993: Law 7651 of 21 December 1992, from its first whole year.
-/// Every earlier year is a gap (ADR 0013); the reasons for every table's
-/// first year are in docs/systems/holiday-first-years.md.
+/// Read from 1993; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static ALBANIA: RuleSet = RuleSet {
     code: "AL",
     english_name: "Albania",
@@ -3633,9 +3581,8 @@ static ME_RULES: &[HolidayRule] = &read_all(
 /// The Orthodox Krsna slava, a family's own day, is not carried, nor are
 /// the years the older holidays were set.
 ///
-/// Read from 2007: the Law on State and Other Holidays of 2007. Every earlier
-/// year is a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2007; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static MONTENEGRO: RuleSet = RuleSet {
     code: "ME",
     english_name: "Montenegro",
@@ -3806,9 +3753,8 @@ static MK_RULES: &[HolidayRule] = &read_all(
 /// Pentecost, as the law defines it. Macedonian Language Day and Army Day
 /// are working holidays.
 ///
-/// Read from 2007: the Law on Holidays as amended in 2007. Every earlier year
-/// is a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2007; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static NORTH_MACEDONIA: RuleSet = RuleSet {
     code: "MK",
     english_name: "North Macedonia",
@@ -3968,10 +3914,8 @@ static RS_RULES: &[HolidayRule] = &read_all(
 /// religious days of article 2 not at all. The Orthodox Krsna slava, a
 /// family's own day, is not carried.
 ///
-/// Read from 2002: the Law on State and Other Holidays (Official Gazette
-/// 43/2001), from its first whole year. Every earlier year is a gap (ADR
-/// 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2002; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static SERBIA: RuleSet = RuleSet {
     code: "RS",
     english_name: "Serbia",
@@ -4411,11 +4355,8 @@ static BA_RULES: &[HolidayRule] = &[
 /// are a gap in every other year. Private employers are not bound by
 /// them.
 ///
-/// Read from each entity's own law, below; every earlier year is a gap (ADR
-/// 0013): each entity's own law: the Federation's days from 2016 (the
-/// Ministry's notices) and its Independence Day and Statehood Day from the
-/// laws of 1995, Republika Srpska's from 2007 (Official Gazette 43/07),
-/// Brčko's from 2002 (Official Gazette of the District 19/02).
+/// Read from each entity's own law; every earlier year is a gap (ADR 0013).
+/// The reasons and the sources are in docs/systems/holiday-first-years.md.
 pub static BOSNIA_AND_HERZEGOVINA: RuleSet = RuleSet {
     code: "BA",
     english_name: "Bosnia and Herzegovina",
@@ -4532,10 +4473,8 @@ static BY_RULES: &[HolidayRule] = &read_all(
 /// rule moves a holiday off a weekend; the Government swaps working days
 /// around holidays by yearly decree, which is not carried.
 ///
-/// Read from 1991: the earliest year the Russian Wikipedia dates,
-/// Independence Day of 27 July 1991. Every earlier year is a gap (ADR 0013);
-/// the reasons for every table's first year are in docs/systems/holiday-
-/// first-years.md.
+/// Read from 1991; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static BELARUS: RuleSet = RuleSet {
     code: "BY",
     english_name: "Belarus",
@@ -4601,9 +4540,8 @@ static LU_RULES: &[HolidayRule] = &read_all(
 /// service's half days on Whit Tuesday and Christmas Eve, nor the local
 /// days of the capital.
 ///
-/// Read from 2019: the law of 25 April 2019 and the Inspection du travail's
-/// list. Every earlier year is a gap (ADR 0013); the reasons for every
-/// table's first year are in docs/systems/holiday-first-years.md.
+/// Read from 2019; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static LUXEMBOURG: RuleSet = RuleSet {
     code: "LU",
     english_name: "Luxembourg",
@@ -4681,10 +4619,8 @@ static MT_RULES: &[HolidayRule] = &read_all(
 /// there; what the Act does with it is a matter of leave, not of the
 /// calendar. The years the Act added and restored feasts are not carried.
 ///
-/// Read from 2026: the National Holidays and Other Public Holidays Act (Cap.
-/// 252) as read undated; the amendments' years are not carried. Every earlier
-/// year is a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2026; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static MALTA: RuleSet = RuleSet {
     code: "MT",
     english_name: "Malta",
@@ -4787,10 +4723,8 @@ static MD_RULES: &[HolidayRule] = &read_all(
 /// working days, and the patron-saint day each locality may keep, are not
 /// carried.
 ///
-/// Read from 2009: the earliest change the sources date, Christmas by the new
-/// style from 2009; the Code's text was not read. Every earlier year is a gap
-/// (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2009; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static MOLDOVA: RuleSet = RuleSet {
     code: "MD",
     english_name: "Moldova",
@@ -4874,9 +4808,8 @@ static LI_RULES: &[HolidayRule] = &read_all(
 /// trades, are observances. A holiday on a Sunday is a Sunday; nothing
 /// moves.
 ///
-/// Read from 1986: the Labour Act, article 18(2), as amended by LGBl. 1986
-/// Nr. 85. Every earlier year is a gap (ADR 0013); the reasons for every
-/// table's first year are in docs/systems/holiday-first-years.md.
+/// Read from 1986; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static LIECHTENSTEIN: RuleSet = RuleSet {
     code: "LI",
     english_name: "Liechtenstein",
@@ -4964,9 +4897,8 @@ static MC_RULES: &[HolidayRule] = &read_all(
 /// 19 November since 1952 under Rainier III and kept by Albert II. The
 /// days the Prince declares for an occasion are not carried.
 ///
-/// Read from 1966: law 798 of 18 February 1966. Every earlier year is a gap
-/// (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 1966; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static MONACO: RuleSet = RuleSet {
     code: "MC",
     english_name: "Monaco",
@@ -5086,10 +5018,8 @@ static SM_RULES: &[HolidayRule] = &read_all(
 /// the holidays; those two are bank days here. Nothing moves off a
 /// Sunday.
 ///
-/// Read from 2014: law 152 of 30 October 2013 for the civil holidays; the
-/// religious days are read from 2025, the first of the Central Bank's
-/// calendars read. Every earlier year is a gap (ADR 0013); the reasons for
-/// every table's first year are in docs/systems/holiday-first-years.md.
+/// Read from 2014; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static SAN_MARINO: RuleSet = RuleSet {
     code: "SM",
     english_name: "San Marino",
@@ -5301,9 +5231,8 @@ static VA_RULES: &[HolidayRule] = &read_all(
 /// Immaculate Conception on a Sunday of Advent — is not moved here, for no
 /// source says the day off follows it.
 ///
-/// Read from 2011: the Governorate's General Regulation of 21 November 2010,
-/// in force from 2011. Every earlier year is a gap (ADR 0013); the reasons
-/// for every table's first year are in docs/systems/holiday-first-years.md.
+/// Read from 2011; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static VATICAN_CITY: RuleSet = RuleSet {
     code: "VA",
     english_name: "Vatican City",

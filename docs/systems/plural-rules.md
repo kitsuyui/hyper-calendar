@@ -225,13 +225,12 @@ Of the 42 locales of `ordinals.xml` with a rule beyond `other`, those
 without an entry in `hc-i18n` (`ca gd hu ka sq sv uk` …) answer through
 `hc_plural_category` all the same, since the rules are keyed by language.
 
-The crate's own tests keep, beside the generated samples, the hand-written
-expectations of the earlier table: English, Danish, Arabic, Russian and
-Ukrainian, Polish, Czech, Welsh, Irish, Slovenian, Latvian, Lithuanian,
-Romanian, Hebrew, Hindi, French, Spanish, Italian, Portuguese and Turkish,
-and for the languages the earlier table lacked, Greek, Hungarian,
-Icelandic, Maltese, Scottish Gaelic and Breton, each from the chart's
-samples.
+The crate's own tests keep, beside the generated samples, hand-written
+expectations for English, Danish, Arabic, Russian and Ukrainian, Polish,
+Czech, Welsh, Irish, Slovenian, Latvian, Lithuanian, Romanian, Hebrew,
+Hindi, French, Spanish, Italian, Portuguese and Turkish, and for Greek,
+Hungarian, Icelandic, Maltese, Scottish Gaelic and Breton, each from the
+chart's samples.
 
 **Not carried.**
 

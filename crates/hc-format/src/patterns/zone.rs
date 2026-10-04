@@ -257,6 +257,7 @@ mod names {
     use core::fmt::Write;
 
     use hc_core::UnixTime;
+    use hc_core::duration::SECONDS_PER_DAY;
     use hc_i18n::Locale;
     use hc_i18n::exemplar_cities;
     use hc_i18n::place_names::{self, Alt, Draft};
@@ -278,9 +279,8 @@ mod names {
     /// the local reading less its offset, or the reading itself where the
     /// context states no offset.
     fn utc_minutes(context: &FormatContext<'_>) -> i64 {
-        const UNIX_EPOCH_RD: i64 = 719_163;
         let time = context.date_time.time;
-        let local = (context.date_time.day.0 - UNIX_EPOCH_RD) * 1_440
+        let local = context.date_time.day.to_unix_days() * 1_440
             + i64::from(time.hour()) * 60
             + i64::from(time.minute());
         let offset = context
@@ -297,7 +297,7 @@ mod names {
     /// UTS #35's 184 days: "184 is the smallest number that is at least 6
     /// months AND the smallest number that is more than 1/2 year
     /// (Gregorian)".
-    const STEADY_SECONDS: i64 = 184 * 86_400;
+    const STEADY_SECONDS: i64 = 184 * SECONDS_PER_DAY;
 
     /// Whether the reading is standard time and the zone's rules change
     /// neither the offset nor the daylight flag within 184 days either side

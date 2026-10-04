@@ -596,11 +596,9 @@ mod tests {
 
     #[test]
     fn the_midpoint_survives_spans_far_longer_than_an_attosecond_count() {
-        // This test used to use a million years and claim it was "well past
-        // the range of `total_attos`". It is not: a million years is about
-        // 3×10³¹ attoseconds and the limit is 1.7×10³⁸, so the test passed
+        // A million years is about 3×10³¹ attoseconds and the limit of
+        // `total_attos` is 1.7×10³⁸, so a span of that size would pass
         // whether or not the midpoint went through an attosecond total.
-        //
         // Ten trillion years does exceed it, and the assertion below checks
         // that it does rather than assuming it.
         let ten_trillion_years = secs(10_000_000_000_000 * 365 * 86_400);

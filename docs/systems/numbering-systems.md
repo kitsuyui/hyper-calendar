@@ -128,7 +128,7 @@ Not carried:
   systems.** A calendar field is an integer and the surrounding pattern is
   `hc-format`'s, so no date needs the first five. Not yet done.
 - **The `finance` category and the financial Chinese systems `hansfin` and
-  `hantfin`.** The only financial style carried is `jpanfin`.
+  `hantfin`.** The only financial style carried is `jpanfin`. Not yet done.
 
 ## Accuracy
 

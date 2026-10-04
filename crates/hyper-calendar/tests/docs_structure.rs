@@ -325,8 +325,64 @@ fn no_system_document_repeats_a_heading_or_has_two_h1s() {
     assert!(faults.is_empty(), "\n{}", faults.join("\n"));
 }
 
+/// The six sections of a system document, in order (docs/policy.md §12;
+/// docs/systems/README.md gives the headings).
+const SECTIONS: [&str; 6] = [
+    "What it is",
+    "How it works",
+    "What is carried",
+    "Accuracy",
+    "Sources",
+    "Code",
+];
+
+/// The fault in one system document's H2 headings, if they are not the six.
+fn section_faults(path: &str, source: &str) -> Vec<String> {
+    let h2s: Vec<&str> = prose_lines(source)
+        .into_iter()
+        .filter_map(|(_, line)| heading(line))
+        .filter(|(level, _)| *level == 2)
+        .map(|(_, text)| text)
+        .collect();
+    if h2s == SECTIONS {
+        Vec::new()
+    } else {
+        vec![format!(
+            "{path}: the H2 headings are {h2s:?}, not the six sections {SECTIONS:?}"
+        )]
+    }
+}
+
+#[test]
+fn every_system_document_has_the_six_sections_in_order() {
+    let mut faults = Vec::new();
+    for path in system_documents() {
+        if path.file_name().is_some_and(|name| name == "README.md") {
+            continue;
+        }
+        let name = format!(
+            "docs/systems/{}",
+            path.file_name().unwrap_or_default().to_string_lossy()
+        );
+        faults.extend(section_faults(&name, &read(&path)));
+    }
+    assert!(faults.is_empty(), "\n{}", faults.join("\n"));
+}
+
 // The checks on made-up input, so that a parser that finds nothing does not
 // pass the real documents by accident.
+
+#[test]
+fn an_extra_or_misplaced_section_is_found() {
+    let six = "# T\n\n## What it is\n\n## How it works\n\n## What is carried\n\n## Accuracy\n\n## Sources\n\n## Code\n";
+    assert!(section_faults("t.md", six).is_empty());
+    let extra = six.replace("## Accuracy", "## Extra\n\n## Accuracy");
+    assert_eq!(section_faults("t.md", &extra).len(), 1);
+    let swapped = six.replace("## Sources\n\n## Code", "## Code\n\n## Sources");
+    assert_eq!(section_faults("t.md", &swapped).len(), 1);
+    let fenced = six.replace("## Accuracy", "```\n## Fenced\n```\n\n## Accuracy");
+    assert!(section_faults("t.md", &fenced).is_empty());
+}
 
 #[test]
 fn a_repeated_row_is_found() {

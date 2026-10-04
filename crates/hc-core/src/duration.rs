@@ -1068,8 +1068,7 @@ mod tests {
                 .is_err(),
             "six trillion years should not"
         );
-        // And a mere million years, which an earlier test called "well past
-        // the range", is nowhere near it.
+        // And a mere million years is nowhere near it.
         assert!(Duration::from_secs(1_000_000 * YEAR).total_attos().is_ok());
     }
 

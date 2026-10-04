@@ -20,17 +20,10 @@
 //! | 7.2 | सम्बन्धित धर्मावलम्बीहरूका लागि मात्र | Falgunanda Jayanti, the Prophet's birthday, Guru Nanak Jayanti | the groups [`KIRAT`], [`MUSLIMS`], [`SIKHS`] |
 //! | 8 | राष्ट्रियरूपमा मनाइने तर कार्यालय खुल्ने प्रकृतिका दिवस | three days, the offices open | everyone, [`Kind::Observance`] |
 //!
-//! A day each notice dates the same way — Falgunanda Jayanti on Kārtika 25
-//! and the section 8 days on their Bikram Sambat dates in all four, the Day
-//! of Persons with Disabilities on 3 December — is a rule from 2023, the
-//! first year of the first notice read, 2080 BS, and a gap in every year
-//! before it, whose notices were not read. A day on a tithi — Teej,
-//! Jitiya, Gai Jatra, Basanta Panchami — is the notices' own dates, a
-//! [`Listing`] of the four years, and a gap in a year before or after
-//! them: no rule was fitted to them. Dura Mhaipru Nakuma, first listed for
-//! 2083 BS, is absent from 2023 to 2025, whose notices were read and do
-//! not list it, and a gap before. Guru Nanak Jayanti is dated by the notices of
-//! 2080 and 2081 BS, 27 November 2023 and 15 November 2024, which
+//! Which of these days is a rule from 2023 and which a [`Listing`] of the
+//! four notices' own dates, with a gap outside them, is set out in
+//! docs/systems/nepal-holidays.md. Guru Nanak Jayanti is dated by the
+//! notices of 2080 and 2081 BS, 27 November 2023 and 15 November 2024, which
 //! [`GURU_NANAK_JAYANTI`] gives, and "the day of" it by the others; the
 //! Prophet's birthday is "the day of" it in all four, predicted on the
 //! tabular Hijri calendar, approximate.

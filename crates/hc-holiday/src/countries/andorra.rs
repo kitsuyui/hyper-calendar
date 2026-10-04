@@ -278,11 +278,8 @@ static AD_RULES: &[HolidayRule] = &read_all(
 /// four of the days by agreement is not carried. Nothing moves off a
 /// Sunday.
 ///
-/// Read from 2024: the Government's decrees approving the work calendars of
-/// 2024 to 2026 (Decrets 487/2023, 409/2024 and 340/2025); Law 31/2018 leaves
-/// the days to the yearly decree and no earlier decree was read. Every
-/// earlier year is a gap (ADR 0013); the reasons for every table's first year
-/// are in docs/systems/holiday-first-years.md.
+/// Read from 2024; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static ANDORRA: RuleSet = RuleSet {
     code: "AD",
     english_name: "Andorra",

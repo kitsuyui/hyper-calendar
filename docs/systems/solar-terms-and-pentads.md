@@ -58,14 +58,14 @@ for the year after next as the 暦要項, in the *Official Gazette* each
 February [nao-rekiyoko]; 春分の日 and 秋分の日 are public holidays *because*
 the Act on National Holidays defines them as 春分日 and 秋分日, the days of
 the equinoxes, and the Observatory's 暦要項 is what fixes them
-[egov-shukujitsu-ho, nao-rekiyoko-2024-shukujitsu]. In China the Purple
+[jp-holiday-act, nao-rekiyoko-2024-shukujitsu]. In China the Purple
 Mountain Observatory of the Chinese Academy of Sciences computes the
 calendar, and since 2017 the national standard GB/T 33661-2017, *Calculation
 and promulgation of the Chinese calendar*, drafted by that observatory,
 fixes the rules: the terms are the Sun's geocentric apparent longitude at
 multiples of 15°, the times are Beijing time, the standard time of 120°E,
 and the computation is to be accurate to one second [gbt33661,
-ndls-gbt33661, zhwiki-nongli]. The Hong Kong Observatory publishes the same
+zhwiki-nongli]. The Hong Kong Observatory publishes the same
 dates for Hong Kong [hko-conversion-2024].
 
 **The 72 候.** Each term is divided into three 候 of about five days — 初候,
@@ -458,14 +458,12 @@ they were settled.
 | [nao-rekiyoko-2024-shukujitsu] | 春分の日 3月20日 and 秋分の日 9月22日 of 2024 | Yes, 2026-09-25 |
 | [nao-rekiyoko-2025] | The 24 terms of 2025 | Yes, 2026-09-25 |
 | [nao-rekiyoko-2026] | The 24 terms of 2026 | Yes, 2026-09-25 |
-| [egov-shukujitsu-ho] | 春分の日 as 春分日, 秋分の日 as 秋分日; the law's number | Yes, 2026-09-25, through the e-Gov law API |
+| [jp-holiday-act] | 春分の日 as 春分日, 秋分の日 as 秋分日; the law's number | Yes, 2026-09-25, through the e-Gov law API |
 | [hko-24-solar-terms] | The twelve major and twelve minor terms; the 15° division; the traditional-character names | Yes, 2026-09-25 |
 | [hko-conversion-2024] | The 2024 term dates at UTC+8, Heavy Snow on 2024/12/6 | Yes, 2026-09-25 |
 | [hko-conversion-2025] | The 2025 term dates, Winter Solstice on 2025/12/21 | Yes, 2026-09-25 |
 | [hko-conversion-2026] | The 2026 term dates, Spring Showers on 2026/2/18 and Corn on Ear on 2026/6/5 | Yes, 2026-09-25 |
-| [gbt33661] | The Chinese rules: 定気 at 15° of geocentric apparent longitude, Beijing time at 120°E, one-second precision | Not read; the public copy is a scan without text. Its scope and drafting body from [ndls-gbt33661], its rules from [zhwiki-nongli] |
-| [ndls-gbt33661] | The standard's title, dates, scope and the Purple Mountain Observatory as its drafter | Yes, 2026-09-25 |
-| [openstd-gbt33661] | The standard's dates and its department, the Chinese Academy of Sciences | Yes, 2026-09-25 |
+| [gbt33661] | The Chinese rules: 定気 at 15° of geocentric apparent longitude, Beijing time at 120°E, one-second precision; the standard's title, dates, scope, the Purple Mountain Observatory as its drafter and the Chinese Academy of Sciences as its department | The standard not read; the public copy is a scan without text, and its rules are from [zhwiki-nongli]. Its three catalogue entries, which give the title, dates, scope, drafter and department, read 2026-09-25 |
 | [zhwiki-nongli] | The rules as the standard states them: 定気 every 15°, 東經120度 as the standard from 1928, one-second precision, 冬至 as the first term; 時憲暦's adoption of 定気 in 1645; the Hong Kong Space Museum's note on Beijing local time against 120°E | Yes, 2026-09-25 |
 | [yizhoushu-shixun] | The 時訓解 text of the 72 pentads, 立春之日東風解凍 to 大寒 | Yes, 2026-09-25, on Wikisource |
 | [wikipedia-ja-72ko] | The 略本暦 and 宣明暦 lists side by side, 72 rows; 1874; Shibukawa's 本朝七十二候; the 21 shared names | Yes, 2026-09-25 |

@@ -2955,10 +2955,10 @@ mod tests {
         let quarter = |tag: &str, number, width, context| {
             quarter_name(&locale(tag), gregory, number, width, context).unwrap()
         };
-        // Narrow months and weekdays that the abbreviation or the wide name
-        // used to answer: ICU writes ru's July as И. A narrow weekday only
-        // root states, Swahili's T, stays the abbreviation: root's English
-        // initials are not the language's names.
+        // Narrow months and weekdays are the locale's own narrow names, not
+        // the abbreviation or the wide name: ICU writes ru's July as И. A
+        // narrow weekday only root states, Swahili's T, stays the
+        // abbreviation: root's English initials are not the language's names.
         assert_eq!(month("ru", 7, Narrow, Format), "И");
         assert_eq!(month("ru", 7, Narrow, Standalone), "И");
         assert_eq!(month("ar", 1, Narrow, Format), "ي");

@@ -84,11 +84,8 @@ static BR_RULES: &[HolidayRule] = &read_all(
 
 /// Brazil.
 ///
-/// Read from 2003: Lei nº 662 of 1949, article 1, in the wording of Lei nº
-/// 10.607 of 19 December 2002, from the first whole year after it; the
-/// wording before it was not read. Every earlier year is a gap (ADR 0013);
-/// the reasons for every table's first year are in docs/systems/holiday-
-/// first-years.md.
+/// Read from 2003; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static BRAZIL: RuleSet = RuleSet {
     code: "BR",
     english_name: "Brazil",
@@ -337,11 +334,8 @@ static AR_RULES: &[HolidayRule] = &read_all(
 /// and is stated as an observance, as are the days the observant of the
 /// Jewish and Islamic faiths may take.
 ///
-/// Read from 2011: Decreto 1584/2010, in force from 2011; Ley 24.445 (1995)
-/// and the earlier years were not read, and 2017, Güemes's day in 2016 and
-/// 2017 are gaps because Decreto 52/2017 was not read. Every earlier year is
-/// a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2011; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static ARGENTINA: RuleSet = RuleSet {
     code: "AR",
     english_name: "Argentina",
@@ -453,9 +447,8 @@ static CO_RULES: &[HolidayRule] = &read_all(
 /// where they fall. The table is read from the law's first full year, 1984;
 /// every earlier year is a gap.
 ///
-/// Read from 1984: Ley 51 de 1983, from its first full year. Every earlier
-/// year is a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 1984; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static COLOMBIA: RuleSet = RuleSet {
     code: "CO",
     english_name: "Colombia",
@@ -556,10 +549,8 @@ static PE_RULES: &[HolidayRule] = &read_all(
 /// the *días no laborables* the government declares each year by decree
 /// are not carried.
 ///
-/// Read from 2026: the only list read, the Spanish Wikipedia's for 2026
-/// (Decreto Legislativo 713 and its amendments were not read). Every earlier
-/// year is a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2026; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static PERU: RuleSet = RuleSet {
     code: "PE",
     english_name: "Peru",
@@ -813,10 +804,8 @@ static CL_RULES: &[HolidayRule] = &read_all(
 /// Labour Day, 18 and 19 September and Christmas are irrenunciable under
 /// Leyes 19.973 and 20.215, which the crate has no field for.
 ///
-/// Read from 1981: the first change that the laws read date, the Day of
-/// National Liberation; the older holidays (Ley 2.977 of 1915) are known only
-/// through Wikipedia. Every earlier year is a gap (ADR 0013); the reasons for
-/// every table's first year are in docs/systems/holiday-first-years.md.
+/// Read from 1981; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static CHILE: RuleSet = RuleSet {
     code: "CL",
     english_name: "Chile",
@@ -1028,10 +1017,8 @@ static EC_RULES: &[HolidayRule] = &read_all(
 /// year is a gap; the bridges the Government decreed are not carried. The
 /// local holidays of cantons and provinces are not carried.
 ///
-/// Read from 2017: the law of Registro Oficial 906 of 20 December 2016, from
-/// 2017; the Código del Trabajo's earlier text was not read. Every earlier
-/// year is a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2017; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static ECUADOR: RuleSet = RuleSet {
     code: "EC",
     english_name: "Ecuador",
@@ -1186,10 +1173,8 @@ static UY_RULES: &[HolidayRule] = &read_all(
 /// before 1997 is a gap; the sector holidays and the one-off days are not
 /// carried either.
 ///
-/// Read from 1997: Ley 16.805 of 24 December 1996, from its first whole year;
-/// the years before were not read. Every earlier year is a gap (ADR 0013);
-/// the reasons for every table's first year are in docs/systems/holiday-
-/// first-years.md.
+/// Read from 1997; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static URUGUAY: RuleSet = RuleSet {
     code: "UY",
     english_name: "Uruguay",
@@ -1335,10 +1320,8 @@ static CR_RULES: &[HolidayRule] = &read_all(
 /// Ley 10396, and nothing moves from 2025. A holiday on a weekend stays
 /// there.
 ///
-/// Read from 2020: article 148 of the Código de Trabajo as reformed by Ley
-/// 9803 (2020); the text before the reform was not read. Every earlier year
-/// is a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2020; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static COSTA_RICA: RuleSet = RuleSet {
     code: "CR",
     english_name: "Costa Rica",
@@ -1480,10 +1463,8 @@ static DO_RULES: &[HolidayRule] = &read_all(
 /// years before are gaps. Holy Thursday, which article 3 names among
 /// the weekday feasts, is not on the Ministry's lists and is not carried.
 ///
-/// Read from 1998: Ley 139-97, in force from 27 June 1997, from its first
-/// whole year; the earlier law was not read. Every earlier year is a gap (ADR
-/// 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 1998; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static DOMINICAN_REPUBLIC: RuleSet = RuleSet {
     code: "DO",
     english_name: "Dominican Republic",
@@ -1612,11 +1593,8 @@ static GT_RULES: &[HolidayRule] = &read_all(
 /// own moves before the 2018 reform are not carried, and the years before
 /// 2018 are a gap. Nothing else moves.
 ///
-/// Read from 2018: Decreto 19-2018, in force from 18 October 2018, and the
-/// Constitutional Court's ruling of 2020; article 127 of the Código de
-/// Trabajo was not read, so the years before are a gap. Every earlier year is
-/// a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2018; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static GUATEMALA: RuleSet = RuleSet {
     code: "GT",
     english_name: "Guatemala",
@@ -1730,10 +1708,8 @@ static PA_RULES: &[HolidayRule] = &read_all(
 /// observance; the Carnival Monday and the bridges the Government decrees
 /// are not carried.
 ///
-/// Read from 2008: the Código de Trabajo, articles 46 and 47, as amended by
-/// Ley 70 of 28 December 2007, from 2008. Every earlier year is a gap (ADR
-/// 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2008; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static PANAMA: RuleSet = RuleSet {
     code: "PA",
     english_name: "Panama",
@@ -1819,10 +1795,8 @@ static JM_RULES: &[HolidayRule] = &read_all(
 /// of August, where it had sat since 1962, to 6 August. The special days
 /// the Minister appoints under section 7 are not carried.
 ///
-/// Read from 1961: the Schedule of the Holidays (Public General) Act, whose
-/// earliest dated entry is Labour Day of 1961, which replaced Empire Day.
-/// Every earlier year is a gap (ADR 0013); the reasons for every table's
-/// first year are in docs/systems/holiday-first-years.md.
+/// Read from 1961; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static JAMAICA: RuleSet = RuleSet {
     code: "JM",
     english_name: "Jamaica",
@@ -1923,12 +1897,8 @@ static TT_RULES: &[HolidayRule] = &read_all(
 /// first year, and Whit Monday and Discovery Day, which the newer days
 /// replaced, are not carried.
 ///
-/// Read from 1996: the Public Holidays and Festivals Act (Chap. 19:05,
-/// updated to 31 December 2016), from the year of the latest dated entry of
-/// its Schedule, Spiritual Baptist Liberation Shouter Day of 1996; Labour Day
-/// and Republic Day carry no first year. Every earlier year is a gap (ADR
-/// 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 1996; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static TRINIDAD_AND_TOBAGO: RuleSet = RuleSet {
     code: "TT",
     english_name: "Trinidad and Tobago",
@@ -2007,10 +1977,8 @@ static BB_RULES: &[HolidayRule] = &read_all(
 /// 1998 without saying which entry each made, so Emancipation Day and
 /// Kadooment Day carry no first year.
 ///
-/// Read from 1998: the Public Holidays Act, Cap. 352 (L.R.O. 1998); the Act's
-/// notes cite amendments of 1974 to 1998 without saying which entry each
-/// made. Every earlier year is a gap (ADR 0013); the reasons for every
-/// table's first year are in docs/systems/holiday-first-years.md.
+/// Read from 1998; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static BARBADOS: RuleSet = RuleSet {
     code: "BB",
     english_name: "Barbados",
@@ -2091,10 +2059,8 @@ static BS_RULES: &[HolidayRule] = &read_all(
 /// 2024", so none is carried, whatever some lists say of Fridays. The
 /// special days of section 4 are not carried.
 ///
-/// Read from 1973: the Public Holidays Act (Ch. 36, L.R.O. 1/2017), whose
-/// Schedule dates no entry before Independence Day of 1973; the other days
-/// are undated. Every earlier year is a gap (ADR 0013); the reasons for every
-/// table's first year are in docs/systems/holiday-first-years.md.
+/// Read from 1973; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static BAHAMAS: RuleSet = RuleSet {
     code: "BS",
     english_name: "Bahamas",
@@ -2192,11 +2158,8 @@ static CU_RULES: &[HolidayRule] = &read_all(
 /// and are not carried; nor are the days the Government declares under
 /// article 100.
 ///
-/// Read from 2015: Law 116 of 2013, in force from 17 June 2014, from its
-/// first whole year; the Government's grant of Good Friday in 2012 and 2013
-/// is not carried, and 2014 is a gap. Every earlier year is a gap (ADR 0013);
-/// the reasons for every table's first year are in docs/systems/holiday-
-/// first-years.md.
+/// Read from 2015; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static CUBA: RuleSet = RuleSet {
     code: "CU",
     english_name: "Cuba",
@@ -2324,10 +2287,8 @@ static BZ_RULES: &[HolidayRule] = &read_all(
 /// began in 2021, when Commonwealth Day ended; Pan American Day became
 /// Indigenous Peoples' Resistance Day in 2022.
 ///
-/// Read from 2020: the Government's notices of 2020 to 2026; the Holidays
-/// Act, Chapter 289, could not be read. Every earlier year is a gap (ADR
-/// 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2020; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static BELIZE: RuleSet = RuleSet {
     code: "BZ",
     english_name: "Belize",
@@ -2413,10 +2374,8 @@ static GY_RULES: &[HolidayRule] = &read_all(
 /// Public Security's lists put Deepavali on 18 October 2017 and
 /// 6 November 2018, each the day before Lakṣmī Pūjā.
 ///
-/// Read from 2012: the Public Holidays Act, Chapter 19:07, L.R.O. 1/2012; the
-/// yearly lists were read for 2017, 2018 and 2024 to 2026. Every earlier year
-/// is a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2012; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static GUYANA: RuleSet = RuleSet {
     code: "GY",
     english_name: "Guyana",
@@ -2532,10 +2491,8 @@ static HT_RULES: &[HolidayRule] = &read_all(
 /// before 2024 are not carried. No text read moves a holiday off a
 /// Sunday.
 ///
-/// Read from 1985: the Code du travail, décret du 24 février 1984, articles
-/// 109 to 111, from its first whole year. Every earlier year is a gap (ADR
-/// 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 1985; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static HAITI: RuleSet = RuleSet {
     code: "HT",
     english_name: "Haiti",
@@ -2648,12 +2605,8 @@ static VE_RULES: &[HolidayRule] = &read_all(
 /// Article 173 gives two continuous rest days a week without naming them;
 /// the weekend is taken as Saturday and Sunday.
 ///
-/// Read from 2013: the Ley Orgánica del Trabajo, los Trabajadores y las
-/// Trabajadoras (Gaceta Oficial Extraordinaria 6.076 of 7 May 2012), from its
-/// first whole year; the five days of the Ley de Fiestas Nacionales (Gaceta
-/// Oficial 29.541 of 22 June 1971) are read from 1972. Every earlier year is
-/// a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2013; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static VENEZUELA: RuleSet = RuleSet {
     code: "VE",
     english_name: "Venezuela",
@@ -2878,9 +2831,8 @@ static PY_RULES: &[HolidayRule] = &read_all(
 /// weekend, and the Code's weekly rest is "normally Sunday"; the weekend is
 /// Saturday and Sunday as for the region's other tables.
 ///
-/// Read from 1990: Ley 8/90; nothing earlier is stated. Every earlier year is
-/// a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 1990; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static PARAGUAY: RuleSet = RuleSet {
     code: "PY",
     english_name: "Paraguay",
@@ -3008,10 +2960,8 @@ static HN_RULES: &[HolidayRule] = &read_all(
 /// gap. The festivity days that article 339's second paragraph
 /// leaves to the employer are not carried.
 ///
-/// Read from 1959: the Código del Trabajo, Decreto 189 of 1959, article 339,
-/// in the edu-honduras.info copy, whose date of revision was not found. Every
-/// earlier year is a gap (ADR 0013); the reasons for every table's first year
-/// are in docs/systems/holiday-first-years.md.
+/// Read from 1959; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static HONDURAS: RuleSet = RuleSet {
     code: "HN",
     english_name: "Honduras",
@@ -3114,10 +3064,8 @@ static SV_RULES: &[HolidayRule] = &read_all(
 /// the Assembly decrees are not carried. Article 194 pays a holiday that
 /// falls on the weekly rest day and does not move it.
 ///
-/// Read from 1995: the Código de Trabajo, article 190, in the text of Decreto
-/// Legislativo 408 of 1995. Every earlier year is a gap (ADR 0013); the
-/// reasons for every table's first year are in docs/systems/holiday-first-
-/// years.md.
+/// Read from 1995; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static EL_SALVADOR: RuleSet = RuleSet {
     code: "SV",
     english_name: "El Salvador",
@@ -3200,9 +3148,8 @@ static NI_RULES: &[HolidayRule] = &read_all(
 /// a day, so no substitution is carried. The days of asueto the Executive
 /// may declare under article 66 are not carried either.
 ///
-/// Read from 1997: Ley 185, La Gaceta 205 of 30 October 1996, from its first
-/// whole year. Every earlier year is a gap (ADR 0013); the reasons for every
-/// table's first year are in docs/systems/holiday-first-years.md.
+/// Read from 1997; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static NICARAGUA: RuleSet = RuleSet {
     code: "NI",
     english_name: "Nicaragua",
@@ -3345,10 +3292,8 @@ static AG_RULES: &[HolidayRule] = &read_all(
 /// CARICOM Day and neither Carnival Tuesday nor 9 December, is not
 /// carried, and the table is read from 2006, every earlier year being a gap.
 ///
-/// Read from 2006: the Public Holidays (Amendment) Act 2005, published on 15
-/// September 2005, from its first full year; the revised Schedule it replaced
-/// was not carried. Every earlier year is a gap (ADR 0013); the reasons for
-/// every table's first year are in docs/systems/holiday-first-years.md.
+/// Read from 2006; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static ANTIGUA_AND_BARBUDA: RuleSet = RuleSet {
     code: "AG",
     english_name: "Antigua and Barbuda",
@@ -3425,10 +3370,8 @@ static DM_RULES: &[HolidayRule] = &read_all(
 /// under an order the author did not find; the table follows the lists
 /// from 2021, every earlier year being a gap. The names are the lists'.
 ///
-/// Read from 2021: the Government's lists of 2021 to 2026; the Act's Schedule
-/// of 1990 is undated beyond that and the Labour Day order was not found.
-/// Every earlier year is a gap (ADR 0013); the reasons for every table's
-/// first year are in docs/systems/holiday-first-years.md.
+/// Read from 2021; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static DOMINICA: RuleSet = RuleSet {
     code: "DM",
     english_name: "Dominica",
@@ -3524,11 +3467,8 @@ static GD_RULES: &[HolidayRule] = &read_all(
 /// 19 October was National Heroes' Day by proclamation in 2023 and 2024,
 /// not carried, and by the 2024 Bill and the lists from 2025.
 ///
-/// Read from 2017: the Bank Holidays (Amendment) Act No. 2 of 2017, the
-/// latest amendment of the Act as revised to Act 19 of 1999 that was read;
-/// the years between 2000 and 2016 were not read. Every earlier year is a gap
-/// (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2017; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static GRENADA: RuleSet = RuleSet {
     code: "GD",
     english_name: "Grenada",
@@ -3603,10 +3543,8 @@ static KN_RULES: &[HolidayRule] = &read_all(
 /// August are kept by the Governor-General's proclamation each year and
 /// are not carried either, since the author read no proclamation.
 ///
-/// Read from 2003: the Public Holidays Act, Cap. 23.23, in the revised
-/// edition to 31 December 2002, from the first year after it. Every earlier
-/// year is a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2003; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static SAINT_KITTS_AND_NEVIS: RuleSet = RuleSet {
     code: "KN",
     english_name: "Saint Kitts and Nevis",
@@ -3678,10 +3616,8 @@ static LC_RULES: &[HolidayRule] = &read_all(
 /// other days the list says "will be by proclamation", are not carried,
 /// and the table says nothing of which amendment brought which day.
 ///
-/// Read from 2005: the Bank Holidays Act in the Revised Laws (2023), as
-/// amended to Act 5 of 2004, from the first year after it. Every earlier year
-/// is a gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2005; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static SAINT_LUCIA: RuleSet = RuleSet {
     code: "LC",
     english_name: "Saint Lucia",
@@ -3796,10 +3732,8 @@ static VC_RULES: &[HolidayRule] = &read_all(
 /// Liberation Day on 21 May is in the lists from 2025 and carried from
 /// then. National Workers' Day is 1 May in every list.
 ///
-/// Read from 2019: the Prime Minister's Office's list for 2019, the earliest
-/// read; 2020 is a gap because its list was not read. Every earlier year is a
-/// gap (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2019; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static SAINT_VINCENT_AND_THE_GRENADINES: RuleSet = RuleSet {
     code: "VC",
     english_name: "Saint Vincent and the Grenadines",
@@ -3914,9 +3848,8 @@ static SR_RULES: &[HolidayRule] = &read_all(
 /// Government declares — Javanese New Year in 2023, a hundred and seventy
 /// years of Chinese immigration — are not carried.
 ///
-/// Read from 2007: S.B. 2007 no. 98, the earliest amendment of the Besluit
-/// Vrije Dagen 1971 read. Every earlier year is a gap (ADR 0013); the reasons
-/// for every table's first year are in docs/systems/holiday-first-years.md.
+/// Read from 2007; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static SURINAME: RuleSet = RuleSet {
     code: "SR",
     english_name: "Suriname",

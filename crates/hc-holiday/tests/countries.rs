@@ -1239,8 +1239,9 @@ fn thailand_keeps_its_buddhist_days_on_the_thai_lunar_calendar() {
     expect_substitute("TH", None, 2025, (5, 11), (5, 12));
     expect_substitute("TH", None, 2026, (5, 31), (6, 1));
     expect_substitute("TH", None, 2027, (2, 21), (2, 22));
-    // The Chinese full moon the table used to approximate Makha Bucha by
-    // was a month early in 2012.
+    // Makha Bucha falls on the full moon of the Thai lunar calendar's third
+    // month; in 2012 the full moon of the Chinese first month, 6 February,
+    // is a month early and a working day.
     expect_working("TH", None, &[(2012, 2, 6)]);
     for year in [1992, 2012, 2026, 2027] {
         let calendar = HolidayCalendar::for_year(table("TH"), None, year);
@@ -1845,7 +1846,7 @@ fn the_philippines_keeps_the_proclaimed_days_of_2012_to_2019() {
         );
     }
     // Before the first proclamation read, 2011 is a gap: the days of the
-    // Administrative Code too, and Black Saturday no longer predicted.
+    // Administrative Code too, and Black Saturday is not predicted.
     let earlier = HolidayCalendar::for_year(table("PH"), None, 2011);
     assert!(earlier.in_year(2011).is_empty());
     assert!(!earlier.is_holiday(ymd(2011, 4, 23)));

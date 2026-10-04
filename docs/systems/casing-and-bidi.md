@@ -139,7 +139,7 @@ Not carried:
   need a word-break rule. Not yet done.
 - **The bidirectional algorithm.** The module does not reorder text, resolve
   neutral runs or implement the paragraph-level rules beyond a simplified
-  first-strong test. Not carried: no use in this library needs it.
+  first-strong test. Not yet done.
 - **The remaining CLDR context transforms** (the capital at the start of a
   sentence or in a list, per field, per width). The one boolean per locale is
   not read from CLDR's `contextTransforms`; where the boolean was taken from

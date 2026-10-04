@@ -44,6 +44,7 @@
 
 use hc_calendar::Rd;
 use hc_calendars_solar::gregorian;
+use hc_core::duration::SECONDS_PER_DAY;
 use hc_tz::UtcOffset;
 
 use crate::error::{ErrorKind, ParseError, ParseResult};
@@ -679,7 +680,7 @@ fn read_offset(text: &str, offset: usize) -> ParseResult<ZoneInfo> {
         ));
     }
     let total = number(1) * 3_600 + minutes * 60 + seconds;
-    if total >= 86_400 {
+    if total >= SECONDS_PER_DAY {
         return Err(ParseError::new(
             ErrorKind::OutOfRange("the offset, which must be under 24 hours"),
             offset,

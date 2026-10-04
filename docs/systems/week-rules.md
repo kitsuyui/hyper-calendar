@@ -56,19 +56,17 @@ A `WeekRule` is the pair (first day, `minDays`) with `minDays` kept in 1 to 7.
   the first day of the week on or before 1 January; the week from it holds
   `7 − (1 January − that day)` days of the year. If that is at least `minDays`
   it is week 1, else week 1 starts a week later.
-- `week_of_year(day)` is the week-numbering year and the week. A day before
-  week 1 of its Gregorian year is in the last week of the year before; a day
-  on or after week 1 of the next year is in that year's week 1; otherwise the
-  week is the number of whole weeks since week 1, plus one.
+- `week_of_year(day)` is the week-numbering year and the week: the whole
+  weeks since week 1, plus one, and a day outside its Gregorian year's weeks
+  is in the neighbouring year's last or first week (the rustdoc states the
+  contract).
 - `weeks_in_year(year)` is the distance between week 1 of this year and of the
   next, in weeks: 52 or 53.
-- `week_of_month(day)` counts from the month's first week, the first from the
-  first day of the week in which the month has `minDays` days. The days of a
-  shorter partial week before it are week 0.
-- `to_fixed(year, week, weekday)` is the inverse: week 1's start, a week later
-  for each week after it, and the weekday's place in the week. A week past the
-  year's last is the arithmetic's: week 53 of a year of 52 weeks is the next
-  year's week 1, which is how UTS #35 asks a parser to read it.
+- `week_of_month(day)` counts from the month's first week, the one in which
+  the month has `minDays` days; a partial week before it is week 0.
+- `to_fixed(year, week, weekday)` is the inverse, and a week past the year's
+  last runs into the next year, which is how UTS #35 asks a parser to read
+  it.
 - `for_locale(locale)` takes the first day from the tag's `-u-fw-` key, else
   from its region's row of `firstDay` (Monday where the region is not listed),
   else, for a tag with no region, from the data entry of its language, which
@@ -148,7 +146,8 @@ Not carried:
   another calendar's pattern is the Gregorian week of the same day. No source
   read gives a week rule for a month or year of another calendar. Not yet done.
 - **The weekend days.** CLDR's `weekendStart` and `weekendEnd` are not read by
-  `hc-i18n`; the weekend laws `hc-holiday` carries, with their sources, are in
+  `hc-i18n`: not yet done. The weekend days this library answers are the laws
+  `hc-holiday` carries, each from its statute or notice, in
   `regional-weekends.md`.
 - **Which year a week year in an era calendar is.** `Y` writes the Gregorian
   week year, as the signed astronomical year (`-0043` for 44 BCE); UTS #35's

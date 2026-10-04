@@ -69,10 +69,9 @@ Worked example: Hari Raya Haji 2025 and Awal Muharram 2025 in Kedah.
 5. One business day after Thursday 5 March 2026 is Friday 6 March for the
    country and Sunday 8 March for Kedah, in the library; at the boundary the
    walk for Kedah is refused, because Kedah's own days were not read (see
-   "Asking the weekend at the boundary").
+   "Asking the weekend at the boundary" below).
 
-## Asking the weekend at the boundary
-
+**Asking the weekend at the boundary.**
 `hc_holiday_is_weekend(code, region, fixed)` (JavaScript `holidayIsWeekend`)
 answers 1 or 0 for the law in force on the day in the region, as
 `RuleSet::weekend_in` gives it: Kedah's Friday is 1 from 25 November 2013
@@ -191,7 +190,29 @@ Not carried, each with its reason:
   and not for earlier years; the table's own policy applies to all of
   them from 25 November 2013, the report's day, and the years before are a
   gap.
-- **Malaysia's states' own holidays.** See the section on them below.
+- **The Malaysian states' own days.** No source for them could be read.
+  The Prime Minister's Department's yearly lists, which give each state's
+  own days, the sultans' birthdays, the founding days and Thaipusam among
+  them, are PDFs on kabinet.gov.my (`hka_2020.pdf` to `HKA_2027.pdf`),
+  which refuses requests, and PDFs are not opened here. The Attorney
+  General's Chambers' text of the Holidays Act 1951 is at commonlii.org,
+  which answers a bot check, and the states' own gazettes were not found as
+  HTML. The kabinet.gov.my page `hari-kelepasan-am`, which links the PDFs,
+  refused the connection too. What is readable as HTML is secondary and
+  undated: the Wikipedia article on the public holidays in Malaysia
+  [wikipedia-public-holidays-malaysia] tabulates the states' days with a
+  date each (Johor's Sultan's Birthday 23 March, Terengganu's 26 April,
+  Selangor's 11 December, Perlis's 17 May, Penang's George Town World
+  Heritage Site day 7 July and so on) and gives no year for any. A Sultan's
+  birthday holiday moves with the reign or the ruler's decision, so a date
+  with no year of its own is a guess about every year. The commercial
+  calendar sites that list each state's days for 2026 are no better as
+  sources, and one search result's summary of them gives 31 July 2026 for
+  the Sultan of Pahang's Birthday where the article says 25 July. Nothing
+  was carried from either. Each state's own days stay the gap
+  `UNREAD_SUBDIVISION`, which the engine reports for every year asked for,
+  and the missing source is the state's gazette or the Department's list
+  for the year.
 - **Aceh.** One English-language article says Aceh keeps Monday to
   Thursday and Saturday [wikipedia-workweek-and-weekend]; it cites nothing, and the
   national rule for the civil service, Presidential Regulation 21 of 2023
@@ -247,33 +268,6 @@ secondary reproduction.
   states' own days are in PDFs on a host that refuses requests.
 - **Sharjah.** The 2021 circular's date and the August 2026 page agree;
   no change since 2022 is reported.
-
-## The Malaysian states' own days
-
-Not carried: no source for them could be read. The Prime Minister's
-Department's yearly lists, which give each state's own days, the sultans'
-birthdays, the founding days and Thaipusam among them, are PDFs on
-kabinet.gov.my (`hka_2020.pdf` to `HKA_2027.pdf`), which refuses requests,
-and PDFs are not opened here. The Attorney General's Chambers' text of the
-Holidays Act 1951 is at commonlii.org, which answers a bot check, and the
-states' own gazettes were not found as HTML. The kabinet.gov.my page
-`hari-kelepasan-am`, which links the PDFs, refused the connection too.
-
-What is readable as HTML is secondary and undated. The Wikipedia article
-on the public holidays in Malaysia
-[wikipedia-public-holidays-malaysia] tabulates the states' days with a
-date each (Johor's Sultan's Birthday 23 March, Terengganu's 26 April,
-Selangor's 11 December, Perlis's 17 May, Penang's George Town World
-Heritage Site day 7 July and so on) and gives no year for any. A Sultan's
-birthday holiday moves with the reign or the ruler's decision, so a date
-with no year of its own is a guess about every year. The commercial
-calendar sites that list each state's days for 2026 are no better as
-sources, and one search result's summary of them gives 31 July 2026 for the
-Sultan of Pahang's Birthday where the article says 25 July. Nothing was
-carried from either. Each state's own
-days stay the gap `UNREAD_SUBDIVISION`, which the engine reports for
-every year asked for, and the missing source is the state's gazette or the
-Department's list for the year.
 
 ## Sources
 
