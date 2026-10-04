@@ -151,6 +151,7 @@ const GREGORIAN_MONTH_CALENDARS: &[CalendarId] = &[
     CalendarId("julian"),
     CalendarId("revised-julian"),
     CalendarId("buddhist"),
+    CalendarId("buddhist-lk"),
     CalendarId("roc"),
     CalendarId("juche"),
     CalendarId("holocene"),
@@ -266,6 +267,7 @@ const NUMBERED_LUNISOLAR_CALENDARS: &[CalendarId] = &[
     CalendarId("chinese"),
     CalendarId("chinese-regnal"),
     CalendarId("chinese-regnal-qing-court"),
+    CalendarId("vietnamese-regnal-nguyen"),
     CalendarId("huangdi-era"),
     CalendarId("huangdi-era-tongmenghui"),
     CalendarId("huangdi-era-liu-shipei"),
@@ -280,6 +282,7 @@ const NUMBERED_LUNISOLAR_CALENDARS: &[CalendarId] = &[
     CalendarId("dangi"),
     CalendarId("dangi-kasi"),
     CalendarId("vietnamese"),
+    CalendarId("vietnamese-south-1968"),
     CalendarId("chinese-taichu"),
     CalendarId("chinese-sifen"),
     CalendarId("chinese-qianxiang"),
@@ -310,6 +313,7 @@ const CHINESE_FAMILY_CALENDARS: &[CalendarId] = &[
     CalendarId("dangi"),
     CalendarId("dangi-kasi"),
     CalendarId("vietnamese"),
+    CalendarId("vietnamese-south-1968"),
     CalendarId("chinese-taichu"),
     CalendarId("chinese-sifen"),
     CalendarId("chinese-qianxiang"),
@@ -328,6 +332,7 @@ const CHINESE_FAMILY_CALENDARS: &[CalendarId] = &[
 const CHINESE_AND_VIETNAMESE_CALENDARS: &[CalendarId] = &[
     CalendarId("chinese"),
     CalendarId("vietnamese"),
+    CalendarId("vietnamese-south-1968"),
     CalendarId("chinese-taichu"),
     CalendarId("chinese-sifen"),
     CalendarId("chinese-qianxiang"),
@@ -349,6 +354,7 @@ const DANGI_CALENDARS: &[CalendarId] = &[CalendarId("dangi"), CalendarId("dangi-
 const CHINESE_REGNAL_CALENDARS: &[CalendarId] = &[
     CalendarId("chinese-regnal"),
     CalendarId("chinese-regnal-qing-court"),
+    CalendarId("vietnamese-regnal-nguyen"),
 ];
 
 /// The four counts of the years of the Yellow Emperor, which write the

@@ -15,9 +15,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-243 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+246 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 209 of 243 have months and 209 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 212 of 246 have months and 212 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 **Named by** is which civil day names a day that does not begin at midnight: `start` for the one it begins on, as the Julian Day that begins at noon on 1 January 2000 is that day's, and `end` for the one it ends on, as the Hebrew day that begins at sunset on a Friday is Saturday's.
 
@@ -46,6 +46,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `bikram-sambat` | Bikram Sambat | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-04-09 | 2300-04-18 | yes | no | midnight | — | month ×12, weekday ×7 | yes |
 | `bostran-era` | Bostran era (Provincia Arabia) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0106-03-21 | +10105-06-03 | no | no | midnight | — | month ×13, weekday ×7 | yes |
 | `buddhist` | Thai Buddhist | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -542-01-01 | +9999999-12-31 | no | no | midnight | — | month ×12, weekday ×7 | yes |
+| `buddhist-lk` | Buddhist Era (Sri Lanka, from Vesak) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 2023-01-01 | 2027-12-31 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `burmese` | Burmese | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 0639-03-26 | 3639-05-13 | no | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `byzantine` | Byzantine (Anno Mundi) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -5508-07-19 | +94493-08-06 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `ccsds-day` | CCSDS day count | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | — | none | — |
@@ -256,6 +257,8 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `truncated-julian-day` | Truncated Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | — | none | — |
 | `valabhi` | Valabhi (Karttikadi, amanta) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | -3100-01-13 | 6900-06-15 | yes | yes | sunrise | start | month ×12–13, weekday ×7 | yes |
 | `vietnamese` | Vietnamese lunisolar | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1645-01-01 | 2150-12-31 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
+| `vietnamese-regnal-nguyen` | Nguyễn dynasty eras | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 1802-06-01 | 1945-08-30 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
+| `vietnamese-south-1968` | Vietnamese lunisolar (Republic of Vietnam reckoning) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1645-01-01 | 2150-12-31 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `vikram-samvat-kartikadi` | Vikram Samvat (Karttikadi, Gujarat) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-03-21 | 2300-03-22 | yes | yes | sunrise | start | month ×12–13, weekday ×7 | yes |
 | `vira-nirvana-samvat` | Vira Nirvana Samvat (Jain) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-03-21 | 2300-03-22 | yes | yes | sunrise | start | month ×12–13, weekday ×7 | yes |
 | `week-and-month` | Week and Month (Palmen) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | — | month ×12, week-of-month ×4–5, weekday ×7 | yes |

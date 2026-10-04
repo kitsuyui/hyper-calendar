@@ -1,8 +1,9 @@
-# The Chinese and Korean regnal eras
+# The Chinese, Korean and Vietnamese regnal eras
 
 Backs the identifiers `chinese-regnal`, `chinese-regnal-qing-court`,
-`korean-regnal`, `korean-regnal-backdated`, `hongxian` and `manchukuo` in
-`hc-calendars-regional`, and the Ming and Qing era table `chinese_regnal::ALL`.
+`korean-regnal`, `korean-regnal-backdated`, `hongxian`, `manchukuo` and
+`vietnamese-regnal-nguyen` in `hc-calendars-regional`, the Ming and Qing era
+table `chinese_regnal::ALL` and the Nguyễn era table `vietnamese_regnal::ALL`.
 
 ## What it is
 
@@ -66,6 +67,31 @@ abdication of Gojong [sillok-sunjong], and ended with the annexation on
 29 August 1910 [wikipedia-en-korean-era-name]. Secondary accounts put the
 first use of 光武 on the 16th [encykorea-gwangmu] or the 17th
 [kowiki-gwangmu], and of 隆熙 on 3 August [kowiki-yunghui].
+
+**Vietnamese.** The Nguyễn court at Huế dated by *niên hiệu* over the
+lunisolar month and day, 嗣德三十六年六月十六日, and a reign had one era.
+An emperor enthroned late in a year took the name for the next year, as
+踰年改元 has it: Tự Đức, enthroned in the tenth month of 1847, "đặt niên hiệu
+là Tự Đức, bắt đầu từ năm sau là 1848" [wikipedia-vi-tu-duc], and the lists
+count Minh Mạng from 1820, Kiến Phúc from 1884, Hàm Nghi from 1885 and Bảo
+Đại from 1926 the same way [wikipedia-en-vietnamese-era-name,
+wikipedia-zh-vietnamese-era-list, wikipedia-vi-nien-hieu]. Six eras began
+part way through a year, on the day the emperor took the name, and the
+Chinese list gives the month of each — 嘉隆 in the fifth month of 1802,
+紹治 and 成泰 in the first month of 1841 and 1889, 同慶 from the tenth month
+of 1885, 維新 in the seventh of 1907, 啟定 in the fourth of 1916
+[wikipedia-zh-vietnamese-era-list] — and the emperors' articles the day:
+1 June 1802, 11 February 1841, 7 November 1885 (the first of the tenth
+month, "Từ tháng 10 âm lịch trở đi gọi là năm Đồng Khánh Ất Dậu"
+[wikipedia-vi-dong-khanh]), 2 February 1889, 5 September 1907 and 18 May
+1916 [wikipedia-vi-gia-long, wikipedia-vi-thieu-tri, wikipedia-vi-thanh-thai,
+wikipedia-vi-duy-tan, wikipedia-vi-khai-dinh]. Two emperors of 1883 have no
+era: Dục Đức, three days, "chưa kịp đặt niên hiệu" [wikipedia-vi-duc-duc],
+and Hiệp Hòa, whose name was taken on 30 July and who was deposed on
+29 November 1883, 10/30 of Quý Mùi [wikipedia-vi-hiep-hoa], before the year
+it would have numbered; 1883 is Tự Đức 36 throughout. The dynasty ended
+with the abdication Bảo Đại read at the Meridian Gate on 30 August 1945,
+7/23 of Ất Dậu [wikipedia-en-bao-dai, wikipedia-vi-bao-dai].
 
 ## How it works
 
@@ -137,10 +163,25 @@ Beijing's meridian as the Republic's almanacs kept it.
 - **`manchukuo`** — 大同 from 1 March 1932 and 康德 from 1 March 1934 to
   17 August 1945 [wikipedia-ja-datong-manchukuo,
   wikipedia-zh-datong-manchukuo, wikipedia-ja-kangde, wikipedia-zh-kangde].
+- **`vietnamese-regnal-nguyen`** — the eleven Nguyễn eras over
+  `vietnamese` from the day each began, 1 June 1802 to 30 August 1945,
+  with Hiệp Hòa in the table marked not in use; the year within an era is
+  the lunisolar year's distance from the era's year 1, so a year with a
+  mid-year change belongs to the old era until the day and to the new one
+  from it, Minh Mạng 22 to 10 February 1841 and Thiệu Trị 1 from the 11th,
+  Hàm Nghi 1 to the ninth month of 1885 and Đồng Khánh 1 from the tenth.
+  Bảo Đại runs from Tết 1926: the name was taken at the enthronement of
+  8 January 1926 [wikipedia-vi-bao-dai, wikipedia-en-bao-dai], and every
+  list makes the lunisolar year 1926 its year 1 and 1945 its twentieth, so
+  the rest of Ất Sửu stays Khải Định 10 here.
 - **Not carried.** The eras before the Ming, with their mid-year changes
   and concurrent regimes, which wait on a table that dates them; the
-  Vietnamese regnal eras (the lists read give years and not the day an era
-  was proclaimed), the Bogd Khanate's Olnoo Örgögdsön of 1911–1924, the
+  Vietnamese eras before the Nguyễn, 544–1789 (the lists read give years
+  and, for the Restored Lê and the Tây Sơn, months, not the day an era was
+  proclaimed, and `vietnamese` reaches back only to 1645), the Cần Vương's
+  continued Hàm Nghi to the eighth month of 1888 (no document of theirs
+  read), the abdication edict's own date, 25 August 1945 (the pages read
+  give the ceremony of the 30th), the Bogd Khanate's Olnoo Örgögdsön of 1911–1924, the
   Ryukyu Kingdom's usage of the Chinese and Japanese eras beside each other,
   and the era names of the Khitan, Tangut, Jurchen and other neighbouring
   states, each a row of the roadmap with what it waits on; the last
@@ -158,6 +199,21 @@ that calendar's agreement with the published tables
 the 3 303 months of 1645–1911 against the Veritable Records' opening lines;
 the other 43 are 41 months with no opening line and 2 lines known to be in
 error. No almanac itself was read.
+
+Under `vietnamese-regnal-nguyen` the day arithmetic is `vietnamese`'s at
+UT+8, proleptic before 1968 (the court's adoption of the Shíxiàn rules is
+not dated by any source read). Eleven lunisolar dates the emperors'
+articles give beside their Gregorian days all fall out of the engine as
+written — Thiệu Trị's enthronement 1/20 of Tân Sửu and death 9/27 of Đinh
+Mùi, Tự Đức's death 6/16 of Quý Mùi, Hiệp Hòa's 10/30 of Quý Mùi, Kiến
+Phúc's 6/10 and Hàm Nghi's enthronement 6/12 of Giáp Thân, Đồng Khánh's
+death 12/27 of Mậu Tý, Khải Định's 9/20 of Ất Sửu, Bảo Đại's enthronement
+11/24 of Ất Sửu and abdication 7/23 of Ất Dậu, and Gia Long's enthronement
+in the fifth month — and every mid-year change falls in the month the
+Chinese list names (`the_emperors_lunisolar_dates_fall_out_of_the_engine`,
+`every_mid_year_change_falls_in_the_month_the_chinese_list_names`). What
+the Nguyễn almanac itself printed was not read, and a month the court's
+協紀曆 began a day away from the rules would move a date here by a day.
 The era boundaries are asserted: the backdated years of 1368, 1402, 1457,
 1620, 1636, 1644, 1645, 1683, 1795, 1861 and 1899, the abdication day, and a
 round trip of every day of the Qing range in a release build (every 19th, with
@@ -198,6 +254,11 @@ module carries.
 | [kowiki-gwangmu], [kowiki-yunghui] | 光武 in use from 17 August 1897; 隆熙 from 3 August 1907 | Yes, 2026-09-26 |
 | [wikipedia-ja-gaeguk] | 開國 counted from 1392 | Yes, 2026-09-22 |
 | [wikipedia-en-korean-era-name] | The sequence of eras and the end in 1910 | Yes, 2026-09-22 |
+| [wikipedia-en-vietnamese-era-name], [wikipedia-vi-nien-hieu] | The Nguyễn eras by year, Hiệp Hòa as planned and never used | Yes, 2026-10-03 |
+| [wikipedia-zh-vietnamese-era-list] | The month of each mid-year change of the Nguyễn eras; the Restored Lê and Tây Sơn eras by year | Yes, 2026-10-04 |
+| [wikipedia-vi-gia-long], [wikipedia-vi-minh-mang], [wikipedia-vi-thieu-tri], [wikipedia-vi-tu-duc], [wikipedia-vi-duc-duc], [wikipedia-vi-hiep-hoa], [wikipedia-vi-kien-phuc], [wikipedia-vi-ham-nghi], [wikipedia-vi-dong-khanh], [wikipedia-vi-thanh-thai], [wikipedia-vi-duy-tan], [wikipedia-vi-khai-dinh], [wikipedia-vi-bao-dai] | The day each emperor was enthroned or took the name, the lunisolar dates beside them, and the deaths and depositions | Yes, 2026-10-04 |
+| [wikipedia-en-bao-dai], [wikipedia-en-thanh-thai], [wikipedia-en-dong-khanh] | 8 January 1926 and 30 August 1945; 2 February 1889; 19 September 1885 | Yes, 2026-10-04 |
+| The *Đại Nam thực lục* and the Nguyễn almanacs | The court's own dating of each change | Not read |
 
 ## Code
 
@@ -216,7 +277,9 @@ for them.
 `RESTORATION_1917`), `korean_regnal.rs` (`KoreanEra`, `ALL`, `Reading`,
 `era_at`, `era_under`, `gaeguk_year`, `KoreanRegnalCalendar`,
 `KoreanRegnalBackdatedCalendar`) and `gregorian_eras.rs` (`GregorianEra`,
-`GregorianEraSystem`, `HONGXIAN`, `MANCHUKUO`, `GregorianEraCalendar`).
+`GregorianEraSystem`, `HONGXIAN`, `MANCHUKUO`, `GregorianEraCalendar`), and
+`vietnamese_regnal.rs` (`VietnameseEra`, `ALL`, `by_id`, `era_at`,
+`VietnameseRegnalDate`, `VietnameseRegnalCalendar`).
 Anchors: `the_court_kept_xuantong_to_the_sixteenth_year`,
 `the_backdated_reading_makes_all_of_1897_gwangmu_one`,
 `hongxian_ran_from_new_year_to_the_twenty_second_of_march_1916`,
@@ -226,4 +289,7 @@ Anchors: `the_court_kept_xuantong_to_the_sixteenth_year`,
 `every_day_of_the_qing_round_trips`,
 `the_three_eras_begin_on_the_days_carried`,
 `the_calendar_runs_from_the_gregorian_adoption_to_the_annexation`,
-`every_day_round_trips_through_the_calendar_and_its_fields`.
+`every_day_round_trips_through_the_calendar_and_its_fields`,
+`the_emperors_lunisolar_dates_fall_out_of_the_engine`,
+`every_mid_year_change_falls_in_the_month_the_chinese_list_names`,
+`the_lists_years_are_reproduced`, `every_day_of_the_dynasty_round_trips`.

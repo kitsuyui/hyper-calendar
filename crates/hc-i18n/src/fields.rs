@@ -398,6 +398,7 @@ const LUNISOLAR_CALENDARS: &[CalendarId] = &[
     CalendarId("dangi"),
     CalendarId("dangi-kasi"),
     CalendarId("vietnamese"),
+    CalendarId("vietnamese-south-1968"),
     CalendarId("chinese-taichu"),
     CalendarId("chinese-sifen"),
     CalendarId("chinese-qianxiang"),

@@ -86,7 +86,21 @@ year in the almanac of 1844, and from 1848 at 100° or at the second third
 of the interval from 夏至 to 小暑, which the almanacs do not tell apart; Japanese
 Wikipedia gives the older rule as the eleventh day counting 夏至 as the
 first [wikipedia-ja-hangesho]. 土用 has been fixed by longitude since the
-明治二年暦.
+明治二年暦; the 天保暦 placed each 土用の入り by adding a thirtieth of the
+year's length to the 定気 instant of 小寒, 清明, 小暑 or 寒露, the 平気
+twelve degrees carried over a 定気 term, and before it the whole reckoning
+was 平気, eighteen days before each 立 term of a year divided into
+twenty-four equal intervals [nao-rekiwiki-zassetsu,
+nao-rekiwiki-24-sekki-method]. 彼岸 has had the equinox as its 中日 only
+since the 天保暦 made the equinoxes 定気: under the 宣明暦 and the 貞享暦 the
+彼岸の入り was the second day after the almanac's 平気 春分 or 秋分 (没日
+not counted under the 宣明暦), and the 宝暦暦 and 寛政暦 moved the 中日 to
+the day of equal day and night, two days before the 平気 春分 and two days
+after the 平気 秋分 [nao-rekiwiki-zassetsu]. Not carried: the 天保暦 土用
+and the two older 彼岸 rules, whose rules the 暦Wiki states as above but
+for which no almanac page was read that would anchor a day, and whose
+平気 terms need the 平気 reckoning `hc-seasons` does not carry
+(`pentads.rs` says the same of the pentads).
 
 **六曜.** Add the lunisolar month number to the day of the month and take the
 remainder by six: 0 is 大安, 1 赤口, 2 先勝, 3 友引, 4 先負, 5 仏滅
@@ -295,8 +309,9 @@ in 2033, and this follows the one the 暦文化振興協会 recommended.
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [nao-rekiwiki-zassetsu] | The 雑節 since the 明治20年暦; the four 節分 and the one printed; 土用 by five-phase theory, at 297°, 27°, 117°, 207°, 17 to 19 days, by longitude since the 明治二年暦; 彼岸; 八十八夜 and 二百十日 as the 88th and 210th day and Japanese; 二百二十日 as counted by some; 入梅's 壬 rule, the 元文 change and 80° from the 明治9年暦; 半夏生 at 100°; 社日's two tie rules and its absence from the 暦象年表 and 暦要項 | Yes, 2026-09-26 |
+| [nao-rekiwiki-zassetsu] | The 雑節 since the 明治20年暦; the four 節分 and the one printed; 土用 by five-phase theory, at 297°, 27°, 117°, 207°, 17 to 19 days, by longitude since the 明治二年暦; 彼岸; 八十八夜 and 二百十日 as the 88th and 210th day and Japanese; 二百二十日 as counted by some; 入梅's 壬 rule, the 元文 change and 80° from the 明治9年暦; 半夏生 at 100°; 社日's two tie rules and its absence from the 暦象年表 and 暦要項; the 天保暦's 土用 by a thirtieth of the year over a 定気 term; 彼岸の入り two days after the 平気 equinox under the 宣明暦 and 貞享暦, the 中日 two days before 春分 and after 秋分 under the 宝暦暦 and 寛政暦, the equinox itself from the 天保暦 | Yes, 2026-09-26; re-read 2026-10-04 |
 | [nao-rekiwiki-zassetsu-shanichi] | The equinoxes and 社日 printed 1842–1946, of which 1873–1946 are the test's table; the 1874 row; about two differences in twenty years | Yes, 2026-09-26 |
+| [nao-rekiwiki-24-sekki-method] | 平気法 to the 寛政暦, 定気法 from the 天保暦, the two days' difference at the equinoxes | Yes, 2026-10-04 |
 | [nao-rekiwiki-72ko] | 半夏生 as the pentad that kept its date; its placing by 平気, in 1844 and from 1848 | Yes, 2026-09-26 |
 | [nao-rekiwiki-rekichu] | 暦注; 八十八夜 and 二百十日 as Japanese 暦注; the Meiji abolition of the middle and lower registers | Yes, 2026-09-26 |
 | [nao-rekiwiki-chijun] | The plain 中気 rule, compared by date; the table of 2014 | Yes, 2026-09-26 |

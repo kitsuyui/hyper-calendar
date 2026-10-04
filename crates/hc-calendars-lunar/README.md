@@ -54,6 +54,7 @@ others exist.
 | `dangi` | `dangi` | astronomical | 1645–2150 CE |
 | `dangi::DangiKasiCalendar` | `dangi-kasi` | astronomical, with KASI's months of 1653 and 1841 | 1653–2150 CE |
 | `vietnamese` | `vietnamese` | astronomical | 1645–2150 CE |
+| `vietnamese::VietnameseSouthCalendar` | `vietnamese-south-1968` | astronomical, on UT+8 throughout: the Republic of Vietnam's reckoning, in use 1968-01-01 to 1975-06-13 | 1645–2150 CE |
 | `chinese_historical::taichu` | `chinese-taichu` | historical (mean motions) | 20 June 104 BCE to 17 March 85 (Julian) |
 | `chinese_historical::sifen` | `chinese-sifen` | historical (mean motions) | 18 March 85 to 14 February 264 |
 | `chinese_historical::qianxiang` | `chinese-qianxiang` | historical (mean motions) | 18 February 223 to 5 February 281 |
@@ -393,6 +394,7 @@ years for Korea and measures that the difference moves nothing:
 | Chinese | Beijing local mean time (116°25′E) before 1929; UT+8 from 1929 |
 | Dangi | Beijing local mean time (116°25′E), the Qing calendar's, before 1912; UT+9 1912–1953; UT+8:30 1954–1960; UT+9 from 1961 |
 | Vietnamese | UT+8 before 1968; UT+7 from 1968 |
+| Vietnamese, the Republic of Vietnam's reckoning (`vietnamese-south-1968`) | UT+8 throughout, in use 1968-01-01 to 1975-06-13; the months that moved against the north are Tết 1968 and 1969 (attested) and 14 December 1974 and 12 April 1975 (measured) |
 | Japanese (all five) | Kyoto local mean time (135°46′E) before 1888; UT+9 from 1888 |
 
 One caveat on that last row. Kyoto is right from Jōkyō-reki onward, whose
@@ -403,7 +405,8 @@ and what the other arrangement measures.
 These are not decoration. Over 1900–2049 the Korean and Chinese new years fall
 on different days nine times, 1988 among them (Seollal 18 February, Chinese
 New Year 17 February); the Vietnamese calendar kept Tết 1968 on 29 January in
-the North and 30 January in the South; and in 1985 the same hour moved the
+the North and 30 January in the South, which is why the South's reckoning is
+a calendar of its own, `vietnamese-south-1968`; and in 1985 the same hour moved the
 winter solstice, the leap month and Tết itself a whole lunation before Chinese
 New Year. All three are tested, and the document works the last two by hand.
 

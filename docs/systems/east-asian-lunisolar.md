@@ -1,7 +1,7 @@
 # The East Asian lunisolar calendars: China, Korea and Vietnam on their meridians
 
-Backs the identifiers `chinese`, `dangi` and `vietnamese` in
-`hc-calendars-lunar`, and the engine `lunisolar` that they and the Japanese
+Backs the identifiers `chinese`, `dangi`, `vietnamese` and
+`vietnamese-south-1968` in `hc-calendars-lunar`, and the engine `lunisolar` that they and the Japanese
 Tenpō calendar configure. The Japanese systems, which run on the same engine
 with their own constants, are in
 [japanese-lunisolar.md](japanese-lunisolar.md).
@@ -250,13 +250,14 @@ to 9 August 1961 at UT+9 where the published code reads the earlier offset.
 Every new moon and every zhōngqì in those two windows falls on the same day
 under either offset, and so does every calendar date; the test
 `the_year_keyed_eras_give_the_days_the_day_keyed_changes_give` reads each
-window at both offsets and says so. And the Vietnamese "southern" parameter
-set keeps UT+8 for all time. That is right for the calendar printed in
-Saigon in 1968, and it carries no era for the south's civil time of UT+7
-before 1 January 1960 [tienphong-two-zones]. Not carried: no southern
-almanac was read that would put the calendar on UT+7, and the meridian of
-the calendar is not the civil clock — the north kept UT+7 civil time from
-1945 and, by the published code, computed its calendar on UT+8 until 1968.
+window at both offsets and says so. And `vietnamese-south-1968`, the
+Republic of Vietnam's reckoning, keeps UT+8 for all time. That is right for
+the calendar printed in Saigon in 1968, and it carries no era for the
+south's civil time of UT+7 before 1 January 1960 [tienphong-two-zones]. Not
+carried: no southern almanac was read that would put the calendar on UT+7,
+and the meridian of the calendar is not the civil clock — the north kept
+UT+7 civil time from 1945 and, by the published code, computed its calendar
+on UT+8 until 1968.
 Measured for this document, reading 1949–1959 at UT+7 instead of UT+8
 would move six month boundaries by a day (13 to 14 August 1950, 4 to
 5 June 1951, 9 to 10 August 1953, 2 to 3 November 1956, 1 to 2 March 1957
@@ -356,8 +357,10 @@ of the Qing calendar, not a convention anyone kept. The same holds of the
 33 earlier months: the Records, Liu and, for all but three, KASI agree, and
 no calendar read printed or kept the rule's days. So `chinese` carries the
 almanac where a record of it was read, and the bare rule stays constructible
-as a `LunisolarParameters` without corrections, as `vietnamese-south-1968`
-does for a reckoning with no registered use.
+as a `LunisolarParameters` without corrections. The one case where two
+authorities computed the same rule on two meridians and printed two
+different days, Tết 1968, *is* a second calendar under that rule:
+`vietnamese-south-1968` beside `vietnamese` (below).
 
 ### The almanac's terms: the leap month of 1727
 
@@ -537,18 +540,28 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
   | The Purple Mountain Observatory's table of the 時憲書 [pmo-calendar-1900-2025], the Veritable Records, the Hong Kong Observatory and KASI | 1 (1906) | — |
   | The leap month from the Veritable Records; the term day from Liu only | — | 4 (1645, 1651, 1661, 1727) |
   | The leap month from the Veritable Records and Liu; the term day inferred | — | 1 (1805) |
+- **`vietnamese-south-1968`**, the Republic of Vietnam's reckoning:
+  `vietnamese::SOUTHERN_PARAMETERS` and `VietnameseSouthCalendar`, the same
+  rules as `vietnamese` on UT+8 for all time, so the same days as
+  `vietnamese` before 1968 and the Republic's days from 1 January 1968,
+  when the north's calendar moved to UT+7 and the south's did not. Its
+  period of use is 1 January 1968 to 13 June 1975, the day the Provisional
+  Revolutionary Government returned the south to zone 7
+  [tienphong-two-zones]; its conversion range is the engine's, 1645–2150.
+  What was read of it is two new years, Tết 1968 on 30 January
+  [wikipedia-vi-tet] and Tết 1969 on 17 February (as computed; the northern
+  day is attested [nhandan-tet-trong-cay-2019]), and the zone. Over the
+  Republic's years the two calendars differ in four months only — those
+  two new years and, measured here with no almanac to check them, the
+  eleventh month of Giáp Dần from 14 December 1974 (the north's from the
+  13th) and the third of Ất Mão from 12 April 1975 (the north's from the
+  11th) — and every other day converts to the same date in both. Not
+  carried: the Republic's own almanacs and any notice of the Republic
+  fixing its calendar's meridian, which no page read gives; the months
+  between the attested new years are the rule's.
 - **Constructible but not registered.** `SolarTermMode::Mean` with any
   meridian, through `LunisolarParameters`, which is not a calendar anyone
-  publishes; and the Republic of Vietnam's 1968 reckoning as
-  `vietnamese::SOUTHERN_PARAMETERS` (id `vietnamese-south-1968`), kept as
-  data so that the disagreement can be tested rather than described. The
-  Republic's almanacs did publish that reckoning, which is what put Tết
-  1968 on 30 January in the south; it is not registered because it differs
-  from the northern calendar only from 1968 to 1975 and what was read of it
-  is two new years, not an almanac or decree that fixes its meridian and
-  its span, so a registered calendar would claim seven years of months
-  that nothing here can check. It is a Researching row of the roadmap,
-  `vietnamese-south`, which names the almanac it waits on.
+  publishes.
 - **The almanac's solar terms, 1645–1733**, as data:
   `chinese::almanac_solar_term_days(year)`, the twenty-four term days, 小寒
   to 冬至, of Liu's calendrical solar terms, the bureau's Tychonic terms
@@ -687,6 +700,9 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
 | Korean and Chinese new years over 1900–2049 | Differ in 9 years, never by more than a day | `the_two_calendars_disagree_only_occasionally` |
 | Tết 1968 = 29 January north, 30 January south | Reproduced [wikipedia-vi-tet] | `tet_1968_fell_on_different_days_in_the_north_and_the_south` |
 | Tết 1969 = 16 February north, 17 February south and China | The northern day reproduced [nhandan-tet-trong-cay-2019]; the southern as computed | `tet_1969_fell_a_day_before_chinese_new_year` |
+| `vietnamese-south-1968` against `vietnamese` before 1968 | The same date on every day sampled from 1645 to 31 December 1967 | `the_southern_calendar_is_the_northern_one_before_1968` |
+| `vietnamese-south-1968` against `vietnamese` over 1 January 1968 – 13 June 1975 | Four months begin a day later in the south, 30 January 1968, 17 February 1969, 14 December 1974 and 12 April 1975, and no other day differs | `the_southern_calendar_differs_from_the_northern_one_on_measured_days_only` |
+| `vietnamese-south-1968` round trips, 1968–1975 | Every day sampled, through the date and through its fields | `the_southern_calendar_round_trips_over_the_republic_s_years` |
 | Tết 1985 = 21 January, with 閏二月 from 21 March | Reproduced [wikipedia-en-vietnamese-calendar] | `tet_1985_fell_a_whole_month_before_chinese_new_year` |
 | Tết 2024 = 10 February, numbered 2024 | Reproduced; no Vietnamese publication of the date was read | `tet_2024_was_the_tenth_of_february_and_the_year_is_numbered_2024` |
 | Tết against Chinese New Year over 1968–2049 | Every difference is one day or one lunation | `the_calendar_sometimes_differs_from_the_chinese_one_since_1968` |
@@ -850,7 +866,11 @@ in `dangi`, `the_kasi_reading_follows_kasi_where_the_qing_almanac_does_not`,
 `tet_1985_fell_a_whole_month_before_chinese_new_year`,
 `the_calendar_sometimes_differs_from_the_chinese_one_since_1968`,
 `the_calendar_round_trips_across_the_1968_change`,
-`the_vietnamese_zodiac_has_the_cat_and_the_buffalo`. In
+`the_vietnamese_zodiac_has_the_cat_and_the_buffalo`,
+`the_southern_calendar_is_the_northern_one_before_1968`,
+`the_southern_calendar_differs_from_the_northern_one_on_measured_days_only`,
+`the_southern_calendar_round_trips_over_the_republic_s_years`,
+`the_southern_calendar_records_the_republic_s_years`. In
 `tests/calendars.rs`,
 `the_four_lunisolar_calendars_agree_on_the_day_of_the_month_when_they_agree_at_all`
 holds the three and the Tenpō calendar to the same month and day on more

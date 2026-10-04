@@ -21,23 +21,34 @@
 //! conjunction that began the Year of the Monkey fell in the hour between
 //! the two midnights, so the north, computing on UT+7 from 1 January 1968,
 //! kept Tết on **29 January 1968** and the south, whose calendar stayed on
-//! UT+8 — its civil time since 1960 — on **30 January**. The calendar here
-//! is the northern one, which is the calendar of unified Vietnam; the
-//! southern reckoning of that year is [`SOUTHERN_PARAMETERS`], and the
-//! crate tests both.
+//! UT+8 — its civil time since 1960 — on **30 January**. `vietnamese` is
+//! the northern one, which is the calendar of unified Vietnam; the
+//! southern reckoning is its own calendar, `vietnamese-south-1968`
+//! ([`VietnameseSouthCalendar`], over [`SOUTHERN_PARAMETERS`]), because
+//! two authorities computed the same rule on two meridians and printed two
+//! different days for the same festival, which is what docs/policy.md §5
+//! gives a name to rather than a parameter.
 //!
-//! The southern reckoning is data, not a registered calendar. It differs
-//! from the northern one only between 1968 and the end of the Republic in
-//! 1975, and what is known of it here is two new years, Tết 1968 and 1969,
-//! and the zone the Republic's clocks kept; no almanac or decree of the
-//! Republic was read that fixes its calendar's meridian, its span or its
-//! end. A registered `vietnamese-south` would be a claim about seven years
-//! of months that nothing read here could check, so the crate keeps the
-//! parameters that reproduce the two attested new years and says so. The same hour catches the conjunction of February
+//! What was read of the southern reckoning is two new years and the zone.
+//! The Vietnamese Wikipedia's "Tết Nguyên Đán" states that the two halves
+//! of the country kept Tết Mậu Thân on different days, the north on
+//! 29 January and the south on 30 January 1968, because the Republic kept
+//! UT+8 as China did (`wikipedia-vi-tet`); Tiền Phong states the Republic's
+//! decree 362-TTP of 30 December 1959, which made its legal time one hour
+//! ahead of zone 7 from 1 January 1960, and the Provisional Revolutionary
+//! Government's return to zone 7 on 13 June 1975 (`tienphong-two-zones`).
+//! The same hour catches the conjunction of February
 //! 1969: Tết Kỷ Dậu fell on 16 February in the north, the day Hồ Chí Minh
 //! planted the tree at Vật Lại "sáng 16-2-1969 (mồng 1 Tết)"
 //! (`nhandan-tet-trong-cay-2019`), and on 17 February, with Chinese New
-//! Year, in the south.
+//! Year, in the south. The period of use of `vietnamese-south-1968` is
+//! 1 January 1968, the day the two reckonings parted, to 13 June 1975, the
+//! day the south's zone ended; before 1968 the two calendars are the same
+//! days, since the whole country computed on UT+8, and the southern one
+//! converts those years too. Not carried: the Republic's own almanacs,
+//! which would show each month of 1968–1975 as printed, and any notice of
+//! the Republic fixing its calendar's meridian, which no page read gives;
+//! the months between the two attested new years are the rule's.
 //!
 //! # Year numbering
 //!
@@ -129,9 +140,24 @@ pub static PARAMETERS: LunisolarParameters = LunisolarParameters {
     latest: Some(LATEST),
 };
 
+/// The machine identifier of the Republic of Vietnam's reckoning.
+pub const SOUTH_ID: CalendarId = CalendarId("vietnamese-south-1968");
+
+/// The last day of the Republic's zone: 13 June 1975, when the Provisional
+/// Revolutionary Government returned the south to zone 7
+/// (`tienphong-two-zones`).
+pub const SOUTH_UNTIL: Rd = gregorian::to_fixed_saturating(1975, 6, 13);
+
+/// Where the southern reckoning's period of use comes from.
+pub const SOUTH_USAGE_SOURCE: &str = "The Republic of Vietnam's calendar, computed on UT+8 while the north went over to UT+7 \
+    on 1 January 1968, which put Tết Mậu Thân on 30 January 1968 in the south against the 29th \
+    in the north [wikipedia-vi-tet]; the zone by decree 362-TTP of 30 December 1959 from \
+    1 January 1960 until 13 June 1975 [tienphong-two-zones]; the Republic's almanacs were not \
+    read, so the months between the attested new years of 1968 and 1969 are the rule's";
+
 /// The parameters of the southern reckoning, kept on UT+8 throughout.
 pub static SOUTHERN_PARAMETERS: LunisolarParameters = LunisolarParameters {
-    id: CalendarId("vietnamese-south-1968"),
+    id: SOUTH_ID,
     english_name: "Vietnamese lunisolar (Republic of Vietnam reckoning)",
     native_locales: &["vi"],
     meridians: &SOUTHERN_MERIDIANS,
@@ -147,6 +173,64 @@ pub static SOUTHERN_PARAMETERS: LunisolarParameters = LunisolarParameters {
 
 /// The engine configured as the Vietnamese calendar.
 pub const ENGINE: LunisolarCalendar = LunisolarCalendar::new(&PARAMETERS);
+
+/// The engine configured as the Republic of Vietnam's reckoning.
+pub const SOUTH_ENGINE: LunisolarCalendar = LunisolarCalendar::new(&SOUTHERN_PARAMETERS);
+
+/// The Vietnamese lunisolar calendar as the Republic of Vietnam computed
+/// it, on UT+8 throughout: `vietnamese-south-1968`.
+///
+/// The same days as [`VietnameseCalendar`] before 1968, when the whole
+/// country computed on that meridian, and the Republic's days from
+/// 1 January 1968, when the north's calendar moved to UT+7 and this one did
+/// not: Tết on 30 January 1968 and 17 February 1969. The period of use
+/// runs to 13 June 1975, the day the south's zone ended; the conversion
+/// range is the engine's, 1645 to 2150, and a day after 1975 is the rule
+/// carried on, which nobody printed.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct VietnameseSouthCalendar;
+
+impl Calendar for VietnameseSouthCalendar {
+    type Date = VietnameseDate;
+
+    /// From 1 January 1968, when the two reckonings parted, to 13 June
+    /// 1975, when the south returned to zone 7.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::between(DECREED_FROM, SOUTH_UNTIL, SOUTH_USAGE_SOURCE)
+    }
+
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        hc_calendar::shape::LUNISOLAR_TWELVE
+    }
+
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        SOUTHERN_PARAMETERS.is_leap_year(year)
+    }
+
+    fn meta(&self) -> CalendarMeta {
+        SOUTH_ENGINE.meta()
+    }
+
+    fn days_in_month(&self, fields: &DateFields) -> CalendarResult<u16> {
+        SOUTH_ENGINE.days_in_month(fields)
+    }
+
+    fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {
+        SOUTH_ENGINE.to_fixed(date)
+    }
+
+    fn from_fixed(&self, rd: Rd) -> CalendarResult<Self::Date> {
+        SOUTH_ENGINE.from_fixed(rd)
+    }
+
+    fn to_fields(&self, date: Self::Date) -> CalendarResult<DateFields> {
+        SOUTH_ENGINE.to_fields(date)
+    }
+
+    fn from_fields(&self, fields: &DateFields) -> CalendarResult<Self::Date> {
+        SOUTH_ENGINE.from_fields(fields)
+    }
+}
 
 /// A Vietnamese date. See [`crate::chinese::ChineseDate`] for why the
 /// representation is shared.
@@ -242,6 +326,72 @@ mod tests {
         // change of zone shows up in a handful of years.
         assert!(differences >= 1, "the zone change had no effect at all");
         assert!(differences <= 5, "{differences} years differed");
+    }
+
+    #[test]
+    fn the_southern_calendar_is_the_northern_one_before_1968() {
+        // Both reckonings computed on UT+8 before Decision 121-CP, so every
+        // day from the start of the range to 31 December 1967 converts to
+        // the same date in both; every eleventh day in a debug build.
+        let last = Rd(DECREED_FROM.0 - 1);
+        for rd in (EARLIEST.0..=last.0).step_by(crate::sweep_stride(11)) {
+            let rd = Rd(rd);
+            assert_eq!(
+                VietnameseSouthCalendar.from_fixed(rd),
+                VietnameseCalendar.from_fixed(rd),
+                "RD {rd}"
+            );
+        }
+    }
+
+    #[test]
+    fn the_southern_calendar_differs_from_the_northern_one_on_measured_days_only() {
+        // Over the Republic's years, 1 January 1968 to 13 June 1975, the two
+        // reckonings differ on the day of a conjunction that fell between
+        // the two midnights, which moves one month's first day: the two
+        // new years the sources attest, and two more months, the eleventh
+        // of Giáp Dần, which began on 14 December 1974 in the south and the
+        // 13th in the north, and the third of Ất Mão, 12 April 1975 against
+        // the 11th (both measured here; no southern almanac was read for
+        // them). The first day of each month that moved, in the south, is
+        // listed; a day outside those four months converts to the same
+        // date in both calendars.
+        let moved_in_the_south: &[(i64, u8, u8)] =
+            &[(1968, 1, 30), (1969, 2, 17), (1974, 12, 14), (1975, 4, 12)];
+        let mut found = 0;
+        for rd in DECREED_FROM.0..=SOUTH_UNTIL.0 {
+            let rd = Rd(rd);
+            let south = VietnameseSouthCalendar.from_fixed(rd).expect("in range");
+            let north = VietnameseCalendar.from_fixed(rd).expect("in range");
+            if south != north && south.day == 1 {
+                let day = gregorian::from_fixed(rd).expect("in range");
+                assert_eq!(moved_in_the_south.get(found), Some(&day), "RD {rd}");
+                found += 1;
+            }
+        }
+        assert_eq!(found, moved_in_the_south.len());
+    }
+
+    #[test]
+    fn the_southern_calendar_round_trips_over_the_republic_s_years() {
+        for rd in (DECREED_FROM.0..=SOUTH_UNTIL.0).step_by(crate::sweep_stride(7)) {
+            let rd = Rd(rd);
+            let date = VietnameseSouthCalendar.from_fixed(rd).expect("in range");
+            assert_eq!(VietnameseSouthCalendar.to_fixed(date), Ok(rd), "RD {rd}");
+            let fields = VietnameseSouthCalendar.to_fields(date).expect("fields");
+            assert_eq!(VietnameseSouthCalendar.from_fields(&fields), Ok(date));
+        }
+    }
+
+    #[test]
+    fn the_southern_calendar_records_the_republic_s_years() {
+        let usage = VietnameseSouthCalendar.usage();
+        assert_eq!(usage.from, Some(DECREED_FROM));
+        assert_eq!(
+            usage.until,
+            Some(gregorian::to_fixed_saturating(1975, 6, 13))
+        );
+        assert_eq!(VietnameseSouthCalendar.meta().id, SOUTH_ID);
     }
 
     #[test]

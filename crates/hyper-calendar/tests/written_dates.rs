@@ -147,6 +147,11 @@ const REFUSALS: &[(&str, &str, &str)] = &[
         "the sexagenary year recurs every 60 years",
     ),
     (
+        "vietnamese-south-1968",
+        "year-not-written",
+        "the sexagenary year recurs every 60 years",
+    ),
+    (
         "chinese-taichu",
         "year-not-written",
         "the sexagenary year recurs every 60 years",

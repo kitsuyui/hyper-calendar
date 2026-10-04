@@ -10,7 +10,7 @@
 //! |---|---|---|
 //! | Arithmetic | [`islamic_civil`], [`islamic_astronomical`], `islamic-fatimid` ([`tabular::FATIMID`]), [`hebrew`], [`tibetan`], [`javanese`], [`meyer_palmen`], [`yerm`], [`liberalia_lunar`], [`archetypes`] | a counting rule, exact by definition |
 //! | Tabulated | [`islamic_umalqura`] | a table, exact where the table reaches |
-//! | Computed | [`chinese`], [`dangi`], [`vietnamese`], [`japanese_tenpo`], [`islamic_observational`], [`hebrew_observational`], [`samaritan`], [`babylonian`] | an astronomical model, exact only to the model |
+//! | Computed | [`chinese`], [`dangi`], [`vietnamese`] (and its `vietnamese-south-1968`), [`japanese_tenpo`], [`islamic_observational`], [`hebrew_observational`], [`samaritan`], [`babylonian`] | an astronomical model, exact only to the model |
 //! | Historical | [`japanese_historical`] | the system's *own* period constants, exact to the bureau that published it |
 //!
 //! The four rows behave differently and the crate does not pretend
@@ -242,7 +242,7 @@ pub use meyer_palmen::{MeyerPalmenCalendar, MeyerPalmenDate};
 pub use samaritan::{SamaritanCalendar, SamaritanDate};
 pub use tabular::{IslamicDate, LeapYearRule, TabularIslamicCalendar};
 pub use tibetan::{TibetanCalendar, TibetanDate};
-pub use vietnamese::{VietnameseCalendar, VietnameseDate};
+pub use vietnamese::{VietnameseCalendar, VietnameseDate, VietnameseSouthCalendar};
 pub use yerm::{YermCalendar, YermDate};
 
 /// Registration of every calendar in this crate, for the dynamic registry.
@@ -281,6 +281,7 @@ mod registration {
         crate::DangiCalendar,
         crate::DangiKasiCalendar,
         crate::VietnameseCalendar,
+        crate::VietnameseSouthCalendar,
         crate::JapaneseTenpoCalendar,
         crate::KanseiCalendar,
         crate::HoryakuCalendar,
@@ -339,7 +340,7 @@ mod registration_tests {
     fn every_calendar_registers_under_a_distinct_identifier() {
         let mut registry = CalendarRegistry::new();
         super::register_all(&mut registry);
-        assert_eq!(registry.len(), 48);
+        assert_eq!(registry.len(), 49);
     }
 
     #[test]
