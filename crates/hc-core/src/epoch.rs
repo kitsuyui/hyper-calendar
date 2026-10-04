@@ -259,6 +259,93 @@ pub const CORE_FOUNDATION: Epoch = Epoch {
         1 Jan 2001 00:00:00 GMT, retrieved 2026-09-26 [apple-cfabsolutetime]",
 };
 
+/// `1582-10-14T00:00:00`, the day before the first Gregorian day, from
+/// which IBM SPSS Statistics counts the seconds of a date variable.
+///
+/// The documentation names no zone; the TAI reading is that of the day's
+/// label on today's proleptic UTC calendar, as for the other epochs
+/// before 1961.
+pub const SPSS: Epoch = Epoch {
+    id: "spss",
+    description: "IBM SPSS Statistics date origin, 1582-10-14T00:00:00",
+    tai_reading: Duration::from_secs(-12_219_379_200),
+    source: "IBM SPSS Statistics documentation, Date Variables versus Date Format Variables: \
+        most date format variables are stored as the number of seconds from October 14, \
+        1582, retrieved 2026-10-04 [ibm-spss-date-variables]",
+};
+
+/// `1840-12-31T00:00:00`, day 0 of the MUMPS `$HOROLOG` count, whose
+/// first piece is days since that date and whose second is seconds since
+/// midnight, in the zone of the process.
+///
+/// The YottaDB guide's example, `58883,55555` at 15:25:55 on 20 March
+/// 2002, is the day count's anchor.
+pub const MUMPS_HOROLOG: Epoch = Epoch {
+    id: "mumps-horolog",
+    description: "MUMPS $HOROLOG day 0, 1840-12-31T00:00:00",
+    tai_reading: Duration::from_secs(-4_070_908_800),
+    source: "YottaDB M Programmer's Guide, chapter 8, Intrinsic Special Variables, $HOROLOG: \
+        the number of days since December 31, 1840, and the number of seconds since midnight \
+        of that date in the time zone of the process, retrieved 2026-10-04 \
+        [yottadb-isv-horolog]",
+};
+
+/// `1904-01-01T00:00:00`, the origin of the classic Mac OS date-time: an
+/// unsigned 32-bit count of seconds in the machine's local time, which
+/// runs out at 06:28:15 on 6 February 2040.
+pub const CLASSIC_MAC_OS: Epoch = Epoch {
+    id: "classic-mac-os",
+    description: "Classic Mac OS date-time origin, 1904-01-01T00:00:00",
+    tai_reading: Duration::from_secs(-2_082_844_800),
+    source: "Inside Macintosh: Operating System Utilities, chapter 4, Date, Time, and \
+        Measurement Utilities: the number of seconds elapsed since midnight, January 1, \
+        1904, in 4 bytes, retrieved 2026-10-04 [apple-inside-macintosh-date-time]",
+};
+
+/// `1904-01-01T00:00:00Z`, the origin of the LabVIEW time stamp, a 64-bit
+/// signed count of seconds and a 64-bit fraction: the same instant as
+/// [`CLASSIC_MAC_OS`], but stated in UTC.
+pub const LABVIEW: Epoch = Epoch {
+    id: "labview",
+    description: "LabVIEW time stamp origin, 1904-01-01T00:00:00Z",
+    tai_reading: Duration::from_secs(-2_082_844_800),
+    source: "NI, LabVIEW Timestamp Overview: a 128-bit type of (i64) seconds since the epoch \
+        01/01/1904 00:00:00.00 UTC and (u64) positive fractions of a second, retrieved \
+        2026-10-04 [ni-labview-timestamp]",
+};
+
+/// `1978-01-01T00:00:00Z`, the origin of the AmigaOS system time, a count
+/// of seconds and microseconds. `TAI - UTC` was 17 s.
+pub const AMIGAOS: Epoch = Epoch {
+    id: "amigaos",
+    description: "AmigaOS system time origin, 1978-01-01T00:00:00Z",
+    tai_reading: Duration::from_secs(252_460_800 + 17),
+    source: "AmigaOS Documentation Wiki, Timer Device: by convention, how many seconds have \
+        passed since midnight, January 1, 1978, retrieved 2026-10-04 [amigaos-timer-device]",
+};
+
+/// `1989-12-31T00:00:00Z`, the origin of the FIT `date_time`, a count of
+/// seconds 631 065 600 s after the POSIX epoch. `TAI - UTC` was 24 s.
+pub const GARMIN_FIT: Epoch = Epoch {
+    id: "garmin-fit",
+    description: "Garmin FIT date_time origin, 1989-12-31T00:00:00Z",
+    tai_reading: Duration::from_secs(631_065_600 + 24),
+    source: "Garmin, fit-javascript-sdk, src/utils.js: FIT_EPOCH_MS = 631065600000, a \
+        date_time being seconds added to it, retrieved 2026-10-04 [garmin-fit-javascript-sdk]",
+};
+
+/// `2000-01-01T00:00:00Z`, the origin of PostgreSQL's `timestamp` types,
+/// stored as microseconds before or after it in an eight-byte integer.
+/// `TAI - UTC` was 32 s.
+pub const POSTGRESQL: Epoch = Epoch {
+    id: "postgresql",
+    description: "PostgreSQL timestamp origin, 2000-01-01T00:00:00Z",
+    tai_reading: Duration::from_secs(946_684_800 + 32),
+    source: "PostgreSQL 9.1 Documentation, 8.5 Date/Time Types: timestamp values are stored \
+        as seconds before or after midnight 2000-01-01, with microsecond precision as \
+        eight-byte integers, retrieved 2026-10-04 [postgresql-9-1-datetime]",
+};
+
 /// Every epoch this crate knows about.
 pub const ALL: &[Epoch] = &[
     UNIX,
@@ -279,6 +366,13 @@ pub const ALL: &[Epoch] = &[
     CORE_FOUNDATION,
     UUID_GREGORIAN,
     SAS_STATA,
+    SPSS,
+    MUMPS_HOROLOG,
+    CLASSIC_MAC_OS,
+    LABVIEW,
+    AMIGAOS,
+    GARMIN_FIT,
+    POSTGRESQL,
 ];
 
 /// Look an epoch up by its identifier, by [`crate::catalogue::matches`].
@@ -389,6 +483,48 @@ mod tests {
             3_155_378_975_999_999_999
         );
         assert_eq!(CCSDS_CUC.tai_reading, Duration::from_days(-4_383));
+    }
+
+    /// The software epochs after 1972, reached from their UTC labels
+    /// through the leap-second table.
+    #[test]
+    fn the_later_software_epochs_are_their_utc_labels_read_through_the_leap_table() {
+        use crate::unix::{LeapPolicy, UnixTime, tai_from_unix};
+        let tai = |unix: i64| {
+            tai_from_unix(UnixTime::from_seconds(unix), LeapPolicy::Strict)
+                .expect("inside the table")
+        };
+        for (epoch, unix) in [
+            (AMIGAOS, 252_460_800),
+            (GARMIN_FIT, 631_065_600),
+            (POSTGRESQL, 946_684_800),
+            (CORE_FOUNDATION, 978_307_200),
+        ] {
+            assert_eq!(epoch.instant(), tai(unix), "{}", epoch.id);
+        }
+        // Garmin's own constant, in milliseconds after the POSIX epoch.
+        assert_eq!(631_065_600 * 1_000, 631_065_600_000i64);
+    }
+
+    /// The proleptic software epochs are whole days before 1970: SPSS's
+    /// the day before the UUID's, the Macintosh's and LabVIEW's 24 107
+    /// days, MUMPS's 47 117, which YottaDB's example states again — the
+    /// 20 March 2002 of `$HOROLOG` 58883 is 11 766 days after 1970.
+    #[test]
+    fn the_earlier_software_epochs_are_whole_days_before_1970() {
+        assert_eq!(
+            SPSS.tai_reading,
+            Duration::from_days(-141_428),
+            "1582-10-14 is the day before 1582-10-15"
+        );
+        assert_eq!(
+            SPSS.tai_reading.whole_seconds(),
+            UUID_GREGORIAN.tai_reading.whole_seconds() - 86_400
+        );
+        assert_eq!(CLASSIC_MAC_OS.tai_reading, Duration::from_days(-24_107));
+        assert_eq!(LABVIEW.tai_reading, CLASSIC_MAC_OS.tai_reading);
+        assert_eq!(MUMPS_HOROLOG.tai_reading, Duration::from_days(-47_117));
+        assert_eq!(47_117 + 11_766, 58_883);
     }
 
     #[test]

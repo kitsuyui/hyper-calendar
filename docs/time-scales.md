@@ -366,6 +366,13 @@ accepts:
 | `core-foundation` | 2001-01-01T00:00:00Z |
 | `uuid-gregorian` | 1582-10-15T00:00:00Z, proleptic, the timestamp of UUID versions 1 and 6 |
 | `sas-stata` | 1960-01-01T00:00:00Z, proleptic, SAS dates and datetimes and Stata's `%td`, `%tc` and `%tC` |
+| `spss` | 1582-10-14T00:00:00, proleptic, the day before the first Gregorian day, IBM SPSS Statistics date variables in seconds |
+| `mumps-horolog` | 1840-12-31T00:00:00, proleptic, day 0 of the MUMPS `$HOROLOG` count of days and seconds since midnight, in the process's zone |
+| `classic-mac-os` | 1904-01-01T00:00:00, proleptic, the classic Mac OS date-time in seconds, in the machine's local time |
+| `labview` | 1904-01-01T00:00:00Z, proleptic, the LabVIEW time stamp's seconds and fraction; the same instant as `classic-mac-os` |
+| `amigaos` | 1978-01-01T00:00:00Z, AmigaOS system time in seconds and microseconds |
+| `garmin-fit` | 1989-12-31T00:00:00Z, the FIT `date_time` in seconds, 631 065 600 s after `unix` |
+| `postgresql` | 2000-01-01T00:00:00Z, PostgreSQL `timestamp` values in microseconds before or after it |
 
 ## TAI64 labels
 

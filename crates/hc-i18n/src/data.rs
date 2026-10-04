@@ -3385,6 +3385,14 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &["bangabda"],
         &["Bangabda"],
     ),
+    // The years After Tranquility of Siggins's calendar, which its months
+    // name in `hc_calendars_solar::tranquility` (`siggins1989-tranquility`).
+    dated(
+        &[CalendarId("tranquility")],
+        &[],
+        &["at"],
+        &["After Tranquility"],
+    ),
     dated(
         ARMENIAN_CALENDARS,
         &[months(&[

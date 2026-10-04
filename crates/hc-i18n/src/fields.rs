@@ -388,6 +388,7 @@ const ISO_WEEKDAY_CALENDARS: &[CalendarId] = &[
     CalendarId("hermetic-leap-week"),
     CalendarId("week-and-month"),
     CalendarId("tabot"),
+    CalendarId("pax"),
 ];
 
 /// The calendars of the East Asian lunisolar engine, whose year and month
@@ -580,6 +581,7 @@ pub static VALUES: &[FieldValues] = &[
             CalendarId("international-fixed"),
             CalendarId("positivist"),
             CalendarId("world-calendar"),
+            CalendarId("tranquility"),
         ],
         "outside-the-week",
     ),
