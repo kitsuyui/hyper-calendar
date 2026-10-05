@@ -217,6 +217,7 @@ export const METHODS = Object.freeze([
   { method: "holidayTables", export: "hc_holiday_tables", feature: "holiday" },
   { method: "holidayGroups", export: "hc_holiday_groups", feature: "holiday" },
   { method: "holidayCoverage", export: "hc_holiday_coverage", feature: "holiday" },
+  { method: "holidayRules", export: "hc_holiday_rules", feature: "holiday" },
   { method: "holidaysOnIn", export: "hc_holidays_on_in", feature: "holiday" },
   { method: "lectionary", export: "hc_lectionary", feature: "holiday" },
   { method: "astronomicalEaster", export: "hc_astronomical_easter", feature: "holiday" },
@@ -542,7 +543,7 @@ export const COLUMNS = Object.freeze({
   holidayTables: Object.freeze([
     "code", "kind", "name", "english name", "locale used", "source", "country", "short name",
     "regions", "groups", "group names", "region groups", "read subdivisions", "weekend",
-    "substitution",
+    "substitution", "includes",
   ]),
   lectionary: Object.freeze([
     "liturgical year",
@@ -649,6 +650,10 @@ export const COLUMNS = Object.freeze({
   holidayGroups: Object.freeze(["group", "name", "locale used", "english name"]),
   holidayCoverage: Object.freeze([
     "region", "first read", "answered from", "answered until", "complete", "weekend from", "reason",
+  ]),
+  holidayRules: Object.freeze([
+    "id", "name", "local name", "kind", "confidence", "valid from", "valid until", "read from",
+    "regions", "groups", "substitution", "source",
   ]),
   dayPeriod: Object.freeze(["half", "half name", "period", "abbreviated", "wide", "narrow", "locale used"]),
   numberingSystems: Object.freeze(["system", "algorithmic", "digits"]),
@@ -3123,7 +3128,7 @@ function regionGroup(pair) {
 function holidayTable(cells) {
   const [
     code, kind, name, englishName, localeUsed, source, country, shortName, regions, groups, groupNames,
-    regionGroups, readSubdivisions, weekend, substitution,
+    regionGroups, readSubdivisions, weekend, substitution, includes,
   ] = cells;
   return {
     code,
@@ -3141,6 +3146,62 @@ function holidayTable(cells) {
     readSubdivisions: readSubdivisions === "" ? [] : readSubdivisions.split(";"),
     weekend: weekend === "" ? [] : weekend.split(";").map(weekendLaw),
     substitution: substitution === "" ? [] : substitution.split(";").map(substitutionLaw),
+    includes: includes === "" ? [] : includes.split(";").map(includedTable),
+  };
+}
+
+/**
+ * One table a holiday table keeps the days off of: an entry of column 16 of
+ * `hc_holiday_tables`, `table/region/first`.
+ *
+ * @param {string} entry
+ * @returns {import("./hyper-calendar.d.ts").IncludedTable}
+ */
+function includedTable(entry) {
+  const [table, region, first] = entry.split("/");
+  return {
+    table,
+    region: region === "" ? null : region,
+    first: first === "" ? null : Number(first),
+  };
+}
+
+/**
+ * One rule of a holiday table: a line of `hc_holiday_rules`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").HolidayRule}
+ */
+function holidayRule(cells) {
+  const [
+    id, name, localName, kind, confidence, validFrom, validUntil, readFrom, regions, groups,
+    substitution, source,
+  ] = cells;
+  /** @type {import("./hyper-calendar.d.ts").RuleSubstitution | null} */
+  let moved = null;
+  if (substitution !== "none") {
+    const [trigger, direction, first] = substitution.split("/");
+    moved = {
+      trigger: trigger === "" ? null : trigger.split("+").map((day) => Number(day)),
+      direction: /** @type {import("./hyper-calendar.d.ts").SubstituteDirection | null} */ (
+        direction === "" ? null : direction
+      ),
+      first: first === "" ? null : Number(first),
+    };
+  }
+  return {
+    id,
+    name,
+    localName: optional(localName),
+    kind: /** @type {import("./hyper-calendar.d.ts").HolidayKind} */ (kind),
+    confidence: /** @type {import("./hyper-calendar.d.ts").HolidayConfidence} */ (confidence),
+    validFrom: optionalInteger(validFrom, "valid from"),
+    validUntil: optionalInteger(validUntil, "valid until"),
+    readFrom: optionalInteger(readFrom, "read from"),
+    regions: regions === "" ? [] : regions.split(";"),
+    groups: groups === "" ? [] : groups.split(";"),
+    substitution: moved,
+    source: optional(source),
   };
 }
 
@@ -8600,6 +8661,22 @@ export class HyperCalendar {
     const text = this.#withText(locale, "locale", (pointer, len) =>
       this.#text("hc_holiday_tables", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
     return rows(text, COLUMNS.holidayTables, "hc_holiday_tables").map(holidayTable);
+  }
+
+  /**
+   * The rules of a holiday table, one for each stretch of years a day was
+   * kept in, in the table's order: what each is, the years it was
+   * established, abolished and read from, where and for whom it applies, and
+   * how the table's substitution law reaches it.
+   *
+   * @param {string} code
+   * @returns {import("./hyper-calendar.d.ts").HolidayRule[]}
+   */
+  holidayRules(code) {
+    const fn = this.#export("hc_holiday_rules");
+    const text = this.#withText(code, "code", (pointer, len) =>
+      this.#text("hc_holiday_rules", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.holidayRules, "hc_holiday_rules").map(holidayRule);
   }
 
   /**

@@ -256,6 +256,41 @@ fn the_years_a_holiday_table_answers_for_are_lines() {
     );
 }
 
+/// South Korea's Seollal moves for a Sunday alone from 2014, and the Korea
+/// Exchange includes South Korea's days off from 2009 (column 16 of
+/// `hc_holiday_tables`).
+#[cfg(feature = "holiday")]
+#[test]
+fn the_rules_of_a_holiday_table_are_lines() {
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_holiday_rules("KR".as_ptr(), 2, buffer, capacity)
+    });
+    let rows: Vec<Vec<&str>> = text.lines().map(cells).collect();
+    assert!(rows.iter().all(|row| row.len() == 12), "{text}");
+    let seollal = rows
+        .iter()
+        .find(|row| row[0] == "seollal")
+        .expect("Seollal");
+    assert_eq!(seollal[1], "Seollal");
+    assert_eq!(seollal[2], "설날");
+    assert_eq!(seollal[3], "public");
+    assert_eq!(seollal[10], "7//2014");
+    assert_eq!(rows[0][10], "none");
+    assert_eq!(
+        unsafe { hc_holiday_rules("ZZ".as_ptr(), 2, core::ptr::null_mut(), 0) },
+        HC_ERR_UNKNOWN
+    );
+    let tables = read_lines(|buffer, capacity| unsafe {
+        hc_holiday_tables("en".as_ptr(), 2, buffer, capacity)
+    });
+    let exchange = tables
+        .lines()
+        .map(cells)
+        .find(|row| row[0] == "XKRX")
+        .expect("the Korea Exchange");
+    assert_eq!(exchange[15], "KR//2009");
+}
+
 /// Nayrouz, 11 September 2025, is named by the Bohairic Coptic names.
 #[cfg(feature = "holiday")]
 #[test]

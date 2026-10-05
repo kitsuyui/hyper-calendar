@@ -3629,11 +3629,15 @@ pub struct Coverage {
     pub first_read: Option<i64>,
     /// The first year from which no rule of the scope is a gap for want of
     /// reading: the latest first year of the rules in scope. `None` where
-    /// no rule declares one.
+    /// no rule declares one. The first year of a table of announced dates
+    /// that another rule of the same day answers beside, as the rule for the
+    /// years before it ([`HolidayRule::read_in`]), is not one: the year
+    /// before it is answered.
     pub answered_from: Option<i64>,
     /// The last year no table of announced dates in scope has run out in:
     /// the earliest last year of the rules that list or tabulate their
-    /// days. `None` where no rule does.
+    /// days. `None` where no rule does, or where another rule of the same
+    /// day answers the years after the table.
     pub answered_until: Option<i64>,
     /// Whether some rule of the scope is read in no year at all
     /// ([`Rule::UNREAD`]) and was never abolished: the scope is a gap in
@@ -3953,6 +3957,22 @@ impl RuleSet {
                 _ => (None, None),
             };
             let unread = matches!((listed_first, listed_last), (Some(a), Some(b)) if a > b);
+            // A table that another row of the same day answers beside — the
+            // days a feast is read for in a published table, and its
+            // approximate rule in the years before and after
+            // ([`HolidayRule::read_in`]) — bounds nothing: the years next to
+            // it are answered, not gaps.
+            let answered_beside = |year: i64| {
+                self.rules.iter().any(|other| {
+                    !core::ptr::eq(other, rule)
+                        && other.id() == rule.id()
+                        && other.applies_in_region(region)
+                        && other.applies_in(year)
+                        && !other.is_unread_in(year)
+                })
+            };
+            let listed_first = listed_first.filter(|first| !answered_beside(first - 1));
+            let listed_last = listed_last.filter(|last| !answered_beside(last + 1));
             let abolished = rule.valid_until.map(i64::from);
             if unread {
                 // A rule read in no year: it is a gap in every year it

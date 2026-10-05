@@ -277,7 +277,13 @@ pub static BIRTHSTONES_US_2016: MonthTable = MonthTable::new(
                  \"Birthstones by Month\" (secondary); spinel added per National Jeweler, \"JA, \
                  AGTA Add Spinel as August Birthstone\" (2016); tanzanite per Grande & \
                  Augustyn, Gems and Gemstones (Univ. of Chicago Press, 2009), p. 335",
-        caveat: None,
+        caveat: Some(
+            "Attributed to Jewelers of America and the American Gem Trade Association, who do \
+             not print one list today: Jewelers of America's page prints March as aquamarine \
+             alone, August as peridot and spinel without sardonyx, and December with blue \
+             zircon, while the entries here are the sets the Gemological Institute of America \
+             and the American Gem Society print. The Association's own page could not be read.",
+        ),
     },
     [
         &["garnet"],

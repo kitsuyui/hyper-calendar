@@ -157,3 +157,26 @@ fn a_table_that_states_no_weekend_has_no_weekend_gap_and_a_stated_one_has() {
         Some(&[Weekday::Saturday, Weekday::Sunday][..])
     );
 }
+
+#[test]
+fn a_table_beside_an_approximate_rule_does_not_bound_the_years_answered() {
+    use hc_holiday::traditions::{BAHAI, HINDU};
+    // Holika Dahan and Holi are read for 2015 to 2036 in a published table
+    // and answered approximately before and after it: 2014 and 2037 are
+    // answers, not gaps, and the coverage says so.
+    let hindu = HINDU.coverage(None);
+    assert_eq!((hindu.answered_from, hindu.answered_until), (None, None));
+    for year in [2014, 2037] {
+        assert!(HolidayCalendar::for_year(&HINDU, None, year).is_complete());
+    }
+    // The Bahá'í Twin Holy Birthdays are the fixed Badi dates before 2015,
+    // so 2014 is answered; the table of 2015 to 2064 has nothing beside it
+    // after, and 2065 is a gap.
+    let bahai = BAHAI.coverage(None);
+    assert_eq!(
+        (bahai.answered_from, bahai.answered_until),
+        (None, Some(2064))
+    );
+    assert!(HolidayCalendar::for_year(&BAHAI, None, 2014).is_complete());
+    assert!(!HolidayCalendar::for_year(&BAHAI, None, 2065).is_complete());
+}

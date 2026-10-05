@@ -168,17 +168,32 @@ fn an_international_day_is_absent_before_it_began_and_a_gap_until_it_was_read() 
     assert!(!names(&braille(2018), 2018).contains(&"World Braille Day"));
     assert!(!gap_names(&braille(2018)).contains(&"World Braille Day"));
     assert!(names(&braille(2019), 2019).contains(&"World Braille Day"));
-    // The International Day of Clean Energy, A/RES/77/327, adopted in the
-    // session that began in 2022: the day's first observance was not read, so
-    // 2022 and 2023 are gaps and it is answered from 2024.
+    // The International Day of Clean Energy, A/RES/77/327, adopted on
+    // 25 August 2023: its first observance was 26 January 2024, and the
+    // years before are absent, not a gap.
     for year in [2022, 2023] {
         let calendar = braille(year);
         assert!(!names(&calendar, year).contains(&"International Day of Clean Energy"));
-        assert!(gap_names(&calendar).contains(&"International Day of Clean Energy"));
+        assert!(!gap_names(&calendar).contains(&"International Day of Clean Energy"));
     }
     assert!(names(&braille(2024), 2024).contains(&"International Day of Clean Energy"));
-    // Before 2022 it is absent, not a gap.
-    assert!(!gap_names(&braille(2021)).contains(&"International Day of Clean Energy"));
+    // International Migrants Day, proclaimed on 4 December 2000 (A/RES/55/93)
+    // for 18 December: observed from that year, not from the session's.
+    assert!(!names(&braille(1999), 1999).contains(&"International Migrants Day"));
+    assert!(names(&braille(2000), 2000).contains(&"International Migrants Day"));
+    // Mother Earth Day, adopted on 22 April 2009 itself: 2009 is a gap and
+    // the day is answered from 2010.
+    assert!(gap_names(&braille(2009)).contains(&"International Mother Earth Day"));
+    assert!(names(&braille(2010), 2010).contains(&"International Mother Earth Day"));
+    assert!(!gap_names(&braille(2008)).contains(&"International Mother Earth Day"));
+    // The days of the 80th session adopted in 2026 begin in 2027.
+    for name in [
+        "International Day of Greening the Planet",
+        "International Day of Safe, Secure and Trustworthy Artificial Intelligence",
+    ] {
+        assert!(!names(&braille(2026), 2026).contains(&name), "{name}");
+        assert!(names(&braille(2027), 2027).contains(&name), "{name}");
+    }
 }
 
 /// The traditions whose table is read from a year, and why: the calendar or

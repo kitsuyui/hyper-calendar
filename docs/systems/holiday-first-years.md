@@ -108,6 +108,8 @@ territory.
 | PT | Portugal | 2016 | The Código do Trabalho article 234 in the wording of Lei n.º 8/2016, from 2016; Lei n.º 23/2012, which suspended four holidays for 2013 to 2015, was not read. Read: article 234 on the Procuradoria-Geral Distrital de Lisboa's site (pgdlisboa.pt), retrieved 2026-09-26, the Diário da República's own page being unreadable. |
 | NL | Netherlands | 2011 | The Algemene termijnenwet, article 3, in force from 10 October 2010, from the first whole year. Read: the Act and the Besluit of 2013 on wetten.overheid.nl, retrieved 2026-09-26. |
 | BE | Belgium | 1975 | The royal decree of 18 April 1974, from its first whole year. Read: the arrêté royal on Justel, retrieved 2026-09-26; the loi du 4 janvier 1974 itself not read. |
+| CH | Switzerland | 2023 for the nationwide days; 2000 for the cantons whose oldest text read is of that year | The Arbeitsgesetz (SR 822.11), Art. 20a Abs. 1, in the consolidation of 1 September 2023, whose first whole year is 2023; each canton's own days from the text of its law read, the laws before them not read. Read: the Arbeitsgesetz on Fedlex and the cantons' collections, retrieved 2026-09-29; Jura, Schwyz and Zurich as the German Wikipedia and the Canton of Zurich's page give them (secondary); the Bundesverfassung Art. 110 Abs. 3 not read. |
+| ES | Spain | 1990 | The Real Decreto 2001/1983, arts. 45 and 46, as amended by the Real Decreto 1346/1989, from the first whole year after it; the communities' days are the resolutions' of 2013 to 2015 and 2018 to 2026, every other year a gap. Read: the Real Decreto on the BOE and the resolutions in the BOE's HTML text, retrieved 2026-09-29; the resolutions for 2016 and 2017, whose annexes are images, not read. |
 | AT | Austria | 1968 | The Feiertagsruhegesetz 1957 as amended by BGBl. Nr. 264/1967, in force from 26 July 1967, from the first whole year; the Arbeitsruhegesetz of 1983 keeps the list. Read: the Arbeitsruhegesetz on jusline.at (secondary; the RIS being unreachable) and the federal laws of 1965 and 1957 as the RIS scans give them, retrieved 2026-09-26. |
 | SE | Sweden | 1989 | Lag (1989:253) om allmänna helgdagar. Read: the Act on riksdagen.se, retrieved 2026-09-26. |
 | NO | Norway | 1995 | LOV-1995-02-24-12, with lov om 1. og 17. mai (LOV-1947-04-26-1). Read: both laws on Lovdata, retrieved 2026-09-26. |
@@ -238,9 +240,11 @@ each statute set them (`valid_from`) and its states' days at the year of the
 code read for each; Spain's nationwide days from 1990, the first whole year of
 article 45 as read; Switzerland's from 2023, the latest first year of a
 cantonal law read, and each canton from its own law; Canada's provincial days
-from 2026, the year of the texts read. Canada's federal list answers every
-year and has no first year of its own: no source for its earlier years was
-read, and a first year for it is not yet done.
+from 2026, the year of the texts read. Canada's federal list is read from
+1985, the year of the Canada Labour Code as consolidated (the Canada row of
+the table below), and a province's text read in 2026 leaves a federal day out
+from that year only: before 2026 the day is a gap on the days the federal
+rule places.
 
 ### Asia
 
@@ -326,7 +330,7 @@ Four tables say what is and is not known for the years before their sources:
 
 | Code | Table | What is carried | Why |
 | --- | --- | --- | --- |
-| US | United States | Thanksgiving Day is a gap from 1870 to 1941 and the fourth Thursday of November from 1942; Armistice Day is the 11th of November from 1938 to 1953 | The Act of 28 June 1870 made "any day appointed or recommended by the President" for thanksgiving a holiday in the District of Columbia, and the Congressional Research Service's R41990 [crs-r41990-federal-holidays] gives the other dates; the Presidents' proclamations of 1870 to 1941, which named the day each year, were not read. The days before 1870 are absent: no federal holiday existed. Read: R41990 at everycrsreport.com, retrieved 2026-10-04; the Act's own text is not read. |
+| US | United States | Thanksgiving Day is a gap from 1870 to 1941 and the fourth Thursday of November from 1942; Armistice Day is the 11th of November from 1938 to 1953 | The Act of 28 June 1870 made "any day appointed or recommended by the President" for thanksgiving a holiday in the District of Columbia, and the Congressional Research Service's R41990 [crs-r41990-federal-holidays] gives the other dates; the Presidents' proclamations of 1870 to 1941, which named the day each year, were not read. The days before 1870 are absent: no federal holiday existed. Read: R41990 at everycrsreport.com, retrieved 2026-10-04; the Act's own text is not read. The in-lieu-of rule is carried from 1952 for a Sunday holiday (Executive Order 10358 of 9 June 1952, closing the offices on the Monday [eo-10358-presidency]) and from 1960 for a Saturday one (Pub. L. 86-362 of 22 September 1959, after which no holiday fell on a Saturday in 1959; the Act itself is a PDF and was not read, its Saturday content resting on a search summary and the Legal Information Institute's source note to § 6103(b)); Executive Order 9636 of 1945, which 10358 superseded, is not read, so a Sunday holiday before 1952 keeps its Sunday. |
 | JP | Japan | Every year to 1948 is a gap, for the days of the 休日ニ関スル件 of 1927 and the regime before it | The 国民の祝日に関する法律 begins on 20 July 1948 and repealed the Ordinance; its days were not read. Read: the Act's text as e-Gov's API serves it, retrieved 2026-09-29; the 1927 Ordinance is not read. |
 | CA | Canada | The ten federal general holidays are read from 1985 | The Canada Labour Code as R.S.C. 1985, c. L-2 consolidates it, section 166; the Code's earlier texts were not read, and the years the Wikipedia articles give for Victoria Day (1952), Remembrance Day (1931) and Thanksgiving (1957) are not establishments of the days. Read: Justice Laws' section 166, retrieved 2026-10-04; the Wikipedia articles are secondary and not checked against the statutes. |
 | BA | Bosnia and Herzegovina | A request with no entity is a gap in every year; each entity's own list is read from its own law | No state-level law of public holidays was found among the regulations the state lists on Paragraf Lex; the entities' laws set them. Read: the regulation list on Paragraf Lex, retrieved 2026-10-04, which is weak evidence of absence. |
@@ -334,8 +338,8 @@ Four tables say what is and is not known for the years before their sources:
 ### The exchanges
 
 Each exchange's table is read from the first year of the lists its `sources`
-names, `read_from_year` in `exchanges.rs`: the NYSE from 2026, Nasdaq's and
-Euronext's from 2021, Borsa İstanbul's from 2019, the Korea Exchange's from
+names, `read_from_year` in `exchanges.rs`: the NYSE's and Nasdaq's (which
+share the NYSE's rules) from 2026, Euronext's from 2021, Borsa İstanbul's from 2019, the Korea Exchange's from
 2009. A closure limited to the one year it happened in (the NYSE's closure
 after the September 11 attacks, Hurricane Sandy, President Bush's funeral) is
 read in that year, and a list that begins before the table's first year
@@ -346,20 +350,70 @@ engine reports `unread-included-holidays`. The trading week of each exchange is 
 
 ### The United Nations' days and weeks
 
-Each of the 236 days and 11 weeks begins in the year it was first observed,
-where a source read says so, `valid_from`, and is absent before; where only
-the year of the proclamation is known, the day is established that year and
-read from the next (`read_from`), the proclamation's own year being a gap; and
-where only the session of the General Assembly that adopted the resolution
-is known, from the session's year and read two years after. A day with no
-resolution and no date read (Zero Discrimination Day's agency, the weeks the
-agencies set) is read from 2026. A day an earlier body observed on the
-same date before the United Nations proclaimed it (Wetlands, Oceans, the Day
-against Female Genital Mutilation) begins with the proclamation: the
-precursor's year is not the day's. The years were read from the United
-Nations' observance pages and, where those give no year, Wikipedia's articles
-(secondary); the resolutions' own texts were not read, and the number of
-rows with only a proclamation year is higher than with a first observance.
+Each of the 238 days and 11 weeks begins in the year it was first observed,
+`valid_from`, and is absent before. Where a page read gives the first
+observance, that year; where it gives only the date the resolution was
+adopted, the year of the first occurrence of the day's date on or after it
+(derived, and said so in the table below); where only the year of the
+proclamation is known, the day is established that year and read from the
+next (`read_from`), the proclamation's own year being a gap; and where only
+the session of the General Assembly that adopted the resolution is known,
+from the session's year and read two years after. A day with no resolution
+and no date read (Zero Discrimination Day's agency, the weeks the agencies
+set) is read from 2026. A day an earlier body observed on the same date
+before the United Nations proclaimed it (Wetlands, Family Remittances, Elder
+Abuse, Kiswahili, the Day against Female Genital Mutilation) begins with the
+proclamation: the precursor's year is not the day's. The years were read
+from the United Nations' observance pages and, where those give no year,
+Wikipedia's articles (secondary); the resolutions' own texts, PDFs, were not
+read, and the number of rows with only a proclamation year is higher than
+with a first observance.
+
+The 28 days whose first year was once the session's year are dated from
+pages read on 2026-10-05 [un-days-first-observances]; the adoption date is
+the meetings coverage's or a news report's, and the first observance is
+derived unless a page read states it:
+
+| Day | Resolution, adopted | First year | Basis |
+| --- | --- | --- | --- |
+| Clean Energy, 26 Jan | A/RES/77/327, 25 Aug 2023 | 2024 | derived; the observance of 26 Jan 2024 is reported by SEforALL |
+| Wetlands, 2 Feb | A/RES/75/317, 30 Aug 2021 | 2022 | UNEP's page: the first year observed as a UN day |
+| Arabian Leopard, 10 Feb | A/RES/77/295, 12 Jun 2023 | 2024 | derived; a news report calls 10 Feb 2024 the first |
+| Violent Extremism, 12 Feb | A/RES/77/243, 20 Dec 2022 | 2023 | UNOCT and ReliefWeb call 12 Feb 2023 the first |
+| Tourism Resilience, 17 Feb | A/RES/77/269, 6 Feb 2023 | 2023 | derived |
+| Disarmament Awareness, 5 Mar | A/RES/77/51, 7 Dec 2022 | 2023 | the Secretary-General's message of 5 Mar 2023: "first-ever" |
+| Glaciers, 21 Mar | A/RES/77/158, 14 Dec 2022 | 2025 | the resolution names 2025; launched 21 Mar 2025 |
+| Detained and Missing Staff, 25 Mar | none; the Convention is A/RES/49/59 | 1986 | the United Nations memorial page: observed since 1986 |
+| Rwanda Reflection, 7 Apr | A/RES/58/234, 23 Dec 2003 | 2004 | the United Nations' page: 7 Apr 2004 the first |
+| Wellness, 15 Apr | A/RES/80/249, 10 Mar 2026 | 2026 | reported observed on 15 Apr 2026 |
+| Mother Earth, 22 Apr | A/RES/63/278, 22 Apr 2009 | 2010; 2009 a gap | adopted on the day itself |
+| Tuna, 2 May | A/RES/71/124, 7 Dec 2016 | 2017 | derived |
+| Plant Health, 12 May | A/RES/76/256, 29 Mar 2022 | 2022 | FAO: the inaugural celebration, 12 May 2022 |
+| Biological Diversity, 22 May | A/RES/55/201, 20 Dec 2000 | 2001 | the day moved from 29 Dec; the President's message of 22 May 2001 |
+| Food Safety, 7 Jun | A/RES/73/250, 20 Dec 2018 | 2019 | the day's background page: "As of 2019" |
+| Play, 11 Jun | A/RES/78/268, 25 Mar 2024 | 2024 | the inaugural day, 11 Jun 2024 |
+| Elder Abuse, 15 Jun | A/RES/66/127, 19 Dec 2011 | 2012 | derived; INPEA's day dates from 2006 |
+| Family Remittances, 16 Jun | A/RES/72/281, 12 Jun 2018 | 2018 | the daily briefing of 14 Jun 2018; IFAD's day dates from 2015 |
+| Sustainable Gastronomy, 18 Jun | A/RES/71/246, 21 Dec 2016 | 2017 | derived |
+| Solstice, 21 Jun | A/RES/73/300, 20 Jun 2019 | 2019 | derived |
+| Women in Diplomacy, 24 Jun | A/RES/76/269, 20 Jun 2022 | 2022 | derived |
+| Deafblindness, 27 Jun | A/RES/79/294, 16 Jun 2025 | 2025 | the first day marked 27 Jun 2025 |
+| MSME, 27 Jun | A/RES/71/279, 6 Apr 2017 | 2017 | the first day, 27 Jun 2017 (ICSB) |
+| Rural Development, 6 Jul | A/RES/78/326, 6 Sep 2024 | 2025 | the day's page counts 2026 as the second |
+| Kiswahili, 7 Jul | A/RES/78/312, 1 Jul 2024 | 2024 | derived; UNESCO's day dates from 2022 |
+| Sand and Dust Storms, 12 Jul | A/RES/77/294, 8 Jun 2023 | 2023 | UNCCD: the first observance, 12 Jul 2023 |
+| Hope, 12 Jul | A/RES/79/270, 4 Mar 2025 | 2025 | derived |
+| Migrants, 18 Dec | A/RES/55/93, 4 Dec 2000 | 2000 | derived |
+
+The two days of the 80th session adopted on 31 August 2026, Greening the
+Planet (A/RES/80/300, 22 April) and Safe, Secure and Trustworthy Artificial
+Intelligence (A/RES/80/302, 31 August), begin in 2027, a news report saying
+so for the second; Women Searchers of Missing Persons (A/RES/80/301, 19
+December) and the Elimination of Child, Early and Forced Marriage
+(A/RES/80/309, adopted 4 September 2026, 27 November) are a gap in 2026 and
+read from 2027, a news report giving 2027 for the second where the date
+alone would make 2026. These adoption dates rest on news pages and search
+summaries: the meetings coverage on press.un.org did not load.
 
 ### The traditions
 

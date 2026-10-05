@@ -368,7 +368,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-339 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+340 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -556,6 +556,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_holiday_tables(const char *locale, char *buffer, size_t capacity, size_t *written);` | `holiday` | Every holiday table with its kind, names and sources, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_holiday_groups(const char *locale, char *buffer, size_t capacity, size_t *written);` | `holiday` | Every group of people a holiday may be given to alone, named in a locale, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_holiday_coverage(const char *code, char *buffer, size_t capacity, size_t *written);` | `holiday` | The years a holiday table answers for, nationwide and in each subdivision it answers for, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_holiday_rules(const char *code, char *buffer, size_t capacity, size_t *written);` | `holiday` | The rules of a holiday table, one line each, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_holidays_on_in(int64_t fixed, const char *locale, char *buffer, size_t capacity, size_t *written);` | `holiday` | `hc_holidays_on`'s lines, each with the day's name in a locale and the tag that named it, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_lectionary(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `holiday` | The lectionary cycles of a fixed day, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_astronomical_easter(int64_t year, int64_t *out_fixed);` | `holiday` | The fixed day of Easter Sunday of a Gregorian year by the astronomical reckoning at the meridian of Jerusalem. |
@@ -1361,7 +1362,7 @@ that named it, and then the identifier and the bridge flag, which
 `hc_holidays_on` ends with, so that the first eleven cells and the two names
 keep their places.
 `hc_holiday_tables(locale, buffer, capacity, written)` describes every
-table in `hc_holiday_codes` order, in the fourteen columns of the WebAssembly
+table in `hc_holiday_codes` order, in the sixteen columns of the WebAssembly
 module's README: the code, the kind, the name in the locale, the English
 name, the locale that answered, the sources, the country of a subdivision
 or an exchange where its table records one, the short name, the
@@ -1371,7 +1372,9 @@ rules give days to alone, `;`-separated, and those groups' names in the
 locale, English where `hc-i18n` names a group in no other language, the
 pairs of a subdivision and a group a rule is scoped to both of,
 `region:group`, `;`-separated, and the subdivisions the table's sources were
-read for, `;`-separated in code order. A country
+read for, `;`-separated in code order, the table's weekend laws (column 14),
+its weekend-substitution laws (column 15) and the tables whose days off it
+keeps as its own (column 16, `XKRX`'s `KR//2009`). A country
 is named by CLDR 48's territory name in the `locale` where `hc-i18n`
 carries one, and else, as for a null `locale`, by CLDR's English name;
 an exchange, a tradition and a set of observances by the table's English
@@ -1379,9 +1382,14 @@ name; the tag that answered is in column 5. Column 14 lists the table's
 weekend laws, `;`-separated, each `days/first/last/regions`: the days as ISO 8601
 weekday numbers joined by `+`, or `unread`, the first and last day in force
 as `YYYY-MM-DD`, and the ISO 3166-2 codes it is the weekend of, as the
-WebAssembly README's table of its fourteen columns describes. Column 8 is
+WebAssembly README's table of its sixteen columns describes. Column 8 is
 CLDR 48's `alt="short"` name beside a CLDR name in column 3, from the same
-data (`Hong Kong` under `en`, 香港 under `ja`), and empty elsewhere. `hc_lectionary(fixed, buffer,
+data (`Hong Kong` under `en`, 香港 under `ja`), and empty elsewhere. `hc_holiday_rules(code, buffer, capacity, written)` writes the rules of a
+table, one line each in the table's order, in the twelve columns of the
+WebAssembly module's README (the rule's identifier, its names, kind and
+confidence, the years it was established, abolished and read from, its regions
+and groups, the part of the table's substitution law that reaches it and its
+source); a code that names no table is `HC_ERROR_UNKNOWN`. `hc_lectionary(fixed, buffer,
 capacity, written)` writes the liturgical year, the Sunday cycle, the
 Roman weekday cycle and the RCL Proper of a day, the Roman number of a
 Sunday in Ordinary Time and the week of Ordinary Time on the universal

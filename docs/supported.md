@@ -458,7 +458,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `TZ` | Tanzania | 17 | yes | stated | 2026-09-22 |
 | `UA` | Ukraine | 27 | yes | stated | 2026-09-26 |
 | `UG` | Uganda | 14 | none | stated | 2026-09-22 |
-| `US` | United States | 1506 | yes | stated | 2026-09-29 |
+| `US` | United States | 1506 | yes | stated | 2026-10-05 |
 | `UY` | Uruguay | 23 | none | stated | 2026-09-26 |
 | `UZ` | Uzbekistan | 10 | yes | stated | 2026-09-22 |
 | `VA` | Vatican City | 27 | none | stated | 2026-09-23 |
@@ -557,7 +557,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 | Code | Set | Observances |
 | --- | --- | --- |
-| `un-days` | United Nations international days | 236 |
+| `un-days` | United Nations international days | 238 |
 | `un-weeks` | United Nations international weeks | 11 |
 
 ## Exchange calendars

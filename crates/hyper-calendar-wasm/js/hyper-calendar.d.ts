@@ -1141,6 +1141,7 @@ export const COLUMNS: {
   readonly roman1960Office: ReadonlyArray<string>;
   readonly holidayGroups: ReadonlyArray<string>;
   readonly holidayCoverage: ReadonlyArray<string>;
+  readonly holidayRules: ReadonlyArray<string>;
   readonly dayPeriod: ReadonlyArray<string>;
   readonly numberingSystems: ReadonlyArray<string>;
   readonly calendarEras: ReadonlyArray<string>;
@@ -3392,6 +3393,64 @@ export interface HolidayTable {
    * of its own has the one with no regions.
    */
   substitution: SubstitutionLaw[];
+  /**
+   * The tables whose days off the table keeps as its own, in the table's
+   * order: an exchange's country. Empty for a table that includes none.
+   */
+  includes: IncludedTable[];
+}
+
+/** One table a holiday table keeps the days off of: an entry of column 16 of `hc_holiday_tables`. */
+export interface IncludedTable {
+  /** The included table's code: `KR` for `XKRX`. */
+  table: string;
+  /** The subdivision of it the days are taken in (`GB-EAW` for `XLON`), or `null` for its nationwide days. */
+  region: string | null;
+  /** The first year the inclusion is read for, or `null` for none; a year before it is a gap. */
+  first: number | null;
+}
+
+/** What sort of day a holiday rule sets. */
+export type HolidayKind =
+  | "public" | "bank" | "religious" | "observance" | "school" | "workday" | "government" | "half-day";
+
+/** How firm the date a rule computes is. */
+export type HolidayConfidence = "exact" | "approximate";
+
+/** How a table's substitution law reaches one rule: column 11 of `hc_holiday_rules`. */
+export interface RuleSubstitution {
+  /** The weekdays that trigger a substitute for this rule alone (ISO 8601 numbers), or `null` where the table's law is the rule's own. */
+  trigger: number[] | null;
+  /** The direction a substitute moves for this rule alone, or `null` where the table's law is the rule's own. */
+  direction: SubstituteDirection | null;
+  /** The first year the law reaches the rule, or `null` where it does from the law's own first year. */
+  first: number | null;
+}
+
+/** One line of `hc_holiday_rules`: a rule of a holiday table. */
+export interface HolidayRule {
+  /** The rule's identifier within the table, as `holidaysOn` writes it. */
+  id: string;
+  /** The English name. */
+  name: string;
+  /** The name in the local language and script, or `null` where the English one is the local one. */
+  localName: string | null;
+  kind: HolidayKind;
+  confidence: HolidayConfidence;
+  /** The first Gregorian year the day existed in, or `null`; before it the day is absent. */
+  validFrom: number | null;
+  /** The last Gregorian year the day existed in, or `null`. */
+  validUntil: number | null;
+  /** The first year the sources read answer for, or `null`; the years before it that `validFrom` does not rule out are a gap. */
+  readFrom: number | null;
+  /** The subdivisions it applies to (ISO 3166-2); empty for the whole country. */
+  regions: string[];
+  /** The groups of people it is given to alone; empty for everyone. */
+  groups: string[];
+  /** How the table's substitution law reaches it, or `null` where it never does. */
+  substitution: RuleSubstitution | null;
+  /** The instrument the rule cites, or `null` where the table's sources speak for it. */
+  source: string | null;
 }
 
 /** A pair of column 12 of `hc_holiday_tables`: `CN-XJ:women` is `{ region: "CN-XJ", group: "women" }`. */
@@ -5323,6 +5382,8 @@ export class HyperCalendar {
   holidayGroups(locale?: string): HolidayGroup[];
   /** `hc_holiday_coverage`: the years a table answers for, nationwide and in each subdivision it answers for. A code naming no table is `unknown`. */
   holidayCoverage(code: string): HolidayCoverage[];
+  /** `hc_holiday_rules`: the rules of a holiday table, in the table's order. A code naming no table is `unknown`. */
+  holidayRules(code: string): HolidayRule[];
   /** `hc_holidays_on_in`: `holidaysOn`'s entries with the day's name in a locale. */
   holidaysOnIn(fixed: number | bigint, locale?: string): HolidayOnIn[];
   /** `hc_day_period`: the day periods of a time of day in a locale. */

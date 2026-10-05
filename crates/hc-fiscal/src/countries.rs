@@ -254,7 +254,7 @@ pub static HONG_KONG: FiscalProfile = FiscalProfile {
             authority: Authority::Unread,
             start: YearStart::gregorian(4, 1),
             label: LabelConvention::LabelledByStartYear,
-            valid_from: None,
+            valid_from: Some(1841),
             valid_until: None,
             read_from: 2025,
             unread: &[],
@@ -262,7 +262,9 @@ pub static HONG_KONG: FiscalProfile = FiscalProfile {
                    which could not be read (commenced 1 April 1983, per the Historical Laws \
                    of Hong Kong Online); the Budget's own page for 2025-26 and Wikipedia's \
                    \"Fiscal year\" give the dates, and nothing read says what the year was \
-                   before 2025.",
+                   before 2025. Britain occupied the island on 25 January 1841 (Wikipedia, \
+                   \"History of Hong Kong\"), the earliest government of Hong Kong, so every \
+                   label from 1841 to 2024 is a gap and the years before 1841 are absent.",
         },
         YearSystem {
             name: "Hong Kong year of assessment",
@@ -271,7 +273,7 @@ pub static HONG_KONG: FiscalProfile = FiscalProfile {
             authority: Authority::Statute,
             start: YearStart::gregorian(4, 1),
             label: LabelConvention::LabelledByStartYear,
-            valid_from: None,
+            valid_from: Some(1841),
             valid_until: None,
             read_from: 1947,
             unread: &[],
@@ -279,14 +281,18 @@ pub static HONG_KONG: FiscalProfile = FiscalProfile {
                    assessment as the twelve months commencing on 1 April 1947 and each \
                    following 1 April, read as Wikisource transcribes it; the Inland Revenue \
                    Department names the year \"2026/27\" after the year it begins in. Whether \
-                   the text has been amended since was not read.",
+                   the text has been amended since was not read. No page read says when the \
+                   tax was first assessed, only that the island was occupied from 1841, so \
+                   every label from 1841 to 1946 is a gap and the years before 1841 are \
+                   absent.",
         },
     ],
     sources_checked: SourceDate::new(2026, 10, 4),
     sources: "Inland Revenue Ordinance, 1947 (Wikisource); Inland Revenue Department, \"2026-27 \
               Budget\"; The 2025-26 Budget, Public Finance (budget.gov.hk); Public Finance \
               Ordinance (Cap. 2) s. 2 (not read; commencement from Historical Laws of Hong \
-              Kong Online); Wikipedia, \"Fiscal year\" (secondary), all read 2026-10-04",
+              Kong Online); Wikipedia, \"Fiscal year\" and \"History of Hong Kong\" (secondary), all read \
+              2026-10-04",
 };
 
 /// Singapore 🇸🇬 — 1 April for the state, the calendar year for personal tax.
@@ -441,7 +447,7 @@ pub static AUSTRALIA: FiscalProfile = FiscalProfile {
         authority: Authority::Unread,
         start: YearStart::gregorian(7, 1),
         label: LabelConvention::LabelledByStartYear,
-        valid_from: None,
+        valid_from: Some(1901),
         valid_until: None,
         read_from: 1902,
         unread: &[],
@@ -450,7 +456,8 @@ pub static AUSTRALIA: FiscalProfile = FiscalProfile {
                Arndt 1990) state the 1 July year, and Wikipedia says the Commonwealth has used \
                it since 1901. The first Commonwealth year's dates are not given, so 1901 is \
                not carried and the first whole year read is 1902 (the one beginning \
-               1 July 1902; label 1902).",
+               1 July 1902; label 1902). The Commonwealth began in 1901, so 1901 is a gap \
+               and every label before it is absent.",
     }],
     sources_checked: SourceDate::new(2026, 10, 4),
     sources: "Commonwealth Treasury, \"Reporting periods\" (treasury.gov.au); Wikipedia, \
@@ -651,7 +658,8 @@ pub static UNITED_STATES: FiscalProfile = FiscalProfile {
                    30 June 1844, by the Treasury's letter of 15 December 1842; 1 January to \
                    30 June 1843 is a \"half calendar year\" in neither system. 1 July to \
                    30 September 1976 — the transition quarter — is covered by neither this \
-                   system nor the October one, deliberately.",
+                   system nor the October one (not carried; the Fiscal Year Transition \
+                   Act, Pub. L. 94-274, gives it no label).",
         },
         YearSystem {
             name: "United States federal fiscal year, calendar-year basis",
@@ -660,7 +668,7 @@ pub static UNITED_STATES: FiscalProfile = FiscalProfile {
             authority: Authority::Unread,
             start: YearStart::gregorian(1, 1),
             label: LabelConvention::LabelledByStartYear,
-            valid_from: None,
+            valid_from: Some(1789),
             valid_until: Some(1842),
             read_from: 1842,
             unread: &[],
@@ -668,7 +676,9 @@ pub static UNITED_STATES: FiscalProfile = FiscalProfile {
                    Congressional Research Service: \"initially aligned with the calendar \
                    year\"). No page read gives the year it began or names a year before 1842: \
                    1842 is read from a Treasury report on \"the first half of the year 1842\", \
-                   and every earlier year is a gap. The label is the calendar year, which \
+                   and every year from 1789, the year the Treasury Department was \
+                   established (the Act of 2 September 1789, per Wikipedia), is a gap; the \
+                   years before it are absent. The label is the calendar year, which \
                    start and end convention share.",
         },
     ],
@@ -678,7 +688,8 @@ pub static UNITED_STATES: FiscalProfile = FiscalProfile {
               and S. Doc. 27-371 (govinfo metadata pages); Budget and Impoundment Control Act \
               of 1974, Pub. L. 93-344 tit. V § 501; Fiscal Year Transition Act, Pub. L. 94-274; \
               GAO-05-734SP, A Glossary of Terms Used in the Federal Budget Process; CBO, \
-              Common Budgetary Terms Explained; Wikipedia, \"Fiscal year\" (secondary)",
+              Common Budgetary Terms Explained; Wikipedia, \"Fiscal year\" and \"United States \
+              Department of the Treasury\" (secondary, for 1789), read 2026-10-05",
 };
 
 /// Canada 🇨🇦 — 1 April, and not internally consistent about the label.
@@ -847,23 +858,58 @@ pub static UNITED_KINGDOM: FiscalProfile = FiscalProfile {
                    they began or its instrument.",
         },
         YearSystem {
+            name: "United Kingdom personal tax year, Pitt's income tax",
+            local_name: "",
+            kind: SystemKind::PersonalTax,
+            authority: Authority::Unread,
+            start: YearStart::gregorian(4, 6),
+            label: LabelConvention::LabelledByStartYear,
+            valid_from: Some(1799),
+            valid_until: Some(1801),
+            read_from: 1802,
+            unread: &[],
+            note: "Wikipedia (secondary; the Acts' own texts were PDF only): income tax was \
+                   announced in December 1798, introduced in 1799 and levied from 1799 to \
+                   1802, when Addington abolished it. The first Act's year ran to 5 April \
+                   1800, but no page read gives the dates of each year of this tax, so every \
+                   label from 1799 to 1801 is a gap. The tax lapsed in 1802-03: that year, and \
+                   every one before 1799, is absent.",
+        },
+        YearSystem {
+            name: "United Kingdom personal tax year, Addington's income tax",
+            local_name: "",
+            kind: SystemKind::PersonalTax,
+            authority: Authority::Unread,
+            start: YearStart::gregorian(4, 6),
+            label: LabelConvention::LabelledByStartYear,
+            valid_from: Some(1803),
+            valid_until: Some(1815),
+            read_from: 1816,
+            unread: &[],
+            note: "Wikipedia (secondary): Addington reintroduced the tax in 1803 when \
+                   hostilities recommenced, and it was abolished again in 1816, one year after \
+                   Waterloo. No page read gives the dates of its years, so every label from \
+                   1803 to 1815 is a gap; from 1816 to 1841 the tax lapsed and the labels are \
+                   absent.",
+        },
+        YearSystem {
             name: "United Kingdom personal tax year",
             local_name: "",
             kind: SystemKind::PersonalTax,
             authority: Authority::Statute,
             start: YearStart::gregorian(4, 6),
             label: LabelConvention::LabelledByStartYear,
-            valid_from: None,
+            valid_from: Some(1842),
             valid_until: None,
             read_from: 2007,
             unread: &[],
             note: "Income Tax Act 2007 s. 4, read as revised on legislation.gov.uk: the tax \
                    year 2007-08 is the one beginning 6 April 2007. The 6 April start descends \
                    from the 1752 calendar reform; see this profile's documentation for what \
-                   is and is not evidenced. Wikipedia's account of the income tax of 1799 and \
-                   of 1842 (secondary; the Acts' own texts were PDF only) says the tax lapsed \
-                   in 1802-03 and from 1816 to 1842, so no continuous system is claimed \
-                   before 2007 and no year is carried from it.",
+                   is and is not evidenced. Wikipedia (secondary) says Peel reintroduced the \
+                   income tax in the Income Tax Act 1842, the beginning of the permanent \
+                   tax, so 1842 is the first label of this system and every year from 1842 to \
+                   2006 is a gap: no earlier text of the tax year's definition was read.",
         },
         YearSystem {
             name: "England and Wales legal and fiscal year, before 1752",
@@ -897,7 +943,8 @@ pub static UNITED_KINGDOM: FiscalProfile = FiscalProfile {
               Act 1978 Sch. 1; Income Tax Act 2007 s. 4 (legislation.gov.uk); Corporation Tax \
               Act 2010 s. 1119; Calendar (New Style) Act 1750 (24 Geo. 2 c. 23) ss. 1 and 6 \
               (Wikisource); Wikipedia, \"Old Style and New Style dates\" and \"Lady Day\" \
-              (secondary), read 2026-10-04",
+              (secondary), read 2026-10-04, and \"Income tax in the United Kingdom\" \
+              (secondary, for 1799, 1802, 1803, 1816 and 1842), read 2026-10-05",
 };
 
 /// Germany 🇩🇪 — the calendar year, by statute, with an escape hatch.
@@ -1017,9 +1064,10 @@ pub static RUSSIA: FiscalProfile = FiscalProfile {
 /// that the Riksdag treated 1 January to 30 June 1923 as a period of its
 /// own.
 ///
-/// This table carries the three full systems and deliberately leaves the
-/// two transitional periods — the half year of 1923 and the eighteen-month
-/// 1995/96 — outside all of them, so a caller asking about 1996 gets `None`
+/// This table carries the three full systems. Not carried: the two
+/// transitional periods, the half year of 1923 and the eighteen-month
+/// 1995/96 (not yet done; no page read gives the label either takes). They
+/// lie outside all three systems, so a caller asking about 1996 gets `None`
 /// rather than a confident wrong answer.
 ///
 /// Companies are separate: Bokföringslag (1999:1078) 3 kap. 1 § makes the
@@ -2160,6 +2208,14 @@ mod tests {
         // to prove no table row is unreachable.
         for profile in ALL {
             for system in profile.systems {
+                // A system read in none of its years (the United Kingdom's
+                // income tax of 1799 to 1815) has no span to convert.
+                if system
+                    .valid_until
+                    .is_some_and(|last| last < system.read_from)
+                {
+                    continue;
+                }
                 // Pick a label the system actually covers: its first, or
                 // 2024 clamped into its range for the open-ended ones.
                 let label = system
@@ -2207,6 +2263,11 @@ mod tests {
         // calendar year 1842; before it the answer is a gap, never "in force".
         assert_eq!(calendar.span(1842).unwrap().first, greg(1842, 1, 1));
         assert_eq!(calendar.span(1800), Err(FiscalError::NotRead));
+        // The calendar year is in force from the year the Treasury was
+        // established, 1789: before it the state had no fiscal year at all.
+        assert_eq!(calendar.span(1789), Err(FiscalError::NotRead));
+        assert_eq!(calendar.span(1788), Err(FiscalError::OutsideValidity));
+        assert_eq!(calendar.span(1342), Err(FiscalError::OutsideValidity));
         assert_eq!(july.span(1800), Err(FiscalError::OutsideValidity));
         assert_eq!(october.span(1800), Err(FiscalError::OutsideValidity));
         assert_eq!(
@@ -2263,6 +2324,46 @@ mod tests {
         assert_eq!(uk.span(1854), Err(FiscalError::NotRead));
         assert_eq!(uk.span(1853), Err(FiscalError::OutsideValidity));
         assert!(UNITED_KINGDOM.government(1753).is_none());
+    }
+
+    #[test]
+    fn a_system_is_absent_before_the_state_or_the_tax_it_belongs_to_existed() {
+        // Australia: the Commonwealth's year since 1901 (Wikipedia); the
+        // first whole year read is 1902.
+        let au = &AUSTRALIA.systems[0];
+        assert_eq!(au.span(1900), Err(FiscalError::OutsideValidity));
+        assert_eq!(au.span(1901), Err(FiscalError::NotRead));
+        assert!(au.span(1902).is_ok());
+        // Hong Kong: the island was occupied in 1841, so a year before it is
+        // absent and the years since are a gap until the first year read.
+        for system in HONG_KONG.systems {
+            assert_eq!(system.span(1840), Err(FiscalError::OutsideValidity));
+            assert_eq!(system.span(1841), Err(FiscalError::NotRead));
+        }
+        // The United Kingdom's personal tax: levied 1799 to 1802 and from
+        // 1803 to 1816, and for good from 1842; a gap where it was levied,
+        // absent where it lapsed.
+        let tax = |label| {
+            UNITED_KINGDOM
+                .systems
+                .iter()
+                .filter(|system| system.kind == SystemKind::PersonalTax)
+                .map(|system| system.span(label))
+                .find(|answer| *answer != Err(FiscalError::OutsideValidity))
+                .unwrap_or(Err(FiscalError::OutsideValidity))
+        };
+        assert_eq!(tax(1798), Err(FiscalError::OutsideValidity));
+        assert_eq!(tax(1799), Err(FiscalError::NotRead));
+        assert_eq!(tax(1801), Err(FiscalError::NotRead));
+        assert_eq!(tax(1802), Err(FiscalError::OutsideValidity));
+        assert_eq!(tax(1803), Err(FiscalError::NotRead));
+        assert_eq!(tax(1815), Err(FiscalError::NotRead));
+        for lapsed in [1816, 1830, 1841] {
+            assert_eq!(tax(lapsed), Err(FiscalError::OutsideValidity), "{lapsed}");
+        }
+        assert_eq!(tax(1842), Err(FiscalError::NotRead));
+        assert_eq!(tax(2006), Err(FiscalError::NotRead));
+        assert!(tax(2007).is_ok());
     }
 
     #[test]

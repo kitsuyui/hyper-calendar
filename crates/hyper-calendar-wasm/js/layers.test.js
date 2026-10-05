@@ -201,6 +201,7 @@ test("a method of another layer throws not-exported when called, not at load", (
     holidayTables: () => hc.holidayTables("en"),
     holidayGroups: () => hc.holidayGroups("en"),
     holidayCoverage: () => hc.holidayCoverage("JP"),
+    holidayRules: () => hc.holidayRules("KR"),
     holidaysOnIn: () => hc.holidaysOnIn(739_888, "cop"),
     lectionary: () => hc.lectionary(739_880),
     astronomicalEaster: () => hc.astronomicalEaster(2026),

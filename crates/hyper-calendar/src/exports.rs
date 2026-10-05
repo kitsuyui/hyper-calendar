@@ -5618,7 +5618,7 @@ macro_rules! exports {
             /// `code`, `region` and `group` are as for `hc_holiday_is_day_off` and
             /// `kind` as for `hc_holidays_in_year`; a null or empty `kind` keeps
             /// the kinds that stop work, `public` and `bank`. The line is one of
-            /// `hc_holidays_in_year`'s, with the same twelve columns, for the
+            /// `hc_holidays_in_year`'s, with the same fourteen columns, for the
             /// first entry strictly after the day: a substitute day and a bridged
             /// one count, a gap does not. The search reaches sixteen years. A gap
             /// that could hide a nearer entry (a holiday of a wanted kind the
@@ -5636,7 +5636,7 @@ macro_rules! exports {
             /// `code`, `region` and `group` are as for `hc_holiday_is_day_off` and
             /// `kind` as for `hc_holidays_in_year`; an empty `kind` keeps the kinds
             /// that stop work, `public` and `bank`. The line is one of
-            /// `hc_holidays_in_year`'s, with the same twelve columns, for the
+            /// `hc_holidays_in_year`'s, with the same fourteen columns, for the
             /// first entry strictly after the day: a substitute day and a bridged
             /// one count, a gap does not. The search reaches sixteen years. A gap
             /// that could hide a nearer entry (a holiday of a wanted kind the
@@ -5885,7 +5885,12 @@ macro_rules! exports {
             /// substitute avoids besides the trigger; the first year in force and
             /// the last, each empty for none; and the regions it is the law of,
             /// joined by `,`. A table that lists none leaves its holidays on the
-            /// weekend. Writes the required
+            /// weekend. Column 16 lists the tables whose days off the table keeps
+            /// as its own (an exchange's country), `;`-separated, each three
+            /// fields separated by `/`: the included table's code, the
+            /// subdivision of it the days are taken in, empty for its nationwide
+            /// days, and the first year the inclusion is read for, empty for
+            /// none. Writes the required
             /// length, including the terminator, into `written`.
         }
         wasm {
@@ -5934,8 +5939,14 @@ macro_rules! exports {
             /// substitute avoids besides the trigger; the first year in force and
             /// the last, each empty for none; and the regions it is the law of,
             /// joined by `,`. A table that lists none leaves its holidays on the
-            /// weekend. The locale argument fails as `hc_parse_iso_date`
-            /// does. A null `buffer` returns the length the text needs.
+            /// weekend. Column 16 lists the tables whose days off the table keeps
+            /// as its own (an exchange's country), `;`-separated, each three
+            /// fields separated by `/`: the included table's code, the
+            /// subdivision of it the days are taken in, empty for its nationwide
+            /// days, and the first year the inclusion is read for, empty for
+            /// none; before that year the days are a gap. The locale argument
+            /// fails as `hc_parse_iso_date` does. A null `buffer` returns the
+            /// length the text needs.
         }
         fn hc_holiday_tables(locale: text(locale_len)) -> line =
             |locale| Ok($crate::holiday_lines::holiday_tables(locale));
@@ -5999,6 +6010,44 @@ macro_rules! exports {
         }
         fn hc_holiday_coverage(code: name(code_len)) -> line =
             $crate::holiday_lines::holiday_coverage_lines;
+
+        c {
+            /// The rules of a holiday table, one line each, as NUL-terminated
+            /// UTF-8 lines in a caller-owned buffer.
+            ///
+            /// The lines are the WebAssembly module's. `code` is as for
+            /// `hc_holiday_is_day_off`; a null `code` is `HC_ERROR_NULL_POINTER`,
+            /// a string that is not UTF-8 `HC_ERROR_NOT_UTF8`, and a code that
+            /// names no table `HC_ERROR_UNKNOWN`. Writes the required length,
+            /// including the terminator, into `written`.
+        }
+        wasm {
+            /// The rules of a holiday table, one line each, as UTF-8 lines,
+            /// returning the byte length written.
+            ///
+            /// One line per rule, in the table's order, tab-separated: the
+            /// rule's identifier within the table; the English name; the name in
+            /// the local language, empty where the English one is the local one;
+            /// the kind (`public`, `bank`, `religious`, `observance`, `school`,
+            /// `workday`, `government` or `half-day`); the confidence (`exact` or
+            /// `approximate`); the first Gregorian year the day existed in and
+            /// the last, each empty for none; the first year the sources read
+            /// answer for, empty for none; the subdivisions it applies to,
+            /// `;`-separated, empty for the whole country; the groups of people
+            /// it is given to alone, `;`-separated, empty for everyone; whether
+            /// the table's substitution reaches it, `none` where it never does,
+            /// else three fields separated by `/`: the weekdays that trigger a
+            /// substitute for this rule alone as ISO 8601 numbers joined by `+`,
+            /// the direction it moves for this rule alone, each empty where the
+            /// table's policy (column 15 of `hc_holiday_tables`) is the rule's
+            /// own, and the first year the policy reaches it, empty where it
+            /// does from the policy's own first year; and the instrument the rule
+            /// cites, empty where the table's sources speak for it. The string
+            /// argument fails as for `hc_holiday_is_day_off`. A null `buffer`
+            /// returns the length the text needs.
+        }
+        fn hc_holiday_rules(code: name(code_len)) -> line =
+            $crate::holiday_lines::holiday_rules_lines;
 
         c {
             /// `hc_holidays_on`'s lines, each with the day's name in a locale and

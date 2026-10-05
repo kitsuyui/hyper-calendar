@@ -44,7 +44,7 @@ use hc_i18n::place_names::{self, Alt, Draft};
 use crate::boundary::{Answer, Line, Refusal};
 
 /// How many columns [`holiday_tables`] writes.
-pub const HOLIDAY_TABLES_COLUMNS: usize = 15;
+pub const HOLIDAY_TABLES_COLUMNS: usize = 16;
 
 /// How many columns [`lectionary_line`] writes.
 pub const LECTIONARY_COLUMNS: usize = 7;
@@ -252,7 +252,8 @@ pub fn short_table_name(
 /// regions it is the law of. Column 15 is [`substitution_cell`]: the
 /// table's weekend-substitution laws, each with the days that trigger it,
 /// the way the substitute moves, the years it is in force and the regions
-/// it is the law of, beside the weekend it moves a holiday off.
+/// it is the law of, beside the weekend it moves a holiday off. Column 16 is
+/// [`includes_cell`]: the tables whose days off the table keeps as its own.
 #[must_use]
 pub fn holiday_tables(locale: &str) -> String {
     let requested = Locale::requested(locale);
@@ -283,7 +284,9 @@ pub fn holiday_tables(locale: &str) -> String {
             .collect();
         line.cell(&scoped.join(";"))
             .cell(&set.read_subdivisions().join(";"));
-        line.cell(&weekend_cell(set)).cell(&substitution_cell(set));
+        line.cell(&weekend_cell(set))
+            .cell(&substitution_cell(set))
+            .cell(&includes_cell(set));
         line.end();
     }
     out
@@ -334,6 +337,37 @@ pub fn weekend_cell(set: &RuleSet) -> String {
         }
         out.push('/');
         out.push_str(&policy.regions.join(","));
+    }
+    out
+}
+
+/// Column 16 of `hc_holiday_tables`: the tables whose days off a table keeps
+/// as its own ([`RuleSet::includes`]), one entry for each [`Include`], in
+/// the table's order and separated by `;`. A table that includes none
+/// writes nothing.
+///
+/// An entry is three fields separated by `/`: the included table's code;
+/// the subdivision of it the days are taken in, empty for its nationwide
+/// days; and the first year the inclusion is read for, empty for none, a
+/// year before which the engine reports `unread-included-holidays`. The
+/// Korea Exchange writes `KR//2009` and the London Stock Exchange
+/// `GB/GB-EAW/2026`, the bank holidays of England and Wales.
+///
+/// [`Include`]: hc_holiday::rule::Include
+#[must_use]
+pub fn includes_cell(set: &RuleSet) -> String {
+    let mut out = String::new();
+    for (index, include) in set.includes.iter().enumerate() {
+        if index > 0 {
+            out.push(';');
+        }
+        out.push_str(include.set.code);
+        out.push('/');
+        out.push_str(include.region.unwrap_or(""));
+        out.push('/');
+        if let Some(year) = include.read_from {
+            out.push_str(&year.to_string());
+        }
     }
     out
 }
@@ -805,6 +839,82 @@ pub fn holiday_coverage_lines(code: &str) -> Answer<String> {
         line.end();
     }
     Ok(out)
+}
+
+/// The columns of a line of `hc_holiday_rules`.
+pub const HOLIDAY_RULES_COLUMNS: usize = 12;
+
+/// The lines of `hc_holiday_rules`: the rules of the table `code`, one line
+/// each, in the table's order. Tab-separated: the rule's identifier within
+/// the table ([`hc_holiday::id`]); the English name; the local name, empty
+/// where the English one is the local one; the kind; the confidence; the
+/// first Gregorian year the day existed in and the last, each empty for
+/// none; the first year the sources read answer for, empty for none; the
+/// subdivisions it applies to, `;`-separated, empty for the whole country;
+/// the groups it is given to alone, `;`-separated, empty for everyone; the
+/// substitution; and the instrument the rule cites, empty where the table's
+/// `sources` speak for it.
+///
+/// The substitution is `none` where the table's substitution never reaches
+/// the rule (`substitute_from` is `None`: an observance, a working day, a
+/// day the law leaves where it falls), and otherwise three fields separated
+/// by `/`: the weekdays that trigger a substitute for this rule alone as ISO
+/// 8601 numbers joined by `+`, the direction it moves for this rule alone,
+/// each empty where the table's policy (column 15 of `hc_holiday_tables`) is
+/// the rule's own, and the first Gregorian year the policy reaches the rule,
+/// empty where it does from its own first year. South Korea's Seollal writes
+/// `7//2014`, a Sunday alone as its trigger from the law of 2014, and its
+/// Independence Movement Day `//2021`, the table's law from 2021.
+///
+/// # Errors
+///
+/// As [`rule_set`].
+pub fn holiday_rules_lines(code: &str) -> Answer<String> {
+    let table = rule_set(code)?;
+    let mut out = String::new();
+    for rule in table.rules {
+        let mut line = Line::new(&mut out);
+        line.value(rule.id())
+            .cell(rule.name)
+            .cell(rule.local_name)
+            .cell(rule.kind.id())
+            .cell(rule.confidence.id())
+            .value_or_empty(rule.valid_from)
+            .value_or_empty(rule.valid_until)
+            .value_or_empty(rule.read_from)
+            .cell(&rule.regions.join(";"));
+        let groups: alloc::vec::Vec<&str> = rule.groups.iter().map(|group| group.id).collect();
+        line.cell(&groups.join(";"))
+            .cell(&rule_substitution_cell(rule))
+            .cell(rule.source);
+        line.end();
+    }
+    Ok(out)
+}
+
+/// The substitution cell of a line of `hc_holiday_rules`.
+fn rule_substitution_cell(rule: &hc_holiday::rule::HolidayRule) -> String {
+    let Some(first) = rule.substitute_from else {
+        return String::from("none");
+    };
+    let mut out = String::new();
+    if let Some(trigger) = rule.substitute_trigger {
+        for (position, day) in trigger.iter().enumerate() {
+            if position > 0 {
+                out.push('+');
+            }
+            out.push_str(&day.iso_number().to_string());
+        }
+    }
+    out.push('/');
+    if let Some(direction) = rule.substitute_direction {
+        out.push_str(direction.id());
+    }
+    out.push('/');
+    if first != i32::MIN {
+        out.push_str(&first.to_string());
+    }
+    out
 }
 
 /// One table's nationwide lines of `hc_holidays_on` for one day: the
@@ -1949,6 +2059,99 @@ mod tests {
         assert_eq!(rows["BN"][13], "unread//2018-12-31/;5+7/2019-01-01//");
         // A table of a tradition states none.
         assert_eq!(rows["christian-western"][13], "");
+    }
+
+    /// Column 16 names the tables an exchange keeps the days off of, with
+    /// the subdivision and the first year read; the other tables write none.
+    #[test]
+    fn the_tables_list_the_tables_they_include() {
+        let rows = rows_in("en");
+        assert_eq!(rows["XKRX"][15], "KR//2009");
+        assert_eq!(rows["XLON"][15], "GB/GB-EAW/2026");
+        assert_eq!(rows["XSHG"][15], "CN//2014");
+        assert_eq!(rows["XNYS"][15], "");
+        assert_eq!(rows["US"][15], "");
+        assert!(
+            rows.values()
+                .all(|cells| cells.len() == HOLIDAY_TABLES_COLUMNS)
+        );
+        // Every included code is a table of the list.
+        for cells in rows.values() {
+            for entry in cells[15].split(';').filter(|entry| !entry.is_empty()) {
+                let fields: Vec<&str> = entry.split('/').collect();
+                assert_eq!(fields.len(), 3, "{entry}");
+                assert!(rule_set(fields[0]).is_ok(), "{entry}");
+            }
+        }
+    }
+
+    /// One line per rule, in the table's order, with the substitution scope
+    /// of each: South Korea's Seollal moves for a Sunday alone from 2014,
+    /// its Independence Movement Day by the table's law from 2021, and a
+    /// day the table's law never reaches is `none`.
+    #[test]
+    fn the_rules_of_a_table_are_lines_with_their_substitution_scope() {
+        let text = holiday_rules_lines("KR").expect("a table");
+        let lines: Vec<Vec<&str>> = text
+            .lines()
+            .map(|line| line.split('\t').collect())
+            .collect();
+        assert_eq!(lines.len(), rule_set("KR").expect("KR").rules.len());
+        assert!(
+            lines
+                .iter()
+                .all(|cells| cells.len() == HOLIDAY_RULES_COLUMNS)
+        );
+        let new_year = &lines[0];
+        assert_eq!(
+            new_year[..9],
+            [
+                "new-years-day",
+                "New Year's Day",
+                "신정",
+                "public",
+                "exact",
+                "",
+                "",
+                "1949",
+                ""
+            ]
+        );
+        assert_eq!(new_year[10], "none");
+        let seollal = lines
+            .iter()
+            .find(|cells| cells[0] == "seollal")
+            .expect("Seollal");
+        assert_eq!(seollal[10], "7//2014");
+        let independence = lines
+            .iter()
+            .find(|cells| cells[0] == "independence-movement-day" && cells[5] == "1991")
+            .expect("the 1991 row");
+        assert_eq!(independence[10], "//2021");
+        // A rule scoped to a subdivision, a group and an instrument of its
+        // own.
+        let us = holiday_rules_lines("US").expect("a table");
+        let alaska: Vec<&str> = us
+            .lines()
+            .find(|line| line.starts_with("sewards-day\t"))
+            .expect("Seward's Day")
+            .split('\t')
+            .collect();
+        assert_eq!(alaska[3], "government");
+        assert_eq!(alaska[8], "US-AK");
+        assert!(alaska[11].starts_with("Alaska Stat."), "{alaska:?}");
+        // Every table of the lists answers, and an unknown code is refused.
+        for set in tables() {
+            let text = holiday_rules_lines(set.code).expect("a table");
+            assert_eq!(text.lines().count(), set.rules.len(), "{}", set.code);
+            assert!(
+                text.lines()
+                    .all(|line| line.split('\t').count() == HOLIDAY_RULES_COLUMNS),
+                "{}",
+                set.code
+            );
+        }
+        assert_eq!(holiday_rules_lines("ZZ"), Err(Refusal::Unknown));
     }
 
     /// A year in which a region's weekend law was not read is a gap line of
