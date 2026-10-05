@@ -1860,10 +1860,15 @@ fn the_philippines_keeps_the_proclaimed_days_of_2012_to_2019() {
 #[test]
 fn nepal_keeps_a_one_day_weekend_until_april_2026() {
     let country = table("NP");
-    // The Saturday-only weekend is read from 2026; 2024's is not.
-    let unread = HolidayCalendar::for_year(country, None, 2024);
-    assert!(!unread.weekend_is_read(ymd(2024, 3, 2)));
-    assert!(!unread.is_weekend(ymd(2024, 3, 2)));
+    // The Saturday-only weekend is read from 2022: 2024's is Saturday alone,
+    // and 2021's is not read.
+    let unread = HolidayCalendar::for_year(country, None, 2021);
+    assert!(!unread.weekend_is_read(ymd(2021, 3, 6)));
+    assert!(!unread.is_weekend(ymd(2021, 3, 6)));
+    let one_day = HolidayCalendar::for_year(country, None, 2024);
+    assert!(one_day.weekend_is_read(ymd(2024, 3, 2)));
+    assert!(one_day.is_weekend(ymd(2024, 3, 2)), "a Saturday");
+    assert!(!one_day.is_weekend(ymd(2024, 3, 3)), "a Sunday");
     // The two-day weekend from Monday 6 April 2026: Sunday 5 April was
     // still a working day, and Sunday 12 April the first one off.
     let new = HolidayCalendar::for_year(country, None, 2026);
@@ -8268,7 +8273,7 @@ fn mauritania_keeps_law_92_018_and_its_weekend_moved_in_2014() {
 }
 
 #[test]
-fn djibouti_keeps_two_days_of_each_eid_and_of_independence_on_a_friday_weekend() {
+fn djibouti_keeps_two_days_of_each_eid_and_of_independence_on_a_friday_and_saturday_weekend() {
     expect(
         "DJ",
         None,
@@ -8294,7 +8299,7 @@ fn djibouti_keeps_two_days_of_each_eid_and_of_independence_on_a_friday_weekend()
     assert!(!HolidayCalendar::for_year(table("DJ"), None, 1980).is_complete());
     let calendar = HolidayCalendar::for_year(table("DJ"), None, 2026);
     assert!(calendar.is_weekend(ymd(2026, 9, 25)), "a Friday");
-    assert!(!calendar.is_weekend(ymd(2026, 9, 26)), "a Saturday");
+    assert!(calendar.is_weekend(ymd(2026, 9, 26)), "a Saturday");
     assert!(!calendar.is_weekend(ymd(2026, 9, 27)), "a Sunday");
 }
 

@@ -690,3 +690,17 @@ patriarchia = "patriarchia"
 # O'Leary, co-author of a work Wikipedia's "Kurdish calendar" cites, named in
 # the wikipedia-kurdish-calendar entry of docs/references.bib.
 Leary = "Leary"
+# French words in the quotations of the national weekends' sources (Madagascar's
+# décret "il prend effet", "reste fixée", Tunisia's "quarante heures", "essentiels",
+# Morocco's "fixe les horaires"), the German "Bund" (the federation, in the
+# Arbeitszeitverordnung's note), and INFOR, the Polish legal publisher of the
+# Act of 1951 (the infor-poland-days-off-act-1951 entry of docs/references.bib),
+# in crates/hc-holiday/src/countries/weekends.rs and docs/references.bib.
+effet = "effet"
+reste = "reste"
+quarante = "quarante"
+essentiels = "essentiels"
+fixe = "fixe"
+Bund = "Bund"
+infor = "infor"
+INFOR = "INFOR"

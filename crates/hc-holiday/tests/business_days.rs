@@ -186,7 +186,7 @@ fn saudi_arabia_before_the_second_half_of_2013_rested_on_thursday_and_friday() {
 #[test]
 fn nepal_gets_six_business_days_a_week_before_april_2026() {
     // Saturday alone was the weekend until the cabinet's decision of 5 April
-    // 2026, read from 2026. 2026-03-22 was a Sunday, and no Nepali holiday
+    // 2026 (read from 2022). 2026-03-22 was a Sunday, and no Nepali holiday
     // falls in that week.
     let nepal = calendar("NP", 2026, 2026);
     assert_eq!(
@@ -203,10 +203,10 @@ fn nepal_gets_six_business_days_a_week_before_april_2026() {
         nepal.add_business_days(ymd(2026, 3, 19), 1),
         Some(ymd(2026, 3, 22))
     );
-    // The year before is a gap in the weekend law.
-    let before = calendar("NP", 2024, 2024);
+    // 2021, the year before the first one read, is a gap in the weekend law.
+    let before = calendar("NP", 2021, 2021);
     assert_eq!(
-        before.business_days_between(ymd(2024, 3, 17), ymd(2024, 3, 24)),
+        before.business_days_between(ymd(2021, 3, 14), ymd(2021, 3, 21)),
         None
     );
 }
