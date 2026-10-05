@@ -27,7 +27,7 @@ somebody differs:
   drafted at the Purple Mountain Observatory of the Chinese Academy of
   Sciences (紫金山天文台) by 成灼, 傅燕宁, 夏芳 and 任树林, issued on 12 May
   2017, in force from 1 September 2017 and confirmed at review on 28 December
-  2023 [samr-gbt33661]. The standard fixes the reference time as that of
+  2023 [gbt33661]. The standard fixes the reference time as that of
   120°E (Beijing time), the day of the new moon as the first of the month,
   the month containing the winter solstice as the eleventh, the leap month
   by the "no zhōngqì" rule and the first month as the *yín* month
@@ -783,7 +783,7 @@ finds no month that the difference moves.
 | [wikipedia-en-vietnamese-zodiac] | The Vietnamese zodiac, with the water buffalo and the cat | Yes, 2026-09-29 |
 | [scmp-widow-year-2024] | The Year of the Dragon of 2024 as a Widow Year | Yes, 2026-09-26 |
 | [scmp-double-spring-2009] | The lunar year from 26 January 2009 with 立春 on 4 February 2009 and 4 February 2010 | Yes, 2026-09-26 |
-| [samr-gbt33661] | The standard's number, title, drafting body and drafters, dates of issue, force and review | The catalogue entry, 2026-09-25; the standard itself was retrieved as a PDF that could not be read here |
+| [gbt33661] | The standard's number, title, drafting body and drafters, dates of issue, force and review | The catalogue entry, 2026-09-25; the standard itself was retrieved as a PDF that could not be read here |
 | [wikipedia-zh-nongli] | The standard's rules; 順治二年 and the 定氣 reform; the 中國天文年曆; the year counts | Yes, 2026-09-25 |
 | [wikipedia-en-chongzhen-calendar] | The Chongzhen treatise, its authors, *píngqì* to *dìngqì*, the Shunzhi promulgation | Yes, 2026-09-25 |
 | [wikipedia-ko-siheollyeok] | Joseon's adoption in 1653, Kim Yuk, 정기법 | Yes, 2026-09-25 |

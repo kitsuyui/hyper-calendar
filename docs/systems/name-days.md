@@ -167,21 +167,21 @@ about what the crate carries.
 | --- | --- | --- |
 | Finland | `LicensedForAFee` | The University holds the copyright to the Finnish and Finland-Swedish lists, confirmed by the Supreme Court in 2000; free publication stops at two weeks or 15 names; a whole year is charged per copy. The Orthodox and Sámi lists carry no copyright fee, and whether a third party may redistribute them is not stated [helsinki-copyright] [helsinki-pricing] [kko-2000-56] |
 | Norway, Germany and Austria, France, Greece | `RightsReserved` | A named owner states copyright and asks for written permission: Almanakkforlaget [almanakkforlaget-navnedager]; PubliKath GmbH's namenstage.katholisch.de [katholisch-namenstage]; Nominis's legal notice, which covers its data on first names [nominis-legal-notice] [frwiki-fleuristes]; eortologio.gr, compiled by lay Orthodox Christians and not an official church document [eortologio-terms] [elwiki-eortologio] |
-| Sweden, Estonia | `LicenceUnknown` | A keeper's or a publisher's list is readable and no terms are stated for it: the Swedish Academy's and Isof's pages, with the Academy's site-wide copyright notice and Isof's permission to copy site texts with credit [isof-namnsdagar] [svenska-akademien-namnlangden] [isof-alla-namn-i-almanackan]; Statistics Estonia's list, credited to a commercial book of 2011 [stat-ee-nimepaevad] [stat-ee-nimepaevad-2026] |
+| Sweden, Estonia | `LicenceUnknown` | A keeper's or a publisher's list is readable and no terms are stated for it: the Swedish Academy's and Isof's pages, with the Academy's site-wide copyright notice and Isof's permission to copy site texts with credit [isof-namnsdagar] [svenska-akademien-namnlangden] [isof-alla-namn-i-almanackan]; Statistics Estonia's list, credited to a commercial book of 2011 [stat-ee-nimepaevad] |
 | Czechia, Denmark, Croatia, Hungary, Poland | `NoKeeperFound` | No body keeps a list that a page read names. Czechia and Hungary have a source that says so [ptejteseknihovny-kalendarium] [huwiki-nevnap]; for Denmark, Croatia and Poland none was found [dawiki-navnedag] [plwiki-imieniny] |
 | Lithuania, Slovakia, Latvia before 2023 | `NotYetRead` | The keeper's list exists and was not read: the State Commission's pages refused (HTTP 403) [ltwiki-vardadienis]; the Ministry of Culture's calendarium is a PDF [culture-sk-kalendarium]; Latvia's lists before the 2022 revision are not readable (below) |
 | Bulgaria, Russia, Spain | `SaintsNotNames` | The church calendar names saints, not given names; the mapping has no authority [bg-patriarshia-calendar] [ruwiki-imeniny] |
 
 **Latvia's licence and its earlier editions.** data.gov.lv states CC0-1.0
 for the dataset and for both files, and the crate carries them on that
-statement [data-gov-lv-kalendarvardi]. The footer of every page of vvc.gov.lv,
+statement [lva-vardadienas]. The footer of every page of vvc.gov.lv,
 read on 2026-10-04, says "publicētā satura visas tiesības aizsargātas" (all
 rights in the published content are protected), and the centre's page of the
 lists names no licence [vvc-kalendarvardu-komisija]; the gazette's portal
 names no Creative Commons licence for the decisions it prints. No page read
 reconciles them. The commission's decisions in the pages read are of 1997
 (fifty names), 26 March 2003 [vestnesis-vvc-decision-2003], 2011
-[nra-vvc-2011], 2014 [lvportals-vvc-2014], 12 April 2018 [vestnesis-vvc-decision-2018],
+[nra-vvc-2011], 2014 [lvportals-2014], 12 April 2018 [vestnesis-vvc-decision-2018],
 17 March 2022 [likumi-vvc-decision-2022] and 2025 [vvc-2025]; a decision of
 2008 is only implied by a review period. The gazette dates the decisions of
 2022 to 17 March 2022 and "in force" that day, so the 2022 edition governs part
@@ -232,7 +232,7 @@ only; the crate carries the file of 2026-03-16.
 | [lva-vardadienas-2023] | the 2023 editions | yes, from the Wayback Machine |
 | [vvc-2025] | the 2025 decision, its nine and fifty-six additions, the in-force date | yes |
 | [vvc-2022] | the 2022 decision and its additions | yes |
-| [lvportals-2014] | the 2014 additions, the commission's standing | no, via the research report |
+| [lvportals-2014] | the 2014 additions, the review period and the revision frequency, the commission's standing | yes, 2026-10-04 |
 | [helsinki-copyright] | Finland's terms and the free-use limit | yes |
 | [helsinki-pricing] | Finland's royalty | no, via the research report |
 | [kko-2000-56] | the legal basis of Finland's terms | no, via the research report |
@@ -240,15 +240,15 @@ only; the crate carries the file of 2026-03-16.
 | [isof-namnsdagar], [svenska-akademien-namnlangden], [riksdagen-kru4] | Sweden's committee, revisions and status | no, via the research report |
 | [culture-sk-kalendarium] | Slovakia's list and commission | no, via the research report |
 | [ptejteseknihovny-kalendarium] | Czechia | no, via the research report |
-| [huwiki-nevnap], [dawiki-navnedag], [stat-ee-nimepaevad], [ltwiki-vardadienis], [plwiki-imieniny] | Hungary, Denmark, Estonia, Lithuania, Poland | no, via the research report |
+| [huwiki-nevnap], [dawiki-navnedag], [ltwiki-vardadienis], [plwiki-imieniny] | Hungary, Denmark, Lithuania, Poland | no, via the research report |
 | [huwiki-februar-24] | the worked example: the Hungarian names of 24, 25, 28 and 29 February and the leap-year shift | yes, 2026-09-26 |
 | [bg-patriarshia-calendar], [elwiki-eortologio], [ruwiki-imeniny] | the Orthodox countries and the movable rules | no, via the research report |
 | [eortologio-pasxa] | the Greek movable feasts, their days from Pascha and their names; St George, St Mark, Chloe and the Forefathers | yes, 2026-09-29 |
 | [elwiki-agios-georgios] | St George on the Monday of Bright Week when 23 April falls before Pascha | yes, 2026-09-29 |
 | [bgwiki-imen-den] | the Bulgarian movable name days, their rules and their days of 2010–2023 | yes, 2026-09-29 |
 | [frwiki-fleuristes], [ktabkbih-imendanski], [dewiki-namenstage] | France, Croatia, Germany and Austria | no, via the research report |
-| [nominis-legal-notice], [eortologio-terms], [katholisch-namenstage], [stat-ee-nimepaevad-2026], [isof-alla-namn-i-almanackan] | the terms and lists of France, Greece, Germany and Austria, Estonia and Sweden | yes, 2026-10-04 |
-| [data-gov-lv-kalendarvardi], [vvc-kalendarvardu-komisija], [likumi-vvc-decision-2022], [vestnesis-vvc-decision-2018], [vestnesis-vvc-decision-2003], [lvportals-vvc-2014], [nra-vvc-2011] | Latvia's licence, dates and earlier decisions | yes, 2026-10-04 |
+| [nominis-legal-notice], [eortologio-terms], [katholisch-namenstage], [stat-ee-nimepaevad], [isof-alla-namn-i-almanackan] | the terms and lists of France, Greece, Germany and Austria, Estonia and Sweden | yes, 2026-10-04 |
+| [vvc-kalendarvardu-komisija], [likumi-vvc-decision-2022], [vestnesis-vvc-decision-2018], [vestnesis-vvc-decision-2003], [nra-vvc-2011] | Latvia's earlier decisions and the centre's page of the lists; the licence and dates are [lva-vardadienas]'s above | yes, 2026-10-04 |
 
 "Via the research report" means the page was read during the survey of
 2026-09-25 that preceded the crate and quoted there; the crate's text

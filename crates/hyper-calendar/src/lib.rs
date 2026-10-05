@@ -12,9 +12,8 @@
 //!
 //! # Picking what to compile
 //!
-//! Requirement 8 of this project's brief is that only what is used should be
-//! compiled in, so the default is deliberately modest and everything else is
-//! opt-in:
+//! Only what is used should be compiled in (docs/policy.md §6), so the
+//! default is deliberately modest and everything else is opt-in:
 //!
 //! | Feature | Brings in | For |
 //! | --- | --- | --- |

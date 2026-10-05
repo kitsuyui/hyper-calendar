@@ -49,8 +49,9 @@
 //! * [`TIBETAN_LOCHEN`], `tibetan-lochen`: the Phugpa under Minling Lochen
 //!   Dharmashri's exact anomaly increment, `a2 = (1 + a1)/30 = 3 781/105 840`
 //!   for the almanacs' `1/28` ([`AnomalyStep::Lochen`]), which Henning uses
-//!   in his computed almanacs (Janson, (7.24) and Remark 14). The two give
-//!   different calendars on about one day in 4 100.
+//!   in his computed almanacs (Janson, (7.24) and Remark 14);
+//!   docs/systems/tibetan-variants.md measures how often the two increments
+//!   disagree.
 //! * [`TIBETAN_TSURPHU_KARANA`], `tibetan-tsurphu-karana`: the Tsurphu whose
 //!   true date takes the solar equation of the *Kālacakra Tantra*'s
 //!   *karaṇa* Sun ([`Sun::Karana`]), as "some Tsurphu almanacs" and

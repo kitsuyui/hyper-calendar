@@ -94,8 +94,13 @@ the padding. The composites expand to the POSIX `C` locale's definitions:
 `%x` are `%m/%d/%y`, `%r` is `%I:%M:%S %p` and `%c` is `%a %b %e %H:%M:%S %Y`
 [posix-strftime-2024]; that is what they write with no locale. With a
 locale, `%x`, `%X` and `%c` are CLDR 48's *medium* date, time and
-date-time formats of the calendar the locale's `-u-ca-` key names, the
-Gregorian with none, written by the CLDR engine, and `%r` is the
+date-time formats of the calendar the locale's `-u-ca-` key names, written
+by the CLDR engine, and the Gregorian's with none: CLDR's
+`calendarPreferenceData`, which orders the calendars by territory and puts
+`buddhist` first for TH and `persian` first for AF and IR, the Gregorian
+first everywhere else [cldr48-calendar-preference-data], is not read, so
+`th` and `fa` without the key are written in the Gregorian calendar; not
+yet done. `%r` is the
 `availableFormats` item `hms`, the time with seconds on the 12-hour clock
 (`hc_i18n::formats`, below). `%E` and `%O` are POSIX's alternative era and
 alternative digits and names; they are written in the calendar the context

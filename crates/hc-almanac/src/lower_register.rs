@@ -303,8 +303,9 @@ static JUNICHI: [u8; 2] = [5, 11];
 
 /// 復日, by 節月, as heavenly stems.
 ///
-/// 正月・七月は甲・庚, 二月・八月は乙・辛, 三六九十二月は戊・己, 四月・十月は
-/// 丙・壬, 五月・十一月は丁・癸.
+/// The first and seventh 節月 take 甲 and 庚, the second and eighth 乙 and
+/// 辛, the third, sixth, ninth and twelfth 戊 and 己, the fourth and tenth
+/// 丙 and 壬, the fifth and eleventh 丁 and 癸.
 ///
 /// The trap here is that Japanese Wikipedia writes the rule as 「寅節・申節は
 /// 甲日・庚日」, which reads like a pairwise mapping — 寅 to 甲, 申 to 庚 —

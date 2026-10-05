@@ -46,7 +46,7 @@
 //! Sources: the General Roman Calendar and the Universal Norms on the
 //! Liturgical Year and the General Roman Calendar (`roman-calendar-norms`),
 //! which Paul VI approved by the motu proprio *Mysterii Paschalis* of
-//! 14 February 1969 (`mysterii-paschalis-1969`), as the Liturgy Office of
+//! 14 February 1969 (`mysterii-paschalis`), as the Liturgy Office of
 //! the Bishops' Conference of England and Wales publishes them
 //! (liturgyoffice.org.uk/Calendar/Info/, `liturgyoffice-calendar`),
 //! retrieved 2026-09-23: a secondary copy, since the primary, the calendar
@@ -101,7 +101,7 @@ impl Rank {
 
 /// The first year of the calendar: the General Roman Calendar and the
 /// Norms were "into effect on January 1, 1970", as Paul VI's *Mysterii
-/// Paschalis* of 14 February 1969 says (`mysterii-paschalis-1969`). Before
+/// Paschalis* of 14 February 1969 says (`mysterii-paschalis`). Before
 /// it the calendar of 1960 was the Roman Rite's, which
 /// [`crate::roman_calendar_1960`] carries.
 pub const FIRST_YEAR: i32 = 1970;

@@ -4861,7 +4861,7 @@ pub static RWANDA: RuleSet = RuleSet {
               copy on RwandaLII (rwandalii.org/akn/rw/act/po/2017/54), retrieved 2026-09-23; \
               The New Times, \"Rwanda Announces Two Extra Public Holidays as Festive Season \
               Kicks in\" (23 December 2022), as allAfrica published it and the Internet Archive \
-              holds it, allAfrica refusing this session's requests, for the Ministry's statement \
+              holds it, allAfrica refusing requests on 2026-09-23, for the Ministry's statement \
               on 27 December 2022 and 3 January 2023; the High Commission in Tanzania's list for \
               2025 (rwandaintanzania.gov.rw) for Umuganura on 1 August",
     subdivisions: Subdivisions::Read(&[]),
@@ -5159,7 +5159,7 @@ pub static SEYCHELLES: RuleSet = RuleSet {
     sources: "Public Holidays Act (Cap. 190, 1991 edition) with the Public Holidays (Amendment) \
               Act, 2014 (Act 11 of 2014), the Public Service Bureau's scan (psb.gov.sc), \
               retrieved 2026-09-23; SeyLII's consolidation at 30 June 2012 as the Internet \
-              Archive holds it, SeyLII refusing this session's requests; State House, \
+              Archive holds it, SeyLII refusing requests on 2026-09-23; State House, \
               \"President Assents to Public Holiday (Amendment) Act\", and Seychelles Nation, \
               \"Assembly approves repeal of June 5 as a public holiday, supports Easter \
               Monday\", both 13 April 2017, for Act 3 of 2017; the Central Bank of Seychelles, \
@@ -5327,7 +5327,7 @@ pub static LESOTHO: RuleSet = RuleSet {
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Public Holidays Act 1995 (Act No. 7 of 1995), sections 1 to 6 and the Schedule, \
               CommonLII's copy (pha1995163.pdf) as the Internet Archive holds it, CommonLII and \
-              LesothoLII refusing this session's requests; the Embassy of the Kingdom of Lesotho \
+              LesothoLII refusing requests on 2026-09-23; the Embassy of the Kingdom of Lesotho \
               in Washington, \"Public Holidays\" for 2026 (lesothoemb-usa.gov.ls), retrieved \
               2026-09-23",
     subdivisions: Subdivisions::Read(&[]),
@@ -7014,7 +7014,7 @@ pub static ESWATINI: RuleSet = RuleSet {
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Public Holidays Act, 1938 (Act No. 71 of 1938), sections 2 and 3 and Schedule, \
               EswatiniLII's consolidation as at 1 December 1998 as the Internet Archive holds \
-              it (captured 2025-09-16), eswatinilii.org refusing this session; Swaziland \
+              it (captured 2025-09-16), eswatinilii.org refusing requests on 2026-09-26; Swaziland \
               Government Gazette, Government Notices 19 of 2001, 28 of 2005, 58 of 2006, 73 of \
               2007 and 23 of 2008 and Legal Notice 45 of 2013, from archive.gazettes.africa; \
               the High Court's notice on the holiday of 22 July 2022 (captured 2022-08-08); \
@@ -7290,7 +7290,7 @@ pub static NIGER: RuleSet = RuleSet {
     weekend: weekends::NE,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Loi n° 97-20 du 20 juin 1997 instituant les fêtes légales, not read (NATLEX \
-              record 78831 refused this session); Le Sahel, 26 May 2023, on the Council of \
+              record 78831 refused requests on 2026-09-26); Le Sahel, 26 May 2023, on the Council of \
               Ministers' text restoring 3 August, and 23 July 2024, the Secrétariat général du \
               Gouvernement's communiqué on the ordonnance of 22 July 2024 making 26 July a \
               fête légale (lesahel.org; also gouv.ne); Agence Nigérienne de Presse, 3 March \

@@ -5713,7 +5713,7 @@ pub static MONGOLIA: RuleSet = RuleSet {
               season from Janson, \"Tibetan calendar mathematics\" (arXiv:1401.6285), \
               Appendix A.3; the consolidated text's notes of amendment to article \
               4.1.1, of 1 July 2014 and 28 June 2022, on legalinfo.mn/mn/detail/399 \
-              (`mn-law-public-holidays-amendment-notes`), and Ura.mn, 27 June 2022, \
+              (`mn-law-public-holidays`), and Ura.mn, 27 June 2022, \
               for the sixth day of Naadam (`mn-naadam-six-days-ura-2022`), both \
               retrieved 2026-10-03",
     subdivisions: Subdivisions::Read(&[]),
@@ -6585,7 +6585,7 @@ pub static BHUTAN: RuleSet = RuleSet {
               (moha.gov.bt), with the lists' Bhutanese dates, read again 2026-09-26; Royal \
               Civil Service Commission, Bhutan Civil Service Rules and Regulations 2023, \
               section 8.7.5, as the Internet Archive holds it, captured 2024-01-18, \
-              rcsc.gov.bt refusing this session's requests; retrieved 2026-09-23; Janson, \
+              rcsc.gov.bt refusing requests on 2026-09-23; retrieved 2026-09-23; Janson, \
               \"Tibetan calendar mathematics\" (arXiv:1401.6285), Appendix A.4, A.13 and \
               section 11, for the calendar, the Winter Solstice and Losar 2003; Edward \
               Henning, \"The Bhutanese calendar\" and its archive of computed almanacs \

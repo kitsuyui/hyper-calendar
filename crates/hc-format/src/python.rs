@@ -47,6 +47,7 @@ mod strptime;
 use core::fmt;
 
 use hc_calendar::{CivilDateTime, CivilTime, Rd};
+use hc_core::duration::SECONDS_PER_DAY;
 use hc_tz::{OffsetStyle, UtcOffset};
 
 use crate::error::{ErrorKind, FormatError, FormatResult, ParseError, ParseResult};
@@ -250,7 +251,7 @@ fn scan_time_and_zone(scanner: &mut Scanner<'_>) -> ParseResult<(CivilTime, Zone
     // Python's `timezone` takes an offset of less than 24 hours.
     if zone
         .offset()
-        .is_some_and(|offset| offset.seconds().unsigned_abs() >= 86_400)
+        .is_some_and(|offset| i64::from(offset.seconds()).abs() >= SECONDS_PER_DAY)
     {
         return Err(Scanner::error_at(
             ErrorKind::OutOfRange("the offset, which must be under 24 hours"),

@@ -444,11 +444,8 @@ static BO_RULES: [HolidayRule; BO_LEN] = joined(&[BO_NATIONAL, BO_DEPARTMENTAL])
 /// Sunday rule is carried from the 2016
 /// decree, and whatever earlier decrees did is not.
 ///
-/// Read from 2017: Decreto Supremo 2750 of 1 May 2016, from its first whole
-/// year; the departments' days are read from their own instruments, 2026 from
-/// Decreto Supremo 5521, and every other year's decree that moves or adds
-/// days is a gap. Every earlier year is a gap (ADR 0013); the reasons for
-/// every table's first year are in docs/systems/holiday-first-years.md.
+/// Read from 2017; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static BOLIVIA: RuleSet = RuleSet {
     code: "BO",
     english_name: "Bolivia",

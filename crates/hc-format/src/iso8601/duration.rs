@@ -12,6 +12,7 @@
 
 use core::fmt;
 
+use hc_core::duration::SECONDS_PER_DAY;
 use hc_core::{ATTOS_PER_SEC, Duration};
 
 use crate::error::{ErrorKind, ParseResult, ValueError, ValueResult};
@@ -48,8 +49,8 @@ impl Slot {
     const fn unit_seconds(self) -> Option<u64> {
         match self {
             Self::Years | Self::Months => None,
-            Self::Weeks => Some(7 * 86_400),
-            Self::Days => Some(86_400),
+            Self::Weeks => Some(7 * SECONDS_PER_DAY.unsigned_abs()),
+            Self::Days => Some(SECONDS_PER_DAY.unsigned_abs()),
             Self::Hours => Some(3_600),
             Self::Minutes => Some(60),
             Self::Seconds => Some(1),

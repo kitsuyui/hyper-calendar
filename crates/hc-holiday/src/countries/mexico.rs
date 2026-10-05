@@ -122,10 +122,8 @@ static MX_RULES: &[HolidayRule] = &read_all(
 /// that the text read gives, and every earlier year is a gap (ADR 0013): the
 /// text before the reform was not read.
 ///
-/// Read from 2006: article 74 of the Ley Federal del Trabajo as reformed in
-/// 2006; the text before the reform was not read. Every earlier year is a gap
-/// (ADR 0013); the reasons for every table's first year are in
-/// docs/systems/holiday-first-years.md.
+/// Read from 2006; every earlier year is a gap (ADR 0013). The reason
+/// and the source are in docs/systems/holiday-first-years.md.
 pub static MEXICO: RuleSet = RuleSet {
     code: "MX",
     english_name: "Mexico",

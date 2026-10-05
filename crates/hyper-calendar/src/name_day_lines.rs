@@ -497,7 +497,7 @@ mod tests {
             .cloned()
             .unwrap_or_default();
         assert_eq!((gap[1], gap[5], gap[11]), ("lv", "2022", "not-yet-read"));
-        // From 2023 the gap no longer answers.
+        // From 2023 the list is read, so no gap row is written.
         let text = days_of_lines("lv", "Jānis", 2023).unwrap_or_default();
         assert!(rows(&text).iter().all(|row| row[0] != "gap"));
         let text = names_on_lines("lv", fixed(2022, 6, 24)).unwrap_or_default();

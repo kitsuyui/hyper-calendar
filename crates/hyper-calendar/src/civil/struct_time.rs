@@ -26,14 +26,12 @@
 //!   or zone. [`StructTime::localtime`] takes the zone and the instant.
 //! * A second of 61, which the documentation calls historical, is refused.
 
+use hc_calendar::fixed::RD_OF_UNIX_EPOCH;
 use hc_calendar::{CalendarError, CalendarResult, Rd};
 use hc_calendars_solar::gregorian;
 use hc_core::duration::days_and_seconds;
 
 use super::{Date, DateTime, Time};
-
-/// The Unix epoch, 1970-01-01, as a fixed day.
-const EPOCH: i64 = 719_163;
 
 /// A broken-down time, as Python's `time.struct_time` holds it.
 ///
@@ -105,7 +103,7 @@ impl StructTime {
     /// [`CalendarError`] when the day is outside the Gregorian range.
     pub fn gmtime(seconds: i64) -> CalendarResult<Self> {
         let (days, of_day) = days_and_seconds(seconds);
-        let date = Date::from_fixed(Rd(EPOCH
+        let date = Date::from_fixed(Rd(RD_OF_UNIX_EPOCH
             .checked_add(days)
             .ok_or(CalendarError::Overflow)?))?;
         let time = Time::hms(
@@ -137,7 +135,7 @@ impl StructTime {
                 .and_then(|scaled| scaled.checked_add(field))
                 .ok_or(CalendarError::Overflow)
         };
-        let days = step(first - EPOCH, 1, self.tm_mday)?
+        let days = step(first - RD_OF_UNIX_EPOCH, 1, self.tm_mday)?
             .checked_sub(1)
             .ok_or(CalendarError::Overflow)?;
         let hours = step(days, 24, self.tm_hour)?;

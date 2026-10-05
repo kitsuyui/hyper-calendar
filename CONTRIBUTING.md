@@ -28,17 +28,40 @@ lefthook install   # installs the pre-commit and pre-push hooks
 
 ## Running the checks
 
+These are the checks CI runs (`.github/workflows/test.yml`,
+`spellcheck.yml` and `octocov.yml`; `happy.yml` comments on pull requests and
+`gitignore-in.yml` refreshes the ignore file, and neither is a check), as
+commands:
+
 ```sh
+cargo check --workspace --all-features
 cargo test --workspace --all-features
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo fmt --all -- --check
+typos                                                                  # the spellcheck workflow
 RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --all-features
-cargo build -p hyper-calendar --no-default-features --features alloc,libm  # no_std
+cargo test -p hc-core --no-default-features --features alloc,libm      # no_std
+cargo build -p hyper-calendar --no-default-features --features alloc,libm
+cargo build -p hyper-calendar --no-default-features --features alloc,libm,civil,i18n,format
 scripts/no-std-builds.sh                                               # each hc-* crate without std, with and without alloc
-cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown     # WebAssembly
-scripts/wasm-js-test.sh                                                # its JavaScript binding, under node --test
+for crate in hc-fiscal hc-attributes hc-uncertainty hc-humanize; do    # each crate with its optional dependencies off
+  cargo test -p "$crate" --no-default-features --features std
+done
+cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown --release
+cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown --release --features holiday
+scripts/layer-tests.sh                                                 # each wasm layer on its own (CI: one job per layer)
+scripts/wasm-js-test.sh                                                # the JavaScript binding, under node --test
+scripts/wasm-layers.sh && scripts/wasm-size-check.sh                   # the layer sizes against the README's table
+node scripts/wasm-embed.mjs                                            # the embedded-module artifact
+scripts/wasm-tzdata.sh                                                 # the tzdata artifact
 cargo build -p hyper-calendar-ffi --release                            # shared library
+cargo build -p hyper-calendar-ffi --release --features holiday
+cargo audit                                                            # the security audit
 ```
+
+CI also runs `actionlint` over the workflow files and, in `octocov.yml`, the
+coverage build (`cargo llvm-cov --workspace --all-features`, one test
+thread) whose result octocov reports on the pull request.
 
 The long day-by-day sweeps sample their days in a debug build and walk every
 day in a release one; CI runs both, so run

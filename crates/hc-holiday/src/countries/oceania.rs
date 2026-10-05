@@ -412,7 +412,7 @@ pub static MARSHALL_ISLANDS: RuleSet = RuleSet {
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Public Holidays Act 1988, 1 MIRC Ch. 9, the Nitijela's consolidation \
               (rmiparliament.org, 1988-0016_2.pdf) as the Internet Archive holds it, \
-              captured 2025-04-04, the Nitijela's site refusing this session's requests; \
+              captured 2025-04-04, the Nitijela's site refusing requests on 2026-09-23; \
               retrieved 2026-09-23",
     subdivisions: Subdivisions::Read(&[]),
 };
@@ -604,7 +604,7 @@ pub static PALAU: RuleSet = RuleSet {
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Palau National Code Annotated, title 1, sections 701 and 702 (Supp. 12), \
               PacLII's copy (pncgpt1409.pdf) as the Internet Archive holds it, captured \
-              2025-12-06, PacLII refusing this session's requests; retrieved 2026-09-23",
+              2025-12-06, PacLII refusing requests on 2026-09-23; retrieved 2026-09-23",
     subdivisions: Subdivisions::Read(&[]),
 };
 
@@ -677,7 +677,7 @@ pub static PAPUA_NEW_GUINEA: RuleSet = RuleSet {
     sources: "Public Holidays Act 1953 (Chapter 321), sections 1 to 5, PacLII's \
               consolidation (pha1953163) and its 1982 revised-edition PDF as the \
               Internet Archive holds them, captured 2025-01-30 and 2025-01-01, PacLII \
-              refusing this session's requests; retrieved 2026-09-23. Independence Day \
+              refusing requests on 2026-09-23; retrieved 2026-09-23. Independence Day \
               and the Sovereign's Birthday are reported as gaps, and the other gazetted days \
               are not modelled",
     subdivisions: Subdivisions::Read(&[]),
@@ -744,7 +744,7 @@ pub static SOLOMON_ISLANDS: RuleSet = RuleSet {
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Public Holidays Act (Cap. 151), 1996 edition, PacLII's consolidation \
               (pha163) as the Internet Archive holds it, captured 2024-12-22, PacLII \
-              refusing this session's requests; the Ministry of Home Affairs' Public \
+              refusing requests on 2026-09-23; the Ministry of Home Affairs' Public \
               Notices 1/2017 and 1/2019 for 2018 and 2020 (mehrd.gov.sb, solomons.gov.sb) \
               are PDFs, not read, their Sovereign's Birthday as a search engine's extract \
               quotes it; the Island Sun, 13 January 2026, on the 2026 gazette; retrieved 2026-09-23; \

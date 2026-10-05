@@ -78,6 +78,18 @@ mod tests {
     };
     use super::{Ratio, UnitError, unit};
 
+    /// `hc_core::epoch_notation` states the Julian year in seconds for the
+    /// astronomical epochs, and this crate states it as a unit; the two
+    /// are the same number, 365.25 days of 86 400 s.
+    #[test]
+    fn the_julian_year_is_the_one_hc_core_counts_epochs_in() {
+        assert_eq!(
+            JULIAN_YEAR.seconds.as_f64(),
+            hc_core::epoch_notation::JULIAN_YEAR_SECONDS
+        );
+        assert_eq!(JULIAN_YEAR.per(DAY), Ok(Ratio::literal(1_461, 4)));
+    }
+
     #[test]
     fn a_flick_divides_every_frame_and_sample_rate_exactly() {
         // This is the whole reason the unit exists, so it is the first test.

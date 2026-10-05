@@ -16,7 +16,7 @@ use hc_holiday::traditions;
 /// no source read says), and the first year its sources were read for.
 ///
 /// - `roman-general`: *Mysterii Paschalis*, 14 February 1969, "in effect
-///   from 1 January 1970" (`mysterii-paschalis-1969`), and the *Missale
+///   from 1 January 1970" (`mysterii-paschalis`), and the *Missale
 ///   Romanum* of 2002, whose calendar the Liturgy Office's page copies.
 /// - `common-worship`, `ember-common-worship`: Common Worship "launched on
 ///   the first Sunday of Advent in 2000", 3 December (Wikipedia, "Common

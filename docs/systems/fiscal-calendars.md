@@ -396,10 +396,10 @@ which summarises it, so a quotation is the summary's.
 | Canada, 1 April | [canada-faa-s2]; [ca-hoc-procedure-and-practice-ch18]; [ca-hoc-annotated-standing-orders] | agrees; the July year ended in 1906; neither title (Estimates, Public Accounts) was read |
 | Germany, calendar year | [germany-bho-4]; [de-hgrg-1969] | agrees; in force 1 January 1970 |
 | France, calendar year | [fr-lolf-2001-692]; [fr-cc-2001-448-dc] | agrees; the LOLF's budget year from 2006 |
-| Russia, calendar year | [ru-budget-code-consultant] | agrees in substance; the wording of art. 12 was unstable between reads |
+| Russia, calendar year | [russia-budget-code-art12] | agrees in substance; the wording of art. 12 was unstable between reads |
 | Brazil, calendar year | [br-lei-4320-1964]; [br-lei-4320-lexml] | agrees |
 | Sweden | [se-ku-1993-94-18]; [se-riksdagsordning-2014]; [se-prop-1994-95-100]; [se-riksgaldskontoret-1925]; [se-bokforingslag-1976]; [se-bokforingslag-1999] | agrees; set by the Riksdag Act, a statute |
-| South Africa, 1 March, end year | [za-sars-personal-income-tax]; [za-income-tax-act-94-1983] | agrees; the government year's definition was not read |
+| South Africa, 1 March, end year | [sars-tax-year]; [za-income-tax-act-94-1983] | agrees; the government year's definition was not read |
 | New Zealand tax, 1 April | [ird-nz-tax-year] | dates agree; the page does not name the year |
 | Thailand, 1 October, end year; first used for 2505 from 1 October 2504 | [pridi-budget-year-history]; [thai-wikipedia-budget-year]; [wikipedia-thai-solar-calendar] | agrees; the two disagree on whether the first October year was B.E. 2481 or 2482 |
 | Iran, 1399 to 1410 | [wikipedia-solar-hijri-calendar]; [ir-public-accounting-law-1366]; [ir-public-accounting-law-1349] | 12 of 12 agree; the Act of 1349 (read on one site) is the first year read, 1350 |
@@ -565,13 +565,13 @@ Read on 2026-10-04:
   [uk-hansard-1854-financial-statement], [wikipedia-old-style-and-new-style-dates],
   [wikipedia-lady-day]: the United Kingdom. [de-hgrg-1969], [de-bho-1969]:
   Germany. [fr-lolf-2001-692], [fr-cc-2001-448-dc], [wikipedia-fr-lolf]:
-  France. [ru-budget-code-consultant], [wikipedia-ru-financial-year]:
+  France. [russia-budget-code-art12], [wikipedia-ru-financial-year]:
   Russia. [se-ku-1993-94-18], [se-ku-1995-96-21], [se-prop-1994-95-100],
   [se-riksdagsordning-2014], [se-riksgaldskontoret-1925],
   [se-riksdag-document-list-1909-1920], [se-bokforingslag-1976],
   [se-bokforingslag-1999]: Sweden.
 - [eg-law-53-1973], [eg-countrystudies-public-finance], [eg-albawab-fiscal-year]:
-  Egypt. [za-sars-personal-income-tax], [za-income-tax-act-94-1983],
+  Egypt. [sars-tax-year], [za-income-tax-act-94-1983],
   [za-treasury-pfma]: South Africa. [ir-public-accounting-law-1349],
   [ir-public-accounting-law-1366]: Iran. [et-chilot-efy-2014-budget]:
   Ethiopia. [np-myrepublica-budget-history]: Nepal.

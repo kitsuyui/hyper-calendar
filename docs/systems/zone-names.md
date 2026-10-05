@@ -155,9 +155,9 @@ at 2026-01-15 12:00 −07:00, in English, `vvvv`:
 8 March, 52 days on, so it stays *Mountain Time*; `Asia/Tokyo`, `JST-9`,
 is steady, and its `vvvv` is *Japan Standard Time*. The daylight flag
 stands for the daylight offset, which a zone's rules do not state apart
-from the offset. Where the standard name is the generic name's text, the
-generic path is kept, with its qualifier. A context without the zone's
-rules keeps the generic name: `hc-format`'s `FormatContext` takes them with
+from the offset. Where the standard name is the generic name's own text,
+the generic path is kept, with its qualifier (`generic`'s rustdoc states the
+rule). A context without the zone's rules keeps the generic name: `hc-format`'s `FormatContext` takes them with
 `with_zone_rules`, and `hc_zone_name` and `hc_format_pattern` pass the
 zone's. ICU4J's `TimeZoneGenericNames` writes the standard name for a zone
 that keeps no daylight time within 184 days [icu4j-generic-names], a

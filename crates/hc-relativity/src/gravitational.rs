@@ -492,8 +492,8 @@ mod tests {
         assert!((speed_only + 28.2).abs() < 0.1, "got {speed_only} us/day");
         // The two terms by hand, in a separate script from GM = 3.986004418e14,
         // c = 299 792 458 and R = 6 378 137 m: -GM/(2 r c^2) = -28.183 and
-        // +GM/c^2 (1/R - 1/r) = +3.712 us/day, net -24.471. The README's
-        // earlier "nearer -28" was the first term alone.
+        // +GM/c^2 (1/R - 1/r) = +3.712 us/day, net -24.471; the first term
+        // alone would be nearer -28.
         let gravity_only = rate_offset_to_micros_per_day(
             gravitational_rate_offset(GM_EARTH, iss_radius, EARTH_EQUATORIAL_RADIUS).unwrap(),
         )
