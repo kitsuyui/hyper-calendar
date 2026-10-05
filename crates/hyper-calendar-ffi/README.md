@@ -897,12 +897,14 @@ a line was rendered in. It is chosen in this order, and a calendar's own
 language is used only when `native` asks for it:
 
 1. With `native`, each calendar's own language.
-2. Otherwise, when the tag's data names the calendar, the tag with the
+2. Otherwise, when the tag's data names the calendar's months and every era
+   a date of it writes, from its data, CLDR root's abbreviations (`AH`,
+   `BE`) or the calendar's own name for the era, the tag with the
    calendar's own names.
-3. Otherwise, when the tag parses and some data answers for it, English.
-4. Otherwise — a tag that does not parse, or that no data answers for —
-   the root locale `und`, whose month names are CLDR's `M01`..`M12`; ask
-   for `en` for English.
+3. Otherwise, English, whole, so that a date is in one language, and the
+   last column says `en`. A tag that does not parse, or that no data
+   answers for, is the root locale `und`, whose month names, CLDR's
+   `M01`..`M12`, name no language, and so is English too.
 
 The date as the locale writes it holds an extra field only where the
 calendar's sources write the date with it, and never a `name=value`

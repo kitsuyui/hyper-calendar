@@ -1096,10 +1096,11 @@ mod tests {
             "20|26|2026|Sep 21, 2026|2:30:05\u{202f}PM"
         );
         // `%Ec` joins the era calendar's date and `%X` by the locale's
-        // date-time format: Thai's "{1} {0}" for the Buddhist calendar.
+        // date-time format: Thai's "{1} {0}" for the Buddhist calendar, whose
+        // date writes no era.
         assert_eq!(
             render_in("%Ex|%Ec", "th-u-ca-buddhist"),
-            "21 กันยายน พ.ศ. 2569|21 กันยายน พ.ศ. 2569 14:30:05"
+            "21 กันยายน 2569|21 กันยายน 2569 14:30:05"
         );
         assert_eq!(render("%EY"), "2026");
         let minguo = hc_calendar::DynAdapter::new(hc_calendars_solar::minguo::MinguoCalendar);

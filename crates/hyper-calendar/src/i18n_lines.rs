@@ -209,8 +209,10 @@ pub const LOCALE_CHAIN_COLUMNS: usize = 4;
 /// order `hc-i18n` takes a name from — one line per step, the requested
 /// locale first and `und` last: the step's number from 0; its tag; the rule
 /// that led to it from the step before, `requested` for the first line,
-/// `likely-script` where a language carried only per script takes the script
-/// CLDR's likely subtags give it, `extensions` for dropping the `-u-` keys,
+/// `language-alias` where a legacy language subtag (`iw`, `tl`) is replaced by
+/// the language CLDR's `languageAlias` gives it, `likely-script` where a
+/// language carried only per script takes the script CLDR's likely subtags
+/// give it, `extensions` for dropping the `-u-` keys,
 /// `variant`, `parent-locales` for a parent CLDR 48's `parentLocales` name
 /// (`en-GB` to `en-001`, `zh-Hant` to root), `region` and `script` for
 /// truncation, and `root`; and `1` when `hc-i18n` carries an entry of data
@@ -223,35 +225,53 @@ pub const LOCALE_CHAIN_COLUMNS: usize = 4;
 /// [`Refusal::Malformed`] for a tag that does not parse.
 pub fn locale_chain_lines(tag: &str) -> Answer<String> {
     let requested = strict_locale(tag)?;
-    let mut step = requested.with_likely_script();
-    let mut rule = if step == requested {
-        "requested"
-    } else {
-        "likely-script"
-    };
+    // The chain starts where `Locale::fallback` does: a legacy language
+    // subtag replaced by the language CLDR's `languageAlias` gives it, then
+    // a language carried per script given its likely script. The first line
+    // is the first of those steps that changes the tag.
+    let aliased = requested.with_canonical_language();
+    let scripted = aliased.with_likely_script();
+    let mut steps = alloc::vec::Vec::new();
+    if aliased != requested {
+        steps.push((aliased, "language-alias"));
+    }
+    if scripted != aliased {
+        steps.push((scripted, "likely-script"));
+    }
+    if steps.is_empty() {
+        steps.push((requested, "requested"));
+    }
     let mut out = String::new();
     let mut number = 0u32;
-    loop {
-        let carried = hc_i18n::data::LOCALES
-            .iter()
-            .any(|data| step.matches_tag(data.tag));
-        let mut line = Line::new(&mut out);
-        line.value(number)
-            .cell(&step.to_tag())
-            .cell(rule)
-            .flag(carried);
-        line.end();
-        let Some((parent, why)) = step.parent_step() else {
-            return Ok(out);
-        };
-        step = parent;
-        rule = why.id();
+    let mut parent = None;
+    for (step, rule) in steps {
+        write_chain_step(&mut out, number, &step, rule);
         number += 1;
+        parent = Some(step);
     }
+    while let Some((next, why)) = parent.and_then(|step| step.parent_step()) {
+        write_chain_step(&mut out, number, &next, why.id());
+        number += 1;
+        parent = Some(next);
+    }
+    Ok(out)
+}
+
+/// One line of [`locale_chain_lines`].
+fn write_chain_step(out: &mut String, number: u32, step: &Locale, rule: &str) {
+    let carried = hc_i18n::data::LOCALES
+        .iter()
+        .any(|data| step.matches_tag(data.tag));
+    let mut line = Line::new(out);
+    line.value(number)
+        .cell(&step.to_tag())
+        .cell(rule)
+        .flag(carried);
+    line.end();
 }
 
 /// How many columns the line of [`locale_info_line`] writes.
-pub const LOCALE_INFO_COLUMNS: usize = 19;
+pub const LOCALE_INFO_COLUMNS: usize = 20;
 
 /// The line of `hc_locale_info`: what `hc-i18n` knows of a locale — the tag
 /// as written canonically; its language, script, region and variant subtags
@@ -263,9 +283,11 @@ pub const LOCALE_INFO_COLUMNS: usize = 19;
 /// week begins on and CLDR's `minDays`, the fewest days of a year a week
 /// needs to be its first (week data: `fw` and the region's); `ltr` or `rtl`;
 /// `standard` or `turkic` casing; `1` when month and weekday names are
-/// written with a capital; and the language of the plural rules that apply
+/// written with a capital; the language of the plural rules that apply
 /// (`pt-PT` for Portugal, `und` for none carried, where everything is
-/// `other`).
+/// `other`); and the canonical tag, the tag with a legacy language subtag
+/// replaced by the language CLDR's `languageAlias` gives it (`he-IL` for
+/// `iw-IL`, and the tag itself where it has none).
 ///
 /// CLDR's weekend days are not carried by `hc-i18n`: it reads `weekData`'s
 /// `firstDay` and `minDays` only. The weekend laws `hc-holiday` carries, with
@@ -309,7 +331,8 @@ pub fn locale_info_line(tag: &str) -> Answer<String> {
                 CasingStyle::Turkic => "turkic",
             })
             .flag(casing::capitalises_month_names(&locale))
-            .cell(rules.language());
+            .cell(rules.language())
+            .cell(&locale.with_canonical_language().to_tag());
     }))
 }
 
@@ -808,6 +831,18 @@ mod tests {
             ])
         );
         assert_eq!(
+            chain("iw-IL"),
+            pairs(&[
+                ("he-IL", "language-alias"),
+                ("he", "region"),
+                ("und", "root")
+            ])
+        );
+        assert_eq!(
+            chain("tl"),
+            pairs(&[("fil", "language-alias"), ("und", "root")])
+        );
+        assert_eq!(
             chain("ht"),
             pairs(&[
                 ("ht", "requested"),
@@ -866,6 +901,15 @@ mod tests {
         assert_eq!(keys[10], "ja-JP");
         assert_eq!(keys[11], "extensions");
         assert_eq!(info("pt-PT")[18], "pt-PT");
+        // The canonical tag, past the language alias: `iw` is `he`, which is
+        // also the entry that answers for it.
+        assert_eq!(info("en-US")[19], "en-US");
+        let hebrew = info("iw-IL");
+        assert_eq!(
+            (hebrew[0].as_str(), hebrew[19].as_str()),
+            ("iw-IL", "he-IL")
+        );
+        assert_eq!(hebrew[9], "he");
         assert_eq!(locale_info_line("e n"), Err(Refusal::Malformed));
     }
 

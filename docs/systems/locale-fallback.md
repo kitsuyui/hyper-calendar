@@ -34,7 +34,10 @@ locale has a value for that path" [uts35-v48].
 4. a bare language's parent is root, `und`, except where `parentLocales`
    name it (`ht` → `fr-HT`, `nb` and `nn` → `no`).
 
-`Locale::fallback` walks the steps from the tag, after giving a Chinese,
+`Locale::fallback` walks the steps from the tag, after replacing a legacy
+language subtag by the language CLDR's `languageAlias` gives it (`iw` is `he`,
+`tl-PH` is `fil-PH`; `hc_locale_chain` writes that step as `language-alias`)
+and after giving a Chinese,
 Punjabi or Cantonese tag with no script the script CLDR 48's likely
 subtags give it, because those languages' entries are per script.
 

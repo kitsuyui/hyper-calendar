@@ -14,44 +14,85 @@
 use hc_calendar::CalendarId;
 
 use super::{
-    BUDDHIST_CALENDARS, COPTIC_CALENDARS, ETHIOPIC_CALENDARS, HEBREW_CALENDARS, ISLAMIC_CALENDARS,
-    PERSIAN_CALENDARS, SOLAR_HIJRI_CALENDARS, calendar_entry, era_names, month_cycle, widths,
+    BUDDHIST_CALENDARS, COPTIC_CALENDARS, ETHIOPIC_CALENDARS, GENERIC_DATE_CALENDARS,
+    HEBREW_CALENDARS, ISLAMIC_CALENDARS, JAPANESE_CALENDARS, PERSIAN_CALENDARS,
+    SOLAR_HIJRI_CALENDARS, calendar_entry, era_names, month_cycle, widths,
 };
 use crate::names::{CalendarNames, ContextualNames, DateTemplates, EraNames, LeapMonthNames};
 
-/// The other calendars of `am`, CLDR 48 `am.xml`: the Hijri months; the
-/// hand-written entry serves coptic, ethiopic, gregorian, japanese already.
-pub(super) const AM_CLDR: &[CalendarNames] = &[calendar_entry(
-    ISLAMIC_CALENDARS,
-    &[month_cycle(ContextualNames::same(widths(
-        &[
-            "ሙሀረም",
-            "ሳፈር",
-            "ረቢዑል አወል",
-            "ረቢዑል አኺር",
-            "ጀማደል አወል",
-            "ጀማደል አኺር",
-            "ረጀብ",
-            "ሻእባን",
-            "ረመዳን",
-            "ሸዋል",
-            "ዙልቂዳህ",
-            "ዙልሂጃህ",
-        ],
-        &[],
-        &[],
-    )))],
-    EraNames::EMPTY,
-)
-.with_templates(DateTemplates {
-    date: "{day} {month} {year:1} {era}",
-    ..DateTemplates::NONE
-})];
+/// The other calendars of `am`, CLDR 48 `am.xml`: the Hijri months, the Coptic
+/// date formats, the Ethiopic date formats, the Japanese date formats and the
+/// generic date formats; the hand-written entry serves coptic, ethiopic,
+/// gregorian, japanese already.
+pub(super) const AM_CLDR: &[CalendarNames] = &[
+    calendar_entry(
+        ISLAMIC_CALENDARS,
+        &[month_cycle(ContextualNames::same(widths(
+            &[
+                "ሙሀረም",
+                "ሳፈር",
+                "ረቢዑል አወል",
+                "ረቢዑል አኺር",
+                "ጀማደል አወል",
+                "ጀማደል አኺር",
+                "ረጀብ",
+                "ሻእባን",
+                "ረመዳን",
+                "ሸዋል",
+                "ዙልቂዳህ",
+                "ዙልሂጃህ",
+            ],
+            &[],
+            &[],
+        )))],
+        EraNames::EMPTY,
+    )
+    .with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(COPTIC_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(ETHIOPIC_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+];
 
-/// The other calendars of `ar`, CLDR 48 `ar.xml`: the Hebrew months and eras,
-/// the Ethiopic months, the Persian months and the Persian eras; the
-/// hand-written entry serves coptic, gregorian, islamic, japanese already.
+/// The other calendars of `ar`, CLDR 48 `ar.xml`: the Buddhist era, the Minguo
+/// eras, the Hebrew months and eras, the Ethiopic months, the Persian months,
+/// the Persian eras, the Hijri date formats, the Coptic date formats, the
+/// Japanese date formats and the generic date formats; the hand-written entry
+/// serves coptic, gregorian, islamic, japanese already.
 pub(super) const AR_CLDR: &[CalendarNames] = &[
+    calendar_entry(
+        BUDDHIST_CALENDARS,
+        &[],
+        era_names(&["be"], &["التقويم البوذي"], &["BE"], &[]),
+    )
+    .with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(
+        &[CalendarId("roc")],
+        &[],
+        era_names(&["broc", "roc"], &["BROC", "جمهورية الصي"], &[], &[]),
+    )
+    .with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
     calendar_entry(
         HEBREW_CALENDARS,
         &[month_cycle(ContextualNames::same(widths(
@@ -145,12 +186,29 @@ pub(super) const AR_CLDR: &[CalendarNames] = &[
         date: "{day} {month} {year:1} {era}",
         ..DateTemplates::NONE
     }),
+    calendar_entry(ISLAMIC_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(COPTIC_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
 ];
 
 /// The other calendars of `bn`, CLDR 48 `bn.xml`: the Minguo eras, the Hijri
-/// months and eras, the Hebrew months, the Coptic months, the Ethiopic months
-/// and the Persian months; the hand-written entry serves gregorian, indian,
-/// japanese already.
+/// months and eras, the Hebrew months, the Coptic months, the Ethiopic months,
+/// the Persian months, the Indian national date formats, the Japanese date
+/// formats and the generic date formats; the hand-written entry serves
+/// gregorian, indian, japanese already.
 pub(super) const BN_CLDR: &[CalendarNames] = &[
     calendar_entry(
         &[CalendarId("roc")],
@@ -321,13 +379,49 @@ pub(super) const BN_CLDR: &[CalendarNames] = &[
         date: "{day} {month}, {year:1} {era}",
         ..DateTemplates::NONE
     }),
+    calendar_entry(&[CalendarId("indian")], &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
 ];
 
-/// The other calendars of `cs`, CLDR 48 `cs.xml`: the Hijri months, the Hebrew
-/// months, the Coptic months, the Ethiopic months, the Persian months and the
-/// Indian national months and eras; the hand-written entry serves gregorian,
-/// japanese already.
+/// The other calendars of `bo`, CLDR 48 `bo.xml`: the Japanese date formats and
+/// the generic date formats; the hand-written entry serves gregorian, japanese
+/// already.
+pub(super) const BO_CLDR: &[CalendarNames] = &[
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{era} སྤྱི་ལོ་{year:1} {month}འི་ཚེས་{day}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{era} སྤྱི་ལོ་{year:1} {month}འི་ཚེས་{day}",
+        ..DateTemplates::NONE
+    }),
+];
+
+/// The other calendars of `cs`, CLDR 48 `cs.xml`: the Minguo eras, the Hijri
+/// months, the Hebrew months, the Coptic months, the Ethiopic months, the
+/// Persian months, the Indian national months and eras, the Japanese date
+/// formats and the generic date formats; the hand-written entry serves
+/// gregorian, japanese already.
 pub(super) const CS_CLDR: &[CalendarNames] = &[
+    calendar_entry(
+        &[CalendarId("roc")],
+        &[],
+        era_names(&["broc", "roc"], &["před ROC", "ROC"], &[], &[]),
+    )
+    .with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
     calendar_entry(
         ISLAMIC_CALENDARS,
         &[month_cycle(ContextualNames::same(widths(
@@ -483,13 +577,45 @@ pub(super) const CS_CLDR: &[CalendarNames] = &[
         date: "{day} {month} {year:1} {era}",
         ..DateTemplates::NONE
     }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
 ];
 
-/// The other calendars of `de`, CLDR 48 `de.xml`: the Hijri months, the Hebrew
-/// months, the Coptic months, the Ethiopic months, the Persian months and the
-/// Indian national months; the hand-written entry serves gregorian, japanese
-/// already.
+/// The other calendars of `de`, CLDR 48 `de.xml`: the Buddhist era, the Minguo
+/// eras, the Hijri months, the Hebrew months, the Coptic months, the Ethiopic
+/// months, the Persian months, the Indian national months, the Japanese date
+/// formats and the generic date formats; the hand-written entry serves
+/// gregorian, japanese already.
 pub(super) const DE_CLDR: &[CalendarNames] = &[
+    calendar_entry(
+        BUDDHIST_CALENDARS,
+        &[],
+        era_names(&["be"], &["B.E."], &["BE"], &[]),
+    )
+    .with_templates(DateTemplates {
+        date: "{day}. {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(
+        &[CalendarId("roc")],
+        &[],
+        era_names(
+            &["broc", "roc"],
+            &["vor Volksrepublik China", "Minguo"],
+            &["BROC", "Minguo"],
+            &["v. VR China", "Minguo"],
+        ),
+    )
+    .with_templates(DateTemplates {
+        date: "{day}. {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
     calendar_entry(
         ISLAMIC_CALENDARS,
         &[month_cycle(ContextualNames::same(widths(
@@ -653,11 +779,70 @@ pub(super) const DE_CLDR: &[CalendarNames] = &[
         date: "{day}. {month} {year:1} {era}",
         ..DateTemplates::NONE
     }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day}. {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day}. {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+];
+
+/// The other calendars of `en`, CLDR 48 `en.xml`: the Buddhist date formats,
+/// the Minguo date formats, the Hijri date formats, the Hebrew date formats,
+/// the Coptic date formats, the Ethiopic date formats, the Persian date
+/// formats, the Indian national date formats, the Japanese date formats and the
+/// generic date formats; the hand-written entry serves buddhist, chinese,
+/// coptic, dangi, ethiopic, gregorian, hebrew, indian, islamic, japanese,
+/// persian, roc already.
+pub(super) const EN_CLDR: &[CalendarNames] = &[
+    calendar_entry(BUDDHIST_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{month} {day}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(&[CalendarId("roc")], &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{month} {day}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(ISLAMIC_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{month} {day}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(HEBREW_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(COPTIC_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{month} {day}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(ETHIOPIC_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{month} {day}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(PERSIAN_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{month} {day}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(&[CalendarId("indian")], &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{month} {day}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{month} {day}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{month} {day}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
 ];
 
 /// The other calendars of `es`, CLDR 48 `es.xml`: the Minguo eras, the Hijri
 /// months, the Hebrew months, the Coptic months, the Ethiopic months, the
-/// Persian months and the Indian national months; the hand-written entry serves
+/// Persian months, the Indian national months and eras, the Japanese date
+/// formats and the generic date formats; the hand-written entry serves
 /// gregorian, japanese already.
 pub(super) const ES_CLDR: &[CalendarNames] = &[
     calendar_entry(
@@ -818,9 +1003,17 @@ pub(super) const ES_CLDR: &[CalendarNames] = &[
             &[],
             &[],
         )))],
-        EraNames::EMPTY,
+        era_names(&["saka"], &["saka"], &[], &[]),
     )
     .with_templates(DateTemplates {
+        date: "{day} de {month} de {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} de {month} de {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
         date: "{day} de {month} de {year:1} {era}",
         ..DateTemplates::NONE
     }),
@@ -828,8 +1021,9 @@ pub(super) const ES_CLDR: &[CalendarNames] = &[
 
 /// The other calendars of `fa`, CLDR 48 `fa.xml`: the Buddhist era, the Minguo
 /// eras, the Hijri months and eras, the Hebrew months and eras, the Coptic
-/// months, the Ethiopic months and the Indian national months and eras; the
-/// hand-written entry serves gregorian, japanese, persian already.
+/// months, the Ethiopic months, the Indian national months and eras, the
+/// Persian date formats, the Japanese date formats and the generic date
+/// formats; the hand-written entry serves gregorian, japanese, persian already.
 pub(super) const FA_CLDR: &[CalendarNames] = &[
     calendar_entry(
         BUDDHIST_CALENDARS,
@@ -991,12 +1185,26 @@ pub(super) const FA_CLDR: &[CalendarNames] = &[
         date: "{day} {month} {year:1} {era}",
         ..DateTemplates::NONE
     }),
+    calendar_entry(PERSIAN_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
 ];
 
 /// The other calendars of `fr`, CLDR 48 `fr.xml`: the Buddhist era, the Hijri
-/// months, the Hebrew months and eras, the Coptic months and eras, the Ethiopic
-/// months, the Persian months, the Persian eras and the Indian national months
-/// and eras; the hand-written entry serves gregorian, japanese, roc already.
+/// months and eras, the Hebrew months and eras, the Coptic months and eras, the
+/// Ethiopic months, the Persian months, the Persian eras, the Indian national
+/// months and eras, the Minguo date formats, the Japanese date formats and the
+/// generic date formats; the hand-written entry serves gregorian, japanese, roc
+/// already.
 pub(super) const FR_CLDR: &[CalendarNames] = &[
     calendar_entry(
         BUDDHIST_CALENDARS,
@@ -1060,7 +1268,7 @@ pub(super) const FR_CLDR: &[CalendarNames] = &[
                 &[],
             ),
         })],
-        EraNames::EMPTY,
+        era_names(&["ah"], &["ère de l’Hégire"], &["AH"], &["H"]),
     )
     .with_templates(DateTemplates {
         date: "{day} {month} {year:1} {era}",
@@ -1217,13 +1425,36 @@ pub(super) const FR_CLDR: &[CalendarNames] = &[
         date: "{day} {month} {year:1} {era}",
         ..DateTemplates::NONE
     }),
+    calendar_entry(&[CalendarId("roc")], &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
 ];
 
-/// The other calendars of `he`, CLDR 48 `he.xml`: the Hijri months and eras,
-/// the Coptic months, the Ethiopic months, the Persian months and the Indian
-/// national months and eras; the hand-written entry serves gregorian, hebrew,
-/// japanese, roc already.
+/// The other calendars of `he`, CLDR 48 `he.xml`: the Buddhist era, the Hijri
+/// months and eras, the Coptic months, the Ethiopic months, the Persian months,
+/// the Persian eras, the Indian national months and eras, the Minguo date
+/// formats, the Hebrew date formats, the Japanese date formats and the generic
+/// date formats; the hand-written entry serves gregorian, hebrew, japanese, roc
+/// already.
 pub(super) const HE_CLDR: &[CalendarNames] = &[
+    calendar_entry(
+        BUDDHIST_CALENDARS,
+        &[],
+        era_names(&["be"], &["הספירה הבודהיסטית"], &["BE"], &[]),
+    )
+    .with_templates(DateTemplates {
+        date: "{day} ב{month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
     calendar_entry(
         ISLAMIC_CALENDARS,
         &[month_cycle(ContextualNames {
@@ -1377,6 +1608,15 @@ pub(super) const HE_CLDR: &[CalendarNames] = &[
         ..DateTemplates::NONE
     }),
     calendar_entry(
+        SOLAR_HIJRI_CALENDARS,
+        &[],
+        era_names(&["ap"], &["הספירה הפרסית"], &["AP"], &[]),
+    )
+    .with_templates(DateTemplates {
+        date: "{day} ב{month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(
         &[CalendarId("indian")],
         &[month_cycle(ContextualNames::same(widths(
             &[
@@ -1415,11 +1655,28 @@ pub(super) const HE_CLDR: &[CalendarNames] = &[
         date: "{day} ב{month} {year:1} {era}",
         ..DateTemplates::NONE
     }),
+    calendar_entry(&[CalendarId("roc")], &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} ב{month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(HEBREW_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} ב{month} {year:1}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} ב{month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} ב{month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
 ];
 
 /// The other calendars of `hi`, CLDR 48 `hi.xml`: the Buddhist era, the Hijri
-/// months, the Ethiopic months and the Persian months; the hand-written entry
-/// serves gregorian, indian, japanese already.
+/// months, the Ethiopic months, the Persian months, the Indian national date
+/// formats, the Japanese date formats and the generic date formats; the
+/// hand-written entry serves gregorian, indian, japanese already.
 pub(super) const HI_CLDR: &[CalendarNames] = &[
     calendar_entry(
         BUDDHIST_CALENDARS,
@@ -1512,16 +1769,40 @@ pub(super) const HI_CLDR: &[CalendarNames] = &[
         date: "{era} {day} {month} {year:1}",
         ..DateTemplates::NONE
     }),
+    calendar_entry(&[CalendarId("indian")], &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{era} {year}",
+        date: "{era} {day} {month} {year:1}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{era} {year}",
+        date: "{era} {day} {month} {year:1}",
+        ..DateTemplates::NONE
+    }),
 ];
 
-/// The other calendars of `id`, CLDR 48 `id.xml`: the Buddhist era and the
-/// Hijri months and eras; the hand-written entry serves gregorian, japanese
-/// already.
+/// The other calendars of `id`, CLDR 48 `id.xml`: the Buddhist era, the Minguo
+/// eras, the Hijri months and eras, the Indian national eras, the Japanese date
+/// formats and the generic date formats; the hand-written entry serves
+/// gregorian, japanese already.
 pub(super) const ID_CLDR: &[CalendarNames] = &[
     calendar_entry(
         BUDDHIST_CALENDARS,
         &[],
         era_names(&["be"], &["Era Buddhis"], &["EB"], &[]),
+    )
+    .with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(
+        &[CalendarId("roc")],
+        &[],
+        era_names(&["broc", "roc"], &["Sebelum R.O.C.", "ROC"], &[], &[]),
     )
     .with_templates(DateTemplates {
         date: "{day} {month} {year:1} {era}",
@@ -1566,10 +1847,28 @@ pub(super) const ID_CLDR: &[CalendarNames] = &[
         date: "{day} {month} {year:1} {era}",
         ..DateTemplates::NONE
     }),
+    calendar_entry(
+        &[CalendarId("indian")],
+        &[],
+        era_names(&["saka"], &["SAKA"], &[], &[]),
+    )
+    .with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
 ];
 
-/// The other calendars of `it`, CLDR 48 `it.xml`: the Buddhist era and the
-/// Minguo eras; the hand-written entry serves gregorian, japanese already.
+/// The other calendars of `it`, CLDR 48 `it.xml`: the Buddhist era, the Minguo
+/// eras, the Japanese date formats and the generic date formats; the
+/// hand-written entry serves gregorian, japanese already.
 pub(super) const IT_CLDR: &[CalendarNames] = &[
     calendar_entry(
         BUDDHIST_CALENDARS,
@@ -1586,6 +1885,14 @@ pub(super) const IT_CLDR: &[CalendarNames] = &[
         era_names(&["broc", "roc"], &["Prima di R.O.C.", "Minguo"], &[], &[]),
     )
     .with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
         date: "{day} {month} {year:1} {era}",
         ..DateTemplates::NONE
     }),
@@ -1761,43 +2068,70 @@ pub(super) const JA_CLDR: &[CalendarNames] = &[
     }),
 ];
 
-/// The other calendars of `jv`, CLDR 48 `jv.xml`: the Hijri months; the
-/// hand-written entry serves gregorian, japanese already.
-pub(super) const JV_CLDR: &[CalendarNames] = &[calendar_entry(
-    ISLAMIC_CALENDARS,
-    &[month_cycle(ContextualNames::same(widths(
-        &[
-            "Sura",
-            "Sapar",
-            "Mulud",
-            "Bakda Mulud",
-            "Jumadilawal",
-            "Jumadilakir",
-            "Rejeb",
-            "Ruwah",
-            "Pasa",
-            "Sawal",
-            "Selo",
-            "Besar",
-        ],
-        &[
-            "Sur.", "Sap.", "Mul.", "B. Mul.", "Jum. Aw.", "Jum. Ak.", "Rej.", "Ruw.", "Pso.",
-            "Shaw.", "Slo.", "Bsar.",
-        ],
-        &[],
-    )))],
-    EraNames::EMPTY,
-)
-.with_templates(DateTemplates {
-    year: "{year} {era}",
-    date: "{day} {month} {year:1} {era}",
-    ..DateTemplates::NONE
-})];
+/// The other calendars of `jv`, CLDR 48 `jv.xml`: the Hijri months, the
+/// Japanese date formats and the generic date formats; the hand-written entry
+/// serves gregorian, japanese already.
+pub(super) const JV_CLDR: &[CalendarNames] = &[
+    calendar_entry(
+        ISLAMIC_CALENDARS,
+        &[month_cycle(ContextualNames::same(widths(
+            &[
+                "Sura",
+                "Sapar",
+                "Mulud",
+                "Bakda Mulud",
+                "Jumadilawal",
+                "Jumadilakir",
+                "Rejeb",
+                "Ruwah",
+                "Pasa",
+                "Sawal",
+                "Selo",
+                "Besar",
+            ],
+            &[
+                "Sur.", "Sap.", "Mul.", "B. Mul.", "Jum. Aw.", "Jum. Ak.", "Rej.", "Ruw.", "Pso.",
+                "Shaw.", "Slo.", "Bsar.",
+            ],
+            &[],
+        )))],
+        EraNames::EMPTY,
+    )
+    .with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+];
+
+/// The other calendars of `kab`, CLDR 48 `kab.xml`: the Japanese date formats
+/// and the generic date formats; the hand-written entry serves gregorian,
+/// japanese already.
+pub(super) const KAB_CLDR: &[CalendarNames] = &[
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+];
 
 /// The other calendars of `ko`, CLDR 48 `ko.xml`: the Buddhist era, the Hijri
-/// months, the Hebrew months, the Coptic months, the Ethiopic months and the
-/// Persian months; the hand-written entry serves chinese, dangi, gregorian,
-/// japanese, roc already.
+/// months and eras, the Hebrew months and eras, the Coptic months, the Ethiopic
+/// months and the Persian months; the hand-written entry serves chinese, dangi,
+/// gregorian, japanese, roc already.
 pub(super) const KO_CLDR: &[CalendarNames] = &[
     calendar_entry(
         BUDDHIST_CALENDARS,
@@ -1828,7 +2162,7 @@ pub(super) const KO_CLDR: &[CalendarNames] = &[
             &[],
             &[],
         )))],
-        EraNames::EMPTY,
+        era_names(&["ah"], &["히즈라력"], &["AH"], &[]),
     )
     .with_templates(DateTemplates {
         date: "{era} {year:1}년 {month:1}월 {day}",
@@ -1874,7 +2208,7 @@ pub(super) const KO_CLDR: &[CalendarNames] = &[
                 &[],
             ),
         })],
-        EraNames::EMPTY,
+        era_names(&["am"], &["유대력"], &["AM"], &[]),
     )
     .with_leap_names(LeapMonthNames {
         intercalary: &[(5, "아달 1")],
@@ -1968,9 +2302,10 @@ pub(super) const KO_CLDR: &[CalendarNames] = &[
 ];
 
 /// The other calendars of `ml`, CLDR 48 `ml.xml`: the Minguo eras, the Hijri
-/// months and eras, the Hebrew months, the Coptic months, the Ethiopic months
-/// and the Persian months; the hand-written entry serves gregorian, indian,
-/// japanese already.
+/// months and eras, the Hebrew months, the Coptic months, the Ethiopic months,
+/// the Persian months, the Indian national date formats, the Japanese date
+/// formats and the generic date formats; the hand-written entry serves
+/// gregorian, indian, japanese already.
 pub(super) const ML_CLDR: &[CalendarNames] = &[
     calendar_entry(
         &[CalendarId("roc")],
@@ -2189,91 +2524,128 @@ pub(super) const ML_CLDR: &[CalendarNames] = &[
         date: "{era} {year:1} {month} {day}",
         ..DateTemplates::NONE
     }),
+    calendar_entry(&[CalendarId("indian")], &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{era} {year:1} {month} {day}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{era} {year:1} {month} {day}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{era} {year:1} {month} {day}",
+        ..DateTemplates::NONE
+    }),
+];
+
+/// The other calendars of `my`, CLDR 48 `my.xml`: the Japanese date formats and
+/// the generic date formats; the hand-written entry serves gregorian, japanese
+/// already.
+pub(super) const MY_CLDR: &[CalendarNames] = &[
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{era} {day} {month} {year:1}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{era} {day} {month} {year:1}",
+        ..DateTemplates::NONE
+    }),
 ];
 
 /// The other calendars of `ne`, CLDR 48 `ne.xml`: the Indian national months
-/// and eras; the hand-written entry serves gregorian, japanese already.
-pub(super) const NE_CLDR: &[CalendarNames] = &[calendar_entry(
-    &[CalendarId("indian")],
-    &[month_cycle(ContextualNames {
-        format: widths(
-            &[
-                "चैत",
-                "वैशाख",
-                "जेठ",
-                "असार",
-                "साउन",
-                "भदौ",
-                "असोज",
-                "कात्तिक",
-                "मङसिर",
-                "पुस",
-                "माघ",
-                "फागुन",
-            ],
-            &[
-                "चै",
-                "बै",
-                "जे",
-                "अ",
-                "श्रा",
-                "भा",
-                "अश्वि",
-                "का",
-                "मं",
-                "पौ",
-                "मा",
-                "फा",
-            ],
-            &[
-                "१", "२", "३", "४", "५", "६", "७", "८", "९", "१०", "११", "१२",
-            ],
-        ),
-        standalone: widths(
-            &[
-                "चेत्र",
-                "वैसाख",
-                "जेष्ठ",
-                "आषाढ",
-                "श्रावन",
-                "भाद्र",
-                "आश्विन",
-                "कार्तिक",
-                "मंसिर",
-                "पौष",
-                "माघ",
-                "फाल्गुन",
-            ],
-            &[
-                "चै",
-                "बै",
-                "जे",
-                "अ",
-                "श्रा",
-                "भा",
-                "अश्वि",
-                "का",
-                "मं",
-                "पौ",
-                "मा",
-                "फा",
-            ],
-            &[
-                "१", "२", "३", "४", "५", "६", "७", "८", "९", "१०", "११", "१२",
-            ],
-        ),
-    })],
-    era_names(&["saka"], &["साक"], &[], &[]),
-)
-.with_templates(DateTemplates {
-    date: "{era} {year:1} {month} {day}",
-    ..DateTemplates::NONE
-})];
+/// and eras, the Japanese date formats and the generic date formats; the
+/// hand-written entry serves gregorian, japanese already.
+pub(super) const NE_CLDR: &[CalendarNames] = &[
+    calendar_entry(
+        &[CalendarId("indian")],
+        &[month_cycle(ContextualNames {
+            format: widths(
+                &[
+                    "चैत",
+                    "वैशाख",
+                    "जेठ",
+                    "असार",
+                    "साउन",
+                    "भदौ",
+                    "असोज",
+                    "कात्तिक",
+                    "मङसिर",
+                    "पुस",
+                    "माघ",
+                    "फागुन",
+                ],
+                &[
+                    "चै",
+                    "बै",
+                    "जे",
+                    "अ",
+                    "श्रा",
+                    "भा",
+                    "अश्वि",
+                    "का",
+                    "मं",
+                    "पौ",
+                    "मा",
+                    "फा",
+                ],
+                &[
+                    "१", "२", "३", "४", "५", "६", "७", "८", "९", "१०", "११", "१२",
+                ],
+            ),
+            standalone: widths(
+                &[
+                    "चेत्र",
+                    "वैसाख",
+                    "जेष्ठ",
+                    "आषाढ",
+                    "श्रावन",
+                    "भाद्र",
+                    "आश्विन",
+                    "कार्तिक",
+                    "मंसिर",
+                    "पौष",
+                    "माघ",
+                    "फाल्गुन",
+                ],
+                &[
+                    "चै",
+                    "बै",
+                    "जे",
+                    "अ",
+                    "श्रा",
+                    "भा",
+                    "अश्वि",
+                    "का",
+                    "मं",
+                    "पौ",
+                    "मा",
+                    "फा",
+                ],
+                &[
+                    "१", "२", "३", "४", "५", "६", "७", "८", "९", "१०", "११", "१२",
+                ],
+            ),
+        })],
+        era_names(&["saka"], &["साक"], &[], &[]),
+    )
+    .with_templates(DateTemplates {
+        date: "{era} {year:1} {month} {day}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{era} {year:1} {month} {day}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{era} {year:1} {month} {day}",
+        ..DateTemplates::NONE
+    }),
+];
 
 /// The other calendars of `nl`, CLDR 48 `nl.xml`: the Minguo eras, the Hijri
-/// months, the Hebrew months, the Coptic months, the Ethiopic months and the
-/// Indian national months; the hand-written entry serves gregorian, japanese
-/// already.
+/// months and eras, the Hebrew months, the Coptic months, the Ethiopic months,
+/// the Indian national months, the Japanese date formats and the generic date
+/// formats; the hand-written entry serves gregorian, japanese already.
 pub(super) const NL_CLDR: &[CalendarNames] = &[
     calendar_entry(
         &[CalendarId("roc")],
@@ -2317,7 +2689,7 @@ pub(super) const NL_CLDR: &[CalendarNames] = &[
             ],
             &[],
         )))],
-        EraNames::EMPTY,
+        era_names(&["ah"], &["Saʻna Hizjria"], &["AH"], &[]),
     )
     .with_templates(DateTemplates {
         date: "{day} {month} {year:1} {era}",
@@ -2424,16 +2796,39 @@ pub(super) const NL_CLDR: &[CalendarNames] = &[
         date: "{day} {month} {year:1} {era}",
         ..DateTemplates::NONE
     }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
 ];
 
-/// The other calendars of `pl`, CLDR 48 `pl.xml`: the Buddhist era, the Hijri
-/// months, the Hebrew months, the Persian months and the Indian national
-/// months; the hand-written entry serves gregorian, japanese already.
+/// The other calendars of `pl`, CLDR 48 `pl.xml`: the Buddhist era, the Minguo
+/// eras, the Hijri months, the Hebrew months, the Persian months, the Indian
+/// national months, the Japanese date formats and the generic date formats; the
+/// hand-written entry serves gregorian, japanese already.
 pub(super) const PL_CLDR: &[CalendarNames] = &[
     calendar_entry(
         BUDDHIST_CALENDARS,
         &[],
         era_names(&["be"], &["e.b."], &[], &[]),
+    )
+    .with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(
+        &[CalendarId("roc")],
+        &[],
+        era_names(
+            &["broc", "roc"],
+            &["przed ROC", "ROC"],
+            &["Przed ROC", "ROC"],
+            &["przed ROC", "ROC"],
+        ),
     )
     .with_templates(DateTemplates {
         date: "{day} {month} {year:1} {era}",
@@ -2541,11 +2936,20 @@ pub(super) const PL_CLDR: &[CalendarNames] = &[
         date: "{day} {month} {year:1} {era}",
         ..DateTemplates::NONE
     }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
 ];
 
-/// The other calendars of `ps`, CLDR 48 `ps.xml`: the Hijri months and the
-/// Indian national months and eras; the hand-written entry serves gregorian,
-/// japanese, persian already.
+/// The other calendars of `ps`, CLDR 48 `ps.xml`: the Hijri months, the Indian
+/// national months and eras, the Persian date formats, the Japanese date
+/// formats and the generic date formats; the hand-written entry serves
+/// gregorian, japanese, persian already.
 pub(super) const PS_CLDR: &[CalendarNames] = &[
     calendar_entry(
         ISLAMIC_CALENDARS,
@@ -2612,25 +3016,68 @@ pub(super) const PS_CLDR: &[CalendarNames] = &[
         date: "{era} {year:1} {month} {day}",
         ..DateTemplates::NONE
     }),
+    calendar_entry(PERSIAN_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{era} {year:1} {month} {day}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{era} {year:1} {month} {day}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{era} {year:1} {month} {day}",
+        ..DateTemplates::NONE
+    }),
 ];
 
-/// The other calendars of `pt`, CLDR 48 `pt.xml`: the Minguo eras; the
+/// The other calendars of `pt`, CLDR 48 `pt.xml`: the Buddhist era, the Minguo
+/// eras, the Japanese date formats and the generic date formats; the
 /// hand-written entry serves gregorian, japanese already.
-pub(super) const PT_CLDR: &[CalendarNames] = &[calendar_entry(
-    &[CalendarId("roc")],
-    &[],
-    era_names(&["broc", "roc"], &["Antes da R.C.", "Minguo"], &[], &[]),
-)
-.with_templates(DateTemplates {
-    date: "{day} de {month} de {year:1} {era}",
-    ..DateTemplates::NONE
-})];
+pub(super) const PT_CLDR: &[CalendarNames] = &[
+    calendar_entry(
+        BUDDHIST_CALENDARS,
+        &[],
+        era_names(&["be"], &["EB"], &["BE"], &["EB"]),
+    )
+    .with_templates(DateTemplates {
+        date: "{day} de {month} de {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(
+        &[CalendarId("roc")],
+        &[],
+        era_names(&["broc", "roc"], &["Antes da R.C.", "Minguo"], &[], &[]),
+    )
+    .with_templates(DateTemplates {
+        date: "{day} de {month} de {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} de {month} de {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} de {month} de {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+];
 
-/// The other calendars of `ru`, CLDR 48 `ru.xml`: the Hijri months, the Hebrew
-/// months, the Coptic months and eras, the Ethiopic months, the Persian months,
-/// the Persian eras and the Indian national months and eras; the hand-written
-/// entry serves gregorian, japanese, roc already.
+/// The other calendars of `ru`, CLDR 48 `ru.xml`: the Buddhist era, the Hijri
+/// months and eras, the Hebrew months and eras, the Coptic months and eras, the
+/// Ethiopic months, the Persian months, the Persian eras, the Indian national
+/// months and eras, the Minguo date formats, the Japanese date formats and the
+/// generic date formats; the hand-written entry serves gregorian, japanese, roc
+/// already.
 pub(super) const RU_CLDR: &[CalendarNames] = &[
+    calendar_entry(
+        BUDDHIST_CALENDARS,
+        &[],
+        era_names(&["be"], &["буддийская эра"], &["BE"], &["бэ"]),
+    )
+    .with_templates(DateTemplates {
+        date: "{day} {month} {year:1} г. {era}",
+        ..DateTemplates::NONE
+    }),
     calendar_entry(
         ISLAMIC_CALENDARS,
         &[month_cycle(ContextualNames::same(widths(
@@ -2664,7 +3111,7 @@ pub(super) const RU_CLDR: &[CalendarNames] = &[
             ],
             &[],
         )))],
-        EraNames::EMPTY,
+        era_names(&["ah"], &["после хиджры"], &["AH"], &[]),
     )
     .with_templates(DateTemplates {
         date: "{day} {month} {year:1} г. {era}",
@@ -2690,7 +3137,7 @@ pub(super) const RU_CLDR: &[CalendarNames] = &[
             &[],
             &[],
         )))],
-        EraNames::EMPTY,
+        era_names(&["am"], &["от сотворения мира"], &["AM"], &[]),
     )
     .with_leap_names(LeapMonthNames {
         intercalary: &[(5, "адар I")],
@@ -2816,41 +3263,97 @@ pub(super) const RU_CLDR: &[CalendarNames] = &[
         date: "{day} {month} {year:1} г. {era}",
         ..DateTemplates::NONE
     }),
+    calendar_entry(&[CalendarId("roc")], &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} г. {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} г. {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} г. {era}",
+        ..DateTemplates::NONE
+    }),
 ];
 
-/// The other calendars of `syr`, CLDR 48 `syr.xml`: the Hijri months; the
-/// hand-written entry serves gregorian, japanese already.
-pub(super) const SYR_CLDR: &[CalendarNames] = &[calendar_entry(
-    ISLAMIC_CALENDARS,
-    &[month_cycle(ContextualNames::same(widths(
-        &[
-            "ܡܘܚܪܡ",
-            "ܨܦܪ",
-            "ܪܒܝܥ ܩܕܡܝܐ",
-            "ܪܒܝܥ ܬܪܝܢܐ",
-            "ܓܘܡܕܐ ܩܕܡܝܐ",
-            "ܓܘܡܕܐ ܬܪܝܢܐ",
-            "ܪܓܒ",
-            "ܫܥܒܐܢ",
-            "ܪܡܨܐܢ",
-            "ܫܘܐܠ",
-            "ܕܘܠܩܥܕܗ",
-            "ܕܘܠܚܓܗ",
-        ],
-        &[],
-        &[],
-    )))],
-    EraNames::EMPTY,
-)
-.with_templates(DateTemplates {
-    date: "{day} ܒ{month} {year:1} {era}",
-    ..DateTemplates::NONE
-})];
+/// The other calendars of `sa`, CLDR 48 `sa.xml`: the Japanese date formats and
+/// the generic date formats; the hand-written entry serves gregorian, japanese
+/// already.
+pub(super) const SA_CLDR: &[CalendarNames] = &[
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{era} {year}",
+        date: "{era} {day} {month} {year:1}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{era} {year}",
+        date: "{era} {day} {month} {year:1}",
+        ..DateTemplates::NONE
+    }),
+];
 
-/// The other calendars of `ta`, CLDR 48 `ta.xml`: the Hijri months, the Hebrew
-/// months, the Coptic months, the Ethiopic months and the Persian months; the
-/// hand-written entry serves gregorian, indian, japanese already.
+/// The other calendars of `syr`, CLDR 48 `syr.xml`: the Hijri months, the
+/// Japanese date formats and the generic date formats; the hand-written entry
+/// serves gregorian, japanese already.
+pub(super) const SYR_CLDR: &[CalendarNames] = &[
+    calendar_entry(
+        ISLAMIC_CALENDARS,
+        &[month_cycle(ContextualNames::same(widths(
+            &[
+                "ܡܘܚܪܡ",
+                "ܨܦܪ",
+                "ܪܒܝܥ ܩܕܡܝܐ",
+                "ܪܒܝܥ ܬܪܝܢܐ",
+                "ܓܘܡܕܐ ܩܕܡܝܐ",
+                "ܓܘܡܕܐ ܬܪܝܢܐ",
+                "ܪܓܒ",
+                "ܫܥܒܐܢ",
+                "ܪܡܨܐܢ",
+                "ܫܘܐܠ",
+                "ܕܘܠܩܥܕܗ",
+                "ܕܘܠܚܓܗ",
+            ],
+            &[],
+            &[],
+        )))],
+        EraNames::EMPTY,
+    )
+    .with_templates(DateTemplates {
+        date: "{day} ܒ{month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} ܒ{month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} ܒ{month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+];
+
+/// The other calendars of `ta`, CLDR 48 `ta.xml`: the Minguo eras, the Hijri
+/// months, the Hebrew months, the Coptic months, the Ethiopic months, the
+/// Persian months, the Indian national date formats, the Japanese date formats
+/// and the generic date formats; the hand-written entry serves gregorian,
+/// indian, japanese already.
 pub(super) const TA_CLDR: &[CalendarNames] = &[
+    calendar_entry(
+        &[CalendarId("roc")],
+        &[],
+        era_names(
+            &["broc", "roc"],
+            &["R.O.C. -க்கு முன்பு", "ROC"],
+            &["ROCக்கு முன்", "ROC"],
+            &[],
+        ),
+    )
+    .with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
     calendar_entry(
         ISLAMIC_CALENDARS,
         &[month_cycle(ContextualNames::same(widths(
@@ -3081,12 +3584,29 @@ pub(super) const TA_CLDR: &[CalendarNames] = &[
         date: "{day} {month}, {year:1} {era}",
         ..DateTemplates::NONE
     }),
+    calendar_entry(&[CalendarId("indian")], &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
 ];
 
 /// The other calendars of `th`, CLDR 48 `th.xml`: the Hijri months and eras,
 /// the Hebrew months and eras, the Coptic months, the Ethiopic months, the
-/// Persian months, the Persian eras and the Indian national months and eras;
-/// the hand-written entry serves buddhist, gregorian, japanese, roc already.
+/// Persian months, the Persian eras, the Indian national months and eras, the
+/// Buddhist date formats, the Minguo date formats and the Japanese date
+/// formats; the hand-written entry serves buddhist, gregorian, japanese, roc
+/// already.
 pub(super) const TH_CLDR: &[CalendarNames] = &[
     calendar_entry(
         ISLAMIC_CALENDARS,
@@ -3122,11 +3642,7 @@ pub(super) const TH_CLDR: &[CalendarNames] = &[
             &[],
         )))],
         era_names(&["ah"], &["ฮิจเราะห์ศักราช"], &["ฮ.ศ."], &[]),
-    )
-    .with_templates(DateTemplates {
-        date: "{day} {month} {era} {year:1}",
-        ..DateTemplates::NONE
-    }),
+    ),
     calendar_entry(
         HEBREW_CALENDARS,
         &[month_cycle(ContextualNames::same(widths(
@@ -3153,10 +3669,6 @@ pub(super) const TH_CLDR: &[CalendarNames] = &[
         intercalary: &[(5, "อาดาร์ I")],
         in_leap_years: &[(6, "อาดาร์ II")],
         leap_day: None,
-    })
-    .with_templates(DateTemplates {
-        date: "{day} {month} {era} {year:1}",
-        ..DateTemplates::NONE
     }),
     calendar_entry(
         COPTIC_CALENDARS,
@@ -3180,11 +3692,7 @@ pub(super) const TH_CLDR: &[CalendarNames] = &[
             &[],
         )))],
         EraNames::EMPTY,
-    )
-    .with_templates(DateTemplates {
-        date: "{day} {month} {era} {year:1}",
-        ..DateTemplates::NONE
-    }),
+    ),
     calendar_entry(
         ETHIOPIC_CALENDARS,
         &[month_cycle(ContextualNames::same(widths(
@@ -3207,11 +3715,7 @@ pub(super) const TH_CLDR: &[CalendarNames] = &[
             &[],
         )))],
         EraNames::EMPTY,
-    )
-    .with_templates(DateTemplates {
-        date: "{day} {month} {era} {year:1}",
-        ..DateTemplates::NONE
-    }),
+    ),
     calendar_entry(
         PERSIAN_CALENDARS,
         &[month_cycle(ContextualNames::same(widths(
@@ -3233,20 +3737,12 @@ pub(super) const TH_CLDR: &[CalendarNames] = &[
             &[],
         )))],
         EraNames::EMPTY,
-    )
-    .with_templates(DateTemplates {
-        date: "{day} {month} {era} {year:1}",
-        ..DateTemplates::NONE
-    }),
+    ),
     calendar_entry(
         SOLAR_HIJRI_CALENDARS,
         &[],
         era_names(&["ap"], &["ปีเปอร์เซีย"], &[], &[]),
-    )
-    .with_templates(DateTemplates {
-        date: "{day} {month} {era} {year:1}",
-        ..DateTemplates::NONE
-    }),
+    ),
     calendar_entry(
         &[CalendarId("indian")],
         &[month_cycle(ContextualNames::same(widths(
@@ -3268,17 +3764,41 @@ pub(super) const TH_CLDR: &[CalendarNames] = &[
             &[],
         )))],
         era_names(&["saka"], &["ม.ศ."], &[], &[]),
-    )
-    .with_templates(DateTemplates {
-        date: "{day} {month} {era} {year:1}",
+    ),
+    calendar_entry(BUDDHIST_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(&[CalendarId("roc")], &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "ปี{era}ที่ {year}",
+        date: "{day} {month} ปี{era} {year:1}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} ปี{era} {year:1}",
         ..DateTemplates::NONE
     }),
 ];
 
-/// The other calendars of `tr`, CLDR 48 `tr.xml`: the Hijri months and eras,
-/// the Hebrew months, the Coptic months, the Ethiopic months and the Persian
-/// months; the hand-written entry serves gregorian, japanese already.
+/// The other calendars of `tr`, CLDR 48 `tr.xml`: the Minguo eras, the Hijri
+/// months and eras, the Hebrew months, the Coptic months, the Ethiopic months,
+/// the Persian months, the Japanese date formats and the generic date formats;
+/// the hand-written entry serves gregorian, japanese already.
 pub(super) const TR_CLDR: &[CalendarNames] = &[
+    calendar_entry(
+        &[CalendarId("roc")],
+        &[],
+        era_names(
+            &["broc", "roc"],
+            &["R.O.C. Öncesi", "Minguo"],
+            &["BROC", "Minguo"],
+            &[],
+        ),
+    )
+    .with_templates(DateTemplates {
+        date: "{era} {day} {month} {year:1}",
+        ..DateTemplates::NONE
+    }),
     calendar_entry(
         ISLAMIC_CALENDARS,
         &[month_cycle(ContextualNames::same(widths(
@@ -3396,6 +3916,28 @@ pub(super) const TR_CLDR: &[CalendarNames] = &[
     )
     .with_templates(DateTemplates {
         date: "{era} {day} {month} {year:1}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{era} {day} {month} {year:1}",
+        ..DateTemplates::NONE
+    }),
+];
+
+/// The other calendars of `zgh`, CLDR 48 `zgh.xml`: the Japanese date formats
+/// and the generic date formats; the hand-written entry serves gregorian,
+/// japanese already.
+pub(super) const ZGH_CLDR: &[CalendarNames] = &[
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
         ..DateTemplates::NONE
     }),
 ];
@@ -3714,6 +4256,306 @@ pub(super) const ZH_HANT_CLDR: &[CalendarNames] = &[
     .with_templates(DateTemplates {
         year: "{era} {year}年",
         date: "{era} {year:1}年{month:1}月{day}",
+        ..DateTemplates::NONE
+    }),
+];
+
+/// The other calendars of `fil`, CLDR 48 `fil.xml`: the Minguo date formats,
+/// the Japanese date formats and the generic date formats; the hand-written
+/// entry serves gregorian, japanese, roc already.
+pub(super) const FIL_CLDR: &[CalendarNames] = &[
+    calendar_entry(&[CalendarId("roc")], &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{month} {day}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{month} {day}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{month} {day}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+];
+
+/// The other calendars of `ha`, CLDR 48 `ha.xml`: the Hijri date formats, the
+/// Japanese date formats and the generic date formats; the hand-written entry
+/// serves gregorian, islamic, japanese already.
+pub(super) const HA_CLDR: &[CalendarNames] = &[
+    calendar_entry(ISLAMIC_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+];
+
+/// The other calendars of `mr`, CLDR 48 `mr.xml`: the Buddhist date formats,
+/// the Minguo date formats, the Hijri date formats, the Hebrew date formats,
+/// the Coptic date formats, the Ethiopic date formats, the Persian date
+/// formats, the Indian national date formats, the Japanese date formats and the
+/// generic date formats; the hand-written entry serves buddhist, coptic,
+/// ethiopic, gregorian, hebrew, indian, islamic, japanese, persian, roc
+/// already.
+pub(super) const MR_CLDR: &[CalendarNames] = &[
+    calendar_entry(BUDDHIST_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(&[CalendarId("roc")], &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(ISLAMIC_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(HEBREW_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(COPTIC_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(ETHIOPIC_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(PERSIAN_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(&[CalendarId("indian")], &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month}, {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+];
+
+/// The other calendars of `pa-Arab`, CLDR 48 `pa_Arab.xml`: the Japanese date
+/// formats and the generic date formats; the hand-written entry serves
+/// gregorian, japanese already.
+pub(super) const PA_ARAB_CLDR: &[CalendarNames] = &[
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+];
+
+/// The other calendars of `pa-Guru`, CLDR 48 `pa.xml`: the Buddhist date
+/// formats, the Minguo date formats, the Hijri date formats, the Hebrew date
+/// formats, the Coptic date formats, the Ethiopic date formats, the Persian
+/// date formats, the Indian national date formats, the Japanese date formats
+/// and the generic date formats; the hand-written entry serves buddhist,
+/// coptic, ethiopic, gregorian, hebrew, indian, islamic, japanese, persian, roc
+/// already.
+pub(super) const PA_GURU_CLDR: &[CalendarNames] = &[
+    calendar_entry(BUDDHIST_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(&[CalendarId("roc")], &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(ISLAMIC_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(HEBREW_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(COPTIC_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(ETHIOPIC_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(PERSIAN_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(&[CalendarId("indian")], &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+];
+
+/// The other calendars of `pcm`, CLDR 48 `pcm.xml`: the Japanese date formats
+/// and the generic date formats; the hand-written entry serves gregorian,
+/// japanese already.
+pub(super) const PCM_CLDR: &[CalendarNames] = &[
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+];
+
+/// The other calendars of `pt-PT`, CLDR 48 `pt_PT.xml`, `pt.xml`: the Buddhist
+/// date formats, the Japanese date formats and the generic date formats; the
+/// hand-written entry serves buddhist, gregorian, japanese already.
+pub(super) const PT_PT_CLDR: &[CalendarNames] = &[
+    calendar_entry(BUDDHIST_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} de {month} de {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} de {month} de {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} de {month} de {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+];
+
+/// The other calendars of `sw`, CLDR 48 `sw.xml`: the Japanese date formats and
+/// the generic date formats; the hand-written entry serves gregorian, japanese
+/// already.
+pub(super) const SW_CLDR: &[CalendarNames] = &[
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+];
+
+/// The other calendars of `te`, CLDR 48 `te.xml`: the Minguo date formats, the
+/// Hebrew date formats, the Coptic date formats, the Ethiopic date formats, the
+/// Persian date formats, the Indian national date formats, the Japanese date
+/// formats and the generic date formats; the hand-written entry serves coptic,
+/// ethiopic, gregorian, hebrew, indian, japanese, persian, roc already.
+pub(super) const TE_CLDR: &[CalendarNames] = &[
+    calendar_entry(&[CalendarId("roc")], &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(HEBREW_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(COPTIC_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(ETHIOPIC_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(PERSIAN_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(&[CalendarId("indian")], &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        year: "{year} {era}",
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+];
+
+/// The other calendars of `ur`, CLDR 48 `ur.xml`: the Minguo date formats, the
+/// Hijri date formats, the Hebrew date formats, the Coptic date formats, the
+/// Ethiopic date formats, the Persian date formats, the Indian national date
+/// formats, the Japanese date formats and the generic date formats; the
+/// hand-written entry serves coptic, ethiopic, gregorian, hebrew, indian,
+/// islamic, japanese, persian, roc already.
+pub(super) const UR_CLDR: &[CalendarNames] = &[
+    calendar_entry(&[CalendarId("roc")], &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month}، {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(ISLAMIC_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month}، {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(HEBREW_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month}، {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(COPTIC_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month}، {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(ETHIOPIC_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month}، {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(PERSIAN_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month}، {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(&[CalendarId("indian")], &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month}، {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month}، {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month}، {year:1} {era}",
         ..DateTemplates::NONE
     }),
 ];

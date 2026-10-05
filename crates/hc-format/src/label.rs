@@ -72,7 +72,7 @@
 use core::fmt::{self, Write};
 
 use hc_calendar::cycle::Sexagenary;
-use hc_calendar::shape::MONTH;
+use hc_calendar::shape::{CycleShape, MONTH, WEEKDAY};
 use hc_calendar::units::Unit;
 use hc_calendar::{CalendarId, DateFields, DynCalendar, Month};
 use hc_i18n::Locale;
@@ -85,13 +85,201 @@ mod read;
 pub use read::{DateRefusal, ParsedDate, parse_date};
 
 /// The locale a calendar is rendered in: the one asked for when it names
-/// the calendar, else English, else the one asked for with the calendar's
-/// own names; only `None` asks for the calendar's own language first.
+/// the calendar and every name a date of the calendar writes, else English,
+/// else the one asked for with the calendar's own names; only `None` asks
+/// for the calendar's own language first.
 ///
-/// See [`hc_i18n::names::locale_for_calendar`], which this wraps.
+/// A date is in one language. The locale names a month from its own data
+/// and an era from its own data or CLDR's root, whose abbreviations (`AH`,
+/// `BE`) belong to every language; the calendar's own name for a month or
+/// an era is written in the locale's script (romanised for a Latin one, in
+/// Han or Hangul for a Chinese, Japanese or Korean one) or not at all. A
+/// locale that cannot write each of them leaves the whole date to English,
+/// whose tag is then the locale used, and never takes a name from another
+/// language into its own date.
+///
+/// See [`hc_i18n::names::locale_for_calendar_with`], which this wraps.
 #[must_use]
 pub fn locale_for(calendar: &dyn DynCalendar, requested: Option<&Locale>) -> Locale {
-    names::locale_for_calendar(requested, &calendar.meta())
+    names::locale_for_calendar_with(requested, &calendar.meta(), |locale| {
+        writes_in_one_language_cached(calendar, locale)
+    })
+}
+
+/// [`writes_in_one_language`], remembered: it asks for every era of the
+/// calendar, which is some five hundred names for the Japanese ones, and
+/// is a function of the calendar and the locale alone, the data being
+/// static. The memory is bounded and is emptied when it fills.
+#[cfg(feature = "std")]
+fn writes_in_one_language_cached(calendar: &dyn DynCalendar, locale: &Locale) -> bool {
+    use std::cell::RefCell;
+    use std::collections::HashMap;
+    /// The most answers kept: the registry's calendars in a few hundred
+    /// locales.
+    const MOST: usize = 1 << 16;
+    std::thread_local! {
+        static ANSWERS: RefCell<HashMap<(&'static str, Locale), bool>> =
+            RefCell::new(HashMap::new());
+    }
+    let key = (calendar.meta().id.as_str(), *locale);
+    if let Some(known) = ANSWERS.with(|answers| answers.borrow().get(&key).copied()) {
+        return known;
+    }
+    let answer = writes_in_one_language(calendar, locale);
+    ANSWERS.with(|answers| {
+        let mut answers = answers.borrow_mut();
+        if answers.len() >= MOST {
+            answers.clear();
+        }
+        answers.insert(key, answer);
+    });
+    answer
+}
+
+#[cfg(not(feature = "std"))]
+fn writes_in_one_language_cached(calendar: &dyn DynCalendar, locale: &Locale) -> bool {
+    writes_in_one_language(calendar, locale)
+}
+
+/// Whether every month and every era a date of the calendar writes in
+/// `locale` is a name of the locale's own, as [`locale_for`] asks.
+fn writes_in_one_language(calendar: &dyn DynCalendar, locale: &Locale) -> bool {
+    let id = calendar.meta().id;
+    for cycle in calendar.cycles() {
+        if !locale_names_cycle(locale, id, cycle) {
+            return false;
+        }
+    }
+    let english = names::english();
+    let native = names::writes_native_names(locale);
+    let writes = |code: &str| {
+        // A name at the wide width is one at the abbreviated, which
+        // degrades to it, so the wide is asked.
+        if names::era_name_by_code(locale, id, code, NameWidth::Wide).is_some() {
+            return true;
+        }
+        match calendar.era_name(code) {
+            // The name the renderer writes, romanised unless the locale
+            // writes Han characters, kana or Hangul, where the calendar
+            // gives a romanisation; an era whose romanisation another era
+            // shares is written by its characters or, where English names
+            // it, by English's name, root's, the same word in every
+            // language, which no check of a script can refuse.
+            Some(own) if !native && !own.romanised.is_empty() => true,
+            Some(own) => own_name_fits(locale, if native { own.native } else { own.latin() }),
+            None => {
+                locale.language() == "en"
+                    || names::era_name_by_code(&english, id, code, NameWidth::Wide).is_none()
+            }
+        }
+    };
+    // The eras a date may write are the calendar's own table and the ones
+    // English names, which the facade's vocabulary test holds to being
+    // every era code a calendar writes.
+    let mut every = true;
+    for index in 0.. {
+        let Some(code) = calendar.era_code(index) else {
+            break;
+        };
+        if !writes(code) {
+            return false;
+        }
+    }
+    names::for_each_era_code(&english, id, |code| {
+        every = every && (calendar.era_name(code).is_some() || writes(code));
+    });
+    every
+}
+
+/// Whether a date writes the positions of one of the calendar's cycles in
+/// the locale's language: from its data, else the calendar's own names in
+/// the locale's script, else by number. The weekdays are the locale's own
+/// by their own lookup, and CLDR's root names a Gregorian month `M09`,
+/// which no reader takes for a name.
+fn locale_names_cycle(locale: &Locale, calendar: CalendarId, cycle: &CycleShape) -> bool {
+    if cycle.kind == WEEKDAY || names::locale_names_cycle(locale, calendar, cycle.kind) {
+        return true;
+    }
+    if cycle.names.is_empty() {
+        if cycle.kind != MONTH {
+            return true;
+        }
+        let first = Month {
+            ordinal: 1,
+            leap: false,
+        };
+        return names::month_label(
+            locale,
+            calendar,
+            first,
+            NameWidth::Wide,
+            NameContext::Format,
+        )
+        .is_none();
+    }
+    cycle.names.iter().all(|name| own_name_fits(locale, name))
+}
+
+/// Whether a name of the calendar's own may stand in a date of the locale:
+/// in the locale's script, or romanised, a proper name no locale translates,
+/// as CLDR's root writes them, except in a date of Han characters, kana or
+/// Hangul, which takes no Latin letters.
+fn own_name_fits(locale: &Locale, name: &str) -> bool {
+    in_script_of(locale, name)
+        || (!names::writes_native_names(locale)
+            && name
+                .chars()
+                .filter(|letter| letter.is_alphabetic())
+                .all(|letter| script_of(letter) == "Latn"))
+}
+
+/// Whether the letters of `text` are written in the script of the locale:
+/// the one its data entry names, Han characters, kana and Hangul counting
+/// as one for a Chinese, Japanese or Korean locale. Text with no letters is
+/// in every script.
+fn in_script_of(locale: &Locale, text: &str) -> bool {
+    let script = match names::locale_data(locale).script {
+        "Jpan" | "Hans" | "Hant" | "Kore" => "Hani",
+        other => other,
+    };
+    text.chars()
+        .filter(|letter| letter.is_alphabetic())
+        .all(|letter| script_of(letter) == script)
+}
+
+/// The script a letter is written in, by the blocks the carried locales'
+/// scripts use: ISO 15924 codes, `Hani` for Han, kana and Hangul together,
+/// and `Zzzz` for any other.
+fn script_of(letter: char) -> &'static str {
+    match u32::from(letter) {
+        0x41..=0x2FF | 0x1E00..=0x1EFF => "Latn",
+        0x370..=0x3FF => "Grek",
+        0x400..=0x52F => "Cyrl",
+        0x590..=0x5FF | 0xFB1D..=0xFB4F => "Hebr",
+        0x600..=0x6FF | 0x750..=0x77F | 0xFB50..=0xFDFF | 0xFE70..=0xFEFF => "Arab",
+        0x700..=0x74F => "Syrc",
+        0x840..=0x85F => "Mand",
+        0x900..=0x97F => "Deva",
+        0x980..=0x9FF => "Beng",
+        0xA00..=0xA7F => "Guru",
+        0xB80..=0xBFF => "Taml",
+        0xC00..=0xC7F => "Telu",
+        0xD00..=0xD7F => "Mlym",
+        0xE00..=0xE7F => "Thai",
+        0xF00..=0xFFF => "Tibt",
+        0x1000..=0x109F => "Mymr",
+        0x1200..=0x139F => "Ethi",
+        0x1100..=0x11FF
+        | 0x3040..=0x30FF
+        | 0x3400..=0x4DBF
+        | 0x4E00..=0x9FFF
+        | 0xAC00..=0xD7AF
+        | 0xF900..=0xFAFF
+        | 0x20000..=0x2FA1F => "Hani",
+        0x2C80..=0x2CFF => "Copt",
+        0x2D30..=0x2D7F => "Tfng",
+        _ => "Zzzz",
+    }
 }
 
 /// An era's name as a date writes it: [`hc_i18n::names::era_label`], the
@@ -112,7 +300,7 @@ pub fn era_label(
     let id = calendar.meta().id;
     let own = calendar.era_name(code).and_then(|own| {
         if own.romanised.is_empty()
-            || !names::is_latin_script(locale)
+            || names::writes_native_names(locale)
             || !shares_romanisation(calendar, code, own.romanised)
         {
             Some(own)
@@ -491,7 +679,13 @@ impl<'a> Renderer<'a> {
         out: &mut dyn Write,
     ) -> fmt::Result {
         match (name, mode) {
-            ("year", Mode::Date) => self.write_unit(Unit::Year, out),
+            // The year's unit may begin or end with the space an empty
+            // era leaves, which a date whose own text sits against the
+            // year, 2026 after a Tibetan སྤྱི་ལོ་, does not want.
+            ("year", Mode::Date) => {
+                let mut sink = out;
+                self.write_unit(Unit::Year, &mut Collapse::new(&mut sink))
+            }
             // A leap day the locale names is written by its name in the
             // day's place, which stands for the month too.
             ("month", Mode::Date) if self.leap_day_name().is_some() => Ok(()),
@@ -1147,8 +1341,9 @@ mod tests {
         // `ar.xml` writes Latin digits, `ar_EG.xml` Arabic-Indic ones.
         assert_eq!(render(&gregorian(), &day, "ar")[1], "2026");
         assert_eq!(render(&gregorian(), &day, "ar-EG")[1], "٢٠٢٦");
-        // A locale without templates gets the fields in order.
-        assert_eq!(render(&gregorian(), &day, "am")[4], "2026 ሴፕቴምበር 21");
+        // `am.xml`'s long date is "d MMMM y", day first as the other
+        // locales' Gregorian dates are.
+        assert_eq!(render(&gregorian(), &day, "am")[4], "21 ሴፕቴምበር 2026");
         // And one with no data at all, the root's names.
         assert_eq!(render(&gregorian(), &day, "tlh")[4], "2026 M09 21");
     }
@@ -1195,19 +1390,15 @@ mod tests {
         assert_eq!(render(&gregorian(), &day, "en")[1], "-43");
         assert_eq!(render(&gregorian(), &day, "ja")[1], "-43年");
         // The Buddhist calendar counts in BE, which Thai writes before the
-        // year and English after it, and nobody implies.
+        // year and English after it, and nobody implies. Thai's long date,
+        // `th.xml`'s "d MMMM y" for the Buddhist calendar, writes no era at
+        // all, though the year by itself does.
         let buddhist = DynAdapter::new(hc_calendars_solar::BuddhistCalendar);
         let today = buddhist.fixed_to_fields(Rd(739_880)).unwrap();
         assert_eq!(today.era, Some("be"));
         assert_eq!(
             render(&buddhist, &today, "th"),
-            [
-                "พุทธศักราช",
-                "พ.ศ. 2569",
-                "กันยายน",
-                "21",
-                "21 กันยายน พ.ศ. 2569"
-            ]
+            ["พุทธศักราช", "พ.ศ. 2569", "กันยายน", "21", "21 กันยายน 2569"]
         );
         assert_eq!(render(&buddhist, &today, "en")[1], "2569 BE");
         assert_eq!(render(&buddhist, &today, "en")[4], "September 21, 2569 BE");

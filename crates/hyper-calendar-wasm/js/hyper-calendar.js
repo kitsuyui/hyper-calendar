@@ -458,7 +458,7 @@ export const COLUMNS = Object.freeze({
   localeInfo: Object.freeze([
     "tag", "language", "script", "region", "variant", "calendar key", "numbering key", "first day key",
     "hour cycle key", "locale used", "parent", "parent rule", "numbering", "first day", "min days",
-    "direction", "casing", "capitalises month names", "plural rules",
+    "direction", "casing", "capitalises month names", "plural rules", "canonical",
   ]),
   pluralCategory: Object.freeze(["category", "rules", "i", "v", "w", "f", "t"]),
   names: Object.freeze(["kind", "position", "name", "locale used"]),
@@ -2435,6 +2435,7 @@ function localeInfo(cells) {
   const [
     tag, language, script, region, variant, calendarKey, numberingKey, firstDayKey, hourCycleKey,
     localeUsed, parent, parentRule, numbering, firstDay, minDays, direction, casing, capitalises, plural,
+    canonical,
   ] = cells;
   return {
     tag,
@@ -2456,6 +2457,7 @@ function localeInfo(cells) {
     casing: /** @type {import("./hyper-calendar.d.ts").CasingStyleName} */ (casing),
     capitalisesMonthNames: flag(capitalises, "capitalises month names"),
     pluralRules: plural,
+    canonicalTag: canonical,
   };
 }
 

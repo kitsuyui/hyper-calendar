@@ -13,9 +13,9 @@
 use hc_calendar::{CalendarId, Weekday};
 
 use super::{
-    CHINESE_AND_VIETNAMESE_CALENDARS, CHINESE_TEMPLATES, COPTIC_CALENDARS, HEBREW_CALENDARS,
-    ISLAMIC_CALENDARS, calendar_entry, era_names, gregorian, gregorian_eras, lunisolar,
-    month_cycle, weekday_widths, widths,
+    CHINESE_AND_VIETNAMESE_CALENDARS, CHINESE_TEMPLATES, COPTIC_CALENDARS, GENERIC_DATE_CALENDARS,
+    HEBREW_CALENDARS, ISLAMIC_CALENDARS, JAPANESE_CALENDARS, calendar_entry, era_names, gregorian,
+    gregorian_eras, lunisolar, month_cycle, weekday_widths, widths,
 };
 use crate::casing::CasingStyle;
 use crate::direction::Direction;
@@ -26,10 +26,10 @@ use crate::names::{
 
 // --- ar-EG: Arabic (Egypt) ---------------------------------------------------
 //
-// CLDR 48 `ar_EG.xml`, `ar.xml`. Its files state no group of names apart from
-// its parent's. Every other group is the parent entry's, `ar`, as CLDR's
-// inheritance gives it. Templates from `Gy` "y G", `d` "d" and the whole date
-// "d MMMM y"; digits `arab`.
+// CLDR 48 `ar_EG.xml`, `ar.xml`. It carries the Japanese date formats and the
+// generic date formats. Every other group is the parent entry's, `ar`, as
+// CLDR's inheritance gives it. Templates from `Gy` "y G", `d` "d" and the
+// whole date "d MMMM y"; digits `arab`.
 
 const AR_EG_TEMPLATES: DateTemplates = DateTemplates {
     year: "{year} {era}",
@@ -37,7 +37,16 @@ const AR_EG_TEMPLATES: DateTemplates = DateTemplates {
     ..DateTemplates::NONE
 };
 
-const AR_EG_CALENDARS: &[CalendarNames] = &[];
+const AR_EG_CALENDARS: &[CalendarNames] = &[
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+];
 
 /// The `ar-EG` entry.
 pub(super) const AR_EG: LocaleData = LocaleData {
@@ -63,10 +72,10 @@ pub(super) const AR_EG: LocaleData = LocaleData {
 
 // --- en-001: English (world) -------------------------------------------------
 //
-// CLDR 48 `en_001.xml`, `en.xml`. It carries the day periods and the Gregorian
-// months. Every other group is the parent entry's, `en`, as CLDR's inheritance
-// gives it. Templates from `Gy` "y G", `d` "d" and the whole date "d MMMM y";
-// digits `latn`.
+// CLDR 48 `en_001.xml`, `en.xml`. It carries the day periods, the Gregorian
+// months, the Japanese date formats and the generic date formats. Every other
+// group is the parent entry's, `en`, as CLDR's inheritance gives it. Templates
+// from `Gy` "y G", `d` "d" and the whole date "d MMMM y"; digits `latn`.
 
 const EN_001_TEMPLATES: DateTemplates = DateTemplates {
     year: "{year} {era}",
@@ -74,30 +83,40 @@ const EN_001_TEMPLATES: DateTemplates = DateTemplates {
     ..DateTemplates::NONE
 };
 
-const EN_001_CALENDARS: &[CalendarNames] = &[gregorian(
-    &[month_cycle(ContextualNames::same(widths(
-        &[
-            "January",
-            "February",
-            "March",
-            "April",
-            "May",
-            "June",
-            "July",
-            "August",
-            "September",
-            "October",
-            "November",
-            "December",
-        ],
-        &[
-            "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec",
-        ],
-        &["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
-    )))],
-    EraNames::EMPTY,
-    ContextualNames::EMPTY,
-)];
+const EN_001_CALENDARS: &[CalendarNames] = &[
+    gregorian(
+        &[month_cycle(ContextualNames::same(widths(
+            &[
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December",
+            ],
+            &[
+                "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec",
+            ],
+            &["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
+        )))],
+        EraNames::EMPTY,
+        ContextualNames::EMPTY,
+    ),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+];
 
 /// The `en-001` entry.
 pub(super) const EN_001: LocaleData = LocaleData {
@@ -126,10 +145,10 @@ pub(super) const EN_001: LocaleData = LocaleData {
 
 // --- en-GB: British English --------------------------------------------------
 //
-// CLDR 48 `en_GB.xml`, `en_001.xml`, `en.xml`. Its files state no group of
-// names apart from its parent's. Every other group is the parent entry's,
-// `en-001`, as CLDR's inheritance gives it. Templates from `Gy` "y G", `d` "d"
-// and the whole date "d MMMM y"; digits `latn`.
+// CLDR 48 `en_GB.xml`, `en_001.xml`, `en.xml`. It carries the Japanese date
+// formats and the generic date formats. Every other group is the parent
+// entry's, `en-001`, as CLDR's inheritance gives it. Templates from `Gy` "y
+// G", `d` "d" and the whole date "d MMMM y"; digits `latn`.
 
 const EN_GB_TEMPLATES: DateTemplates = DateTemplates {
     year: "{year} {era}",
@@ -137,7 +156,16 @@ const EN_GB_TEMPLATES: DateTemplates = DateTemplates {
     ..DateTemplates::NONE
 };
 
-const EN_GB_CALENDARS: &[CalendarNames] = &[];
+const EN_GB_CALENDARS: &[CalendarNames] = &[
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+];
 
 /// The `en-GB` entry.
 pub(super) const EN_GB: LocaleData = LocaleData {
@@ -165,10 +193,10 @@ pub(super) const EN_GB: LocaleData = LocaleData {
 //
 // CLDR 48 `es_419.xml`, `es.xml`. It carries the weekdays, the day periods,
 // the quarters, the Gregorian eras, the Minguo eras, the Hijri months, the
-// Hebrew months, the Coptic months and the Indian national months. Every other
-// group is the parent entry's, `es`, as CLDR's inheritance gives it. Templates
-// from `Gy` "y G", `d` "d" and the whole date "d 'de' MMMM 'de' y"; digits
-// `latn`.
+// Hebrew months, the Coptic months, the Indian national months and eras, the
+// Japanese date formats and the generic date formats. Every other group is the
+// parent entry's, `es`, as CLDR's inheritance gives it. Templates from `Gy` "y
+// G", `d` "d" and the whole date "d 'de' MMMM 'de' y"; digits `latn`.
 
 const ES_419_TEMPLATES: DateTemplates = DateTemplates {
     year: "{year} {era}",
@@ -316,9 +344,17 @@ const ES_419_CALENDARS: &[CalendarNames] = &[
             &[],
             &[],
         )))],
-        EraNames::EMPTY,
+        era_names(&["saka"], &["Saka"], &[], &[]),
     )
     .with_templates(DateTemplates {
+        date: "{day} de {month} de {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} de {month} de {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
         date: "{day} de {month} de {year:1} {era}",
         ..DateTemplates::NONE
     }),
@@ -534,8 +570,9 @@ pub(super) const MN: LocaleData = LocaleData {
 // --- shi-Latn: Tachelhit (Latin) ---------------------------------------------
 //
 // CLDR 48 `shi_Latn.xml`. It carries the weekdays, the day periods, the
-// Gregorian months, the quarters and the Gregorian eras. Templates from `Gy`
-// "G y", `d` "d" and the whole date "d MMMM y"; digits `latn`.
+// Gregorian months, the quarters, the Gregorian eras, the Japanese date
+// formats and the generic date formats. Templates from `Gy` "G y", `d` "d" and
+// the whole date "d MMMM y"; digits `latn`.
 
 const SHI_LATN_TEMPLATES: DateTemplates = DateTemplates {
     year: "{era} {year}",
@@ -596,6 +633,14 @@ const SHI_LATN_CALENDARS: &[CalendarNames] = &[
         )))],
         EraNames::EMPTY,
     ),
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month} {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
 ];
 
 /// The `shi-Latn` entry.
@@ -635,10 +680,10 @@ pub(super) const SHI_LATN: LocaleData = LocaleData {
 
 // --- ur-IN: Urdu (India) -----------------------------------------------------
 //
-// CLDR 48 `ur_IN.xml`, `ur.xml`. Its files state no group of names apart from
-// its parent's. Every other group is the parent entry's, `ur`, as CLDR's
-// inheritance gives it. Templates from `Gy` "y G", `d` "d" and the whole date
-// "d MMMM، y"; digits `arabext`.
+// CLDR 48 `ur_IN.xml`, `ur.xml`. It carries the Japanese date formats and the
+// generic date formats. Every other group is the parent entry's, `ur`, as
+// CLDR's inheritance gives it. Templates from `Gy` "y G", `d` "d" and the
+// whole date "d MMMM، y"; digits `arabext`.
 
 const UR_IN_TEMPLATES: DateTemplates = DateTemplates {
     year: "{year} {era}",
@@ -646,7 +691,16 @@ const UR_IN_TEMPLATES: DateTemplates = DateTemplates {
     ..DateTemplates::NONE
 };
 
-const UR_IN_CALENDARS: &[CalendarNames] = &[];
+const UR_IN_CALENDARS: &[CalendarNames] = &[
+    calendar_entry(JAPANESE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month}، {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+    calendar_entry(GENERIC_DATE_CALENDARS, &[], EraNames::EMPTY).with_templates(DateTemplates {
+        date: "{day} {month}، {year:1} {era}",
+        ..DateTemplates::NONE
+    }),
+];
 
 /// The `ur-IN` entry.
 pub(super) const UR_IN: LocaleData = LocaleData {

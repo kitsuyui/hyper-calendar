@@ -279,9 +279,9 @@ mod tests {
     }
 
     /// The locales `hc-i18n` carries that have no phrases here: no
-    /// `common/main` file of CLDR 48 for ten of them, no relative-time
-    /// pattern in the file of `bo`, `pa-Arab`, `sa`, `shi-Latn` and `zgh`, and
-    /// only draft `unconfirmed` ones in `kab`'s.
+    /// `common/main` file of CLDR 48 for eight of them, no relative-time
+    /// pattern in the file of `bo`, `cop`, `pa-Arab`, `rif`, `sa`, `shi-Latn`
+    /// and `zgh`, and only draft `unconfirmed` ones in `kab`'s.
     const WITHOUT_PHRASES: [&str; 16] = [
         "aeb-Latn", "ayl-Latn", "ban", "bo", "cop", "kab", "mid", "mix", "nah", "pa-Arab", "rif",
         "sa", "shi-Latn", "yua", "zap", "zgh",

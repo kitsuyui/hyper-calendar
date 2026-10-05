@@ -918,8 +918,10 @@ fn written_dates_read_as_their_days() {
         ("gregory", "de", "Montag, 28. September 2026"),
         ("gregory", "ja", "2026年9月28日月曜日"),
         ("gregory", "zh-Hans", "二〇二六年九月二十八日"),
-        ("buddhist", "th", "28 กันยายน พ.ศ. 2569"),
-        ("persian", "fa", "۶ مهر ۱۴۰۵ ه.ش."),
+        // Thai writes no era in the Buddhist long date, as `th.xml` does not.
+        ("buddhist", "th", "28 กันยายน 2569"),
+        // `fa.xml`'s Persian long date, "d MMMM y", writes no era.
+        ("persian", "fa", "۶ مهر ۱۴۰۵"),
     ] {
         assert_eq!(
             read(calendar, tag, text).map(|(day, _)| day),
@@ -1314,8 +1316,8 @@ fn a_repeated_unit_is_named_where_a_source_names_it() {
     // ordinary one after it: Analā, अनला in Wikipedia's table of months;
     // the era नेसं as Nepali Wikipedia abbreviates it.
     for (day, en, ne) in [
-        (726_937, "Analā 1, 1111 NS", "११११ नेसं अनला १"),
-        (726_967, "Bachhalā 1, 1111 NS", "११११ नेसं बछला १"),
+        (726_937, "Analā 1, 1111 NS", "नेसं ११११ अनला १"),
+        (726_967, "Bachhalā 1, 1111 NS", "नेसं ११११ बछला १"),
     ] {
         assert_eq!(text("nepal-sambat", day, "en"), en);
         assert_eq!(text("nepal-sambat", day, "ne"), ne);
@@ -1349,7 +1351,7 @@ fn a_repeated_unit_is_named_where_a_source_names_it() {
     );
     assert_eq!(
         text("nepal-sambat-fortnight", 726_514, "ne"),
-        "१११० नेसं सिल्लागा ६"
+        "नेसं १११० सिल्लागा ६"
     );
     assert_eq!(
         read("nepal-sambat-fortnight", "en", "Silā gā 6, 1110 NS"),
@@ -1362,7 +1364,7 @@ fn a_repeated_unit_is_named_where_a_source_names_it() {
     // the first fortnight: कछलाथ्व १, in the Samiti's spelling.
     assert_eq!(
         text("nepal-sambat-fortnight", 735_176, "ne"),
-        "११३४ नेसं कछलाथ्व १"
+        "नेसं ११३४ कछलाथ्व १"
     );
     for with_weekday in ["Silā 21, 1110 NS, Friday", "Friday, Silā 21, 1110 NS"] {
         assert_eq!(

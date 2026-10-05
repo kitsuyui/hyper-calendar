@@ -139,6 +139,18 @@ against the evaluator, by tests.
   writes the name instead, since CLDR counts Adar I as the Hebrew month 6
   and the crate as a leap month of the fifth: AM5787年シェバト1日 and
   AM5787年アダル I1日 in Japanese, 希伯来历5787年五月1日 and 六月1日 in Chinese.
+  The calendars the Gregorian months serve that count their years in an era
+  of their own (`data::GENERIC_DATE_CALENDARS`: the Buddhist, Minguo,
+  Japanese, Byzantine, Roman and Masonic years) and the Buddhist, Minguo and
+  Japanese calendars of a locale whose entry serves them by hand are written
+  by the formats CLDR's own or `generic` calendar gives them, the era where the
+  file puts it: *2569 г. BE* in Russian, *BE 21 Eylül 2569* in Turkish. CLDR root's
+  era names (`data::ROOT_ERAS`: `BE`, `ROC`, `AH`, `AM`, `AP`, Śaka) are the end of
+  the lookup for an era's name, as they are CLDR's.
+* **One language per date.** A locale answers for a calendar only if it
+  names its months and every era a date of it writes, from its data, root's or
+  the calendar's own name romanised; otherwise the whole date is English's
+  and `locale used` says so (`docs/i18n.md`, "One language per date").
 * **The week rule**: CLDR 48's `weekData/minDays` is generated into
   `hc_i18n::data::REGION_MIN_DAYS` (the regions with more than the world's
   one day: 4 for most of Europe) and, with the first day below, makes

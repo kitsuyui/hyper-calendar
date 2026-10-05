@@ -454,8 +454,9 @@ mod tests {
     /// 1948, Vikrama 2083, the sixth month, Bhādrapada, and the sixteenth
     /// tithi, labelled as `describe_day` labels `hindu-lunar`: Bhadra in
     /// English, भाद्रपद in Hindi and Sanskrit, whose data name no era for
-    /// the calendar but for the Śaka era Hindi's शक, and English's names for
-    /// every era they do not name. `native` asks for
+    /// the calendar but for the Śaka era Hindi's शक, and CLDR root's Śaka
+    /// for Sanskrit, which names none, and English's names for every era
+    /// none of them name. `native` asks for
     /// Sanskrit, and Japanese, which does not name the calendar, is
     /// English.
     #[test]
@@ -489,7 +490,7 @@ mod tests {
             );
             assert_eq!(
                 labels("sa"),
-                ["भाद्रपद", "", "Saka", "Vikrama Samvat", "sa"],
+                ["भाद्रपद", "", "Śaka", "Vikrama Samvat", "sa"],
                 "{sky}"
             );
             assert_eq!(labels("native"), labels("sa"), "{sky}");

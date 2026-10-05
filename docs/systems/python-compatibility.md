@@ -119,7 +119,9 @@ expression is evaluated as written (`natural::gettext`).
   whole, as are `precisedelta` in Korean, Simplified Chinese and Slovak. The
   fine units (*milliseconds*, *microseconds*) are needed only when the
   minimum unit is below the second. The language cell of every line says
-  which catalogue wrote it, `en` where none serves, so a result is never
+  which catalogue wrote it, `en` where none serves, and for a day that
+  `naturalday` or `naturaldate` writes by `strftime`, which is English whatever
+  the catalogue, so a result is never
   written in two languages. `natural_list`
   is in no catalogue (its `, ` and ` and ` are literals in `lists.py`), so every
   locale gets English for it. *Not carried*: the behaviour `main` changed after

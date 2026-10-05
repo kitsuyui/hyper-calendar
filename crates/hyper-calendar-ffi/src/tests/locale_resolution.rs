@@ -18,7 +18,7 @@ fn the_chain_the_description_and_the_category_of_a_locale() {
     let info = read_lines(|buffer, capacity, written| unsafe {
         hc_locale_info(c"de-DE".as_ptr(), buffer, capacity, written)
     });
-    assert_eq!(info.trim_end().split('\t').count(), 19);
+    assert_eq!(info.trim_end().split('\t').count(), 20);
     let line = read_lines(|buffer, capacity, written| unsafe {
         hc_plural_category(
             c"ru".as_ptr(),

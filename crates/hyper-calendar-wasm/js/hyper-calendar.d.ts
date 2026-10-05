@@ -1676,6 +1676,7 @@ export type TextDirection = "ltr" | "rtl";
 /** Why a fallback chain goes from one step to the next. */
 export type LocaleChainRule =
   | "requested"
+  | "language-alias"
   | "likely-script"
   | "extensions"
   | "variant"
@@ -1739,6 +1740,8 @@ export interface LocaleInfo {
   capitalisesMonthNames: boolean;
   /** The language of the cardinal plural rules that apply, `und` for none. */
   pluralRules: string;
+  /** The tag with a legacy language subtag replaced by the language CLDR's `languageAlias` gives it. */
+  canonicalTag: string;
 }
 
 /** The kinds of plural rule: the form after a count, and the form of a position (1st, 2nd). */

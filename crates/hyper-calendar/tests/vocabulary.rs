@@ -995,7 +995,10 @@ fn no_rendered_label_holds_a_bare_era_code() {
                     ];
                     checked += 1;
                     for text in &texts {
-                        if holds_code(text, code) {
+                        // CLDR 48's `es.xml` writes the Śaka era `saka`, the code's
+                        // own spelling, as a name.
+                        let states_it = id.0 == "indian" && locale.language() == "es";
+                        if holds_code(text, code) && !states_it {
                             leaks.insert(format!("{} {locale}: {text:?}", id.0));
                         }
                     }
@@ -1048,7 +1051,10 @@ fn no_boundary_line_holds_a_bare_era_code() {
                         continue;
                     }
                     named += 1;
-                    if holds_code(label, code) {
+                    // CLDR 48's `es.xml` writes the Śaka era `saka`, the code's own
+                    // spelling, as a name (`cldr48-main`, `calendar type="indian"`).
+                    let states_it = id == "indian" && tag.starts_with("es") && label == "saka";
+                    if holds_code(label, code) && !states_it {
                         leaks.insert(format!("describe_day {id} {tag} {}: {label:?}", day.0));
                     }
                 }
@@ -1076,4 +1082,56 @@ fn no_boundary_line_holds_a_bare_era_code() {
         leaks.is_empty(),
         "era cells with an era code in them: {leaks:#?}"
     );
+}
+
+/// A calendar whose months the Gregorian entry names and whose years count in
+/// an era of its own has its dates written by CLDR's `generic` formats, and
+/// one that writes no era, or the Gregorian one, by the Gregorian formats:
+/// `GENERIC_DATE_CALENDARS` is exactly the first kind, so that a Buddhist,
+/// Byzantine or Roman-year date takes the era where the locale's file puts
+/// it and not after the Gregorian year; the calendars written in one notation
+/// whatever the language are not among them.
+#[test]
+fn the_generic_date_formats_serve_the_calendars_that_write_an_era_of_their_own() {
+    use hyper_calendar::hc_i18n::data::{GENERIC_DATE_CALENDARS, LOCALES, ROOT};
+    let registry = registry();
+    let gregorian_months = |id| ROOT.entries_for(id).any(|entry| !entry.months().is_empty());
+    for meta in registry.metas() {
+        let calendar = registry.get(meta.id).expect("registered");
+        if !gregorian_months(meta.id) {
+            assert!(!GENERIC_DATE_CALENDARS.contains(&meta.id), "{}", meta.id.0);
+            continue;
+        }
+        // A calendar whose sources write its dates in one notation keeps it,
+        // which an entry's formats, where the generic ones sit, would not.
+        let notation = !hyper_calendar::hc_i18n::notation::templates_for(meta.id).is_none();
+        // Nor does one a locale's hand-written entry, which names its eras, gives its own
+        // year or date template, which the generic date, filling the field behind it, would
+        // write around: Juche's year with the related Gregorian year.
+        let own_templates = LOCALES.iter().chain([&ROOT]).any(|data| {
+            data.calendars.iter().any(|entry| {
+                entry.serves(meta.id)
+                    && !entry.eras.codes.is_empty()
+                    && !(entry.templates.year.is_empty()
+                        && entry.templates.date.is_empty()
+                        && entry.templates.first_year.is_empty())
+            })
+        });
+        // The Buddhist, Minguo and Japanese calendars have formats of their own
+        // generated for every locale, which come first.
+        let specific =
+            meta.id.0.starts_with("japanese") || ["buddhist", "roc"].contains(&meta.id.0);
+        let writes_an_era = !notation
+            && (specific || !own_templates)
+            && [739_880, 693_761, 577_736, 400_000]
+                .into_iter()
+                .filter_map(|day| calendar.fixed_to_fields(meta.sample_day(Rd(day))).ok())
+                .any(|fields| fields.era.is_some_and(|era| era != "bc" && era != "ad"));
+        assert_eq!(
+            GENERIC_DATE_CALENDARS.contains(&meta.id),
+            writes_an_era,
+            "{} notation={notation} own={own_templates} specific={specific}",
+            meta.id.0
+        );
+    }
 }
