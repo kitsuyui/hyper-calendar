@@ -292,6 +292,57 @@ mod tests {
         }
     }
 
+    /// RFC 3339 §5.7: "in time zones other than 'Z', the leap second point is
+    /// shifted by the zone offset (so it happens at the same instant around
+    /// the globe)"; §5.8 gives `1990-12-31T15:59:60-08:00` as "the same leap
+    /// second in Pacific Standard Time" as `1990-12-31T23:59:60Z`. Japan read
+    /// the end of 2016 as `2017-01-01T08:59:60+09:00`.
+    #[test]
+    fn the_leap_second_is_read_at_the_zones_own_clock() {
+        for (local, utc, unix) in [
+            (
+                "1990-12-31T15:59:60-08:00",
+                "1990-12-31T23:59:60Z",
+                662_688_000,
+            ),
+            (
+                "2017-01-01T08:59:60+09:00",
+                "2016-12-31T23:59:60Z",
+                1_483_228_800,
+            ),
+            (
+                "1990-12-31T20:29:60-03:30",
+                "1990-12-31T23:59:60Z",
+                662_688_000,
+            ),
+            ("1990-12-31T23:59:60Z", "1990-12-31T23:59:60Z", 662_688_000),
+        ] {
+            assert_eq!(render(local, SubsecondPrecision::Auto), local);
+            let value = parse(local).unwrap();
+            assert!(value.local.time.is_leap_second(), "{local}");
+            let instant = value.to_utc_instant().unwrap();
+            assert!(instant.leap_second, "{local}");
+            assert_eq!(instant.unix_seconds, unix, "{local}");
+            assert_eq!(parse(utc).unwrap().to_utc_instant().unwrap(), instant);
+        }
+        // The same wall clock a minute off, a day off, or in the wrong
+        // zone is no leap second.
+        for text in [
+            "1990-12-31T15:58:60-08:00",
+            "1990-12-31T16:00:60-08:00",
+            "1990-12-30T15:59:60-08:00",
+            "1991-01-01T15:59:60-08:00",
+            "1990-12-31T15:59:60+08:00",
+            "1990-12-31T15:59:60Z",
+        ] {
+            assert_eq!(
+                parse(text).unwrap_err().kind(),
+                ErrorKind::Invalid("a leap second that UTC did not insert"),
+                "{text}"
+            );
+        }
+    }
+
     /// RFC 3339 §5.6: `full-date` is `date-fullyear "-" date-month "-"
     /// date-mday`, and `time-numoffset` is `("+" / "-") time-hour ":"
     /// time-minute`, an hour of 00 through 23 and no seconds.

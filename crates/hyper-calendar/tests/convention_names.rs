@@ -70,6 +70,7 @@ use hyper_calendar::hc_seasons::ColdFoodConvention;
 use hyper_calendar::hc_seasons::meiyu::PlumRainRule;
 use hyper_calendar::hc_seasons::meridian::NamedMeridian;
 use hyper_calendar::hc_seasons::zodiac::{Ayanamsa, SiderealSign};
+use hyper_calendar::hc_tz::Disambiguation;
 
 #[path = "support/boundaries.rs"]
 mod boundaries;
@@ -537,6 +538,18 @@ fn listed() -> Vec<Listed> {
             paragraphs: &[],
             methods: &["janmashtami"],
             fields: &[("FestivalDay", "reading"), ("FestivalReading", "id")],
+        },
+        Listed {
+            what: "local-time resolution policies",
+            ids: Disambiguation::ALL
+                .iter()
+                .map(|policy| policy.id())
+                .collect(),
+            dts: "DisambiguationPolicy",
+            exports: &[(FFI_SOURCE, "hc_mktime"), (WASM_SOURCE, "hc_mktime")],
+            paragraphs: &[],
+            methods: &["mktime"],
+            fields: &[("MktimePolicy", "id")],
         },
         Listed {
             what: "historical Indian eras over the lunisolar months",

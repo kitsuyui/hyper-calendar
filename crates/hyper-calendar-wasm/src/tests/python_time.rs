@@ -87,6 +87,44 @@ fn the_week_of_the_year_follows_the_rule() {
     );
 }
 
+/// ISO 8601's week date and CPython's `date.fromisocalendar`: week 53 of
+/// 2020, day 5, is 1 January 2021 and week 1 of 2026, day 1, is 29 December
+/// 2025; week 53 of 2025 does not exist. `time.asctime` of 1993-06-20 is a
+/// Sunday, and a second of 60 is refused as `datetime` refuses it.
+#[test]
+fn a_week_date_names_its_day_and_asctime_writes_a_reading() {
+    assert_eq!(
+        hc_fixed_from_week(2020, 53, 5, 1, 4),
+        hc_gregorian_to_fixed(2021, 1, 1)
+    );
+    assert_eq!(
+        hc_fixed_from_week(2026, 1, 1, 1, 4),
+        hc_gregorian_to_fixed(2025, 12, 29)
+    );
+    assert_eq!(hc_fixed_from_week(2025, 53, 1, 1, 4), HC_ERR_INVALID_DATE);
+    assert_eq!(hc_fixed_from_week(2026, 1, 8, 1, 4), HC_ERR_INVALID_DATE);
+    assert_eq!(hc_fixed_from_week(2026, 1, 1, 0, 4), HC_ERR_OUT_OF_RANGE);
+    let asctime = |fields: [i64; 6]| {
+        read_lines(|buffer, capacity| unsafe {
+            hc_asctime(
+                fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], buffer, capacity,
+            )
+        })
+    };
+    assert_eq!(
+        asctime([1993, 6, 20, 23, 21, 5]),
+        "Sun Jun 20 23:21:05 1993\n"
+    );
+    assert_eq!(
+        unsafe { hc_asctime(2016, 12, 31, 23, 59, 60, core::ptr::null_mut(), 0) },
+        HC_ERR_INVALID_DATE
+    );
+    assert_eq!(
+        unsafe { hc_asctime(0, 1, 1, 0, 0, 0, core::ptr::null_mut(), 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+}
+
 /// `time.localtime` and `time.mktime` in a zone: the epoch is 09:00 in
 /// Tokyo, and Berlin's 02:30 on 29 March 2026 does not exist.
 #[cfg(feature = "tz")]
@@ -136,5 +174,98 @@ fn localtime_and_mktime_read_a_zone() {
     assert_eq!(
         unsafe { hc_localtime(0, mars.as_ptr(), mars.len(), core::ptr::null_mut(), 0) },
         HC_ERR_UNKNOWN
+    );
+}
+
+/// CPython's `zoneinfo`: Berlin's 02:30 on 2026-10-25 is read twice, 1 792 888 200
+/// at +2 h and 1 792 891 800 at +1 h; on 2026-03-29 it is skipped, the
+/// reading being 1 774 744 200 under +2 h and 1 774 747 800 under +1 h. The
+/// four policies are listed, and a second of 60 is refused in any zone.
+#[cfg(feature = "tz")]
+#[test]
+fn a_local_reading_is_resolved_before_a_policy_chooses() {
+    let berlin = "Europe/Berlin";
+    let resolution = |fields: [i64; 6], zone: &str| {
+        read_lines(|buffer, capacity| unsafe {
+            hc_local_resolution(
+                fields[0],
+                fields[1],
+                fields[2],
+                fields[3],
+                fields[4],
+                fields[5],
+                zone.as_ptr(),
+                zone.len(),
+                buffer,
+                capacity,
+            )
+        })
+    };
+    assert_eq!(
+        resolution([2026, 7, 1, 12, 0, 0], berlin),
+        "unique\t1782900000\t7200\t1782900000\t7200\n"
+    );
+    assert_eq!(
+        resolution([2026, 10, 25, 2, 30, 0], berlin),
+        "ambiguous\t1792888200\t7200\t1792891800\t3600\n"
+    );
+    assert_eq!(
+        resolution([2026, 3, 29, 2, 30, 0], berlin),
+        "nonexistent\t1774744200\t7200\t1774747800\t3600\n"
+    );
+    let null = core::ptr::null_mut();
+    assert_eq!(
+        unsafe {
+            hc_local_resolution(2026, 2, 30, 0, 0, 0, berlin.as_ptr(), berlin.len(), null, 0)
+        },
+        HC_ERR_INVALID_DATE
+    );
+    assert_eq!(
+        unsafe {
+            hc_local_resolution(
+                2016,
+                12,
+                31,
+                23,
+                59,
+                60,
+                berlin.as_ptr(),
+                berlin.len(),
+                null,
+                0,
+            )
+        },
+        HC_ERR_INVALID_DATE
+    );
+    let mars = "Mars/Olympus";
+    assert_eq!(
+        unsafe { hc_local_resolution(2026, 1, 1, 0, 0, 0, mars.as_ptr(), mars.len(), null, 0) },
+        HC_ERR_UNKNOWN
+    );
+    let policies = read_lines(|buffer, capacity| unsafe { hc_mktime_policies(buffer, capacity) });
+    let ids: Vec<&str> = policies
+        .lines()
+        .map(|line| line.split('\t').next().unwrap())
+        .collect();
+    assert_eq!(ids, ["earliest", "latest", "reject", "push-forward"]);
+    // `hc_mktime` refuses a second 60 on a day that ended in a leap second.
+    let utc = "UTC";
+    let reject = "reject";
+    assert_eq!(
+        unsafe {
+            hc_mktime(
+                2016,
+                12,
+                31,
+                23,
+                59,
+                60,
+                utc.as_ptr(),
+                utc.len(),
+                reject.as_ptr(),
+                reject.len(),
+            )
+        },
+        HC_ERR_INVALID_DATE
     );
 }

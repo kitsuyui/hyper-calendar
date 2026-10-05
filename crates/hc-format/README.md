@@ -65,11 +65,11 @@ renders into its own buffer. `String`-returning conveniences sit behind the
 | Ordinal date `2026-264` | yes | yes | |
 | Week date `2026-W38-1` | yes | yes | |
 | Week `2026-W38` | yes | yes | |
-| Expanded year `+002026`, `-000500` | yes | **no** | See "What it refuses, and what it does not carry". |
+| Expanded year `+002026`, `-000500` | yes | **no** | In the basic format the digits are split by the workspace's count; see "What it refuses, and what it does not carry". |
 | Time `14:30:05`, `14:30`, `14` | yes | yes | |
 | Fraction on any component, `14.5`, `14:30,5`, `14:30:05.123456789` | yes | yes | Both the `.` and the `,` decimal mark. |
 | `24:00` end of day | yes | yes | Kept distinct from `00:00` of the next day. |
-| `23:59:60` leap second | yes | yes | Only at `23:59`, in UTC, on a day the leap-second table says ended in an inserted second; see below. |
+| `23:59:60` leap second | yes | yes | Where the zone's clock reads UTC's `23:59:60`, `15:59:60-08:00` as well as `23:59:60Z` (RFC 3339 §5.7, §5.8), on a day the leap-second table says ended in an inserted second; see below. |
 | Zone `Z`, `+09`, `+09:00`, `+0900`, `+09:00:00`, `+090000` | yes | yes | |
 | Unqualified local time | yes | yes | Stays unqualified. It is not UTC. |
 | Duration `P3Y6M4DT12H30M5S`, `PT0.5S`, `P1W` | yes | yes | |
@@ -94,10 +94,17 @@ what they are.
   bring them back. Accepting them would mean inferring a century from nothing.
 * **Expanded years in the basic format** (`+0020260921`). ISO 8601 leaves the
   digit count of an expanded year "to agreement between the communicating
-  parties". In the extended format a separator says where the year stops; in
-  the basic format nothing does, so the same string is a six-digit year plus
-  a month-day or an eight-digit year plus a day-of-year. This refuses to
-  guess rather than picking one silently.
+  parties". In the extended format a separator says where the year stops, and
+  in a week date the `W`; in the basic format nothing does, so the same string
+  is a six-digit year plus a month-day or an eight-digit year plus a
+  day-of-year. This reads the digits by the count the workspace writes,
+  `hc_calendar::gregorian::expanded_year_digits`, so that a date written by
+  one crate reads back in another: nine digits are a six-digit year and a day
+  of the year (`-000001001`), ten a six-digit year, a month and a day
+  (`+0123450607`), eleven a seven-digit year, a month and a day; eight or
+  fewer are the year alone, twelve or more are refused. The one spelling this
+  cannot give back, the ordinal date of a year beyond six digits, which
+  would read as another year's month and day, the writers refuse.
 * **Reduced end-of-interval representations** (`2026-09-21T14:00/16:00`,
   where the end inherits the start's high-order components). The inheritance
   rule is ambiguous whenever the start is itself of reduced accuracy, and
@@ -105,14 +112,18 @@ what they are.
   error. Both ends must be complete.
 * **Not carried: `--` as an interval separator.** ISO 8601 permits it where
   `/` cannot be used. Not yet done; `/` is always available here.
-* **Leap seconds outside `23:59`, or on a day with none.** A positive leap
-  second is inserted at the end of a UTC day, so `23:59:60Z` is real on the
-  27 days `hc_core::leap` lists, from 1972-06-30 to 2016-12-31; the same
-  physical second read in Tokyo is `08:59:60`, which `hc_calendar::CivilTime`
-  cannot hold. Rather than silently shifting it, `hc-format` refuses it and
-  says so, as it refuses `23:59:60` in any zone but UTC, on a day the table
+* **A second 60 that is no leap second, or on a day with none.** A positive
+  leap second is inserted at the end of a UTC day, so `23:59:60Z` is real on
+  the 27 days `hc_core::leap` lists, from 1972-06-30 to 2016-12-31, and a
+  zone's clock reads the same physical second at that time less its offset
+  (RFC 3339 §5.7): `1990-12-31T15:59:60-08:00`, §5.8's own example, and
+  Tokyo's `2017-01-01T08:59:60+09:00` are read, held by
+  `hc_calendar::CivilTime::leap_second` at their own hour and minute.
+  `hc-format` refuses a second 60 whose reading shifted to UTC is not
+  `23:59:60`, as `23:59:60+01:00` or `15:59:60+08:00`, one on a day the table
   says had none, and, as no one has announced them, on a day past the
-  table's validity.
+  table's validity. A reading with no zone names no instant and takes the
+  second 60 at `23:59` alone.
 * **More than 18 fractional digits.** An attosecond is this library's
   resolution. Truncating further digits would produce a value that no longer
   round-trips, so it is an error instead.

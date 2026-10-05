@@ -75,6 +75,8 @@ out of range is `out-of-range`, never an unrecognised number.
 | a weekday, 0 through 6 | `hc_calendar_weekday` | the dates of `year` −9 999 999 through 9 999 999; a date that does not exist is `HC_ERR_INVALID_DATE`, a year outside them `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_monthrange`, `hc_monthcalendar` | `year` −9 999 999 through 9 999 999 and `month` 1 through 12, and for `hc_monthcalendar` a `first_weekday` 0 through 6; another month or weekday is `HC_ERR_INVALID_DATE`, another year `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_week_of_year` | `fixed` of the years −9 999 998 through 9 999 998, with `first_weekday` and `min_days` 1 through 7; any other is `HC_ERR_OUT_OF_RANGE` |
+| a fixed day | `hc_fixed_from_week` | `week_year` −9 999 998 through 9 999 998, `week` 1 through the weeks the year has under the rule (52 or 53) and `weekday` 1 through 7, with `first_weekday` and `min_days` 1 through 7; a week or a weekday outside is `HC_ERR_INVALID_DATE`, any other `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_asctime` | a reading `year` 1 through 9999, `month`, `day`, `hour`, `minute`, `second`, each field as `datetime` checks it; a field out of range, a second of 60 included, is `HC_ERR_INVALID_DATE`, and a year outside 1 through 9999 `HC_ERR_OUT_OF_RANGE` |
 | a fixed day | `hc_fixed_from_unix` | every `unix_seconds`; the day is between −106 751 990 448 138 and 106 751 991 886 463 |
 | a fixed day | `hc_fixed_from_unix_in_zone` | `unix_seconds` −315 631 497 830 400 through 315 507 195 014 399, the instants of the years −9 999 994 to 9 999 994 by UTC, which a zone's rules answer for: they are read on the Gregorian years ±9 999 999, and an instant's answer reads the years around its own, which beyond these would give standard time whatever the rules say; the day is at most one from the day `hc_fixed_from_unix` gives; any other is `HC_ERR_OUT_OF_RANGE`, and a name neither the loaded zones nor the built-in table knows `HC_ERR_UNKNOWN` |
 | seconds | `hc_unix_from_fixed` | `fixed` −104 165 947 503 through 106 751 991 886 463: an earlier day's midnight would be at or below `HC_ERR_FLOOR` seconds, and a later one's would overflow an `i64`; either is `HC_ERR_OUT_OF_RANGE` |
@@ -209,7 +211,9 @@ out of range is `out-of-range`, never an unrecognised number.
 | 0 | `hc_zone_load` | any name and bytes; bytes that are not TZif are `HC_ERR_MALFORMED` |
 | a byte length | `hc_zone_offset` | `unix_seconds` −315 631 497 830 400 through 315 507 195 014 399, the instants of `hc_fixed_from_unix_in_zone`; any other is `HC_ERR_OUT_OF_RANGE`, and a name neither the loaded zones nor the built-in table knows `HC_ERR_UNKNOWN` |
 | a byte length | `hc_localtime` | `unix_seconds` −315 631 497 830 400 through 315 507 195 014 399, the instants of `hc_zone_offset`; any other is `HC_ERR_OUT_OF_RANGE` |
-| a POSIX second | `hc_mktime` | a reading `year`, `month`, `day`, `hour`, `minute`, `second` of the years −9 999 994 through 9 999 994, each field as `datetime` checks it; a field out of range, or a reading no instant or two instants name under `reject`, is `HC_ERR_INVALID_DATE`, and a reading beyond those years `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_local_resolution` | a reading `year`, `month`, `day`, `hour`, `minute`, `second` of the years −9 999 994 through 9 999 994, each field as `datetime` checks it; a field out of range, a second of 60 included, is `HC_ERR_INVALID_DATE`, a name neither the loaded zones nor the built-in table knows `HC_ERR_UNKNOWN`, and a reading beyond those years `HC_ERR_OUT_OF_RANGE` |
+| a POSIX second | `hc_mktime` | a reading `year`, `month`, `day`, `hour`, `minute`, `second` of the years −9 999 994 through 9 999 994, each field as `datetime` checks it; a field out of range, a second of 60 included, or a reading no instant or two instants name under `reject`, is `HC_ERR_INVALID_DATE`, and a reading beyond those years `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_mktime_policies` | no `i64` input: the same lines every call |
 | a byte length | `hc_zone_name`, `hc_format_pattern` | `unix_seconds` −315 631 497 830 400 through 315 507 195 014 399, the instants of `hc_zone_offset`; any other is `HC_ERR_OUT_OF_RANGE`, and a zone or a field not known `HC_ERR_UNKNOWN` |
 | a byte length | `hc_mars_time`, `hc_body_time` | no `i64` input: the instants within 100 Julian years of J2000.0 (J1900.0, 1899-12-31T12:00 TT, to 2100-01-01T12:00 TT); any other, or an instant or longitude not finite, is `HC_ERR_OUT_OF_RANGE`, and for `hc_body_time` a body `hc_bodies` does not list `HC_ERR_UNKNOWN` and the Sun `HC_ERR_NO_DATA` |
 | a byte length | `hc_zones`, `hc_zone_location` | no `i64` input: every locale tag, and for `hc_zone_location` every name `zone1970.tab`, `zone.tab` or `backward` places; a name they do not, such as `UTC`, is `HC_ERR_UNKNOWN` |
@@ -369,8 +373,9 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `gregorianYear(fixed)`, `gregorianMonth(fixed)`, `gregorianDay(fixed)`, `weekday(fixed)`, `dayOfYear(fixed)` | `hc_gregorian_year`, `hc_gregorian_month`, `hc_gregorian_day`, `hc_weekday`, `hc_day_of_year` | a number |
 | `gmtime(unixSeconds)`, `localtime(unixSeconds, zone)` | `hc_gmtime`, `hc_localtime` | a `StructTime` |
 | `timegm(year, month, day, hour, minute, second)`, `mktime(year, month, day, hour, minute, second, zone, policy)` | `hc_timegm`, `hc_mktime` | a number |
+| `localResolution(year, month, day, hour, minute, second, zone)`, `mktimePolicies()` | `hc_local_resolution`, `hc_mktime_policies` | a `LocalResolution`; `MktimePolicy[]` |
 | `isleap(year)`, `leapdays(y1, y2)`, `calendarWeekday(year, month, day)` | `hc_isleap`, `hc_leapdays`, `hc_calendar_weekday` | a boolean; a number; a number |
-| `monthrange(year, month)`, `monthcalendar(year, month, firstWeekday)`, `weekOfYear(fixed, firstWeekday, minDays)` | `hc_monthrange`, `hc_monthcalendar`, `hc_week_of_year` | a `MonthRange`; `number[][]`; a `WeekOfYear` |
+| `monthrange(year, month)`, `monthcalendar(year, month, firstWeekday)`, `weekOfYear(fixed, firstWeekday, minDays)`, `fixedFromWeek(weekYear, week, weekday, firstWeekday, minDays)`, `asctime(year, month, day, hour, minute, second)` | `hc_monthrange`, `hc_monthcalendar`, `hc_week_of_year`, `hc_fixed_from_week`, `hc_asctime` | a `MonthRange`; `number[][]`; a `WeekOfYear`; a fixed day number; a string |
 | `isLeapYear(fixed)`, `dayHasLeapSecond(unixSeconds, strict)` | `hc_is_leap_year`, `hc_day_has_leap_second` | a boolean |
 | `fixedFromUnix(unixSeconds)`, `unixFromFixed(fixed)`, `taiMinusUtc(unixSeconds, strict)` | `hc_fixed_from_unix`, `hc_unix_from_fixed`, `hc_tai_minus_utc` | a number |
 | `formatIsoDate(fixed)`, `parseIsoDate(text)` | `hc_format_iso_date`, `hc_parse_iso_date` | a string; a fixed day number |
@@ -654,31 +659,31 @@ warning an error, one job a layer.
 
 | Feature | Exports | Brings in | Bytes | Size |
 | --- | --- | --- | ---: | ---: |
-| `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, TAI − UTC and leap seconds, the functions of Python's `time` and `calendar` modules and the week of the year under a week rule | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 47,138 | 46 KiB |
-| `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai_minus_utc_exact`, `hc_utc_from_tai_exact`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_uuid_timestamp_encode`, `hc_ntp_encode`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`, `hc_tt_bipm`, `hc_dotnet_ticks_from_unix`, `hc_unix_from_dotnet_ticks`, `hc_six_hour_clock`, `hc_civil_from_six_hour_clock`, `hc_french_decimal_time`, `hc_civil_from_french_decimal_time`, `hc_epochs`: POSIX time to and from TAI, the epochs `hc-core` carries, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, Julian and Besselian epochs, TT(BIPM) from a caller's series, .NET ticks, and the Ethiopian and Swahili six-hour clocks | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time`, `epoch_notation`, `tt_bipm` and `dotnet`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` and `east_african_hours` | 143,105 | 140 KiB |
-| `time-codes` | `hc_ccsds_decode`, `hc_ccsds_encode`, `hc_ccsds_decode_from_epoch`, `hc_ccsds_encode_from_epoch`, `hc_ccsds_ascii_parse`, `hc_ccsds_ascii_format`, `hc_radio_decode`, `hc_radio_encode`, `hc_jjy_call_sign_decode`, `hc_jjy_call_sign_encode`, `hc_irig_decode`, `hc_irig_encode`, `hc_irig_formats`, `hc_irig_frame_start`: the CCSDS time codes, binary and ASCII, the long-wave radio time codes of JJY, DCF77 and WWVB, and the IRIG serial time codes, read and written; a layer of its own so that `timestamps` stays small | nothing beyond `civil`'s crates: `hc-core`'s `ccsds`, `hc-format`'s `ccsds`, `radio` and `irig` | 122,776 | 120 KiB |
-| `calendars` | `hc_describe_day`, `hc_day_extras`, `hc_calendar_units`, `hc_parse_date`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_day_period`, `hc_format_number`, `hc_parse_number`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_gregorian_adoption`, `hc_naming_period_on`, `hc_locale_chain`, `hc_locale_info`, `hc_plural_category`, `hc_names`, `hc_case`, `hc_isolate`, `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_tithi_at`, `hc_tithis_of_day`, `hc_ayanamsas`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor`, `hc_festival_readings`, `hc_janmashtami`, `hc_vaishnava_day`, `hc_vishti_free_span`, `hc_rahu_at`, `hc_rahu_ingresses`, `hc_era_new_year`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_ioc_olympiad_on`, `hc_olympic_games`, `hc_era_table`, `hc_babylonian_regnal_year`, `hc_equinox_new_year_margin`, `hc_shmuel_tekufah`, `hc_day_name`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_chinese_age`, `hc_chinese_almanac_solar_terms`, `hc_hebrew_sabbatical_cycle_year`, `hc_asian_day`, `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_kalam`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_at`, `hc_nakshatra_of_day`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_rounichi`, `hc_mansion_undertakings`, `hc_almanac_person_days`, `hc_tibetan_almanac_day`, `hc_tibetan_planets`, `hc_bhutanese_winter_solstice`, `hc_tibetan_festival_day`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_kumbh_yogas`, `hc_pushkaram_rivers`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`, `hc_solar_new_year`, `hc_southeast_asian_year_type`, `hc_maya_long_count`, `hc_akan_day`, `hc_weton`, `hc_buddhist_lk_year`, `hc_tiruvalluvar_year`, `hc_solar_nakshatra_ingresses`, `hc_japanese_era_year`, `hc_locale_format`, `hc_plural_categories`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale, and a date written in one read back; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_at`, `hc_nakshatra_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_ioc_olympiad_on`, `hc_babylonian_regnal_year`, `hc_equinox_new_year_margin`, `hc_shmuel_tekufah`, `hc_day_name`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_chinese_age`, `hc_chinese_almanac_solar_terms`, `hc_asian_day`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_rounichi`, `hc_mansion_undertakings`, `hc_almanac_person_days`, `hc_tibetan_almanac_day`, `hc_tibetan_planets`, `hc_bhutanese_winter_solstice`, `hc_tibetan_festival_day`; `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`: the northern year's name, the choghadiya, Panchak, the Kumbh and Pushkaram conditions, the folk days and the night watches, each named in a locale; `hc_tithi_at`, `hc_tithis_of_day`, `hc_ayanamsas`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor`, `hc_festival_readings`, `hc_janmashtami`, `hc_vaishnava_day`, `hc_vishti_free_span`, `hc_rahu_at`, `hc_rahu_ingresses`, `hc_era_new_year`, `hc_era_table`, `hc_olympic_games`, `hc_kumbh_yogas`, `hc_pushkaram_rivers`: the tithi with its span, the repeated and skipped ones, the named ayanāṃśas and a value of one, the Smārta and Vaiṣṇava readings of Janmāṣṭamī, Rāhu and Ketu, and the new years of the Indian eras, the eras of four tables, the Olympic Games, and the Kumbh conditions and the Pushkaram rivers; `hc_southeast_asian_year_type`, `hc_maya_long_count`, `hc_akan_day`, `hc_weton`, `hc_buddhist_lk_year`, `hc_tiruvalluvar_year`, `hc_solar_nakshatra_ingresses`: the Khmer and Lao year types, the Maya counts under a named correlation, the Akan day and the weton with their names, Sri Lanka's Buddhist year, the Tiruvaḷḷuvar year and the Sun's nakṣatra entries; `hc_japanese_era_year`, `hc_locale_format`, `hc_plural_categories`: a Japanese era year as written, a locale's standard formats and the categories its plural rules name | every `hc-calendars-*` crate, `hc-astro`, `hc-almanac`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 1,712,602 | 1.63 MiB |
-| `holiday` | `hc_holiday_is_day_off`, `hc_holiday_add_business_days`, `hc_holiday_business_days_between`, `hc_holiday_is_weekend`, `hc_holiday_next`, `hc_holiday_previous`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_holiday_groups`, `hc_holiday_coverage`, `hc_holidays_on_in`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_roman_1960_office_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 2,497,961 | 2.38 MiB |
-| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day`, `hc_plum_rains`, `hc_pentad_traditions`, `hc_pentad_in_tradition`, `hc_zassetsu_in_year`, `hc_seasonal_days_in_year`, `hc_pentads_in_year`, `hc_tropical_signs_in_year`, `hc_sidereal_signs_in_year`, `hc_traditional_tanabata`, `hc_principal_phases_in_month` | `hc-seasons`, `hc-astro` | 146,277 | 143 KiB |
+| `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, TAI − UTC and leap seconds, the functions of Python's `time` and `calendar` modules, `time.asctime` among them, and the week of the year under a week rule and the day a week date names | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 50,111 | 49 KiB |
+| `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai_minus_utc_exact`, `hc_utc_from_tai_exact`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_uuid_timestamp_encode`, `hc_ntp_encode`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`, `hc_tt_bipm`, `hc_dotnet_ticks_from_unix`, `hc_unix_from_dotnet_ticks`, `hc_six_hour_clock`, `hc_civil_from_six_hour_clock`, `hc_french_decimal_time`, `hc_civil_from_french_decimal_time`, `hc_epochs`: POSIX time to and from TAI, the epochs `hc-core` carries, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, Julian and Besselian epochs, TT(BIPM) from a caller's series, .NET ticks, and the Ethiopian and Swahili six-hour clocks | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time`, `epoch_notation`, `tt_bipm` and `dotnet`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` and `east_african_hours` | 145,993 | 143 KiB |
+| `time-codes` | `hc_ccsds_decode`, `hc_ccsds_encode`, `hc_ccsds_decode_from_epoch`, `hc_ccsds_encode_from_epoch`, `hc_ccsds_ascii_parse`, `hc_ccsds_ascii_format`, `hc_radio_decode`, `hc_radio_encode`, `hc_jjy_call_sign_decode`, `hc_jjy_call_sign_encode`, `hc_irig_decode`, `hc_irig_encode`, `hc_irig_formats`, `hc_irig_frame_start`: the CCSDS time codes, binary and ASCII, the long-wave radio time codes of JJY, DCF77 and WWVB, and the IRIG serial time codes, read and written; a layer of its own so that `timestamps` stays small | nothing beyond `civil`'s crates: `hc-core`'s `ccsds`, `hc-format`'s `ccsds`, `radio` and `irig` | 125,616 | 123 KiB |
+| `calendars` | `hc_describe_day`, `hc_day_extras`, `hc_calendar_units`, `hc_parse_date`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_day_period`, `hc_format_number`, `hc_parse_number`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_gregorian_adoption`, `hc_naming_period_on`, `hc_locale_chain`, `hc_locale_info`, `hc_plural_category`, `hc_names`, `hc_case`, `hc_isolate`, `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_tithi_at`, `hc_tithis_of_day`, `hc_ayanamsas`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor`, `hc_festival_readings`, `hc_janmashtami`, `hc_vaishnava_day`, `hc_vishti_free_span`, `hc_rahu_at`, `hc_rahu_ingresses`, `hc_era_new_year`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_ioc_olympiad_on`, `hc_olympic_games`, `hc_era_table`, `hc_babylonian_regnal_year`, `hc_equinox_new_year_margin`, `hc_shmuel_tekufah`, `hc_day_name`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_chinese_age`, `hc_chinese_almanac_solar_terms`, `hc_hebrew_sabbatical_cycle_year`, `hc_asian_day`, `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_kalam`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_at`, `hc_nakshatra_of_day`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_rounichi`, `hc_mansion_undertakings`, `hc_almanac_person_days`, `hc_tibetan_almanac_day`, `hc_tibetan_planets`, `hc_bhutanese_winter_solstice`, `hc_tibetan_festival_day`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_kumbh_yogas`, `hc_pushkaram_rivers`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`, `hc_solar_new_year`, `hc_southeast_asian_year_type`, `hc_maya_long_count`, `hc_akan_day`, `hc_weton`, `hc_buddhist_lk_year`, `hc_tiruvalluvar_year`, `hc_solar_nakshatra_ingresses`, `hc_japanese_era_year`, `hc_locale_format`, `hc_plural_categories`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale, and a date written in one read back; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_at`, `hc_nakshatra_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_ioc_olympiad_on`, `hc_babylonian_regnal_year`, `hc_equinox_new_year_margin`, `hc_shmuel_tekufah`, `hc_day_name`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_chinese_age`, `hc_chinese_almanac_solar_terms`, `hc_asian_day`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_rounichi`, `hc_mansion_undertakings`, `hc_almanac_person_days`, `hc_tibetan_almanac_day`, `hc_tibetan_planets`, `hc_bhutanese_winter_solstice`, `hc_tibetan_festival_day`; `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`: the northern year's name, the choghadiya, Panchak, the Kumbh and Pushkaram conditions, the folk days and the night watches, each named in a locale; `hc_tithi_at`, `hc_tithis_of_day`, `hc_ayanamsas`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor`, `hc_festival_readings`, `hc_janmashtami`, `hc_vaishnava_day`, `hc_vishti_free_span`, `hc_rahu_at`, `hc_rahu_ingresses`, `hc_era_new_year`, `hc_era_table`, `hc_olympic_games`, `hc_kumbh_yogas`, `hc_pushkaram_rivers`: the tithi with its span, the repeated and skipped ones, the named ayanāṃśas and a value of one, the Smārta and Vaiṣṇava readings of Janmāṣṭamī, Rāhu and Ketu, and the new years of the Indian eras, the eras of four tables, the Olympic Games, and the Kumbh conditions and the Pushkaram rivers; `hc_southeast_asian_year_type`, `hc_maya_long_count`, `hc_akan_day`, `hc_weton`, `hc_buddhist_lk_year`, `hc_tiruvalluvar_year`, `hc_solar_nakshatra_ingresses`: the Khmer and Lao year types, the Maya counts under a named correlation, the Akan day and the weton with their names, Sri Lanka's Buddhist year, the Tiruvaḷḷuvar year and the Sun's nakṣatra entries; `hc_japanese_era_year`, `hc_locale_format`, `hc_plural_categories`: a Japanese era year as written, a locale's standard formats and the categories its plural rules name | every `hc-calendars-*` crate, `hc-astro`, `hc-almanac`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 1,744,147 | 1.66 MiB |
+| `holiday` | `hc_holiday_is_day_off`, `hc_holiday_add_business_days`, `hc_holiday_business_days_between`, `hc_holiday_is_weekend`, `hc_holiday_next`, `hc_holiday_previous`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_holiday_groups`, `hc_holiday_coverage`, `hc_holidays_on_in`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_roman_1960_office_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 2,500,832 | 2.38 MiB |
+| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day`, `hc_plum_rains`, `hc_pentad_traditions`, `hc_pentad_in_tradition`, `hc_zassetsu_in_year`, `hc_seasonal_days_in_year`, `hc_pentads_in_year`, `hc_tropical_signs_in_year`, `hc_sidereal_signs_in_year`, `hc_traditional_tanabata`, `hc_principal_phases_in_month` | `hc-seasons`, `hc-astro` | 149,172 | 146 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals`, `hc_planck_units`, `hc_bp_convert`, `hc_deep_convert`, `hc_deep_compare` | `hc-deep-time`, `hc-uncertainty` | 201,046 | 196 KiB |
-| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zone_offset`, `hc_zones`, `hc_zone_location`, `hc_localtime`, `hc_mktime`: the day and the offset by a zone's rules, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` or `zone-names` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 111,502 | 109 KiB |
-| `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_decan_at`, `hc_drekkana_at`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event`, `hc_horizons`, `hc_sunrise`, `hc_sunset`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_gmat_from_gmt`, `hc_gmt_from_gmat`, `hc_prayer_times`, `hc_prayer_methods`, `hc_zmanim`, `hc_temporal_hour`, `hc_edo_time`, `hc_unix_from_edo_time`, `hc_planetary_hour`, `hc_planetary_hours_of_day`, `hc_moonrise`, `hc_moonset`, `hc_ut1r_iers2010`, `hc_ut1s_iers2010`, `hc_zonal_tide_ut1_effect`, `hc_equation_of_time`, `hc_solar_noon`, `hc_solar_midnight`, `hc_dawn`, `hc_dusk` | `hc-astro`, `hc-seasons`, and `hc-i18n`'s names of the horizons and the planets | 182,887 | 179 KiB |
+| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zone_offset`, `hc_zones`, `hc_zone_location`, `hc_localtime`, `hc_mktime`, `hc_local_resolution`, `hc_mktime_policies`: the day and the offset by a zone's rules, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` or `zone-names` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 116,191 | 113 KiB |
+| `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_decan_at`, `hc_drekkana_at`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event`, `hc_horizons`, `hc_sunrise`, `hc_sunset`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_gmat_from_gmt`, `hc_gmt_from_gmat`, `hc_prayer_times`, `hc_prayer_methods`, `hc_zmanim`, `hc_temporal_hour`, `hc_edo_time`, `hc_unix_from_edo_time`, `hc_planetary_hour`, `hc_planetary_hours_of_day`, `hc_moonrise`, `hc_moonset`, `hc_ut1r_iers2010`, `hc_ut1s_iers2010`, `hc_zonal_tide_ut1_effect`, `hc_equation_of_time`, `hc_solar_noon`, `hc_solar_midnight`, `hc_dawn`, `hc_dusk` | `hc-astro`, `hc-seasons`, and `hc-i18n`'s names of the horizons and the planets | 185,767 | 181 KiB |
 | `orbital` | `hc_orbit_at`, `hc_orbit_series`, `hc_daily_insolation` | `hc-orbital`, `hc-uncertainty` | 65,436 | 64 KiB |
-| `jupiter` | `hc_jupiter_at`, `hc_jupiter_ingresses`, `hc_jupiter_risings`, `hc_kumbh_by_sky`, `hc_pushkaram_by_sky`, `hc_pushkarams_in_year`, `hc_kumbhs_in_year_by_sky`, `hc_jupiter_stations`, `hc_pushkaram_rules`: where Jupiter is, tropical and sidereal; its entries into the sidereal signs, its heliacal risings and its stations; and the Kumbh Mela and Pushkaram found from them, where `hc_kumbh` and `hc_pushkaram` take Jupiter's sign from the caller | `hc-astro`'s `jupiter` and `vsop87_jupiter` (3 625 terms of VSOP87B, 55 kB of tables), `hc-seasons`, `hc-calendars-indic`, `hc-i18n` | 233,292 | 228 KiB |
+| `jupiter` | `hc_jupiter_at`, `hc_jupiter_ingresses`, `hc_jupiter_risings`, `hc_kumbh_by_sky`, `hc_pushkaram_by_sky`, `hc_pushkarams_in_year`, `hc_kumbhs_in_year_by_sky`, `hc_jupiter_stations`, `hc_pushkaram_rules`: where Jupiter is, tropical and sidereal; its entries into the sidereal signs, its heliacal risings and its stations; and the Kumbh Mela and Pushkaram found from them, where `hc_kumbh` and `hc_pushkaram` take Jupiter's sign from the caller | `hc-astro`'s `jupiter` and `vsop87_jupiter` (3 625 terms of VSOP87B, 55 kB of tables), `hc-seasons`, `hc-calendars-indic`, `hc-i18n` | 236,163 | 231 KiB |
 | `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`, `hc_circad_date`: Mars time, the Darian date, the surface missions' sols, the solar day and local time of every body in `hc-planetary`'s table, and the dates of the Titan, Galilean and Martiana calendars | `hc-planetary`, `hc-astro` | 97,713 | 95 KiB |
 | `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies`, `hc_orbit_rate_offset`, `hc_rocket`, `hc_flip_and_burn`, `hc_doppler`, `hc_velocity_add`, `hc_schwarzschild_radius`, `hc_proper_time_uncertain` | `hc-relativity`, `hc-uncertainty` | 78,319 | 76 KiB |
 | `places` | `hc_territories`, `hc_subdivisions`, `hc_place_name`: what each carried locale calls every territory and every ISO 3166-2 subdivision CLDR 48 names | `hc-i18n`'s `place_names`: 2.8 MB of names, 2.6 MB of them the subdivisions' | 2,969,197 | 2.83 MiB |
-| `humanize` | `hc_relative_time`, `hc_relative_day`, `hc_relative_day_at`, `hc_duration`, `hc_unit_choice`, `hc_relative_time_with`, `hc_approximate_duration`, `hc_list_forms`: how one instant reads from another, which calendar day a day is seen from another, with a time of day, how long a span is, which unit a span is said in and a span hedged as a round number, in every locale `hc-humanize` carries, under the conversational thresholds or a table and a rounding of the caller's | `hc-humanize`, `hc-i18n` | 831,867 | 812 KiB |
-| `natural` | `hc_apnumber`, `hc_fractional`, `hc_scientific`, `hc_metric`, `hc_naturalsize`, `hc_naturallist`, `hc_intword`, `hc_naturaldelta`, `hc_naturaltime`, `hc_precisedelta`, `hc_naturalday`, `hc_naturaldate`, `hc_ordinal`, `hc_intcomma`, `hc_intcomma_float`, `hc_clamp`: the number, size, list and time functions of Python's `humanize`, in the language of the catalogue (of its 35) that serves the locale | `hc-humanize`'s `natural` and its 35 gettext catalogues | 853,608 | 834 KiB |
-| `datetime` | `hc_parse_datetime`, `hc_format_datetime`, `hc_format_iso_date_as`, `hc_iso_date_parts`, `hc_iso_duration`, `hc_format_iso_duration`, `hc_iso_interval`: ISO 8601 beyond a calendar date, date-times with a zone read as readings and written in ISO 8601, RFC 3339, RFC 2822, HTTP and Python's `isoformat`, week and ordinal dates, dates of reduced accuracy, durations, intervals and repeating intervals | `hc-format` | 111,491 | 109 KiB |
-| `patterns` | `hc_parse_pattern`, `hc_parse_pattern_in`: a text read against a POSIX `strptime`, Python `strptime` or CLDR pattern, in the C locale's names or a locale's | `hc-format`'s `patterns`, and every carried locale's names from `hc-i18n` | 523,853 | 512 KiB |
-| `zone-names` | `hc_zone_name`, `hc_format_pattern`: a zone's name at an instant in a locale, as the CLDR fields `z`, `O`, `v` and `V` write it, from CLDR 48's metazones and names in every carried locale | `hc-tz`, `hc-format`'s `patterns::zone`, `hc-i18n`'s `zone_names` and every locale's exemplar cities: about 600 kB of names | 1,772,262 | 1.69 MiB |
-| `uncertainty` | `hc_edtf_parse`, `hc_edtf_relations`, `hc_significant`, `hc_significant_op`, `hc_uncertain`, `hc_uncertain_op`, `hc_interval`: significant figures, error bars, intervals and EDTF dates: how well a time is known, and the arithmetic that keeps it honest. From hc-uncertainty. | `hc-uncertainty`, `hc-calendar` | 141,114 | 138 KiB |
+| `humanize` | `hc_relative_time`, `hc_relative_day`, `hc_relative_day_at`, `hc_duration`, `hc_unit_choice`, `hc_relative_time_with`, `hc_approximate_duration`, `hc_list_forms`: how one instant reads from another, which calendar day a day is seen from another, with a time of day, how long a span is, which unit a span is said in and a span hedged as a round number, in every locale `hc-humanize` carries, under the conversational thresholds or a table and a rounding of the caller's | `hc-humanize`, `hc-i18n` | 834,722 | 815 KiB |
+| `natural` | `hc_apnumber`, `hc_fractional`, `hc_scientific`, `hc_metric`, `hc_naturalsize`, `hc_naturallist`, `hc_intword`, `hc_naturaldelta`, `hc_naturaltime`, `hc_precisedelta`, `hc_naturalday`, `hc_naturaldate`, `hc_ordinal`, `hc_intcomma`, `hc_intcomma_float`, `hc_clamp`: the number, size, list and time functions of Python's `humanize`, in the language of the catalogue (of its 35) that serves the locale | `hc-humanize`'s `natural` and its 35 gettext catalogues | 856,463 | 836 KiB |
+| `datetime` | `hc_parse_datetime`, `hc_format_datetime`, `hc_format_iso_date_as`, `hc_iso_date_parts`, `hc_iso_duration`, `hc_format_iso_duration`, `hc_iso_interval`: ISO 8601 beyond a calendar date, date-times with a zone read as readings and written in ISO 8601, RFC 3339, RFC 2822, HTTP and Python's `isoformat`, week and ordinal dates, dates of reduced accuracy, durations, intervals and repeating intervals | `hc-format` | 114,797 | 112 KiB |
+| `patterns` | `hc_parse_pattern`, `hc_parse_pattern_in`: a text read against a POSIX `strptime`, Python `strptime` or CLDR pattern, in the C locale's names or a locale's | `hc-format`'s `patterns`, and every carried locale's names from `hc-i18n` | 527,060 | 515 KiB |
+| `zone-names` | `hc_zone_name`, `hc_format_pattern`: a zone's name at an instant in a locale, as the CLDR fields `z`, `O`, `v` and `V` write it, from CLDR 48's metazones and names in every carried locale | `hc-tz`, `hc-format`'s `patterns::zone`, `hc-i18n`'s `zone_names` and every locale's exemplar cities: about 600 kB of names | 1,776,911 | 1.69 MiB |
+| `uncertainty` | `hc_edtf_parse`, `hc_edtf_relations`, `hc_significant`, `hc_significant_op`, `hc_uncertain`, `hc_uncertain_op`, `hc_interval`: significant figures, error bars, intervals and EDTF dates: how well a time is known, and the arithmetic that keeps it honest. From hc-uncertainty. | `hc-uncertainty`, `hc-calendar` | 143,994 | 141 KiB |
 | `units` | `hc_units`, `hc_unit_convert`, `hc_rates`, `hc_frame_period`, `hc_tempo`: the 53 exactly defined units of time, their lengths as exact ratios, conversions, frame and sample periods and note lengths at a tempo, from hc-units. | `hc-units` | 52,141 | 51 KiB |
-| `fiscal` | `hc_fiscal_profiles`, `hc_fiscal_year_on`, `hc_fiscal_year_span`, `hc_week_year_systems`, `hc_week_year_on`: fiscal, tax and academic years that do not begin on 1 January, and the 52/53-week reporting years, from hc-fiscal. | `hc-fiscal`, `hc-calendars-solar` | 129,175 | 126 KiB |
-| `name-days` | `hc_name_day_lists`, `hc_name_days_on`, `hc_name_day`: name-day lists, each a named edition of a named authority, and the countries whose list the crate declines to ship, from hc-name-days. | `hc-name-days` | 194,315 | 190 KiB |
-| `attributes` | `hc_attribution_authorities`, `hc_attributions`, `hc_attributions_on`, `hc_harvest_moon`: birthstones, birth flowers, full-moon names, month names, zodiac stones and weekday attributions, each list named with its authority, and the Harvest Moon, from hc-attributes. | `hc-attributes`, `hc-seasons`, `hc-astro` | 131,805 | 129 KiB |
-| `full` | all of the above, `places` included, and nothing else: the facade's own `full`, whose extra crates no export reads, is not enabled | everything the layers above bring in | 8,873,750 | 8.46 MiB |
+| `fiscal` | `hc_fiscal_profiles`, `hc_fiscal_year_on`, `hc_fiscal_year_span`, `hc_week_year_systems`, `hc_week_year_on`: fiscal, tax and academic years that do not begin on 1 January, and the 52/53-week reporting years, from hc-fiscal. | `hc-fiscal`, `hc-calendars-solar` | 132,071 | 129 KiB |
+| `name-days` | `hc_name_day_lists`, `hc_name_days_on`, `hc_name_day`: name-day lists, each a named edition of a named authority, and the countries whose list the crate declines to ship, from hc-name-days. | `hc-name-days` | 197,197 | 193 KiB |
+| `attributes` | `hc_attribution_authorities`, `hc_attributions`, `hc_attributions_on`, `hc_harvest_moon`: birthstones, birth flowers, full-moon names, month names, zodiac stones and weekday attributions, each list named with its authority, and the Harvest Moon, from hc-attributes. | `hc-attributes`, `hc-seasons`, `hc-astro` | 134,725 | 132 KiB |
+| `full` | all of the above, `places` included, and nothing else: the facade's own `full`, whose extra crates no export reads, is not enabled | everything the layers above bring in | 8,907,539 | 8.49 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
@@ -730,7 +735,7 @@ not pass CI.
 
 ### Exports
 
-339 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+343 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -758,6 +763,8 @@ not pass CI.
 | `hc_monthrange(year: i64, month: u32, buffer: *mut u8, capacity: usize) -> i64` | `civil` | Python's `calendar.monthrange(year, month)`: the weekday of the first day of a Gregorian month, Monday 0, and the number of days in the month, as one UTF-8 line, returning the byte length written. |
 | `hc_monthcalendar(year: i64, month: u32, first_weekday: u32, buffer: *mut u8, capacity: usize) -> i64` | `civil` | Python's `calendar.monthcalendar(year, month)`, the weeks of a Gregorian month as UTF-8 lines, returning the byte length written, with the first weekday of the week as an argument. |
 | `hc_week_of_year(fixed: i64, first_weekday: u32, min_days: u32, buffer: *mut u8, capacity: usize) -> i64` | `civil` | A fixed day's week of the year under a week rule, as one UTF-8 line, returning the byte length written. |
+| `hc_fixed_from_week(week_year: i64, week: u32, weekday: u32, first_weekday: u32, min_days: u32) -> i64` | `civil` | The fixed day a week date names under a week rule, or an error sentinel: the inverse of `hc_week_of_year`. |
+| `hc_asctime(year: i64, month: i64, day: i64, hour: i64, minute: i64, second: i64, buffer: *mut u8, capacity: usize) -> i64` | `civil` | Python's `time.asctime` of a Gregorian reading, as one UTF-8 line, returning the byte length written. |
 | `hc_tai64_decode(hex: *const u8, hex_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | A TAI64, TAI64N or TAI64NA label in hexadecimal read back, as one UTF-8 line, returning the byte length written. |
 | `hc_gnss_week(numbering: *const u8, numbering_len: usize, tai_seconds: i64, attoseconds: u64, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The GNSS week and time of week of a TAI instant, as one UTF-8 line, returning the byte length written. |
 | `hc_gnss_to_tai(numbering: *const u8, numbering_len: usize, week: u32, tow_seconds: u32, tow_attoseconds: u64, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The TAI instant of a full GNSS week and a time of week, as one UTF-8 line, returning the byte length written. |
@@ -947,6 +954,8 @@ not pass CI.
 | `hc_zone_location(zone: *const u8, zone_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `tz` | Where one zone is, as the UTF-8 line `hc_zones` writes for it, returning the byte length written. |
 | `hc_localtime(unix_seconds: i64, zone: *const u8, zone_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `tz` | Python's `time.localtime(seconds)` in a zone: the wall-clock reading of a POSIX second as the nine fields of a `struct_time`, one UTF-8 line, returning the byte length written. |
 | `hc_mktime(year: i64, month: i64, day: i64, hour: i64, minute: i64, second: i64, zone: *const u8, zone_len: usize, policy: *const u8, policy_len: usize) -> i64` | `tz` | Python's `time.mktime(tuple)` in a zone: the POSIX second of a wall-clock reading given as its year, month, day, hour, minute and second, or an error sentinel. |
+| `hc_local_resolution(year: i64, month: i64, day: i64, hour: i64, minute: i64, second: i64, zone: *const u8, zone_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `tz` | What a wall-clock reading means in a zone before a policy reduces it to one instant, as one UTF-8 line, returning the byte length written. |
+| `hc_mktime_policies(buffer: *mut u8, capacity: usize) -> i64` | `tz` | The policies `hc_mktime` reads for a reading two instants name or none names, as UTF-8 lines, returning the byte length written. |
 | `hc_earth_rotation_angle(ut1_unix_seconds: f64, buffer: *mut u8, capacity: usize) -> i64` | `sky` | The Earth Rotation Angle at a UT1 instant, as one UTF-8 line, returning the byte length written. |
 | `hc_gmst_iau2006(ut1_unix_seconds: f64, buffer: *mut u8, capacity: usize) -> i64` | `sky` | The Greenwich mean sidereal time by the IAU 2006 convention at a UT1 instant, as one UTF-8 line, returning the byte length written. |
 | `hc_gmst_iau1982(ut1_unix_seconds: f64, buffer: *mut u8, capacity: usize) -> i64` | `sky` | The Greenwich mean sidereal time by the IAU 1982 convention at a UT1 instant, as one UTF-8 line, returning the byte length written. |
@@ -1130,12 +1139,16 @@ below could not be confirmed).
 
 A text that is not in the syntax is `HC_ERR_MALFORMED`; a date or a time
 that does not exist, 31 February or `24:00:01`, `HC_ERR_INVALID_DATE`, as is a
-`23:59:60` in a zone that is not UTC or on a day the leap-second table says did
-not end in an inserted second (the second 60 falls at 23:59:60 UTC, on the 27
-days from 1972-06-30 to 2016-12-31 that ended in one; a reading with no zone
-names no instant and is let through); a value the library cannot hold, and a
-`23:59:60` past the table's validity, whose day no one has announced,
-`HC_ERR_OUT_OF_RANGE`; a syntax, form or precision not named `HC_ERR_UNKNOWN`. The library will not take an unqualified local
+second 60 that is not UTC's `23:59:60` at the text's offset, or is on a day
+the leap-second table says did not end in an inserted second. RFC 3339 §5.7
+shifts the leap second by the zone's offset, so the second 60 is read where
+the zone's clock shows UTC's `23:59:60`, on one of the 27 days from
+1972-06-30 to 2016-12-31 that ended in one: `1990-12-31T15:59:60-08:00`
+(RFC 3339 §5.8's own example) and `2017-01-01T08:59:60+09:00` are read, and
+`1990-12-31T15:59:60+08:00` or `1990-12-31T23:59:60-08:00` are not; a
+reading with no zone names no instant, and its second 60 is read at `23:59`
+alone. A value the library cannot hold, and a second 60 past the table's
+validity, whose day no one has announced, is `HC_ERR_OUT_OF_RANGE`; a syntax, form or precision not named `HC_ERR_UNKNOWN`. The library will not take an unqualified local
 time for UTC: `2026-09-21T14:30:05` is a reading on somebody's wall clock,
 the same text 14 hours apart in Auckland and Honolulu, and the line that
 reads it has no offset and no instant.
@@ -1208,7 +1221,14 @@ buffer, capacity)` writes a fixed day as an ISO 8601 `calendar`
 `extended` or the `basic` style, with no separators: `2026W391`. The year of a
 week date is the week-numbering year, so 2021-01-03 is `2020-W53-7`. Python's
 `isocalendar` and `%j` agree. A year outside 0000 to 9999 is written with a
-sign and six or more digits, ISO 8601's expanded form.
+sign and six or more digits, ISO 8601's expanded form. A basic date has no
+separator after the year, so `hc_parse_datetime` and `hc_iso_date_parts` split
+the digits by the count the workspace writes, six below a million and seven
+below ten million: `-0000010101` is the first day of the year −1,
+`+0123450607` the 7th of June of the year 12 345, and `-000001001` the first
+day of the year −1 by its ordinal; the one basic spelling that would read as
+another year, the ordinal date of a year beyond six digits, is
+`HC_ERR_OUT_OF_RANGE` when written.
 
 | # | Column | Holds |
 | --- | --- | --- |
@@ -1316,7 +1336,11 @@ alternatives, its backtracking and its resolution, and a date the text
 leaves out taken from 1900-01-01; or `cldr`, a pattern of UTS #35 Part 4,
 `yyyy-MM-dd'T'HH:mm:ssXXX`. A text that does not match the pattern, or a
 pattern the library does not read, is `HC_ERR_MALFORMED`, and fields that name
-a date or time that does not exist, 30 February, `HC_ERR_INVALID_DATE`.
+a date or time that does not exist, 30 February, `HC_ERR_INVALID_DATE`, as is
+a second 60 that is not a leap second UTC inserted, read at the zone's offset
+and on the day as `hc_parse_datetime` reads it, so that the same text has the
+same status in both; a second 60 past the leap-second table is
+`HC_ERR_OUT_OF_RANGE` in both.
 `hc_parse_pattern_in(syntax_ptr, syntax_len, pattern_ptr, pattern_len,
 text_ptr, text_len, locale_ptr, locale_len, buffer, capacity)` adds the names of a locale to the C locale's: `21.
 Dezember 2026` against `d. MMMM y` with `de`. CPython's `strptime` reads the
@@ -2123,9 +2147,11 @@ modules that work on a year, a month, a day or a POSIX second, as the
 facade's `civil::StructTime` and `civil::calendar` have them: `hc_gmtime`,
 `hc_timegm`, `hc_isleap`, `hc_leapdays`, `hc_calendar_weekday`,
 `hc_monthrange` and `hc_monthcalendar`, each answering as the Python 3.13
-documentation's examples do, and `hc_week_of_year`, which numbers the
-weeks of a year under any week rule. The `tz` layer adds `hc_localtime` and
-`hc_mktime`, the two that need a zone. A year outside the Gregorian
+documentation's examples do, `hc_asctime`, and `hc_week_of_year`, which
+numbers the weeks of a year under any week rule, with `hc_fixed_from_week`,
+the day a week date names. The `tz` layer adds `hc_localtime` and
+`hc_mktime`, the two that need a zone, and `hc_local_resolution` and
+`hc_mktime_policies` for the reading `hc_mktime` has to choose for. A year outside the Gregorian
 module's −9 999 999 to 9 999 999 is `HC_ERR_OUT_OF_RANGE`; a date that does
 not exist, a month outside 1 to 12 or a first weekday above 6 is
 `HC_ERR_INVALID_DATE`.
@@ -2160,7 +2186,9 @@ unchecked, as the documentation's "each other's inverse" needs, so a day
 `HC_ERR_INVALID_DATE`. `hc_mktime(year, month, day, hour, minute, second,
 zone_ptr, zone_len, policy_ptr, policy_len)`, in the `tz` layer, is Python's
 `time.mktime` in a zone, each field checked as `datetime(*tuple[:6])`
-checks them; `policy` says what a reading two instants name, on the
+checks them, so that a second of 60 is `HC_ERR_INVALID_DATE` on every day and
+in every zone, as `datetime(2016, 12, 31, 23, 59, 60)` raises: a wall-clock
+reading carries no leap second; `policy` says what a reading two instants name, on the
 morning the clocks go back, or none, when they go forward, becomes —
 `earliest`, `latest`, `reject` or `push-forward`, where Python reads
 `tm_isdst` — and under `reject` either reading is `HC_ERR_INVALID_DATE`.
@@ -2227,6 +2255,31 @@ outside the Gregorian years, is `HC_ERR_OUT_OF_RANGE`.
 
 UTS #35's own example: 1 January 2021, a Friday, is `2021 1 52 1` under
 Sunday and 1 and `2020 53 53 0` under Monday and 4.
+
+`hc_fixed_from_week(week_year, week, weekday, first_weekday, min_days)` is the
+inverse, the fixed day a week date names under the same rule, `weekday`
+being the ISO 8601 number of the day, Monday 1 to Sunday 7: week 53 of 2020,
+day 5, under Monday and 4 is 1 January 2021, as CPython's
+`date.fromisocalendar(2020, 53, 5)` has it. A weekday outside 1 to 7, a week
+of 0 or one the year does not have (week 53 of a year of 52 weeks, which names
+no day as 31 February names none) is `HC_ERR_INVALID_DATE`, and a rule
+outside 1 to 7 or a year whose weeks leave the Gregorian years
+`HC_ERR_OUT_OF_RANGE`.
+
+### A reading as `asctime` writes it
+
+`hc_asctime(year, month, day, hour, minute, second, buffer, capacity)` writes
+Python's `time.asctime` of a Gregorian reading, one line of one cell.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | text | the weekday and month abbreviations in English, the day of the month padded with a space to two characters, the time and the year: `Sun Jun 20 23:21:05 1993` |
+
+The weekday is the date's, as `datetime.ctime` computes it; `time.asctime`
+reads the tuple's `tm_wday`, which this call has no field for. Each field is
+checked as `datetime(*tuple[:6])` checks them, so that a month or day that
+does not exist, an hour of 24 and a second of 60 are `HC_ERR_INVALID_DATE`, and a year outside 1 to 9999,
+which `datetime` cannot hold, is `HC_ERR_OUT_OF_RANGE`.
 
 ## Every calendar
 
@@ -5488,6 +5541,43 @@ wall-clock reading, `policy` — `earliest`, `latest`, `reject` or
 `push-forward` — standing where Python reads `tm_isdst` for a reading two
 instants name or none does.
 
+### What a local reading means in a zone
+
+`hc_local_resolution(year, month, day, hour, minute, second, zone_ptr,
+zone_len, buffer, capacity)` answers what `hc_mktime` has to choose for: what
+a wall-clock reading is in a zone before a policy reduces it to one instant,
+as one line. The fields are checked as for `hc_mktime`, a second of 60
+included (`HC_ERR_INVALID_DATE`), and `zone` is read as for `hc_localtime`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | kind | `unique` where the zone's clock showed the reading once, `ambiguous` where the clocks went back and showed it twice, `nonexistent` where they went forward past it |
+| 2 | first unix seconds | the first instant, as a POSIX second: the reading itself, the earlier of two occurrences, or for a skipped reading the instant it would be under the offset in force after the gap, before the gap opened |
+| 3 | first offset | the offset of the first instant, in seconds east of UTC |
+| 4 | second unix seconds | the second instant: the reading again where it is unique, the later occurrence, or for a skipped reading the instant it would be under the offset in force before the gap, after the gap closed |
+| 5 | second offset | the offset of the second instant |
+
+Berlin's 02:30 on 25 October 2026 is `ambiguous 1792888200 7200 1792891800
+3600`, the two occurrences an hour apart, and on 29 March 2026 `nonexistent
+1774744200 7200 1774747800 3600`; CPython's `zoneinfo` gives the same two
+instants and offsets with `fold=1` and `fold=0`.
+
+### The `mktime` policies
+
+`hc_mktime_policies(buffer, capacity)` lists the policies `hc_mktime` reads for a
+reading two instants name or none names, one line a policy, in the order of
+the table `hc-tz` holds them in.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | id | the identifier `hc_mktime` reads: `earliest`, `latest`, `reject` or `push-forward` |
+| 2 | description | what the policy makes of a repeated reading and of a skipped one, in words |
+
+`earliest` and `latest` take the instant before or after; `reject` refuses
+either reading; `push-forward` is the `compatible` policy of ECMAScript
+Temporal and the default resolver of `java.time`. Each is its own convention
+under its own name (`docs/policy.md` §5), where Python reads `tm_isdst`.
+
 ### Where each zone is
 
 A page that knows only the reader's zone —
@@ -7355,8 +7445,11 @@ floor, ceil, floor_token, ceil_token)` is `clamp`: the value written with
 `percent:N`, `"{:.N%}"` — or, below `floor` or above `ceil`, that bound
 written the same way after its token, `<0.01`, `>99%`; Python's `format`
 also takes a function, which has no shape at a boundary, so a caller who
-needs one formats the value the line gives. Its language cell is `en`, as
-`clamp` writes no word a catalogue translates.
+needs one formats the value the line gives. A bound is a float, as `value`
+is, so under `display` a whole-number bound is written as one: `clamp(-5,
+"display", floor=0)` is `<0.0`, where Python's `humanize.clamp` given the
+integer 0 writes `<0`; `fixed:N` and `percent:N` write the same for either.
+Its language cell is `en`, as `clamp` writes no word a catalogue translates.
 
 ```js
 const now = Math.floor(Date.now() / 1000);

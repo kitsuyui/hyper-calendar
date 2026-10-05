@@ -678,10 +678,11 @@ for.
 
 ## Time zones
 
-The zone engine of `hc-tz` is not a calendar and has a system document, [systems/time-zones.md](systems/time-zones.md). These rows are what it does not carry yet.
+The zone engine of `hc-tz` is not a calendar and has a system document, [systems/time-zones.md](systems/time-zones.md). These rows are the conventions it names and what it does not carry yet.
 
 | System | Id | Crate | Status |
 | --- | --- | --- | --- |
+| The policies that reduce a wall-clock reading two instants name, or none, to one instant | `earliest`, `latest`, `reject`, `push-forward` | `hc-tz` | Done — `Disambiguation::ALL`, a table with a sentence each and the identifiers `hc_mktime` reads; `reject` refuses either reading, `push-forward` is the `compatible` policy of ECMAScript Temporal and the default resolver of `java.time`, and Python reads `tm_isdst` instead; `hc_local_resolution` gives both instants and their offsets before a policy chooses, and `hc_mktime_policies` lists the table ([policy.md](policy.md) §5); see [systems/time-zones.md](systems/time-zones.md) |
 | Compiled-in zone database (the IANA rules and history, every zone) | — | `hc-tz` | Researching — `hc-tz` compiles in eighteen POSIX-string zones and the zone locations (about 22 kB) and reads a zone's rules from a TZif file or from what the caller loads. A full database is megabytes. Missing: a decision on how the IANA data is carried (a separate data crate, or generated tables) and a test that holds each zone to the TZif the release compiles |
 
 ## Relativistic clocks

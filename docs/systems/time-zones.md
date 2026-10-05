@@ -162,6 +162,22 @@ difference is the length of the gap.
 `PushForward` is the `compatible` policy of ECMAScript Temporal and the
 default of `java.time` (the crate's own description; not read here).
 
+The four are each their own convention under their own name
+([policy.md](../policy.md) §5): `Disambiguation::ALL` is the table, with the
+identifiers `earliest`, `latest`, `reject` and `push-forward`, a sentence
+each (`description`) and the lookup `by_id` that `hc_mktime` reads its
+`policy` word by. Python's `time.mktime` has no such word and reads
+`tm_isdst`. `hc_mktime_policies` lists the table, and `hc_local_resolution`
+gives what comes before a policy: the kind of reading, `unique`, `ambiguous`
+or `nonexistent`, with both instants and the offset each is read under. Berlin's
+02:30 on 29 March 2026 is `nonexistent`, `before_gap` 1 774 744 200 under
++02:00 and `after_gap` 1 774 747 800 under +01:00, and on 25 October 2026
+`ambiguous`, 1 792 888 200 under +02:00 and 1 792 891 800 under +01:00;
+CPython 3.9.6's `zoneinfo` gives the same instants with `fold=1` and
+`fold=0` for the skipped reading and `fold=0` and `fold=1` for the repeated
+one. A second 60 is no reading in any zone and is refused (`hc_mktime`,
+`hc_local_resolution`), as `datetime(2016, 12, 31, 23, 59, 60)` raises.
+
 ### The daylight flag and summer time
 
 `is_dst_at` is the zone's own flag, from the rule or the file's `isdst`; it
@@ -416,8 +432,14 @@ not by the quotations.
 ## Code
 
 `crates/hc-tz/src/zone.rs`, `posix.rs`, `tzif.rs`, `offset.rs`, `fixed.rs`,
-`system.rs` and `builtin.rs`, and `crates/hyper-calendar/src/zone_lines.rs`.
-The tests that anchor them, in `hc-tz`:
+`system.rs` and `builtin.rs`, and `crates/hyper-calendar/src/zone_lines.rs`;
+the boundary's `hc_mktime`, `hc_local_resolution` and `hc_mktime_policies` are
+`crates/hyper-calendar/src/python_lines.rs`, whose tests
+`a_local_reading_resolves_to_one_two_or_no_instants`,
+`the_mktime_policies_are_the_tables` and
+`mktime_refuses_a_second_60_on_every_day_in_every_zone` anchor them.
+The tests that anchor the zones, in `hc-tz`:
+`the_policies_are_a_table_with_a_sentence_each`,
 `the_skipped_hour_resolves_to_no_instant_and_names_the_gap`,
 `the_repeated_hour_resolves_to_two_instants`,
 `disambiguation_policies_pick_the_documented_instant`,

@@ -456,6 +456,9 @@ test("the Python time, week, solar New Year, pentad, Moon and list lines read th
   assert.deepEqual([...COLUMNS.monthrange], columnsAfter("### A month's range"));
   assert.deepEqual([...COLUMNS.monthcalendar], columnsAfter("### A month's calendar"));
   assert.deepEqual([...COLUMNS.weekOfYear], columnsAfter("### The week of the year"));
+  assert.deepEqual([...COLUMNS.asctime], columnsAfter("### A reading as `asctime` writes it"));
+  assert.deepEqual([...COLUMNS.localResolution], columnsAfter("### What a local reading means in a zone"));
+  assert.deepEqual([...COLUMNS.mktimePolicy], columnsAfter("### The `mktime` policies"));
   assert.deepEqual([...COLUMNS.solarNewYear], columnsAfter("## Solar New Years"));
   assert.deepEqual([...COLUMNS.pentadsInYear], columnsAfter("### Every pentad of a year"));
   assert.deepEqual([...COLUMNS.moonCrossing], columnsAfter("### Moonrise and moonset"));

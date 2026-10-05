@@ -46,6 +46,8 @@ test("the civil methods answer", () => {
   assert.equal(hc.monthrange(2026, 2).days, 28);
   assert.equal(hc.monthcalendar(2026, 2).length, 5);
   assert.equal(hc.weekOfYear(rd).week, 39);
+  assert.equal(hc.fixedFromWeek(2026, 39, 1), rd);
+  assert.equal(hc.asctime(2026, 9, 21), "Mon Sep 21 00:00:00 2026");
 });
 
 test("a method of another layer throws not-exported when called, not at load", () => {
@@ -100,6 +102,8 @@ test("a method of another layer throws not-exported when called, not at load", (
     pentadsInYear: () => hc.pentadsInYear(2024, "japan"),
     localtime: () => hc.localtime(0, "Asia/Tokyo"),
     mktime: () => hc.mktime(1970, 1, 1, 9, 0, 0, "Asia/Tokyo"),
+    localResolution: () => hc.localResolution(1970, 1, 1, 9, 0, 0, "Asia/Tokyo"),
+    mktimePolicies: () => hc.mktimePolicies(),
     solarNewYear: () => hc.solarNewYear("khmer", 2568),
     moonrise: () => hc.moonrise("usno", 738_886, 31.78, 35.24, 740),
     moonset: () => hc.moonset("usno", 738_886, 31.78, 35.24, 740),

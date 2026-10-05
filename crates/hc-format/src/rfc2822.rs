@@ -27,19 +27,19 @@ use hc_calendar::{CivilDateTime, CivilTime, Rd, Weekday};
 use hc_calendars_solar::gregorian;
 use hc_tz::UtcOffset;
 
-use crate::error::{ErrorKind, FormatError, FormatResult, ParseResult};
+use crate::error::{ErrorKind, FormatError, FormatResult, ParseResult, ValueError};
 use crate::scan::Scanner;
-use crate::value::{OffsetDateTime, ZoneInfo, check_leap_second, leap_second_error, write_fixed};
+use crate::value::{OffsetDateTime, ZoneInfo, leap_second_error, local_reading, write_fixed};
 
 /// The month abbreviations RFC 5322 defines. They are English and fixed, and
 /// no locale may change them: a `Date:` header is protocol, not prose.
-const MONTHS: [&str; 12] = [
+pub(crate) const MONTHS: [&str; 12] = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
 /// The day-of-week abbreviations, in ISO order so that
 /// [`Weekday::iso_number`] indexes them.
-const WEEKDAYS: [&str; 7] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+pub(crate) const WEEKDAYS: [&str; 7] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 /// The obsolete named zones of RFC 5322 §4.3, with the offsets it assigns.
 ///
@@ -137,20 +137,16 @@ pub fn parse(text: &str) -> ParseResult<OffsetDateTime> {
 
     let day_number = gregorian::to_fixed(year, month, day)
         .map_err(|_| Scanner::error_at(ErrorKind::OutOfRange("date"), day_start))?;
-    let time = civil_time(hour, minute, second)
-        .ok_or_else(|| Scanner::error_at(ErrorKind::OutOfRange("time"), hour_start))?;
-    let local = CivilDateTime::new(day_number, time);
-    check_leap_second(local, zone).map_err(|error| leap_second_error(error, hour_start))?;
+    let local =
+        local_reading(day_number, hour, minute, second, 0, zone).map_err(|error| match error {
+            ValueError::Time(_) => leap_second_error(error, hour_start),
+            _ => Scanner::error_at(ErrorKind::OutOfRange("time"), hour_start),
+        })?;
     Ok(OffsetDateTime {
         local,
         zone,
         written_as_end_of_day: false,
     })
-}
-
-/// Build the civil time, keeping the leap second where it is legal.
-fn civil_time(hour: u8, minute: u8, second: u8) -> Option<CivilTime> {
-    CivilTime::hms(hour, minute, second).ok()
 }
 
 /// Write a value in the form RFC 5322 §3.3 tells a generator to produce.
@@ -381,10 +377,18 @@ mod tests {
         // (`hc_core::leap`, from the IANA `leap-seconds.list`).
         assert!(parse("30 Jun 2015 23:59:60 +0000").is_ok());
         assert!(parse("30 Jun 2015 23:59:60 GMT").is_ok());
+        // The zone's own clock reads the second at UTC's 23:59:60 less its
+        // offset (RFC 3339 §5.7, which RFC 5322 dates follow): the leap
+        // second of 1990 in Pacific Standard Time, and of 2016 in Tokyo.
+        assert!(parse("Mon, 31 Dec 1990 15:59:60 -0800").is_ok());
+        assert!(parse("Sun, 01 Jan 2017 08:59:60 +0900").is_ok());
+        assert!(parse("31 Dec 1990 18:59:60 EST").is_ok());
         for text in [
             "31 Dec 2015 23:59:60 +0000",
             "30 Jun 2015 23:59:60 +0100",
             "30 Jun 2015 23:59:60 EST",
+            "31 Dec 1990 15:59:60 +0800",
+            "31 Dec 1990 16:00:60 -0800",
         ] {
             assert_eq!(
                 parse(text).unwrap_err().kind(),

@@ -351,6 +351,76 @@ macro_rules! exports {
         }
         fn hc_week_of_year(fixed: i64, first_weekday: u32, min_days: u32) -> line =
             $crate::python_lines::week_of_year_line;
+
+        c {
+            /// The fixed day a week date names under a week rule, written to
+            /// `out_fixed`: the inverse of `hc_week_of_year`.
+            ///
+            /// `week_year` is the week-numbering year, `week` the week of it from 1 and
+            /// `weekday` the ISO 8601 number of the day, Monday 1 to Sunday 7.
+            /// `first_weekday` and `min_days` are the rule's, as for `hc_week_of_year`:
+            /// ISO 8601's week date is 1 and 4. A weekday outside 1 to 7, a week of 0 or
+            /// one the year does not have (week 53 of a year of 52 weeks) is
+            /// `HC_ERROR_INVALID_DATE`; a rule outside 1 to 7, or a year whose weeks
+            /// leave the Gregorian years, `HC_ERROR_OUT_OF_RANGE`.
+        }
+        wasm {
+            /// The fixed day a week date names under a week rule, or an error
+            /// sentinel: the inverse of `hc_week_of_year`.
+            ///
+            /// `week_year` is the week-numbering year, `week` the week of it from 1 and
+            /// `weekday` the ISO 8601 number of the day, Monday 1 to Sunday 7.
+            /// `first_weekday` and `min_days` are the rule's, UTS #35's `firstDay` and
+            /// `minDays`, as for `hc_week_of_year`: ISO 8601's week date is 1 and 4
+            /// (week 53 of 2020, Friday, is 1 January 2021) and the United States' is 7
+            /// and 1. A weekday outside 1 to 7, a week of 0 or one the year does not
+            /// have (week 53 of a year of 52 weeks, which names no day as 31 February
+            /// names none) is `HC_ERR_INVALID_DATE`; a rule outside 1 to 7, or a year
+            /// whose weeks leave the Gregorian years, `HC_ERR_OUT_OF_RANGE`.
+        }
+        fn hc_fixed_from_week(
+            week_year: i64,
+            week: u32,
+            weekday: u32,
+            first_weekday: u32,
+            min_days: u32,
+        ) -> value(out_fixed: i64) =
+            $crate::python_lines::fixed_from_week;
+
+        c {
+            /// Python's `time.asctime` of a Gregorian reading, `Sun Jun 20 23:21:05
+            /// 1993`, as one NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. Each field is checked as
+            /// `datetime(*tuple[:6])` checks them; one out of range, a second of 60
+            /// included, is `HC_ERROR_INVALID_DATE`, and a year outside 1 to 9999,
+            /// which `datetime` cannot hold, `HC_ERROR_OUT_OF_RANGE`. Writes the
+            /// required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// Python's `time.asctime` of a Gregorian reading, as one UTF-8 line,
+            /// returning the byte length written.
+            ///
+            /// One cell: the weekday and month abbreviations in English, the day of the
+            /// month padded with a space to two characters, the time and the year,
+            /// `Sun Jun 20 23:21:05 1993`. The weekday is the date's, as
+            /// `datetime.ctime` computes it, not a field of the call. Each field is
+            /// checked as `datetime(*tuple[:6])` checks them; one out of range, a
+            /// second of 60 included, is `HC_ERR_INVALID_DATE`, and a year outside 1
+            /// to 9999, which `datetime` cannot hold, `HC_ERR_OUT_OF_RANGE`. A null
+            /// `buffer` returns the length the text needs.
+        }
+        fn hc_asctime(
+            year: i64,
+            month: i64,
+            day: i64,
+            hour: i64,
+            minute: i64,
+            second: i64,
+        ) -> line =
+            |year, month, day, hour, minute, second| {
+                $crate::python_lines::asctime_line([year, month, day, hour, minute, second])
+            };
     } };
     ("datetime", $backend:ident) => { $backend! {
         c {
@@ -362,11 +432,12 @@ macro_rules! exports {
             /// another is `HC_ERROR_UNKNOWN`, and null `syntax` or `text`
             /// `HC_ERROR_NULL_POINTER`. Text that is not in the syntax, a date or a date of
             /// reduced accuracy where a date-time was meant, is `HC_ERROR_MALFORMED`; a
-            /// date or time that does not exist, 31 February, `24:00:01`, or `23:59:60` in
-            /// a zone that is not UTC or on a day that did not end in an inserted second,
-            /// `HC_ERROR_INVALID_DATE`; one this library cannot hold, or `23:59:60` past the
-            /// leap-second table, `HC_ERROR_OUT_OF_RANGE`. Writes the required length,
-            /// including the terminator, into `written`.
+            /// date or time that does not exist, 31 February, `24:00:01`, or a second 60
+            /// that is not UTC's `23:59:60` at the text's offset or is on a day that did
+            /// not end in an inserted second, `HC_ERROR_INVALID_DATE`; one this library
+            /// cannot hold, or a second 60 past the leap-second table,
+            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+            /// terminator, into `written`.
         }
         wasm {
             /// A date-time read in a syntax, as one UTF-8 line of eight cells, returning
@@ -394,11 +465,13 @@ macro_rules! exports {
             /// `HC_ERR_UNKNOWN`. Text that is not in the syntax, a date alone or a date of
             /// reduced accuracy under any syntax but `python` (`hc_iso_date_parts` reads
             /// those), is `HC_ERR_MALFORMED`; a date or a time that does not exist is
-            /// `HC_ERR_INVALID_DATE`, and so is a `23:59:60` in a zone that is not UTC or on a
-            /// day the leap-second table says did not end in an inserted second (a reading
-            /// with no zone is let through); one this library cannot hold, and a `23:59:60`
-            /// past the table's validity, whose day no one has announced, is
-            /// `HC_ERR_OUT_OF_RANGE`. `rfc3339` has a calendar date only, an offset hour of
+            /// `HC_ERR_INVALID_DATE`, and so is a second 60 that the zone's clock does not
+            /// read at UTC's `23:59:60` — RFC 3339 §5.7 shifts the leap second by the
+            /// offset, so `1990-12-31T15:59:60-08:00` is read and `15:59:60+08:00` is not —
+            /// or that is on a day the leap-second table says did not end in an inserted
+            /// second (a reading with no zone is read at `23:59:60` alone); one this
+            /// library cannot hold, and a second 60 past the table's validity, whose day no
+            /// one has announced, is `HC_ERR_OUT_OF_RANGE`. `rfc3339` has a calendar date only, an offset hour of
             /// 00 through 23 and no seconds in an offset, and refuses the ISO forms that
             /// have more. A null `buffer` returns the length the text needs.
         }
@@ -612,9 +685,11 @@ macro_rules! exports {
             /// `cldr`, in any case; another is `HC_ERROR_UNKNOWN`, and null `syntax`
             /// `HC_ERROR_NULL_POINTER`. `pattern` and `text` are read as the empty string
             /// when null. A text that does not match, or a pattern not read, is
-            /// `HC_ERROR_MALFORMED`; fields that name a date or time that does not exist
-            /// `HC_ERROR_INVALID_DATE`. Writes the required length, including the
-            /// terminator, into `written`.
+            /// `HC_ERROR_MALFORMED`; fields that name a date or time that does not exist,
+            /// or a second 60 that is not a leap second UTC inserted (as for
+            /// `hc_parse_datetime`), `HC_ERROR_INVALID_DATE`; a second 60 past the
+            /// leap-second table `HC_ERROR_OUT_OF_RANGE`. Writes the required length,
+            /// including the terminator, into `written`.
         }
         wasm {
             /// A text read against a `strptime` or CLDR pattern, as one UTF-8 line of
@@ -635,7 +710,10 @@ macro_rules! exports {
             /// pattern of UTS #35 Part 4 such as `yyyy-MM-dd'T'HH:mm:ssXXX`; in any case, and
             /// another is `HC_ERR_UNKNOWN`. A text that does not match the pattern, or a pattern
             /// the library does not read, is `HC_ERR_MALFORMED`; fields that name a date or a
-            /// time that does not exist, 30 February, `HC_ERR_INVALID_DATE`.
+            /// time that does not exist, 30 February, and a second 60 that is not a leap
+            /// second UTC inserted, read at the zone's offset on a day the leap-second table
+            /// ends in one, as `hc_parse_datetime` reads it, `HC_ERR_INVALID_DATE`; a second 60
+            /// past the table's validity `HC_ERR_OUT_OF_RANGE`.
             /// `hc_parse_pattern_in` reads the names of a locale. A null `buffer` returns the
             /// length the text needs.
         }
@@ -6827,7 +6905,9 @@ macro_rules! exports {
             /// second, written to `out_unix_seconds`.
             ///
             /// Each field is checked as `datetime(*tuple[:6])` checks them; one out
-            /// of range is `HC_ERROR_INVALID_DATE`. `zone` is as for `hc_localtime`.
+            /// of range is `HC_ERROR_INVALID_DATE`, and so is a second of 60, on every
+            /// day and in every zone, as `datetime(2016, 12, 31, 23, 59, 60)` raises: a
+            /// wall-clock reading carries no leap second. `zone` is as for `hc_localtime`.
             /// `policy` is `earliest`, `latest`, `reject` or `push-forward`, in any
             /// case, where Python reads `tm_isdst`: a reading two instants name,
             /// when the clocks go back, is the one it chooses, and one no instant
@@ -6842,7 +6922,9 @@ macro_rules! exports {
             /// second, or an error sentinel.
             ///
             /// Each field is checked as `datetime(*tuple[:6])` checks them; one out
-            /// of range is `HC_ERR_INVALID_DATE`. `zone` is as for `hc_localtime`.
+            /// of range is `HC_ERR_INVALID_DATE`, and so is a second of 60, on every
+            /// day and in every zone, as `datetime(2016, 12, 31, 23, 59, 60)` raises: a
+            /// wall-clock reading carries no leap second. `zone` is as for `hc_localtime`.
             /// `policy` is `earliest`, `latest`, `reject` or `push-forward`, in any
             /// case, where Python reads `tm_isdst`: a reading two instants name,
             /// on the morning the clocks go back, is the one it chooses, and one
@@ -6866,6 +6948,75 @@ macro_rules! exports {
             |year, month, day, hour, minute, second, zone, policy| {
                 $crate::python_lines::mktime([year, month, day, hour, minute, second], zone, policy)
             };
+
+        c {
+            /// What a wall-clock reading means in a zone before a policy reduces it to
+            /// one instant, as one NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. The fields are checked as for
+            /// `hc_mktime`; a field out of range, a second of 60 included, is
+            /// `HC_ERROR_INVALID_DATE`, `zone` is as for `hc_localtime`, and a reading
+            /// the zone's rules do not reach is `HC_ERROR_OUT_OF_RANGE`. Writes the
+            /// required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// What a wall-clock reading means in a zone before a policy reduces it to
+            /// one instant, as one UTF-8 line, returning the byte length written.
+            ///
+            /// Tab-separated: `unique` where the zone's clock showed the reading once,
+            /// `ambiguous` where the clocks went back and showed it twice,
+            /// `nonexistent` where they went forward past it; the first instant, as a
+            /// POSIX second, and its offset in seconds east of UTC; the second instant
+            /// and its offset. A unique reading has the one instant in both places; an
+            /// ambiguous one has its two occurrences, the earlier first; a skipped one
+            /// has the instant it would be under the offset in force after the gap,
+            /// before the gap opened, and the instant it would be under the offset in
+            /// force before it, after the gap closed. The `earliest`, `latest`, `reject`
+            /// and `push-forward` policies of `hc_mktime` (listed by
+            /// `hc_mktime_policies`) choose between the two or refuse. The fields are
+            /// checked as for `hc_mktime`: one out of range, a second of 60 included, is
+            /// `HC_ERR_INVALID_DATE`; `zone` is as for `hc_localtime`, a name neither
+            /// loaded nor built in `HC_ERR_UNKNOWN`, and a reading outside the years the
+            /// rules answer for `HC_ERR_OUT_OF_RANGE`. The name's pointer and bytes fail
+            /// as for `hc_parse_iso_date`. A null `buffer` returns the length the text
+            /// needs.
+        }
+        fn hc_local_resolution(
+            year: i64,
+            month: i64,
+            day: i64,
+            hour: i64,
+            minute: i64,
+            second: i64,
+            zone: name(zone_len),
+        ) -> line =
+            |year, month, day, hour, minute, second, zone| {
+                $crate::python_lines::local_resolution_line(
+                    [year, month, day, hour, minute, second],
+                    zone,
+                )
+            };
+
+        c {
+            /// The policies `hc_mktime` reads for a reading two instants name or none
+            /// names, as NUL-terminated UTF-8 lines in a caller-owned buffer.
+            ///
+            /// The lines are the WebAssembly module's, one a policy. Writes the
+            /// required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// The policies `hc_mktime` reads for a reading two instants name or none
+            /// names, as UTF-8 lines, returning the byte length written.
+            ///
+            /// One line a policy, tab-separated: the identifier `hc_mktime` reads
+            /// (`earliest`, `latest`, `reject`, `push-forward`) and what the policy
+            /// makes of a repeated reading and of a skipped one, in words. Python reads
+            /// `tm_isdst` where these read a word, and the four are each their own
+            /// convention (`docs/policy.md` §5). A null `buffer` returns the length the
+            /// text needs.
+        }
+        fn hc_mktime_policies() -> line =
+            || Ok($crate::python_lines::mktime_policies_lines());
     } };
     ("sky", $backend:ident) => { $backend! {
         c {
@@ -11094,8 +11245,10 @@ macro_rules! exports {
             /// `HC_ERROR_UNKNOWN`, a count that is not a number `HC_ERROR_MALFORMED`
             /// and one above 255 `HC_ERROR_OUT_OF_RANGE`; null is
             /// `HC_ERROR_NULL_POINTER`. `floor` and `ceil` are decimal numbers, or
-            /// null or empty for no bound; other text is `HC_ERROR_MALFORMED`.
-            /// `floor_token` and `ceil_token` are the text written before a bound,
+            /// null or empty for no bound; other text is `HC_ERROR_MALFORMED`. A bound
+            /// is a float, as `value` is: under `display` a whole-number bound is
+            /// written as one, `<0.0` for a `floor` of 0, where Python's `clamp`
+            /// given the integer 0 writes `<0`. `floor_token` and `ceil_token` are the text written before a bound,
             /// null for none. Writes the required length, including the
             /// terminator, into `written`.
         }
@@ -11116,7 +11269,10 @@ macro_rules! exports {
             /// Another word is `HC_ERR_UNKNOWN`, a count that is not a number
             /// `HC_ERR_MALFORMED` and one above 255 `HC_ERR_OUT_OF_RANGE`. `floor`
             /// and `ceil` are decimal numbers, or empty for no bound, `floor` tested
-            /// first as in Python; other text is `HC_ERR_MALFORMED`. A value that is
+            /// first as in Python; other text is `HC_ERR_MALFORMED`. A bound is a
+            /// float, as `value` is: under `display` a whole-number bound is written as
+            /// one, `<0.0` for a `floor` of 0, where Python's `clamp` given the integer
+            /// 0 writes `<0`; `fixed:N` and `percent:N` write the same for both. A value that is
             /// not finite is `NaN`, `+Inf` or `-Inf`, as `hc_fractional` writes them.
             /// The texts fail as for `hc_parse_iso_date`. A null `buffer` returns the
             /// length the text needs.

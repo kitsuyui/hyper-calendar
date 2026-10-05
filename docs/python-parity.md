@@ -201,19 +201,19 @@ span of 10⁹ days and this library does not.
 `civil::StructTime` is `time.struct_time`: nine integers that are not checked
 when built (`calendar.timegm` is documented to take whatever they add up
 to), with `to_date_time` where a tuple that names no moment is refused. At
-the boundary `hc_gmtime`, `hc_timegm`, `hc_localtime` and `hc_mktime` are
-`gmtime`, `timegm`, `localtime` and `mktime`, a `struct_time` crossing as one
-line of its nine fields.
+the boundary `hc_gmtime`, `hc_timegm`, `hc_localtime`, `hc_mktime` and
+`hc_asctime` are `gmtime`, `timegm`, `localtime`, `mktime` and `asctime`, a
+`struct_time` crossing as one line of its nine fields.
 
 | Python | hyper-calendar | Status | Note |
 | --- | --- | --- | --- |
 | `struct_time` | `civil::StructTime` | partial | the nine fields; `tm_zone` and `tm_gmtoff` are the zone's (`TimeZone::abbreviation_at`, `offset_at`) and a reading has no zone of its own |
 | `gmtime(seconds)` | `StructTime::gmtime` | yes | whole seconds; a fraction is dropped, as Python's |
 | `localtime(seconds)` | `StructTime::localtime(unix, &zone)` | yes | the zone is an argument (feature `tz`); with none, there is no local time |
-| `mktime(tuple)` | `StructTime::mktime(&zone, policy)` | partial | a `Disambiguation` where Python reads `tm_isdst` |
+| `mktime(tuple)` | `StructTime::mktime(&zone, policy)` | partial | a `Disambiguation` where Python reads `tm_isdst`, listed by `hc_mktime_policies`, with `hc_local_resolution` for what comes before the policy; a `tm_sec` of 60 is refused on every day, as `datetime(*tuple[:6])` refuses it |
 | `strftime(format, tuple)` | `StructTime::strftime` | yes | feature `format` |
 | `strptime(string, format)` | `StructTime::strptime` | yes | the default format `"%a %b %d %H:%M:%S %Y"` is the caller's to pass; a second of 61 is refused |
-| `asctime(tuple)` | `StructTime::asctime` | yes | |
+| `asctime(tuple)` | `StructTime::asctime` | partial | the weekday is the date's, as `datetime.ctime` has it, where Python's reads `tm_wday` of the tuple; `hc_asctime` takes the six fields and a year of 1 to 9999 |
 | `ctime(seconds)` | `DateTime::ctime` of `from_timestamp` | yes | in a zone the caller gives |
 | `timezone`, `altzone`, `daylight`, `tzname`, `tzset` | — | — | the machine's zone; a zone is an argument and `TimeZone` answers each at an instant |
 | `time`, `time_ns`, `monotonic`, `perf_counter`, `process_time`, `sleep` | — | — | no clock (policy §13) |

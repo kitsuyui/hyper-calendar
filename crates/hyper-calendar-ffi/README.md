@@ -83,6 +83,8 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a weekday, 0 through 6 | `hc_calendar_weekday` | the dates of `year` −9 999 999 through 9 999 999; a date that does not exist is `HC_ERROR_INVALID_DATE`, a year outside them `HC_ERROR_OUT_OF_RANGE` |
 | a line or lines | `hc_monthrange`, `hc_monthcalendar` | `year` −9 999 999 through 9 999 999 and `month` 1 through 12, and for `hc_monthcalendar` a `first_weekday` 0 through 6; another month or weekday is `HC_ERROR_INVALID_DATE`, another year `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_week_of_year` | `fixed` of the years −9 999 998 through 9 999 998, with `first_weekday` and `min_days` 1 through 7; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a fixed day | `hc_fixed_from_week` | `week_year` −9 999 998 through 9 999 998, `week` 1 through the weeks the year has under the rule (52 or 53) and `weekday` 1 through 7, with `first_weekday` and `min_days` 1 through 7; a week or a weekday outside is `HC_ERROR_INVALID_DATE`, any other `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_asctime` | a reading `year` 1 through 9999, `month`, `day`, `hour`, `minute`, `second`, each field as `datetime` checks it; a field out of range, a second of 60 included, is `HC_ERROR_INVALID_DATE`, and a year outside 1 through 9999 `HC_ERROR_OUT_OF_RANGE` |
 | a fixed day | `hc_fixed_from_unix` | every `unix_seconds`; the day is between −106 751 990 448 138 and 106 751 991 886 463 |
 | a POSIX timestamp | `hc_unix_from_fixed` | `fixed` −106 751 990 448 137 through 106 751 991 886 463, the days whose midnight fits an `int64_t`; any other is `HC_ERROR_OUT_OF_RANGE` |
 | TAI seconds | `hc_tai_from_unix` | every `unix_seconds` up to `INT64_MAX − 37`; TAI runs ahead of UTC, so a later one has no TAI reading an `int64_t` holds and is `HC_ERROR_OVERFLOW`; under `strict`, 1961 through the end of the announced table, else `HC_ERROR_NO_DATA` |
@@ -105,7 +107,8 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a line | `hc_harvest_moon` | `year` −999 through 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and a meridian not read `HC_ERROR_UNKNOWN` |
 | a line | `hc_zone_offset` | `unix_seconds` −315 631 497 830 400 through 315 507 195 014 399, the instants of `hc_fixed_from_unix_in_zone`; any other is `HC_ERROR_OUT_OF_RANGE`, and a name neither the loaded zones nor the built-in table knows `HC_ERROR_UNKNOWN` |
 | a line | `hc_localtime` | `unix_seconds` −315 631 497 830 400 through 315 507 195 014 399, the instants of `hc_zone_offset`; any other is `HC_ERROR_OUT_OF_RANGE` |
-| a POSIX second | `hc_mktime` | a reading `year`, `month`, `day`, `hour`, `minute`, `second` of the years −9 999 994 through 9 999 994, each field as `datetime` checks it; a field out of range, or a reading no instant or two instants name under `reject`, is `HC_ERROR_INVALID_DATE`, and a reading beyond those years `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_local_resolution` | a reading `year`, `month`, `day`, `hour`, `minute`, `second` of the years −9 999 994 through 9 999 994, each field as `datetime` checks it; a field out of range, a second of 60 included, is `HC_ERROR_INVALID_DATE`, a name neither the loaded zones nor the built-in table knows `HC_ERROR_UNKNOWN`, and a reading beyond those years `HC_ERROR_OUT_OF_RANGE` |
+| a POSIX second | `hc_mktime` | a reading `year`, `month`, `day`, `hour`, `minute`, `second` of the years −9 999 994 through 9 999 994, each field as `datetime` checks it; a field out of range, a second of 60 included, or a reading no instant or two instants name under `reject`, is `HC_ERROR_INVALID_DATE`, and a reading beyond those years `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_zone_name`, `hc_format_pattern` | `unix_seconds` −315 631 497 830 400 through 315 507 195 014 399, the instants of `hc_zone_offset`; any other is `HC_ERROR_OUT_OF_RANGE`, and a zone or a field not known `HC_ERROR_UNKNOWN` |
 | a POSIX timestamp | `hc_unix_from_fixed_in_zone` | `fixed` −3 652 423 173 through 3 652 422 808, the days of the same years as `hc_fixed_from_unix_in_zone`'s; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a TAI64 label | `hc_tai64_encode` | `tai_seconds` −4 611 686 018 427 387 904 through 4 611 686 018 427 387 903, the seconds of the labels below 2⁶³, and attoseconds below 10¹⁸; any other is `HC_ERROR_OUT_OF_RANGE` |
@@ -365,7 +368,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-335 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+339 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -391,6 +394,8 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_monthrange(int64_t year, uint32_t month, char *buffer, size_t capacity, size_t *written);` | `civil` | Python's `calendar.monthrange(year, month)`: the weekday of the first day of a Gregorian month, Monday 0, and the number of days in the month, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_monthcalendar(int64_t year, uint32_t month, uint32_t first_weekday, char *buffer, size_t capacity, size_t *written);` | `civil` | Python's `calendar.monthcalendar(year, month)`, the weeks of a Gregorian month as NUL-terminated UTF-8 lines in a caller-owned buffer, with the first weekday of the week as an argument. |
 | `HcStatus hc_week_of_year(int64_t fixed, uint32_t first_weekday, uint32_t min_days, char *buffer, size_t capacity, size_t *written);` | `civil` | A fixed day's week of the year under a week rule, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_fixed_from_week(int64_t week_year, uint32_t week, uint32_t weekday, uint32_t first_weekday, uint32_t min_days, int64_t *out_fixed);` | `civil` | The fixed day a week date names under a week rule, written to `out_fixed`: the inverse of `hc_week_of_year`. |
+| `HcStatus hc_asctime(int64_t year, int64_t month, int64_t day, int64_t hour, int64_t minute, int64_t second, char *buffer, size_t capacity, size_t *written);` | `civil` | Python's `time.asctime` of a Gregorian reading, `Sun Jun 20 23:21:05 1993`, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_tai64_decode(const char *hex, int64_t *out_tai_seconds, uint64_t *out_attoseconds);` | `timestamps` | A TAI64, TAI64N or TAI64NA label in hexadecimal read back into the TAI seconds and attoseconds of the instant it names. |
 | `HcStatus hc_gnss_week(const char *numbering, int64_t tai_seconds, uint64_t attoseconds, uint32_t *out_week, uint32_t *out_broadcast, uint32_t *out_tow_seconds, uint64_t *out_tow_attoseconds);` | `timestamps` | The GNSS week and time of week of a TAI instant. |
 | `HcStatus hc_gnss_to_tai(const char *numbering, uint32_t week, uint32_t tow_seconds, uint64_t tow_attoseconds, int64_t *out_tai_seconds, uint64_t *out_attoseconds);` | `timestamps` | The TAI instant of a full GNSS week and a time of week. |
@@ -578,6 +583,8 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_zone_location(const char *zone, const char *locale, char *buffer, size_t capacity, size_t *written);` | `tz` | Where one zone is, as the NUL-terminated UTF-8 line `hc_zones` writes for it, in a caller-owned buffer. |
 | `HcStatus hc_localtime(int64_t unix_seconds, const char *zone, char *buffer, size_t capacity, size_t *written);` | `tz` | Python's `time.localtime(seconds)` in a zone: the wall-clock reading of a POSIX second as the nine fields of a `struct_time`, one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_mktime(int64_t year, int64_t month, int64_t day, int64_t hour, int64_t minute, int64_t second, const char *zone, const char *policy, int64_t *out_unix_seconds);` | `tz` | Python's `time.mktime(tuple)` in a zone: the POSIX second of a wall-clock reading given as its year, month, day, hour, minute and second, written to `out_unix_seconds`. |
+| `HcStatus hc_local_resolution(int64_t year, int64_t month, int64_t day, int64_t hour, int64_t minute, int64_t second, const char *zone, char *buffer, size_t capacity, size_t *written);` | `tz` | What a wall-clock reading means in a zone before a policy reduces it to one instant, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_mktime_policies(char *buffer, size_t capacity, size_t *written);` | `tz` | The policies `hc_mktime` reads for a reading two instants name or none names, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_earth_rotation_angle(double ut1_unix_seconds, double *out_degrees);` | `sky` | The Earth Rotation Angle at a UT1 instant, in degrees, 0 to 360. |
 | `HcStatus hc_gmst_iau2006(double ut1_unix_seconds, double *out_degrees);` | `sky` | The Greenwich mean sidereal time by the IAU 2006 convention at a UT1 instant, in degrees, 0 to 360. |
 | `HcStatus hc_gmst_iau1982(double ut1_unix_seconds, double *out_degrees);` | `sky` | The Greenwich mean sidereal time by the IAU 1982 convention at a UT1 instant, in degrees, 0 to 360. |
@@ -855,12 +862,21 @@ module writes a line this library does too, the nine fields of a
 weeks, in the columns its README gives, and the single numbers go to
 out-parameters. `hc_week_of_year(fixed, first_weekday, min_days, buffer,
 capacity, written)` writes the module's line of a day's week of the year
-under a week rule, ISO 8601's being Monday 1 and 4 days. `hc_localtime(unix_seconds,
+under a week rule, ISO 8601's being Monday 1 and 4 days, and
+`hc_fixed_from_week(week_year, week, weekday, first_weekday, min_days,
+out_fixed)` is its inverse, the fixed day a week date names. `hc_asctime(year,
+month, day, hour, minute, second, buffer, capacity, written)` writes
+`time.asctime` of a reading as the module's one-cell line. `hc_localtime(unix_seconds,
 zone, buffer, capacity, written)` and `hc_mktime(year, month, day, hour,
 minute, second, zone, policy, out_unix_seconds)`, in the `tz` feature, are
 `time.localtime` and `time.mktime` in a named zone, `policy` being
 `earliest`, `latest`, `reject` or `push-forward` where Python reads
-`tm_isdst`.
+`tm_isdst`; a second of 60 is `HC_ERROR_INVALID_DATE` on every day and in every
+zone, as `datetime` refuses it. `hc_local_resolution(year, month, day, hour,
+minute, second, zone, buffer, capacity, written)` writes the module's line of
+what a reading means in a zone, `unique`, `ambiguous` or `nonexistent` with
+both instants and their offsets, and `hc_mktime_policies(buffer, capacity,
+written)` the module's lines of the four policies.
 
 ## Every calendar
 
@@ -966,11 +982,6 @@ name is looked up along, one line per step with the rule that led to it;
 `hc_locale_info(locale, ...)` one line of what the locale is, its subtags
 and keys, parent, default numbering, first day of the week and `minDays`,
 direction, casing and plural rules;
-<<<<<<< HEAD
-`hc_plural_category(locale, number, kind, ...)` the CLDR category a number
-written as text has (`kind` `cardinal`, the form after a count, or
-`ordinal`, the form of a position);
-=======
 `hc_plural_categories(locale, kind, ...)` the module's lines of the
 categories a locale's cardinal or ordinal rules name, each with a number
 that falls in it; `hc_locale_format(locale, calendar, ...)` the module's
@@ -979,10 +990,9 @@ carries for a calendar in CLDR's four lengths, with the available formats,
 under the CLDR calendar type the identifier maps to;
 `hc_japanese_era_year(year, ...)` a Japanese era's year as its dates write
 it, 元 for 1 and the Han numerals after;
-`hc_plural_category(locale, number, kind, ...)` the CLDR cardinal category a
-number written as text has (`kind` `cardinal`; `ordinal` is
-`HC_ERROR_NO_DATA`, since the ordinal rules are not carried);
->>>>>>> 5be55a7c (Bind, document and index the wave E2 exports)
+`hc_plural_category(locale, number, kind, ...)` the CLDR category a number
+written as text has (`kind` `cardinal`, the form after a count, or
+`ordinal`, the form of a position);
 `hc_names(locale, calendar, width, context, ...)` the names a locale has
 for a calendar; `hc_case(locale, mode, text, ...)` a text recased as the
 locale cases it; and `hc_isolate(locale, mode, text, ...)` a text wrapped

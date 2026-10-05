@@ -94,6 +94,18 @@ fn value_refusal(error: ValueError) -> Refusal {
     }
 }
 
+/// The refusal of fields that resolve to no reading: a second 60 that UTC did
+/// not insert at that clock and day is [`Refusal::InvalidDate`], as
+/// [`parse_datetime_line`] answers it for the same text, and one on a day
+/// after the leap-second table ends is [`Refusal::OutOfRange`]; any other
+/// refusal is [`value_refusal`]'s.
+fn reading_refusal(error: ValueError) -> Refusal {
+    match error {
+        ValueError::Time(hc_core::TimeError::OutOfRange) => Refusal::InvalidDate,
+        error => value_refusal(error),
+    }
+}
+
 /// The word a zone is written as in a reading: `none` for no designator, `utc`
 /// for `Z`, `offset` for a numeric one, and `unknown-local` for RFC 3339's
 /// `-00:00`.
@@ -853,7 +865,7 @@ fn parse_pattern_with(
     let resolved = match resolved {
         Ok(value) => Some(value),
         Err(ValueError::MissingField(_)) => None,
-        Err(error) => return Err(value_refusal(error)),
+        Err(error) => return Err(reading_refusal(error)),
     };
     Ok(line(|line| {
         field_cells(line, &fields);
@@ -1154,9 +1166,10 @@ mod tests {
 
     /// A second 60 is a leap second only at the end of a UTC day that was
     /// given one: 2016-12-31 and 2015-06-30 (`hc_core::leap`, from the IANA
-    /// `leap-seconds.list`), not 2026-09-21, 2016-06-30 or 2015-12-31, and not
-    /// at an offset, where 23:59:60 is not the UTC second 60. A day past the
-    /// table is not known to have one.
+    /// `leap-seconds.list`), not 2026-09-21, 2016-06-30 or 2015-12-31, and at
+    /// an offset where the zone's clock reads UTC's 23:59:60, as RFC 3339
+    /// §5.7 shifts it, so that §5.8's `1990-12-31T15:59:60-08:00` is read and
+    /// `23:59:60+01:00` is not. A day past the table is not known to have one.
     #[test]
     fn a_second_60_is_read_only_on_a_day_that_ended_in_a_leap_second() {
         assert_eq!(
@@ -1186,6 +1199,156 @@ mod tests {
         );
         // A reading with no zone names no instant, so no day is refused.
         assert_eq!(reading("iso8601", "2026-09-21T23:59:60")[6], "1");
+    }
+
+    /// RFC 3339 §5.8: `1990-12-31T15:59:60-08:00` is the leap second of
+    /// `1990-12-31T23:59:60Z`, and Japan read the end of 2016 as
+    /// `2017-01-01T08:59:60+09:00`; each names the POSIX second after it.
+    #[test]
+    fn a_second_60_is_read_at_the_zones_own_clock() {
+        assert_eq!(
+            reading("rfc3339", "1990-12-31T15:59:60-08:00"),
+            [
+                "726832",
+                "57600",
+                "0",
+                "offset",
+                "-28800",
+                "662688000",
+                "1",
+                "0"
+            ]
+        );
+        assert_eq!(
+            reading("iso8601", "2017-01-01T08:59:60+09:00"),
+            [
+                "736330",
+                "32400",
+                "0",
+                "offset",
+                "32400",
+                "1483228800",
+                "1",
+                "0"
+            ]
+        );
+        assert_eq!(
+            reading("rfc2822", "Sun, 01 Jan 2017 08:59:60 +0900")[6],
+            "1"
+        );
+        assert_eq!(reading("python", "2017-01-01T08:59:60+09:00")[6], "1");
+        for syntax in ["strftime", "python"] {
+            let line =
+                parse_pattern_line(syntax, "%Y-%m-%dT%H:%M:%S%z", "2017-01-01T08:59:60+0900")
+                    .expect("a reading");
+            let cells = owned(&line);
+            assert_eq!(cells.len(), PATTERN_COLUMNS, "{syntax}");
+            assert_eq!(
+                cells[PATTERN_COLUMNS - READING_COLUMNS..],
+                [
+                    "736330",
+                    "32400",
+                    "0",
+                    "offset",
+                    "32400",
+                    "1483228800",
+                    "1",
+                    "0"
+                ],
+                "{syntax}"
+            );
+        }
+    }
+
+    /// A date a writer here spelled in either style reads back as the day it
+    /// was written for, the expanded years the basic format has no separator
+    /// for among them: the readers split the digits by the count the workspace
+    /// writes, six below a million and seven below ten million. The ordinal
+    /// date of a year beyond six digits is the one basic spelling that would
+    /// read as another year, and is refused when it is written.
+    #[test]
+    fn a_date_written_in_the_basic_style_reads_back() {
+        let day = |year: i64| {
+            hc_calendars_solar::gregorian::to_fixed(year, 6, 7)
+                .unwrap()
+                .0
+        };
+        for year in [
+            -9_999_999, -1_000_000, -10_000, -1_001, -1, 0, 2_026, 9_999, 10_000, 12_345, 999_999,
+            1_000_000, 9_999_999,
+        ] {
+            for form in ["calendar", "ordinal", "week"] {
+                for style in ["extended", "basic"] {
+                    let written = format_iso_date_line(day(year), form, style);
+                    if form == "ordinal" && style == "basic" && year.unsigned_abs() >= 1_000_000 {
+                        assert_eq!(written, Err(Refusal::OutOfRange), "{year}");
+                        continue;
+                    }
+                    let written =
+                        owned(&written.unwrap_or_else(|e| panic!("{year} {form}: {e:?}")));
+                    let parts = owned(
+                        &iso_date_parts_line(&written[0])
+                            .unwrap_or_else(|e| panic!("{} reads as {e:?}", written[0])),
+                    );
+                    assert_eq!(parts[7], day(year).to_string(), "{}", written[0]);
+                }
+            }
+        }
+        // The spellings the basic format gives, as written and as read.
+        for (fixed_year, text) in [(-1, "-0000010607"), (12_345, "+0123450607")] {
+            let written =
+                owned(&format_iso_date_line(day(fixed_year), "calendar", "basic").unwrap());
+            assert_eq!(written[0], text);
+        }
+        let written = owned(&format_iso_date_line(day(-1), "ordinal", "basic").unwrap());
+        assert_eq!(written[0], "-000001158");
+        assert_eq!(owned(&iso_date_parts_line("-000001158").unwrap())[1], "-1");
+        // A date-time in the basic style reads back too.
+        let text = format_datetime_line("iso8601-basic", -62_198_755_200, 0, 0, "auto").unwrap();
+        assert_eq!(owned(&text)[0], "-0000010101T000000Z");
+        assert_eq!(
+            owned(&parse_datetime_line("iso8601", "-0000010101T000000Z").unwrap())[5],
+            "-62198755200"
+        );
+    }
+
+    /// One status for one refusal: a second 60 a zone's clock does not read at
+    /// UTC's 23:59:60, or on a day that ended in none, is `InvalidDate` in
+    /// `hc_parse_datetime` and `hc_parse_pattern`, and a day past the
+    /// leap-second table, which no one has announced, is `OutOfRange` in both.
+    #[test]
+    fn a_refused_second_60_has_one_status_in_both_parsers() {
+        for (text, pattern_text, status) in [
+            (
+                "2016-12-31T23:59:60+0900",
+                "2016-12-31T23:59:60+0900",
+                Refusal::InvalidDate,
+            ),
+            (
+                "2016-12-30T15:59:60-0800",
+                "2016-12-30T15:59:60-0800",
+                Refusal::InvalidDate,
+            ),
+            (
+                "2016-06-30T23:59:60+0000",
+                "2016-06-30T23:59:60+0000",
+                Refusal::InvalidDate,
+            ),
+            (
+                "2030-12-31T23:59:60+0000",
+                "2030-12-31T23:59:60+0000",
+                Refusal::OutOfRange,
+            ),
+        ] {
+            assert_eq!(parse_datetime_line("iso8601", text), Err(status), "{text}");
+            for syntax in ["strftime", "python"] {
+                assert_eq!(
+                    parse_pattern_line(syntax, "%Y-%m-%dT%H:%M:%S%z", pattern_text),
+                    Err(status),
+                    "{syntax} {text}"
+                );
+            }
+        }
     }
 
     /// RFC 3339's grammar has a calendar date only, offset hours of 00 through

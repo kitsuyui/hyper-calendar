@@ -12,7 +12,10 @@ use crate::fixed::Rd;
 /// `second` may be 60: UTC really does have a `23:59:60`, and a type that
 /// cannot represent it forces every caller to invent a workaround. Whether a
 /// given `23:59:60` exists is a question for the leap-second table, not for
-/// this type.
+/// this type. [`CivilTime::new`] holds it at `23:59`, UTC's own reading of it;
+/// a zone's clock reads the same second at another hour and minute, which
+/// [`CivilTime::leap_second`] holds once the caller has checked the offset and
+/// the table.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct CivilTime {
     hour: u8,
@@ -66,6 +69,36 @@ impl CivilTime {
     /// See [`CivilTime::new`].
     pub const fn hms(hour: u8, minute: u8, second: u8) -> CalendarResult<Self> {
         Self::new(hour, minute, second, 0)
+    }
+
+    /// A leap second as a zone's wall clock reads it: `hour:minute:60`, the
+    /// UTC second 23:59:60 seen at an offset, which is 15:59:60 in Pacific
+    /// Standard Time (RFC 3339 §5.7: "in time zones other than 'Z', the
+    /// leap second point is shifted by the zone offset"; §5.8's
+    /// `1990-12-31T15:59:60-08:00`).
+    ///
+    /// [`CivilTime::new`] holds the second 60 at 23:59 alone, UTC's own
+    /// reading of it. Whether a second 60 at another hour is a leap second
+    /// is a question of the reading's offset and of the leap-second table,
+    /// which the caller answers first; this only holds the answer. The
+    /// value is the 60th second of its minute: it sorts after
+    /// `hour:minute:59` and before the next minute, and its span since
+    /// midnight is the next minute's, as 23:59:60's is the next day's.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CalendarError::DayOutOfRange`] when the hour, the minute
+    /// or the fraction is outside its range.
+    pub const fn leap_second(hour: u8, minute: u8, subsec_attos: u64) -> CalendarResult<Self> {
+        if hour > 23 || minute > 59 || subsec_attos >= ATTOS_PER_SEC {
+            return Err(CalendarError::DayOutOfRange);
+        }
+        Ok(Self {
+            hour,
+            minute,
+            second: 60,
+            subsec_attos,
+        })
     }
 
     /// The hour, 0 through 23.
@@ -244,6 +277,30 @@ mod tests {
         assert!(leap.is_leap_second());
         assert_eq!(leap.to_string(), "23:59:60");
         assert!(CivilTime::hms(23, 58, 60).is_err());
+    }
+
+    /// RFC 3339 §5.8: `1990-12-31T15:59:60-08:00` is the leap second of
+    /// 1990 as Pacific Standard Time reads it. The constructor holds it at
+    /// the hour and minute given, as the 60th second of that minute.
+    #[test]
+    fn a_leap_second_at_an_offset_is_held_at_the_zones_own_minute() {
+        let pacific = CivilTime::leap_second(15, 59, 0).unwrap();
+        assert!(pacific.is_leap_second());
+        assert_eq!(pacific.to_string(), "15:59:60");
+        assert_eq!(
+            (pacific.hour(), pacific.minute(), pacific.second()),
+            (15, 59, 60)
+        );
+        assert_eq!(pacific.since_midnight(), Duration::from_secs(16 * 3_600));
+        assert!(CivilTime::hms(15, 59, 59).unwrap() < pacific);
+        assert!(pacific < CivilTime::hms(16, 0, 0).unwrap());
+        assert_eq!(
+            CivilTime::leap_second(23, 59, 0).unwrap(),
+            CivilTime::hms(23, 59, 60).unwrap()
+        );
+        assert!(CivilTime::leap_second(24, 0, 0).is_err());
+        assert!(CivilTime::leap_second(0, 60, 0).is_err());
+        assert!(CivilTime::leap_second(0, 0, ATTOS_PER_SEC).is_err());
     }
 
     #[test]

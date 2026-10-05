@@ -13,7 +13,11 @@
 #     cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown --release --no-default-features --features <layer>
 #     cargo test -p hyper-calendar-wasm --no-default-features --features <layer>
 #     cargo test -p hyper-calendar-ffi --no-default-features --features <layer>
-#     RUSTFLAGS=-D\ warnings cargo test -p hyper-calendar --no-default-features --features std,<facade features>
+#     cargo test -p hyper-calendar --no-default-features --features std,<facade features>
+#
+# every one of them under RUSTFLAGS="-D warnings": an import that only
+# another layer uses is a failure in the boundary crates' tests as it is in
+# the facade's.
 #
 # With no arguments every layer scripts/layers.sh lists is run, in order;
 # with arguments, those layers, which is how CI gives each its own job.
@@ -74,6 +78,11 @@ facade_features() {
     ' crates/hyper-calendar-wasm/Cargo.toml
 }
 
+# A warning a layer alone raises, an import only another layer uses, is a
+# failure here in every crate: the build with every feature hides it.
+RUSTFLAGS="${RUSTFLAGS:-} -D warnings"
+export RUSTFLAGS
+
 selected=${*:-$layers}
 for layer in $selected; do
     case " $layers " in
@@ -89,8 +98,5 @@ for layer in $selected; do
     cargo test -q -p hyper-calendar-wasm --no-default-features --features "$layer"
     cargo test -q -p hyper-calendar-ffi --no-default-features --features "$layer"
     facade=$(facade_features "$layer")
-    # A warning a layer alone raises, an import only another layer uses, is a
-    # failure here: the build with every feature hides it.
-    RUSTFLAGS="${RUSTFLAGS:-} -D warnings" \
-        cargo test -q -p hyper-calendar --no-default-features --features "std${facade:+,$facade}"
+    cargo test -q -p hyper-calendar --no-default-features --features "std${facade:+,$facade}"
 done

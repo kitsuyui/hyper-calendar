@@ -306,6 +306,55 @@ pub enum Disambiguation {
     PushForward,
 }
 
+hc_core::catalogue! {
+    type: Disambiguation,
+    tests: disambiguation_catalogue_tests,
+    variants;
+
+    /// The four policies, the two that choose an instant first, then the
+    /// refusal and the compatible reading.
+    pub const ALL;
+    /// The policy's identifier, the word a caller selects it by:
+    /// `earliest`, `latest`, `reject` or `push-forward`.
+    pub fn id;
+    /// The policy with this identifier.
+    pub fn by_id;
+
+    entries: {
+        Earliest => "earliest",
+        Latest => "latest",
+        Reject => "reject",
+        PushForward => "push-forward",
+    }
+}
+
+impl Disambiguation {
+    /// What the policy makes of a reading that names two instants, when the
+    /// clocks go back, and of one that names none, when they go forward, in
+    /// a sentence. Each is its own convention under its own name
+    /// (`docs/policy.md` §5); Python's `time.mktime` reads `tm_isdst` where
+    /// these read a word.
+    #[must_use]
+    pub const fn description(self) -> &'static str {
+        match self {
+            Self::Earliest => {
+                "the earlier of two instants a repeated reading names, and the instant \
+                 before the gap for a skipped one"
+            }
+            Self::Latest => {
+                "the later of two instants a repeated reading names, and the instant \
+                 after the gap for a skipped one"
+            }
+            Self::Reject => "no choice: a repeated or a skipped reading is refused",
+            Self::PushForward => {
+                "the first of two instants a repeated reading names, and for a skipped one \
+                 the reading moved on by the length of the gap, as java.time's resolver and \
+                 ECMAScript Temporal's `compatible` do"
+            }
+        }
+    }
+}
+
 /// Whether a zone's offset, daylight flag or abbreviation differs between
 /// the second before `seconds` and `seconds` itself: whether `seconds` is a
 /// transition in the sense of [`TimeZone::next_transition`].
@@ -523,6 +572,22 @@ where
 mod tests {
     use super::*;
     use hc_calendar::gregorian;
+
+    /// The table names every policy once, under the word the boundary reads,
+    /// and says what each makes of a repeated and a skipped reading.
+    #[test]
+    fn the_policies_are_a_table_with_a_sentence_each() {
+        assert_eq!(Disambiguation::ALL.len(), 4);
+        for policy in Disambiguation::ALL {
+            assert_eq!(Disambiguation::by_id(policy.id()), Some(*policy));
+            assert!(policy.description().len() > 20, "{}", policy.id());
+        }
+        assert_eq!(
+            Disambiguation::by_id(" Push-Forward "),
+            Some(Disambiguation::PushForward)
+        );
+        assert_eq!(Disambiguation::by_id("compatible"), None);
+    }
 
     fn civil(year: i64, month: u8, day: u8, hour: u8, minute: u8, second: u8) -> CivilDateTime {
         CivilDateTime::new(

@@ -52,10 +52,10 @@ use hc_tz::{OffsetStyle, UtcOffset};
 
 use crate::error::{ErrorKind, FormatError, FormatResult, ParseError, ParseResult};
 use crate::iso8601::{self, Strictness};
-use crate::patterns::{FormatContext, ParsedFields, strftime};
+use crate::patterns::ParsedFields;
 use crate::scan::Scanner;
 use crate::value::{
-    DateParts, IsoDate, IsoTime, OffsetDateTime, ZoneInfo, check_leap_second, leap_second_error,
+    DateParts, IsoDate, IsoTime, OffsetDateTime, ZoneInfo, leap_second_error, local_reading,
 };
 
 /// What Python's `fromisoformat` accepts, as a [`Strictness`]. The ordinal
@@ -163,8 +163,15 @@ pub fn parse_date_time(text: &str) -> ParseResult<OffsetDateTime> {
     scanner.advance(separator.len_utf8());
     let (time, zone) = scan_time_and_zone(&mut scanner)?;
     scanner.finish()?;
-    let local = CivilDateTime::new(day, time);
-    check_leap_second(local, zone).map_err(|error| leap_second_error(error, 0))?;
+    let local = local_reading(
+        day,
+        time.hour(),
+        time.minute(),
+        time.second(),
+        time.subsec_attos(),
+        zone,
+    )
+    .map_err(|error| leap_second_error(error, 0))?;
     Ok(OffsetDateTime {
         local,
         zone,
@@ -174,7 +181,7 @@ pub fn parse_date_time(text: &str) -> ParseResult<OffsetDateTime> {
 
 /// Python's `datetime.strptime(text, pattern)`, as fields.
 ///
-/// The fields are those [`strftime::parse`] reads, with the date Python
+/// The fields are those [`crate::patterns::strftime::parse`] reads, with the date Python
 /// assumes for whatever the text leaves out filled in: 1900-01-01. Resolve
 /// them with [`ParsedFields::to_offset_date_time`].
 ///
@@ -188,7 +195,7 @@ pub fn parse_date_time(text: &str) -> ParseResult<OffsetDateTime> {
 ///
 /// # Errors
 ///
-/// As [`strftime::parse`].
+/// As [`crate::patterns::strftime::parse`].
 pub fn strptime(text: &str, pattern: &str) -> ParseResult<ParsedFields> {
     strptime::parse(pattern, text)
 }
@@ -384,13 +391,35 @@ pub fn write_date_time<W: fmt::Write>(
 }
 
 /// Python's `ctime()`: `Wed Dec  4 00:00:00 2002`, which is `strftime("%c")`
-/// in the C locale.
+/// in the C locale, `%a %b %e %H:%M:%S %Y`. It is written here from the
+/// English abbreviations of RFC 5322, which the C locale's are, and not
+/// through the pattern engine, so that a build that only needs this text does
+/// not carry the engine and the locale data behind it.
 ///
 /// # Errors
 ///
-/// As [`strftime::format`].
+/// [`FormatError::Unrepresentable`] for a date outside the Gregorian years,
+/// and [`FormatError::Sink`] when the sink refuses.
 pub fn write_ctime<W: fmt::Write>(out: &mut W, local: CivilDateTime) -> FormatResult<()> {
-    strftime::format(out, "%c", &FormatContext::new(local))
+    let (year, month, day) = hc_calendars_solar::gregorian::from_fixed(local.day)
+        .map_err(|_| FormatError::Unrepresentable("the date"))?;
+    let weekday = hc_calendar::Weekday::from_rd(local.day);
+    let weekday_name = crate::rfc2822::WEEKDAYS
+        .get(usize::from(weekday.iso_number()) - 1)
+        .copied()
+        .ok_or(FormatError::Unrepresentable("the weekday"))?;
+    let month_name = crate::rfc2822::MONTHS
+        .get(usize::from(month) - 1)
+        .copied()
+        .ok_or(FormatError::Unrepresentable("the month"))?;
+    write!(
+        out,
+        "{weekday_name} {month_name} {day:>2} {:02}:{:02}:{:02} {year}",
+        local.time.hour(),
+        local.time.minute(),
+        local.time.second(),
+    )?;
+    Ok(())
 }
 
 #[cfg(test)]
