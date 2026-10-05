@@ -282,8 +282,9 @@ them (a probe of both).
   The number and list functions are in
   [python-compatibility.md](python-compatibility.md). `naturalday` writes a
   day with `hc-format`'s C-locale `strftime`, in English whatever the
-  catalogue, as Python's does under the C locale, and needs the `format`
-  feature.
+  catalogue, as Python's does under the C locale, and the language cell of
+  such a day is `en`; only *today*, *tomorrow* and *yesterday* are the
+  catalogue's. It needs the `format` feature.
 - **CLDR 48 relative time** in 50 locales: the eight units in the three
   widths, every plural category the language has, the relative words from
   −2 to 2, the unit patterns, list patterns, the decimal separator and the

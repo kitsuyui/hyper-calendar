@@ -315,6 +315,16 @@ fn natural_line(
     natural: &Natural,
     write: impl FnOnce(&Natural, &mut String) -> Result<(), HumanizeError>,
 ) -> Answer<String> {
+    natural_line_in(natural, natural.phrases().language, write)
+}
+
+/// [`natural_line`] with the language the text is written in, for a text
+/// the vocabulary did not write.
+fn natural_line_in(
+    natural: &Natural,
+    language: &str,
+    write: impl FnOnce(&Natural, &mut String) -> Result<(), HumanizeError>,
+) -> Answer<String> {
     let mut text = String::new();
     write(natural, &mut text).map_err(|error| match error {
         HumanizeError::Unsupported("an integer written in digits" | "the strftime pattern") => {
@@ -324,9 +334,20 @@ fn natural_line(
     })?;
     let mut out = String::new();
     let mut line = Line::new(&mut out);
-    line.cell(&text).cell(natural.phrases().language);
+    line.cell(&text).cell(language);
     line.end();
     Ok(out)
+}
+
+/// The language of a day written by `naturalday` or `naturaldate`: the
+/// catalogue's for *today*, *tomorrow* and *yesterday*, and `en` for any
+/// other day, which is written by `strftime` in the C locale, whatever the
+/// catalogue.
+fn day_language(natural: &Natural, day: Rd, today: Rd) -> &'static str {
+    match day.checked_days_since(today) {
+        Ok(-1..=1) => natural.phrases().language,
+        _ => "en",
+    }
 }
 
 /// The vocabulary that serves a locale for the words of one function:
@@ -717,9 +738,10 @@ fn day_of(fixed: i64) -> Answer<Rd> {
 
 /// The line of `hc_naturalday`: `humanize`'s `naturalday`, *today*,
 /// *tomorrow*, *yesterday*, or the day written by a `strftime` pattern in
-/// the C locale, `%b %d` when `pattern` is empty, then the language of the
-/// catalogue that wrote the words. The words are the catalogue's; the month
-/// name is always the C locale's, as Python's `strftime` writes it.
+/// the C locale, `%b %d` when `pattern` is empty, then the language the text
+/// is in: the catalogue's for the words, and `en` for a day written by
+/// `strftime`, whose month name is always the C locale's, as Python's
+/// writes it.
 ///
 /// # Errors
 ///
@@ -728,9 +750,12 @@ fn day_of(fixed: i64) -> Answer<Rd> {
 pub fn naturalday_line(day: i64, today: i64, pattern: &str, tag: &str) -> Answer<String> {
     let (day, today) = (day_of(day)?, day_of(today)?);
     let pattern = if pattern.is_empty() { "%b %d" } else { pattern };
-    natural_line(&vocabulary(tag, NaturalWords::Day), |natural, out| {
-        natural.write_naturalday(out, day, today, pattern)
-    })
+    let natural = vocabulary(tag, NaturalWords::Day);
+    natural_line_in(
+        &natural,
+        day_language(&natural, day, today),
+        |natural, out| natural.write_naturalday(out, day, today, pattern),
+    )
 }
 
 /// The line of `hc_naturaldate`: `humanize`'s `naturaldate`, as
@@ -742,9 +767,12 @@ pub fn naturalday_line(day: i64, today: i64, pattern: &str, tag: &str) -> Answer
 /// [`Refusal::OutOfRange`] for a day outside the Gregorian range.
 pub fn naturaldate_line(day: i64, today: i64, tag: &str) -> Answer<String> {
     let (day, today) = (day_of(day)?, day_of(today)?);
-    natural_line(&vocabulary(tag, NaturalWords::Day), |natural, out| {
-        natural.write_naturaldate(out, day, today)
-    })
+    let natural = vocabulary(tag, NaturalWords::Day);
+    natural_line_in(
+        &natural,
+        day_language(&natural, day, today),
+        |natural, out| natural.write_naturaldate(out, day, today),
+    )
 }
 
 /// The line of `hc_ordinal`: `humanize`'s `ordinal`, `1st`, `2nd`, `103rd`,
@@ -1370,5 +1398,27 @@ mod tests {
             approximate_duration_line(1, "long", "en", "default", "sloppy"),
             Err(Refusal::Unknown)
         );
+    }
+
+    /// A day `strftime` writes is English's whatever the catalogue, and its
+    /// language cell says `en`; *today*, *tomorrow* and *yesterday* are the
+    /// catalogue's.
+    #[test]
+    fn a_day_written_by_strftime_is_english_in_every_catalogue() {
+        let line = |offset: i64, tag: &str| {
+            cells(&naturalday_line(739_000 + offset, 739_000, "", tag).expect("a line"))
+                .iter()
+                .map(|cell| (*cell).to_owned())
+                .collect::<alloc::vec::Vec<_>>()
+        };
+        assert_eq!(line(1, "de"), ["morgen", "de-DE"]);
+        assert_eq!(line(40, "de")[1], "en");
+        assert_eq!(line(40, "ja")[1], "en");
+        assert_eq!(line(0, "ja")[1], "ja-JP");
+        let far = cells(&naturaldate_line(739_000 + 200, 739_000, "ko").expect("a line"))
+            .iter()
+            .map(|cell| (*cell).to_owned())
+            .collect::<alloc::vec::Vec<_>>();
+        assert_eq!(far[1], "en");
     }
 }

@@ -272,13 +272,14 @@ fn a_converted_day_decodes_column_by_column() {
     assert_eq!(row(&rows, "gregory")[15..17], ["September 21, 2026", "en"]);
     assert_eq!(row(&rows, "hebrew")[16], "en");
     // A tag with no data falls back to the root locale, whose month
-    // names are CLDR's `M01`..`M12` rather than English.
+    // names, CLDR's `M01`..`M12`, name no language, so the date is
+    // English's whole.
     let rows = describe("tlh");
-    assert_eq!(row(&rows, "gregory")[7], "M09");
-    assert_eq!(row(&rows, "gregory")[16], "und");
+    assert_eq!(row(&rows, "gregory")[7], "September");
+    assert_eq!(row(&rows, "gregory")[16], "en");
     // A tag that does not parse at all falls back the same way.
     let rows = describe("!!");
-    assert_eq!(row(&rows, "gregory")[7], "M09");
+    assert_eq!(row(&rows, "gregory")[7], "September");
     // And `native` renders each calendar in its own language.
     let rows = describe("native");
     assert_eq!(row(&rows, "gregory")[16], "en");

@@ -285,8 +285,6 @@ Known disagreements:
   identifier [uts35-v48], which would give Haitian Creole root's `other`.
   No test pins either. No `ht` entry is carried in `hc-i18n`'s `LOCALES`,
   so no carried locale is affected.
-- `docs/systems/locale-fallback.md` says plural rules are not looked up
-  along the fallback chain; `for_locale` walks it.
 
 ## Sources
 

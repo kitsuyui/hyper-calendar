@@ -2223,7 +2223,9 @@ macro_rules! exports {
             ///
             /// One line per step, the requested locale first and `und` last,
             /// tab-separated: the step from 0; its tag; the rule that led to it from the
-            /// step before, `requested`, `likely-script` (a language carried per script,
+            /// step before, `requested`, `language-alias` (a legacy language subtag, `iw`
+            /// or `tl`, is replaced by the language CLDR's `languageAlias` gives it),
+            /// `likely-script` (a language carried per script,
             /// `zh-TW`, takes the script CLDR's likely subtags give it), `extensions`
             /// (the `-u-` keys), `variant`, `parent-locales` (a parent CLDR 48's
             /// `parentLocales` name: `en-AU` to `en-001`, `zh-Hant` to root), `region` and
@@ -2259,9 +2261,12 @@ macro_rules! exports {
             /// begins on, as `hc_first_day_of_week` has it, and CLDR's `minDays`, the
             /// fewest days of a year a week needs to be its first (4 in Germany, 1 in the
             /// United States); `ltr` or `rtl`; `standard` or `turkic` casing; `1` when
-            /// month and weekday names are written with a capital; and the language of the
+            /// month and weekday names are written with a capital; the language of the
             /// cardinal plural rules that apply, `pt-PT`, or `und` where none is carried
-            /// and every number is `other`. Weekend days are not here: `hc-i18n` carries
+            /// and every number is `other`; and the canonical tag, the tag with a legacy
+            /// language subtag replaced by the language CLDR's `languageAlias` gives it
+            /// (`he-IL` for `iw-IL`; the tag itself where it has none). Weekend days are
+            /// not here: `hc-i18n` carries
             /// CLDR's `firstDay` and `minDays` and no weekend data; the weekend laws of the
             /// holiday tables, with their sources, are in column 14 of
             /// `hc_holiday_tables`. `locale` is as for `hc_locale_chain`. A null `buffer`
@@ -11114,8 +11119,9 @@ macro_rules! exports {
             /// *tomorrow*, *yesterday*, or the day by a `strftime` pattern, as one
             /// NUL-terminated UTF-8 line in a caller-owned buffer.
             ///
-            /// The line is the WebAssembly module's: the text and the language of the
-            /// catalogue that wrote the words. `pattern` is a POSIX `strftime` pattern in
+            /// The line is the WebAssembly module's: the text and the language that wrote
+            /// it, the catalogue's for *today*, *tomorrow* and *yesterday* and `en` for a day
+            /// written by `strftime`, whatever the catalogue. `pattern` is a POSIX `strftime` pattern in
             /// the C locale, so the month name is always English's, as Python's is; null or
             /// empty is Python's `%b %d`. A pattern `hc-format` does not write is
             /// `HC_ERROR_MALFORMED`; a day outside the Gregorian range
@@ -11132,8 +11138,9 @@ macro_rules! exports {
             /// *tomorrow*, *yesterday*, or the day by a `strftime` pattern, as one UTF-8
             /// line, returning the byte length written.
             ///
-            /// Tab-separated: the text, and the language of the catalogue that wrote the
-            /// words. The distance is the difference of the two day numbers. `pattern` is
+            /// Tab-separated: the text, and the language that wrote it, the catalogue's for
+            /// *today*, *tomorrow* and *yesterday* and `en` for a day written by `strftime`,
+            /// whatever the catalogue. The distance is the difference of the two day numbers. `pattern` is
             /// a POSIX `strftime` pattern in the C locale, so the month name is always
             /// English's, as Python's `strftime` writes it; the empty string is Python's
             /// default `%b %d`. A pattern `hc-format` does not write is `HC_ERR_MALFORMED`;
@@ -11159,8 +11166,9 @@ macro_rules! exports {
             /// `hc_naturalday` with `%b %d`, and with the year added from five twelfths of a
             /// year away, as one NUL-terminated UTF-8 line in a caller-owned buffer.
             ///
-            /// The line is the WebAssembly module's: the text and the language of the
-            /// catalogue that wrote the words. A day outside the Gregorian range is
+            /// The line is the WebAssembly module's: the text and the language that wrote
+            /// it, the catalogue's for *today*, *tomorrow* and *yesterday* and `en` for any
+            /// other day. A day outside the Gregorian range is
             /// `HC_ERROR_OUT_OF_RANGE`.
             /// `locale` is a NUL-terminated BCP 47 tag, or null for the root locale,
             /// which has no catalogue and so writes English; the first step of its
@@ -11175,8 +11183,8 @@ macro_rules! exports {
             /// days away, five twelfths of 365 rounded up, as one UTF-8 line, returning the
             /// byte length written.
             ///
-            /// Tab-separated: the text, and the language of the catalogue that wrote the
-            /// words. A day outside the Gregorian range is `HC_ERR_OUT_OF_RANGE`.
+            /// Tab-separated: the text, and the language that wrote it, the catalogue's for
+            /// *today*, *tomorrow* and *yesterday* and `en` for any other day. A day outside the Gregorian range is `HC_ERR_OUT_OF_RANGE`.
             /// `locale` is read as for `hc_apnumber`: the first step of its fallback
             /// chain that one of the 35 `humanize` catalogues is for and that
             /// translates *today*, *tomorrow* and *yesterday* serves, a bare language with two catalogues, `pt`, and

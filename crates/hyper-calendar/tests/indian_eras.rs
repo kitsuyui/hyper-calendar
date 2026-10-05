@@ -1,5 +1,5 @@
 //! The historical Indian eras over the lunisolar months are written in
-//! Hindi and Sanskrit, not in English: each era's months from Chaitra, or
+//! Hindi, not in English, and Sanskrit, which names none, leaves them to English: each era's months from Chaitra, or
 //! from Kārttika for the eras whose year opens there, as the lunisolar
 //! calendars' own are, and in Hindi each era under the name Hindi
 //! Wikipedia's "अब्द" article gives it (`wikipedia-hi-abda`).
@@ -61,8 +61,11 @@ fn the_seven_eras_are_written_in_hindi() {
     }
 }
 
+/// Sanskrit names none of the seven eras (no source read gives the eras a
+/// Sanskrit name in Devanagari beyond Hindi Wikipedia's Hindi ones), so a date
+/// that would write them is in one language, English, and says so.
 #[test]
-fn the_seven_eras_are_written_in_sanskrit_months() {
+fn the_seven_eras_are_written_in_english_whole_in_sanskrit() {
     let registry = hyper_calendar::registry();
     for id in [
         "vikram-samvat-kartikadi",
@@ -74,11 +77,7 @@ fn the_seven_eras_are_written_in_sanskrit_months() {
         "lakshmana-sena",
     ] {
         let [_, _, month, written] = cells(&registry, id, "sa");
-        assert_eq!(month, "कार्तिक", "{id}");
-        // The numerals are Devanagari and the locale is the one asked.
-        assert!(
-            written.starts_with("१ कार्तिक ") && written.ends_with("|sa"),
-            "{id}: {written}"
-        );
+        assert_eq!(month, "Kartika", "{id}");
+        assert!(written.ends_with("|en"), "{id}: {written}");
     }
 }

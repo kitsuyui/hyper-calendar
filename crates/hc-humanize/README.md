@@ -118,9 +118,9 @@ es-419 fa fil fr ha he hi id it ja jv ko ml mn mr my ne nl pa-Guru pcm pl ps
 pt pt-PT ru sw syr ta te th tr ur ur-IN vi yue-Hans yue-Hant zh zh-Hant
 zh-Hant-HK`. Every locale `hc-i18n` carries is among them or
 answers `NoPattern` here (`NoData` at the boundary), never the root's
-`-5 h`: `aeb-Latn`, `ayl-Latn`, `ban`, `cop`, `mid`, `mix`, `nah`, `rif`, `yua`
-and `zap` have no `common/main` file in CLDR 48, `bo`, `pa-Arab`, `sa`,
-`shi-Latn` and `zgh` have a file with no relative-time pattern, and `kab`'s
+`-5 h`: `aeb-Latn`, `ayl-Latn`, `ban`, `mid`, `mix`, `nah`, `yua` and `zap`
+have no `common/main` file in CLDR 48; `bo`, `cop`, `pa-Arab`, `rif`, `sa`,
+`shi-Latn` and `zgh` have a file with no relative-time pattern; and `kab`'s
 are all draft `unconfirmed`, below the `contributed` level the generator
 accepts; a
 language `hc-i18n` does not carry answers with the root's language-free

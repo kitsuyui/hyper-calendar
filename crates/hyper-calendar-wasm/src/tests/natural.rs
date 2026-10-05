@@ -279,6 +279,11 @@ fn the_time_and_day_lines_are_pythons_humanize() {
         hc_naturalday(739_889, 739_888, e, el, de, del, buffer, capacity)
     });
     assert_eq!(day, "morgen\tde-DE\n");
+    // A day written by `strftime` is English whatever the catalogue, and says so.
+    let day = read_lines(|buffer, capacity| unsafe {
+        hc_naturalday(739_898, 739_888, e, el, de, del, buffer, capacity)
+    });
+    assert_eq!(day, "Oct 09\ten\n");
     let date = read_lines(|buffer, capacity| unsafe {
         hc_naturaldate(739_888 + 153, 739_888, en, enl, buffer, capacity)
     });

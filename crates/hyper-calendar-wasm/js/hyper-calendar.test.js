@@ -388,10 +388,13 @@ describe("describeDay", () => {
     assert.equal(native.find((row) => row.id === "gregory")?.localeUsed, "en");
     assert.equal(native.find((row) => row.id === "hebrew")?.localeUsed, "he");
     // A tag with no data, or one that does not parse, falls back to the
-    // root locale, whose month names are CLDR's M01..M12; so does the default.
-    assert.equal(hc.describeDay(739_880, "tlh").find((row) => row.id === "gregory")?.monthLabel, "M09");
-    assert.equal(hc.describeDay(739_880, "!!").find((row) => row.id === "gregory")?.monthLabel, "M09");
-    assert.equal(hc.describeDay(739_880).find((row) => row.id === "gregory")?.monthLabel, "M09");
+    // root locale, whose month names, CLDR's M01..M12, name no language, so
+    // the date is English's whole; so does the default.
+    for (const rows of [hc.describeDay(739_880, "tlh"), hc.describeDay(739_880, "!!"), hc.describeDay(739_880)]) {
+      const gregory = rows.find((row) => row.id === "gregory");
+      assert.equal(gregory?.monthLabel, "September");
+      assert.equal(gregory?.localeUsed, "en");
+    }
   });
 
   test("a day that does not begin at midnight names its civil day", () => {
@@ -827,6 +830,9 @@ describe("how a locale resolves", () => {
     assert.deepEqual(hc.localeChain("ja-JP-u-ca-japanese").map((step) => step.rule), [
       "requested", "extensions", "region", "root",
     ]);
+    assert.deepEqual(hc.localeChain("iw-IL").map((step) => [step.tag, step.rule]), [
+      ["he-IL", "language-alias"], ["he", "region"], ["und", "root"],
+    ]);
     assert.equal(hc.localeChain("").length, 1);
     refused(() => hc.localeChain("not a tag"), "malformed");
   });
@@ -840,6 +846,11 @@ describe("how a locale resolves", () => {
     assert.equal(hc.localeInfo("ar").direction, "rtl");
     assert.equal(hc.localeInfo("tr").casing, "turkic");
     assert.equal(hc.localeInfo("pt-PT").pluralRules, "pt-PT");
+    assert.deepEqual(
+      [hc.localeInfo("iw-IL").tag, hc.localeInfo("iw-IL").canonicalTag, hc.localeInfo("iw-IL").localeUsed],
+      ["iw-IL", "he-IL", "he"],
+    );
+    assert.equal(hc.localeInfo("en-US").canonicalTag, "en-US");
     const keyed = hc.localeInfo("ja-JP-u-ca-japanese-fw-sun-hc-h11-nu-jpan");
     assert.deepEqual(
       [keyed.calendarKey, keyed.numberingKey, keyed.firstDayKey, keyed.hourCycleKey, keyed.parent, keyed.parentRule],

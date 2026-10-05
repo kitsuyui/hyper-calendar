@@ -21,7 +21,7 @@ fn the_chain_and_the_description_of_a_locale() {
         hc_locale_info(locale, locale_len, buffer, capacity)
     });
     let cells: Vec<&str> = info.trim_end().split('\t').collect();
-    assert_eq!(cells.len(), 19);
+    assert_eq!(cells.len(), 20);
     assert_eq!(cells[0], "en-AU");
     assert_eq!(cells[10], "en-001");
     assert_eq!(cells[11], "parent-locales");

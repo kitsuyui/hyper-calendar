@@ -264,7 +264,7 @@ def contextual(kind, group):
     return f'ContextualNames {{ format: {rust(written)}, standalone: {rust(alone)} }}'
 
 
-def era_group(tag, chain, calendar, keys, language, codes=()):
+def era_group(tag, chain, calendar, keys, language):
     def one(files, width):
         return [resolve(files, cal(calendar, 'eras', width, ('era', {'type': k}))) for k in keys]
 
@@ -289,13 +289,6 @@ def era_group(tag, chain, calendar, keys, language, codes=()):
         wide = abbreviated
     if wide is None:
         log.append(f'{tag} {calendar} eras: partial, left out')
-        return None
-    # An era a file names by the code itself (`es.xml`'s `saka` for the
-    # Śaka era) is not carried: a code is an identifier, which no rendered
-    # date may write, so English's name answers instead.
-    if codes and any(name.lower() == code for names in (wide, abbreviated or [], narrow or [])
-                     for name, code in zip(names, codes)):
-        log.append(f'{tag} {calendar} eras: a name is the era code itself, left out')
         return None
     return reduce_widths({'wide': wide, 'abbreviated': abbreviated, 'narrow': narrow},
                          ['wide', 'abbreviated', 'narrow'])
@@ -343,14 +336,21 @@ def templates(chain):
                                             ('dateFormatItem', {'id': ident})))[0]
     gy = item('Gy')
     day_item = item('d')
-    whole = item('yMMMMd') or resolve(chain, cal('gregorian', 'dateFormats',
-                                                  'dateFormatLength[long]', 'dateFormat',
-                                                  'pattern'))[0]
+    # The long date format is what a long date is, with its era where the
+    # file writes one: Thai's "d MMMM G y". `yMMMMd` is the flexible
+    # skeleton's, which differs from it only there.
+    whole = resolve(chain, cal('gregorian', 'dateFormats', 'dateFormatLength[long]',
+                               'dateFormat', 'pattern'))[0] or item('yMMMMd')
     year = convert(gy, {'G': '{era}', 'y': '{year}'})
     day = convert(day_item, {'d': '{day}', 'dd': '{day}'})
-    date = convert(whole, {'y': '{year}', 'MMMM': '{month}', 'LLLL': '{month}',
-                           'MMM': '{month:abbreviated}', 'M月': '{month:abbreviated}',
-                           'M월': '{month:abbreviated}', 'd': '{day}', 'dd': '{day}'})
+    fields = {'y': '{year}', 'MMMM': '{month}', 'LLLL': '{month}',
+              'MMM': '{month:abbreviated}', 'M月': '{month:abbreviated}',
+              'M월': '{month:abbreviated}', 'd': '{day}', 'dd': '{day}'}
+    if 'G' in whole.replace("'", ''):
+        # The era in the date, beside the year's number: the year's own
+        # template would write it a second time.
+        fields.update({'G': '{era}', 'y': '{year:1}'})
+    date = convert(whole, fields)
     # A day or year unit's own suffix is the unit template's, so that a date
     # without a day loses it with it: `d日` and `y年M月d日`.
     if day == '{day}':
@@ -378,6 +378,12 @@ CALENDAR_FIELDS = {'G': '{era}', 'GGGGG': '{era}', 'y': '{year:1}', 'MMMM': '{mo
 LEAP_MONTH_CALENDARS = {'hebrew', 'chinese', 'dangi'}
 
 
+# The calendars that count their years in one era, whose long date, where its
+# pattern has no era, writes the year's number alone: Thai's Buddhist
+# "d MMMM y" is 2569 and no BE, though the year by itself is พ.ศ. 2569.
+SINGLE_ERA = {'buddhist', 'roc', 'islamic', 'hebrew', 'coptic', 'ethiopic', 'persian', 'indian'}
+
+
 def calendar_templates(chain, calendar, gregorian):
     """The templates a calendar's own resolved formats give, as Rust fields
     (year, day, date) that differ from the entry's Gregorian ones, else
@@ -401,7 +407,7 @@ def calendar_templates(chain, calendar, gregorian):
         day = convert(day_item, {'d': '{day}', 'dd': '{day}'})
         fields = dict(CALENDAR_FIELDS)
         if 'G' not in long and 'U' not in long:
-            fields['y'] = '{year}'
+            fields['y'] = '{year:1}' if calendar in SINGLE_ERA else '{year}'
         if calendar in LEAP_MONTH_CALENDARS:
             # CLDR numbers the Hebrew months Tishri 1 to Elul 13 with Adar I
             # as 6, and a Chinese leap month by its own pattern; the crate's
@@ -415,6 +421,13 @@ def calendar_templates(chain, calendar, gregorian):
         return None
     if day == '{day}':
         day = ''
+        # The day's point or counter is the day template's, and a calendar
+        # whose own `d` item is plain takes the entry's, so the date does
+        # not write it a second time: de's "d. MMMM y G" is "{day} ..." with
+        # the "{day}." of its Gregorian `d` item behind it, not "30..".
+        entry_day = gregorian.get('day', '')
+        if entry_day.startswith('{day}') and entry_day != '{day}':
+            date = date.replace(entry_day, '{day}')
     elif day.startswith('{day}'):
         date = date.replace(day, '{day}')
     if '{year}' in date:
@@ -630,7 +643,8 @@ HAND_REGIONS = {'und': '001', 'ban': 'ID', 'cop': 'EG', 'mid': 'IQ', 'nah': 'MX'
 
 
 # How the entry's comment names a CLDR calendar.
-PROSE = {'buddhist': 'Buddhist', 'roc': 'Minguo', 'islamic': 'Hijri', 'hebrew': 'Hebrew',
+PROSE = {'buddhist': 'Buddhist', 'roc': 'Minguo', 'japanese': 'Japanese', 'generic': 'generic',
+         'islamic': 'Hijri', 'hebrew': 'Hebrew',
          'coptic': 'Coptic', 'ethiopic': 'Ethiopic', 'persian': 'Persian',
          'indian': 'Indian national', 'chinese': 'Chinese', 'dangi': 'Dangi'}
 
@@ -662,7 +676,7 @@ def cldr_calendars(tag, chain, language, skip, gregorian_fields):
                 log.append(f'{tag} {calendar}: numbered months, not carried')
             else:
                 cycle = contextual('months', group)
-        eras = era_group(tag, chain, calendar, keys, language, codes) if keys else None
+        eras = era_group(tag, chain, calendar, keys, language) if keys else None
         if cycle is None and eras is None:
             return
         cycles = f'&[month_cycle({cycle})]' if cycle else '&[]'
@@ -714,7 +728,7 @@ def cldr_calendars(tag, chain, language, skip, gregorian_fields):
     def era_entry(calendar, calendars_rs, codes, keys):
         if calendar in skip:
             return
-        found = era_group(tag, chain, calendar, keys, language, codes)
+        found = era_group(tag, chain, calendar, keys, language)
         if found:
             calendars.append(with_templates(
                 f'calendar_entry({calendars_rs}, &[], {era_rust(codes, found)})', calendar))
@@ -758,6 +772,36 @@ def cldr_calendars(tag, chain, language, skip, gregorian_fields):
         calendars.append(f'lunisolar({calendars_rs}, &[month_cycle({contextual("months", group)})], '
                          f'{lit(leap[:-3])}).with_templates({chinese_templates})')
         carried.append(f'the {PROSE[calendar]} months')
+    # The date formats of the calendars the entry's Gregorian months serve,
+    # which count their years in an era of their own: each of the Buddhist,
+    # Minguo and Japanese calendars by its own formats, where the file states
+    # them, and every other, by the formats CLDR's `generic` calendar gives
+    # a calendar it has none for (`GENERIC_DATE_CALENDARS`), the era where
+    # the file puts it. A field the entry's hand-written templates state
+    # stays theirs, which the lookup takes first.
+    for calendar, calendars_rs in (('buddhist', 'BUDDHIST_CALENDARS'),
+                                   ('roc', '&[CalendarId("roc")]'),
+                                   ('islamic', 'ISLAMIC_CALENDARS'),
+                                   ('hebrew', 'HEBREW_CALENDARS'),
+                                   ('coptic', 'COPTIC_CALENDARS'),
+                                   ('ethiopic', 'ETHIOPIC_CALENDARS'),
+                                   ('persian', 'PERSIAN_CALENDARS'),
+                                   ('indian', '&[CalendarId("indian")]'),
+                                   ('japanese', 'JAPANESE_CALENDARS'),
+                                   ('generic', 'GENERIC_DATE_CALENDARS')):
+        if calendar in SINGLE_ERA and calendar not in skip:
+            continue
+        if re.search('[年년]', gregorian_fields.get('year', '')):
+            # The Chinese, Japanese and Korean entries write a year with
+            # its counter, whose first year of an era is 元年, and a month
+            # by the abbreviated name that carries its counter: their
+            # hand-written templates are the ones for every such calendar.
+            continue
+        fields = calendar_templates(chain, calendar, gregorian_fields)
+        if fields:
+            calendars.append(f'calendar_entry({calendars_rs}, &[], EraNames::EMPTY)'
+                             f'.with_templates({templates_rust(fields)})')
+            carried.append(f'the {PROSE[calendar]} date formats')
     return calendars, carried, lines_before
 
 
@@ -962,7 +1006,8 @@ def generate():
                                 key=lambda n: (not n.isupper(), n))
     helpers = used(['BUDDHIST_CALENDARS', 'CHINESE_AND_VIETNAMESE_CALENDARS', 'CHINESE_TEMPLATES',
                     'COPTIC_CALENDARS', 'DANGI_CALENDARS', 'ETHIOPIC_CALENDARS',
-                    'HEBREW_CALENDARS', 'ISLAMIC_CALENDARS', 'PERSIAN_CALENDARS',
+                    'GENERIC_DATE_CALENDARS', 'HEBREW_CALENDARS', 'ISLAMIC_CALENDARS',
+                    'JAPANESE_CALENDARS', 'PERSIAN_CALENDARS',
                     'SOLAR_HIJRI_CALENDARS', 'calendar_entry', 'era_names', 'gregorian',
                     'gregorian_eras', 'lunisolar', 'month_cycle', 'weekday_widths', 'widths'])
     types = used(['CalendarDisplayName', 'CalendarNames', 'ContextualNames', 'DateTemplates',
@@ -1207,7 +1252,8 @@ def main():
                                 key=lambda n: (not n.isupper(), n))
     helpers = used(['BUDDHIST_CALENDARS', 'CHINESE_AND_VIETNAMESE_CALENDARS', 'CHINESE_TEMPLATES',
                     'COPTIC_CALENDARS', 'DANGI_CALENDARS', 'ETHIOPIC_CALENDARS',
-                    'HEBREW_CALENDARS', 'ISLAMIC_CALENDARS', 'PERSIAN_CALENDARS',
+                    'GENERIC_DATE_CALENDARS', 'HEBREW_CALENDARS', 'ISLAMIC_CALENDARS',
+                    'JAPANESE_CALENDARS', 'PERSIAN_CALENDARS',
                     'SOLAR_HIJRI_CALENDARS', 'calendar_entry', 'era_names', 'lunisolar',
                     'month_cycle', 'widths'])
     types = used(['CalendarNames', 'ContextualNames', 'DateTemplates', 'EraNames',

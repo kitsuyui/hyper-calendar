@@ -208,6 +208,60 @@ const GREGORIAN_MONTH_CALENDARS: &[CalendarId] = &[
     CalendarId("gaza-era"),
 ];
 
+/// The calendars the Gregorian months serve that count their years in an
+/// era of their own, so that the way a locale writes a date in them is the
+/// one CLDR's `generic` calendar gives a calendar it has no formats for —
+/// "d MMMM y G" with the era where the file puts it — and not the
+/// Gregorian one, whose 2026 leaves its era unwritten. Those that write no
+/// era of their own, or the Gregorian one, are not here.
+/// `tests/vocabulary.rs` holds the list to the calendars that write one.
+pub const GENERIC_DATE_CALENDARS: &[CalendarId] = &[
+    CalendarId("fasli-madras"),
+    CalendarId("fasli-bombay"),
+    CalendarId("sur-san"),
+    CalendarId("buddhist"),
+    CalendarId("roc"),
+    CalendarId("holocene"),
+    CalendarId("korean-regnal"),
+    CalendarId("korean-regnal-backdated"),
+    CalendarId("hongxian"),
+    CalendarId("manchukuo"),
+    CalendarId("japanese-imperial"),
+    CalendarId("japanese"),
+    CalendarId("japanese-northern"),
+    CalendarId("japanese-southern"),
+    CalendarId("japanese-proclaimed"),
+    CalendarId("japanese-northern-proclaimed"),
+    CalendarId("japanese-southern-proclaimed"),
+    CalendarId("japanese-kaigen-toji"),
+    CalendarId("roman-auc"),
+    CalendarId("roman-auc-capitoline"),
+    CalendarId("byzantine"),
+    CalendarId("julian-gregorian-catholic"),
+    CalendarId("julian-gregorian-fr"),
+    CalendarId("julian-gregorian-nl-states-general"),
+    CalendarId("julian-gregorian-nl-holland"),
+    CalendarId("julian-gregorian-de-catholic"),
+    CalendarId("julian-gregorian-hu"),
+    CalendarId("julian-gregorian-de-protestant"),
+    CalendarId("julian-gregorian-gb"),
+    CalendarId("julian-gregorian-se"),
+    CalendarId("julian-gregorian-bg"),
+    CalendarId("julian-gregorian-ru"),
+    CalendarId("julian-gregorian-rs"),
+    CalendarId("julian-gregorian-ro"),
+    CalendarId("julian-gregorian-gr"),
+    CalendarId("spanish-era"),
+    CalendarId("era-fascista"),
+    CalendarId("masonic-anno-lucis"),
+    CalendarId("masonic-anno-inventionis"),
+    CalendarId("masonic-anno-depositionis"),
+    CalendarId("masonic-anno-ordinis"),
+    CalendarId("ada"),
+    CalendarId("cheondogyo-podeok"),
+    CalendarId("gaza-era"),
+];
+
 /// A month cycle from names already shaped into widths and contexts.
 const fn month_cycle(names: ContextualNames) -> CycleNames {
     CycleNames::new(hc_calendar::shape::MONTH, names)
@@ -677,16 +731,24 @@ const DAY_MONTH_YEAR_TEMPLATES: DateTemplates = DateTemplates {
     ..DateTemplates::NONE
 };
 
-/// `de.xml`: `Gy` is "y G", `d` is "d.", `yMMMMd` is "d. MMMM y".
+/// `de.xml`: `Gy` is "y G", `d` is "d" and `yMMMMd` is "d. MMMM y": the
+/// point belongs to the date, so the day written alone has none, and the
+/// other calendars' dates, which the generated entries state in the same
+/// form, 30. Schahriwar 1405 AP, write it once.
 const DE_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{year} {era}",
+    date: "{day}. {month} {year}",
+    ..DateTemplates::NONE
+};
+
+/// `cs.xml`: `Gy` is "y G", `d` is "d.", `yMMMMd` is "d. MMMM y": the
+/// point is the day's own, so a date without a day loses it with it.
+const CS_TEMPLATES: DateTemplates = DateTemplates {
     year: "{year} {era}",
     day: "{day}.",
     date: "{day} {month} {year}",
     ..DateTemplates::NONE
 };
-
-/// `cs.xml`: `Gy` is "y G", `d` is "d.", `yMMMMd` is "d. MMMM y".
-const CS_TEMPLATES: DateTemplates = DE_TEMPLATES;
 
 /// `es.xml` and `pt.xml`: `Gy` is "y G", `yMMMMd` is "d 'de' MMMM 'de' y";
 /// `pt_PT.xml` states neither and inherits `pt.xml`'s.
@@ -696,10 +758,13 @@ const ES_TEMPLATES: DateTemplates = DateTemplates {
     ..DateTemplates::NONE
 };
 
-/// `ru.xml`: `Gy` is "y G", `yMMMMd` is "d MMMM y 'г'.".
+/// `ru.xml`: `Gy` is "y 'г'. G" and the long date "d MMMM y 'г'.": the г.
+/// belongs to the year, whose era follows it, so that the date writes it
+/// once, 21 сентября 2026 г., and the year of another calendar, whose era
+/// the long date puts after it, 2569 г. BE.
 const RU_TEMPLATES: DateTemplates = DateTemplates {
-    year: "{year} {era}",
-    date: "{day} {month} {year} г.",
+    year: "{year} г. {era}",
+    date: "{day} {month} {year}",
     ..DateTemplates::NONE
 };
 
@@ -842,11 +907,16 @@ const HI_JAPANESE_TEMPLATES: DateTemplates = DateTemplates {
 const AR_TEMPLATES: DateTemplates = DAY_MONTH_YEAR_TEMPLATES;
 const FA_TEMPLATES: DateTemplates = DAY_MONTH_YEAR_TEMPLATES;
 
-/// `th.xml`: `Gy` is "G y", `yMMMMd` is "d MMMM y" — so the Buddhist
-/// calendar writes 21 กันยายน พ.ศ. 2569, the era before its year.
+/// `th.xml`: `Gy` is "G y" and the long date "d MMMM G y": the era beside
+/// the year. The Gregorian calendar's fields carry no era, counting years
+/// astronomically, so its dates write none, 21 กันยายน 2026; and the
+/// Buddhist calendar's long date has none, so its era is left unwritten
+/// through the templates generated for it, 21 กันยายน 2569. Not carried:
+/// ค.ศ. in a Gregorian date, which `th.xml`'s long date writes (21 กันยายน
+/// ค.ศ. 2026), for want of an era in the Gregorian fields.
 const TH_TEMPLATES: DateTemplates = DateTemplates {
     year: "{era} {year}",
-    date: "{day} {month} {year}",
+    date: "{day} {month} {era} {year:1}",
     ..DateTemplates::NONE
 };
 
@@ -936,6 +1006,48 @@ const TE_TEMPLATES: DateTemplates = HA_TEMPLATES;
 /// and a long date of "d MMMM y" — what `tr.xml` states.
 const PA_TEMPLATES: DateTemplates = TR_TEMPLATES;
 const PCM_TEMPLATES: DateTemplates = TR_TEMPLATES;
+
+/// `bn.xml`: `Gy` is "y G" and the long date "d MMMM, y".
+const BN_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{year} {era}",
+    date: "{day} {month}, {year}",
+    ..DateTemplates::NONE
+};
+
+/// `ta.xml`: `Gy` is "G y" and the long date "d MMMM, y", as `ha.xml`'s.
+const TA_TEMPLATES: DateTemplates = HA_TEMPLATES;
+
+/// `ml.xml`, `my.xml`, `ne.xml` and `ps.xml`: `Gy` is "G y" and the long
+/// date "y MMMM d", the year first.
+const ML_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{era} {year}",
+    date: "{year} {month} {day}",
+    ..DateTemplates::NONE
+};
+const MY_TEMPLATES: DateTemplates = ML_TEMPLATES;
+const NE_TEMPLATES: DateTemplates = ML_TEMPLATES;
+const PS_TEMPLATES: DateTemplates = ML_TEMPLATES;
+
+/// `bo.xml`: `Gy` is "G y" and the long date "སྤྱི་ལོ་y MMMMའི་ཚེས་d".
+const BO_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{era} {year}",
+    date: "སྤྱི་ལོ་{year} {month}འི་ཚེས་{day}",
+    ..DateTemplates::NONE
+};
+
+/// `syr.xml`: `Gy` is "y G" and the long date "d ܒMMMM y": the preposition
+/// ܒ is written against the month.
+const SYR_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{year} {era}",
+    date: "{day} ܒ{month} {year}",
+    ..DateTemplates::NONE
+};
+
+/// `jv.xml`, `kab.xml` and `zgh.xml`: `Gy` is "G y" and the long date
+/// "d MMMM y", as `tr.xml`'s.
+const JV_TEMPLATES: DateTemplates = TR_TEMPLATES;
+const KAB_TEMPLATES: DateTemplates = TR_TEMPLATES;
+const ZGH_TEMPLATES: DateTemplates = TR_TEMPLATES;
 
 /// `ur.xml`: `Gy` is "y G", the long date "d MMMM، y", with the Arabic
 /// comma.
@@ -1798,6 +1910,49 @@ const ZH_HANT_CALENDAR_NAMES: &[CalendarDisplayName] = &[
 
 // --- root -----------------------------------------------------------------
 
+/// The era names CLDR 48 `root.xml` states for the calendars it names
+/// eras of, which every locale inherits where its own file states none
+/// (`cldr48-main`, read 2026-10-04): the abbreviations a date writes in
+/// every language, BE, AH, AM, AP and ROC, and the Śaka of the Indian
+/// national calendar. They are the end of the lookup for an era's name,
+/// after the locale's chain and before nothing, and so are not entries of
+/// [`ROOT`]: an entry that serves a calendar says the calendar's months
+/// and dates are named, and these say only what its eras are called.
+pub static ROOT_ERAS: &[CalendarNames] = &[
+    calendar_entry(
+        BUDDHIST_CALENDARS,
+        &[],
+        era_names(&["be"], &["BE"], &[], &[]),
+    ),
+    calendar_entry(
+        &[CalendarId("roc")],
+        &[],
+        era_names(&["broc", "roc"], &["BROC", "ROC"], &[], &[]),
+    ),
+    calendar_entry(
+        ISLAMIC_CALENDARS,
+        &[],
+        era_names(&["ah"], &["AH"], &[], &[]),
+    ),
+    calendar_entry(HEBREW_CALENDARS, &[], era_names(&["am"], &["AM"], &[], &[])),
+    calendar_entry(COPTIC_CALENDARS, &[], era_names(&["am"], &["AM"], &[], &[])),
+    calendar_entry(
+        ETHIOPIC_CALENDARS,
+        &[],
+        era_names(&["aa", "am"], &["AA", "AM"], &[], &[]),
+    ),
+    calendar_entry(
+        SOLAR_HIJRI_CALENDARS,
+        &[],
+        era_names(&["ap"], &["AP"], &[], &[]),
+    ),
+    calendar_entry(
+        &[CalendarId("indian")],
+        &[],
+        era_names(&["saka"], &["Śaka"], &[], &[]),
+    ),
+];
+
 /// The floor of every lookup.
 ///
 /// CLDR's own root locale names months `M01`…`M12` rather than inventing
@@ -1994,7 +2149,7 @@ const AM: LocaleData = LocaleData {
     english_name: "Amharic",
     native_name: "አማርኛ",
     script: "Ethi",
-    templates: DateTemplates::NONE,
+    templates: DAY_MONTH_YEAR_TEMPLATES,
     calendar_names: AM_CALENDAR_NAMES,
     direction: Direction::LeftToRight,
     numbering: "latn",
@@ -2443,7 +2598,7 @@ const BN: LocaleData = LocaleData {
     english_name: "Bangla",
     native_name: "বাংলা",
     script: "Beng",
-    templates: DateTemplates::NONE,
+    templates: BN_TEMPLATES,
     calendar_names: BN_CALENDAR_NAMES,
     direction: Direction::LeftToRight,
     numbering: "beng",
@@ -2649,7 +2804,7 @@ const BO: LocaleData = LocaleData {
     english_name: "Tibetan",
     native_name: "བོད་སྐད་",
     script: "Tibt",
-    templates: DateTemplates::NONE,
+    templates: BO_TEMPLATES,
     calendar_names: &[],
     direction: Direction::LeftToRight,
     numbering: "latn",
@@ -2699,7 +2854,7 @@ const BO: LocaleData = LocaleData {
         ]),
     },
     calendars: BO_CALENDARS,
-    cldr_calendars: &[],
+    cldr_calendars: cldr48_calendars::BO_CLDR,
 };
 
 // --- Coptic ---------------------------------------------------------------
@@ -4185,7 +4340,7 @@ const EN: LocaleData = LocaleData {
         joiner: "-",
     },
     calendars: EN_CALENDARS,
-    cldr_calendars: &[],
+    cldr_calendars: cldr48_calendars::EN_CLDR,
 };
 
 // --- Spanish --------------------------------------------------------------
@@ -4569,7 +4724,13 @@ const HE: LocaleData = LocaleData {
         &["ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳", "א׳"],
         &["ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳", "א׳"],
     )),
-    day_periods: ContextualNames::same(widths(&["לפנה״צ", "אחה״צ"], &[], &[])),
+    // CLDR 48 `he.xml` states the Hebrew names only for the narrow
+    // stand-alone width; every other width inherits root's AM and PM
+    // (`cldr48-main`, read 2026-10-04).
+    day_periods: ContextualNames {
+        format: widths(&["AM", "PM"], &[], &[]),
+        standalone: widths(&[], &[], &["לפנה״צ", "אחה״צ"]),
+    },
     cycle: SexagenaryNames::EMPTY,
     calendars: HE_CALENDARS,
     cldr_calendars: cldr48_calendars::HE_CLDR,
@@ -4771,7 +4932,8 @@ const HI: LocaleData = LocaleData {
         &["सो", "मं", "बु", "गु", "शु", "श", "र"],
         &["सो", "मं", "बु", "गु", "शु", "श", "र"],
     )),
-    day_periods: ContextualNames::same(widths(&["पूर्वाह्न", "अपराह्न"], &[], &[])),
+    // CLDR 48 `hi.xml` writes am and pm at every width, in both contexts.
+    day_periods: ContextualNames::same(widths(&["am", "pm"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: HI_CALENDARS,
     cldr_calendars: cldr48_calendars::HI_CLDR,
@@ -5162,7 +5324,7 @@ const JV: LocaleData = LocaleData {
     english_name: "Javanese",
     native_name: "Jawa",
     script: "Latn",
-    templates: DateTemplates::NONE,
+    templates: JV_TEMPLATES,
     calendar_names: JV_CALENDAR_NAMES,
     direction: Direction::LeftToRight,
     numbering: "latn",
@@ -5280,7 +5442,7 @@ const KAB: LocaleData = LocaleData {
     english_name: "Kabyle",
     native_name: "Taqbaylit",
     script: "Latn",
-    templates: DateTemplates::NONE,
+    templates: KAB_TEMPLATES,
     calendar_names: &[],
     direction: Direction::LeftToRight,
     numbering: "latn",
@@ -5301,7 +5463,7 @@ const KAB: LocaleData = LocaleData {
     )),
     cycle: SexagenaryNames::EMPTY,
     calendars: KAB_CALENDARS,
-    cldr_calendars: &[],
+    cldr_calendars: cldr48_calendars::KAB_CLDR,
 };
 
 // --- Korean ---------------------------------------------------------------
@@ -5592,7 +5754,7 @@ const ML: LocaleData = LocaleData {
     english_name: "Malayalam",
     native_name: "മലയാളം",
     script: "Mlym",
-    templates: DateTemplates::NONE,
+    templates: ML_TEMPLATES,
     calendar_names: ML_CALENDAR_NAMES,
     direction: Direction::LeftToRight,
     numbering: "latn",
@@ -5738,7 +5900,7 @@ const MY: LocaleData = LocaleData {
     english_name: "Burmese",
     native_name: "မြန်မာ",
     script: "Mymr",
-    templates: DateTemplates::NONE,
+    templates: MY_TEMPLATES,
     calendar_names: MY_CALENDAR_NAMES,
     direction: Direction::LeftToRight,
     numbering: "mymr",
@@ -5763,7 +5925,7 @@ const MY: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["နံနက်", "ညနေ"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: MY_CALENDARS,
-    cldr_calendars: &[],
+    cldr_calendars: cldr48_calendars::MY_CLDR,
 };
 
 // --- Nahuatl --------------------------------------------------------------
@@ -6183,7 +6345,7 @@ const NE: LocaleData = LocaleData {
     english_name: "Nepali",
     native_name: "नेपाली",
     script: "Deva",
-    templates: DateTemplates::NONE,
+    templates: NE_TEMPLATES,
     calendar_names: NE_CALENDAR_NAMES,
     direction: Direction::LeftToRight,
     numbering: "deva",
@@ -6498,7 +6660,7 @@ const PS: LocaleData = LocaleData {
     english_name: "Pashto",
     native_name: "پښتو",
     script: "Arab",
-    templates: DateTemplates::NONE,
+    templates: PS_TEMPLATES,
     calendar_names: &[],
     direction: Direction::RightToLeft,
     numbering: "arabext",
@@ -6932,7 +7094,7 @@ const SA: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["पूर्वाह्न", "अपराह्न"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: SA_CALENDARS,
-    cldr_calendars: &[],
+    cldr_calendars: cldr48_calendars::SA_CLDR,
 };
 
 // --- Syriac ---------------------------------------------------------------
@@ -7074,7 +7236,7 @@ const SYR: LocaleData = LocaleData {
     english_name: "Syriac",
     native_name: "ܣܘܪܝܝܐ",
     script: "Syrc",
-    templates: DateTemplates::NONE,
+    templates: SYR_TEMPLATES,
     calendar_names: SYR_CALENDAR_NAMES,
     direction: Direction::RightToLeft,
     numbering: "latn",
@@ -7277,7 +7439,7 @@ const TA: LocaleData = LocaleData {
     english_name: "Tamil",
     native_name: "தமிழ்",
     script: "Taml",
-    templates: DateTemplates::NONE,
+    templates: TA_TEMPLATES,
     calendar_names: TA_CALENDAR_NAMES,
     direction: Direction::LeftToRight,
     numbering: "latn",
@@ -7938,7 +8100,7 @@ const ZGH: LocaleData = LocaleData {
     english_name: "Standard Moroccan Tamazight",
     native_name: "ⵜⴰⵎⴰⵣⵉⵖⵜ",
     script: "Tfng",
-    templates: DateTemplates::NONE,
+    templates: ZGH_TEMPLATES,
     calendar_names: ZGH_CALENDAR_NAMES,
     direction: Direction::LeftToRight,
     numbering: "latn",
@@ -7963,7 +8125,7 @@ const ZGH: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["ⵜⵉⴼⴰⵡⵜ", "ⵜⴰⴷⴳⴳⵯⴰⵜ"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: ZGH_CALENDARS,
-    cldr_calendars: &[],
+    cldr_calendars: cldr48_calendars::ZGH_CLDR,
 };
 
 // --- Chinese, simplified --------------------------------------------------
@@ -8385,7 +8547,7 @@ const FIL: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &["am", "pm"])),
     cycle: SexagenaryNames::EMPTY,
     calendars: FIL_CALENDARS,
-    cldr_calendars: &[],
+    cldr_calendars: cldr48_calendars::FIL_CLDR,
 };
 
 // --- Hausa ---------------------------------------------------------------
@@ -8506,7 +8668,7 @@ const HA: LocaleData = LocaleData {
     },
     cycle: SexagenaryNames::EMPTY,
     calendars: HA_CALENDARS,
-    cldr_calendars: &[],
+    cldr_calendars: cldr48_calendars::HA_CLDR,
 };
 
 // --- Marathi -------------------------------------------------------------
@@ -8802,7 +8964,7 @@ const MR: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &["a", "p"])),
     cycle: SexagenaryNames::EMPTY,
     calendars: MR_CALENDARS,
-    cldr_calendars: &[],
+    cldr_calendars: cldr48_calendars::MR_CLDR,
 };
 
 // --- Punjabi, Arabic script ----------------------------------------------
@@ -8864,7 +9026,7 @@ const PA_ARAB: LocaleData = LocaleData {
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
     calendars: PA_ARAB_CALENDARS,
-    cldr_calendars: &[],
+    cldr_calendars: cldr48_calendars::PA_ARAB_CLDR,
 };
 
 // --- Punjabi, Gurmukhi script --------------------------------------------
@@ -9173,7 +9335,7 @@ const PA_GURU: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: PA_GURU_CALENDARS,
-    cldr_calendars: &[],
+    cldr_calendars: cldr48_calendars::PA_GURU_CLDR,
 };
 
 // --- Nigerian Pidgin -----------------------------------------------------
@@ -9281,7 +9443,7 @@ const PCM: LocaleData = LocaleData {
     },
     cycle: SexagenaryNames::EMPTY,
     calendars: PCM_CALENDARS,
-    cldr_calendars: &[],
+    cldr_calendars: cldr48_calendars::PCM_CLDR,
 };
 
 // --- European Portuguese -------------------------------------------------
@@ -9367,7 +9529,7 @@ const PT_PT: LocaleData = LocaleData {
     },
     cycle: SexagenaryNames::EMPTY,
     calendars: PT_PT_CALENDARS,
-    cldr_calendars: &[],
+    cldr_calendars: cldr48_calendars::PT_PT_CLDR,
 };
 
 // --- Swahili -------------------------------------------------------------
@@ -9440,7 +9602,7 @@ const SW: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &["am", "pm"])),
     cycle: SexagenaryNames::EMPTY,
     calendars: SW_CALENDARS,
-    cldr_calendars: &[],
+    cldr_calendars: cldr48_calendars::SW_CLDR,
 };
 
 // --- Telugu --------------------------------------------------------------
@@ -9668,7 +9830,7 @@ const TE: LocaleData = LocaleData {
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
     calendars: TE_CALENDARS,
-    cldr_calendars: &[],
+    cldr_calendars: cldr48_calendars::TE_CLDR,
 };
 
 // --- Urdu ----------------------------------------------------------------
@@ -9969,7 +10131,7 @@ const UR: LocaleData = LocaleData {
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &["a", "p"])),
     cycle: SexagenaryNames::EMPTY,
     calendars: UR_CALENDARS,
-    cldr_calendars: &[],
+    cldr_calendars: cldr48_calendars::UR_CLDR,
 };
 
 // --- Cantonese, simplified -----------------------------------------------

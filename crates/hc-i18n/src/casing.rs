@@ -8,7 +8,7 @@
 //!   default mapping gives `IYI`, which is a different word. The Unicode
 //!   default case conversion (The Unicode Standard, version 17.0, §3.13
 //!   "Default Case Algorithms") is overridden for `tr` and `az` by the
-//!   language-sensitive rows of `SpecialCasing-17.0.0.txt`, and
+//!   language-sensitive rows of `SpecialCasing-18.0.0.txt`, and
 //!   [`to_uppercase`] and [`to_lowercase`] here honour them.
 //! * **Whether a month name is a capitalised word at all.** English,
 //!   German, Turkish and Indonesian capitalise month and weekday names;
@@ -98,7 +98,7 @@ fn push_uppercase(character: char, style: CasingStyle, out: &mut alloc::string::
 /// sigma rule: `ΟΔΥΣΣΕΥΣ` is `οδυσσευς`) except in Turkic locales, which map
 /// `I` to `ı`, `İ` to `i` and `I` followed by a dot above to `i` first
 /// (the `tr` and `az` rows of `SpecialCasing.txt`, read in its 18.0.0
-/// version on 2026-10-04) and then lowercase the rest by default.
+/// version on 2026-10-05) and then lowercase the rest by default.
 #[cfg(feature = "alloc")]
 #[must_use]
 pub fn to_lowercase(locale: &Locale, text: &str) -> alloc::string::String {

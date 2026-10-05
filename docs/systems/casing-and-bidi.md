@@ -24,7 +24,7 @@ word; the language-sensitive rows of `SpecialCasing.txt` make `i` uppercase to
 `0130` lowercases to `i`; `0307` loses its dot after an `I` (`After_I`); `0049`
 lowercases to `0131` unless it is before a dot above (`Not_Before_Dot`); and
 `0069` uppercases to `0130`. It has rows for Lithuanian as well, which keeps
-the dot of a lowercase `i` when accents follow [unicode-specialcasing-17].
+the dot of a lowercase `i` when accents follow [unicode-specialcasing-18].
 
 A second question is not about characters: whether a month or weekday name is
 a capitalised word at all. English and German write *January* and *Januar* in
@@ -53,8 +53,10 @@ direction of what surrounds them [uax9].
 
 ## How it works
 
-*Casing.* `casing_style(locale)` is `Turkic` for the locales whose data entry
-says so and `Standard` for the rest. `to_uppercase` and `to_lowercase` map each
+*Casing.* `casing_style(locale)` is `Turkic` for Turkish and Azerbaijani, whatever
+entry the locale resolves to (`az` has none of its own, and `hc_case("az", "upper",
+"iyi")` is `İYİ` with the data entry `und`), and otherwise for the locales whose
+data entry says so, and `Standard` for the rest. `to_uppercase` and `to_lowercase` map each
 character by Unicode's default (`char::to_uppercase`, `char::to_lowercase`),
 except that a Turkic locale maps `i`→`İ`, `ı`→`I`, `I`→`ı`, `İ`→`i`.
 `capitalise_first` and `lowercase_first` recase the first character only,
@@ -127,10 +129,6 @@ own, so nothing is added.
 
 Not carried:
 
-- **Azerbaijani casing.** `az` has the same rows as `tr` in
-  `SpecialCasing.txt`, but `az` is not a locale `hc-i18n` carries, so it falls
-  back to the root entry and `hc_case("az", "upper", "iyi")` is `IYI` with the
-  data entry `und`. Not yet done.
 - **The conditional Turkic rows and Lithuanian.** `I` followed by U+0307
   lowercases to `i` and the dot is removed (`Not_Before_Dot`, `After_I`), and
   the Lithuanian rows keep the dot of a lowercase `i`; the module maps single
@@ -148,8 +146,9 @@ Not carried:
 ## Accuracy
 
 The casing mappings were checked on 2026-10-04 against the rows of
-`SpecialCasing-17.0.0.txt` that apply to single characters: the examples above
-reproduce `0069→0130`, `0049→0131` and `0130→0069` for `tr`, and the tests hold
+`SpecialCasing-18.0.0.txt` (dated 2026-05-19, read again on 2026-10-05; its
+Turkish and Azeri rows are those of 17.0.0) that apply to single characters: the
+examples above reproduce `0069→0130`, `0049→0131` and `0130→0069` for `tr`, and the tests hold
 the twelve Turkish month names to a round trip through upper and lower case.
 
 The direction is checked against the property values of the Unicode Character
@@ -186,7 +185,7 @@ Read directly as HTML or plain text on 2026-10-04.
 - [uax9]: UAX #9, the Unicode Bidirectional Algorithm, revision 52 (Unicode
   18.0.0, dated 2026-09-01): sections 2.4 and 2.5 (the isolates), 3.2 (the
   character types) and 3.3.1 (P2 and P3).
-- [unicode-specialcasing-17]: `SpecialCasing-17.0.0.txt` (dated 2025-07-31), the
+- [unicode-specialcasing-18]: `SpecialCasing-18.0.0.txt` (dated 2026-05-19), the
   Turkish and Azeri and the Lithuanian sections, read as text through the
   Unicode site.
 - The Unicode Standard 17.0, section 3.13, "Default Case Algorithms", and
