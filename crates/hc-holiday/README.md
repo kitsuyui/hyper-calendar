@@ -727,11 +727,11 @@ not read, as Johor's to 1994 and the Friday states' before 25 November
 a day answers `None`. Every national table and every exchange begins with
 such a policy, up to the first date its sources state a weekend: Japan's
 civil service has Saturday and Sunday from 1 May 1992, the United States'
-executive agencies from 6 September 1966, and most tables from 2026, the
+executive agencies from 6 September 1966, and 123 tables only from 2026, the
 year the sources were read in ([national-weekends.md](../../docs/systems/national-weekends.md)).
 A table of a tradition or of a list of days states no weekend and keeps
 Saturday and Sunday as a default. A
-few tables rest on one day: Iran and Djibouti the Friday, Israel the
+few tables rest on one day: Iran and Afghanistan the Friday, Israel the
 Saturday, which is its only statutory day of rest, and Cuba, Cambodia,
 Timor-Leste and the Vatican the Sunday.
 

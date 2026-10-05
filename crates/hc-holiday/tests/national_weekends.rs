@@ -42,14 +42,29 @@ const COUNTRIES: &[(&str, Regimes)] = &[
             ((2022, 1, 1), Some(SAT_SUN)),
         ],
     ),
-    ("AF", &[((1900, 1, 1), None), ((2026, 1, 1), Some(FRIDAY))]),
+    (
+        "AF",
+        &[
+            ((1900, 1, 1), None),
+            ((2010, 1, 1), Some(FRIDAY)),
+            ((2010, 12, 2), Some(THU_FRI)),
+            ((2019, 1, 1), None),
+            ((2026, 1, 1), Some(FRIDAY)),
+        ],
+    ),
     ("AG", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("AL", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("AM", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    (
+        "AM",
+        &[((1900, 1, 1), None), ((2005, 6, 21), Some(SAT_SUN))],
+    ),
     ("AO", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("AR", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("AT", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("AU", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    (
+        "AU",
+        &[((1900, 1, 1), None), ((2015, 5, 14), Some(SAT_SUN))],
+    ),
     ("AZ", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("BA", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("BB", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
@@ -75,7 +90,10 @@ const COUNTRIES: &[(&str, Regimes)] = &[
     ("BI", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("BJ", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("BN", &[((1900, 1, 1), None), ((2019, 1, 1), Some(FRI_SUN))]),
-    ("BO", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    (
+        "BO",
+        &[((1900, 1, 1), None), ((2010, 12, 26), Some(SAT_SUN))],
+    ),
     ("BR", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("BS", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("BT", &[((1900, 1, 1), None), ((2016, 1, 1), Some(SAT_SUN))]),
@@ -83,11 +101,21 @@ const COUNTRIES: &[(&str, Regimes)] = &[
     ("BY", &[((1900, 1, 1), None), ((2000, 1, 1), Some(SAT_SUN))]),
     ("BZ", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("CA", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("CD", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    (
+        "CD",
+        &[
+            ((1900, 1, 1), None),
+            ((2024, 1, 1), Some(SUNDAY)),
+            ((2024, 8, 1), Some(SAT_SUN)),
+        ],
+    ),
     ("CG", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("CH", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("CI", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("CL", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    (
+        "CL",
+        &[((1900, 1, 1), None), ((2005, 3, 16), Some(SAT_SUN))],
+    ),
     ("CM", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     (
         "CN",
@@ -102,9 +130,12 @@ const COUNTRIES: &[(&str, Regimes)] = &[
     ("CU", &[((1900, 1, 1), None), ((2014, 1, 1), Some(SUNDAY))]),
     ("CV", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("CY", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("CZ", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("DE", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("DJ", &[((1900, 1, 1), None), ((2026, 1, 1), Some(FRIDAY))]),
+    (
+        "CZ",
+        &[((1900, 1, 1), None), ((1968, 6, 10), Some(SAT_SUN))],
+    ),
+    ("DE", &[((1900, 1, 1), None), ((2006, 3, 1), Some(SAT_SUN))]),
+    ("DJ", &[((1900, 1, 1), None), ((2017, 1, 1), Some(FRI_SAT))]),
     ("DK", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("DM", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("DO", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
@@ -117,7 +148,10 @@ const COUNTRIES: &[(&str, Regimes)] = &[
             ((2009, 8, 14), Some(FRI_SAT)),
         ],
     ),
-    ("EC", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    (
+        "EC",
+        &[((1900, 1, 1), None), ((2010, 10, 6), Some(SAT_SUN))],
+    ),
     ("EE", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     (
         "EG",
@@ -127,9 +161,9 @@ const COUNTRIES: &[(&str, Regimes)] = &[
             ((2006, 1, 21), Some(FRI_SAT)),
         ],
     ),
-    ("ES", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    ("ES", &[((1900, 1, 1), None), ((2019, 3, 1), Some(SAT_SUN))]),
     ("ET", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("FI", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    ("FI", &[((1900, 1, 1), None), ((1969, 4, 1), Some(SAT_SUN))]),
     ("FJ", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("FM", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("FR", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
@@ -141,7 +175,7 @@ const COUNTRIES: &[(&str, Regimes)] = &[
     ("GM", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("GN", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("GQ", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("GR", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    ("GR", &[((1900, 1, 1), None), ((1981, 1, 1), Some(SAT_SUN))]),
     ("GT", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("GW", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SUNDAY))]),
     ("GY", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
@@ -150,15 +184,18 @@ const COUNTRIES: &[(&str, Regimes)] = &[
     ("HR", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("HT", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("HU", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("ID", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    (
+        "ID",
+        &[((1900, 1, 1), None), ((1995, 10, 1), Some(SAT_SUN))],
+    ),
     ("IE", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     (
         "IL",
         &[((1900, 1, 1), None), ((1952, 1, 1), Some(SATURDAY))],
     ),
-    ("IN", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    ("IN", &[((1900, 1, 1), None), ((1985, 6, 3), Some(SAT_SUN))]),
     ("IQ", &[((1900, 1, 1), None), ((2005, 3, 1), Some(FRI_SAT))]),
-    ("IR", &[((1900, 1, 1), None), ((2026, 1, 1), Some(FRIDAY))]),
+    ("IR", &[((1900, 1, 1), None), ((1991, 1, 1), Some(FRIDAY))]),
     ("IS", &[((1900, 1, 1), None), ((1983, 1, 1), Some(SAT_SUN))]),
     ("IT", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("JM", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
@@ -166,19 +203,22 @@ const COUNTRIES: &[(&str, Regimes)] = &[
         "JO",
         &[
             ((1900, 1, 1), None),
-            ((1999, 1, 1), Some(THU_FRI)),
+            ((2000, 1, 1), Some(THU_FRI)),
             ((2000, 1, 8), Some(FRI_SAT)),
         ],
     ),
     ("JP", &[((1900, 1, 1), None), ((1992, 5, 1), Some(SAT_SUN))]),
-    ("KE", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    (
+        "KE",
+        &[((1900, 1, 1), None), ((2023, 9, 25), Some(SAT_SUN))],
+    ),
     ("KG", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("KH", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SUNDAY))]),
     ("KI", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("KM", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("KN", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("KP", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SUNDAY))]),
-    ("KR", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    ("KR", &[((1900, 1, 1), None), ((2005, 7, 1), Some(SAT_SUN))]),
     (
         "KW",
         &[
@@ -188,10 +228,13 @@ const COUNTRIES: &[(&str, Regimes)] = &[
         ],
     ),
     ("KZ", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("LA", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    (
+        "LA",
+        &[((1900, 1, 1), None), ((2017, 12, 19), Some(SAT_SUN))],
+    ),
     ("LB", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("LC", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("LI", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    ("LI", &[((1900, 1, 1), None), ((2009, 1, 1), Some(SAT_SUN))]),
     ("LK", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("LR", &[((1900, 1, 1), None), ((2016, 1, 1), Some(SUNDAY))]),
     ("LS", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
@@ -199,22 +242,26 @@ const COUNTRIES: &[(&str, Regimes)] = &[
     ("LU", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("LV", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("LY", &[((1900, 1, 1), None), ((2006, 1, 1), Some(FRI_SAT))]),
-    ("MA", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    (
+        "MA",
+        &[((1900, 1, 1), None), ((2005, 7, 20), Some(SAT_SUN))],
+    ),
     ("MC", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("MD", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("ME", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("MG", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    ("MG", &[((1900, 1, 1), None), ((2009, 8, 1), Some(SAT_SUN))]),
     ("MH", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("MK", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("ML", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("MM", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("MN", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    ("MN", &[((1900, 1, 1), None), ((1999, 7, 1), Some(SAT_SUN))]),
     ("MO", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     (
         "MR",
         &[
             ((1900, 1, 1), None),
-            ((2007, 1, 1), Some(FRI_SAT)),
+            ((2005, 4, 6), Some(SAT_SUN)),
+            ((2007, 12, 23), Some(FRI_SAT)),
             ((2014, 10, 1), Some(SAT_SUN)),
         ],
     ),
@@ -238,7 +285,9 @@ const COUNTRIES: &[(&str, Regimes)] = &[
         "NP",
         &[
             ((1900, 1, 1), None),
-            ((2026, 1, 1), Some(SATURDAY)),
+            ((2022, 1, 1), Some(SATURDAY)),
+            ((2022, 5, 15), Some(SAT_SUN)),
+            ((2022, 6, 15), Some(SATURDAY)),
             ((2026, 4, 6), Some(SAT_SUN)),
         ],
     ),
@@ -253,9 +302,12 @@ const COUNTRIES: &[(&str, Regimes)] = &[
         ],
     ),
     ("PA", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("PE", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    ("PE", &[((1900, 1, 1), None), ((1996, 1, 4), Some(SAT_SUN))]),
     ("PG", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("PH", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    (
+        "PH",
+        &[((1900, 1, 1), None), ((1991, 12, 27), Some(SAT_SUN))],
+    ),
     ("PK", &[((1900, 1, 1), None), ((2022, 6, 9), Some(SAT_SUN))]),
     (
         "PL",
@@ -266,8 +318,15 @@ const COUNTRIES: &[(&str, Regimes)] = &[
             ((2001, 1, 1), Some(SAT_SUN)),
         ],
     ),
-    ("PS", &[((1900, 1, 1), None), ((2026, 1, 1), Some(FRI_SAT))]),
-    ("PT", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    (
+        "PS",
+        &[
+            ((1900, 1, 1), None),
+            ((2007, 1, 1), Some(THU_FRI)),
+            ((2007, 7, 1), Some(FRI_SAT)),
+        ],
+    ),
+    ("PT", &[((1900, 1, 1), None), ((2014, 8, 1), Some(SAT_SUN))]),
     ("PW", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("PY", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     (
@@ -309,9 +368,12 @@ const COUNTRIES: &[(&str, Regimes)] = &[
         ],
     ),
     ("SE", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("SG", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    ("SG", &[((1900, 1, 1), None), ((2004, 9, 1), Some(SAT_SUN))]),
     ("SI", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("SK", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    (
+        "SK",
+        &[((1900, 1, 1), None), ((1968, 6, 10), Some(SAT_SUN))],
+    ),
     ("SL", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("SM", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("SN", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
@@ -327,7 +389,10 @@ const COUNTRIES: &[(&str, Regimes)] = &[
     ("TJ", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("TL", &[((1900, 1, 1), None), ((2013, 1, 1), Some(SUNDAY))]),
     ("TM", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("TN", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
+    (
+        "TN",
+        &[((1900, 1, 1), None), ((2012, 9, 17), Some(SAT_SUN))],
+    ),
     ("TO", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     (
         "TR",
@@ -357,7 +422,7 @@ const COUNTRIES: &[(&str, Regimes)] = &[
     ("VA", &[((1900, 1, 1), None), ((2011, 1, 1), Some(SUNDAY))]),
     ("VC", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("VE", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("VN", &[((1900, 1, 1), None), ((2017, 5, 3), Some(SAT_SUN))]),
+    ("VN", &[((1900, 1, 1), None), ((2021, 1, 1), Some(SAT_SUN))]),
     ("VU", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("WS", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     (
@@ -618,4 +683,80 @@ fn a_tradition_or_a_list_of_days_states_no_weekend_and_keeps_saturday_and_sunday
         );
         assert!(!table.weekend_unread_in(None, 1500), "{}", table.code);
     }
+}
+
+/// The system document's text, which lists every national table either with
+/// the date its weekend is first read and the keys of its sources, or among
+/// those read from 2026 only.
+const DOCUMENT: &str = include_str!("../../../docs/systems/national-weekends.md");
+
+fn between<'a>(text: &'a str, from: &str, to: &str) -> &'a str {
+    let Some(start) = text.find(from) else {
+        panic!("the document has no {from:?}");
+    };
+    let rest = &text[start..];
+    let end = rest[from.len()..]
+        .find(to)
+        .map_or(rest.len(), |at| at + from.len());
+    &rest[..end]
+}
+
+#[test]
+fn the_document_gives_every_table_its_first_year_and_its_sources() {
+    let dated = between(
+        DOCUMENT,
+        "#### Tables with a dated weekend",
+        "#### Tables read from 2026 only",
+    );
+    let undated = between(
+        DOCUMENT,
+        "#### Tables read from 2026 only",
+        "#### Examined and not carried",
+    );
+    let mut listed = 0;
+    for table in countries::ALL {
+        let code = table.code;
+        let first = table.weekend_first_year(None);
+        let row = dated
+            .lines()
+            .find(|line| line.starts_with(&format!("| {code} | ")));
+        match row {
+            Some(row) => {
+                listed += 1;
+                let cells: Vec<&str> = row.split('|').map(str::trim).collect();
+                // "", code, country, first read, weekend, sources, ""
+                assert_eq!(cells.len(), 7, "{code}: {row}");
+                let year: i64 = cells[3]
+                    .rsplit(' ')
+                    .next()
+                    .and_then(|year| year.parse().ok())
+                    .unwrap_or_else(|| panic!("{code}: first read {:?}", cells[3]));
+                assert_eq!(first, Some(year), "{code}: first read in the document");
+                assert!(
+                    year < 2026 || cells[3] != "2026",
+                    "{code} is dated, but is first read in 2026"
+                );
+                assert!(
+                    cells[5].contains('`') || cells[5].starts_with("not re-read"),
+                    "{code}: the sources column"
+                );
+            }
+            None => {
+                assert_eq!(first, Some(2026), "{code} is read from 2026 only");
+                let there = undated.contains(&format!(": {code} "))
+                    || undated.contains(&format!(", {code} "));
+                assert!(there, "{code} is in neither list of the document");
+            }
+        }
+    }
+    let rows = dated
+        .lines()
+        .filter(|line| {
+            line.starts_with("| ") && !line.starts_with("| Code") && !line.starts_with("| ---")
+        })
+        .count();
+    assert_eq!(
+        rows, listed,
+        "a row of the dated table is no national table"
+    );
 }
