@@ -1,50 +1,89 @@
-//! The Kurdish solar year, as kept in the Kurdistan Region of Iraq.
+//! The Kurdish calendar as the English Wikipedia reckons it: the Solar
+//! Hijri day and month under Kurdish month names, and the Solar Hijri year
+//! plus 1321 — `kurdish`.
 //!
-//! The year begins on Newroz, 21 March, with six months of 31 days,
-//! Xakelêwe to Xermanan, then five of 30, Rezber to Rêbendan, and Reşeme,
-//! the twelfth, of 29 or 30 days, 20 February to 20 March: each month
-//! spans the same Gregorian dates in every year, so Reşeme has a 30th
-//! day exactly when the Gregorian February it spans has a 29th, which is
-//! its 10th. That is
-//! the same fixed-date shape as [`crate::bangladeshi`] and
-//! [`crate::tabot`]. The year is numbered 700 ahead of the Gregorian year
-//! it begins in: the year that began on 21 March 2026 is 2726, in which
-//! 4 October 2026 is 12 Rezber.
+//! The one source read, Wikipedia's "Kurdish calendar", describes a solar
+//! year that begins on Newroz, 21 March, "corresponding to the spring
+//! equinox", with twelve months of 31, 31, 31, 31, 31, 31, 30, 30, 30, 30,
+//! 30 and 29 or 30 days, Xakelêwe to Reşeme, and gives each month an
+//! "Approximate Gregorian Span". It states no leap rule and no rule for the
+//! year number. The date it displays for the day it is read is produced by
+//! `Template:Kurdish_calendar_date_today`, whose wikitext is
+//! `{{#time:xij}}`, the month name switched on `{{#time:xin}}`, and
+//! `{{#expr: {{#time:xiY}} + 1321}}`: MediaWiki's `xi` codes are the
+//! Iranian calendar, computed by `Language::tsToIranian`, the Pournader and
+//! Toossi algorithm, which is the 33-year rule of
+//! [`crate::persian_33`] counted from 1 Farvardin 979 on 20 March 1600.
+//! So the page's reckoning is: the Solar Hijri date under the 33-year rule,
+//! the months renamed, and the year 1321 ahead. That is what this module
+//! carries, and the test `the_template_is_the_pournader_toossi_algorithm`
+//! holds the two algorithms together day by day. The system document is
+//! `docs/systems/kurdish.md`.
 //!
-//! The source says the calendar "is formally recognized for cultural and
-//! official use in the Kurdistan Region of Iraq", and gives no date for
-//! that, so its period of use is unrecorded. It also says the count begins
-//! with "the Battle of Nineveh (612 BC)", which does not give 2726 for
-//! 2026 by any reckoning of years, so that epoch is not carried; the year
-//! number is taken from the dates the source writes.
+//! The article's own statement of its epoch, "the Battle of Nineveh … in
+//! 612 BC", gives 2638 for the year from 21 March 2026, not the 2726 the
+//! page displays, so it is not carried; the year number is the template's.
+//! The article says the calendar "is formally recognized for cultural and
+//! official use in the Kurdistan Region of Iraq" and gives no date for
+//! that, so the period of use is unrecorded.
+//!
+//! # What is not carried
+//!
+//! * A year on fixed Gregorian dates, every month beginning on the same
+//!   Gregorian day each year with Reşeme taking its 30th day from the
+//!   Gregorian February: no source read states it. The article's spans are
+//!   headed approximate, and in the years the Solar Hijri Nowruz falls on
+//!   20 March, 2024 and 2028 among them, that reading and the page disagree
+//!   for the whole year.
+//! * A Kurdish year over the astronomical Solar Hijri calendar
+//!   (`persian`, in `hc-calendars-equinox`), the Iranian civil rule: it
+//!   would need a source stating that the Kurdistan Region reckons the year
+//!   by the equinox, and none was read. The two agree on every day between
+//!   Solar Hijri 1178 and 1634 — Kurdish 2499 to 2955 — as the 33-year
+//!   rule's module says.
+//! * The Sorani spellings, خاکەلێوە to ڕەشەمە, for want of a Kurdish
+//!   locale; the romanised forms are the shape's names.
+//! * The Kurdistan Region's own instrument, which was not found and would
+//!   replace the article.
 //!
 //! # Sources
 //!
 //! * Wikipedia, "Kurdish calendar",
 //!   <https://en.wikipedia.org/wiki/Kurdish_calendar>, retrieved
-//!   2026-10-04 (`wikipedia-kurdish-calendar`): the months, their lengths
-//!   and Gregorian spans, Newroz on 21 March, the recognition in the
-//!   Kurdistan Region, and the date it wrote for the day it was read,
-//!   12 Rezber 2726. A secondary source; the Kurdistan Region's own
-//!   instrument was not found and would replace it. The article writes the
-//!   months in Sorani script as well, خاکەلێوە to ڕەشەمە; no Kurdish locale
-//!   carries them yet, so the romanised forms are the shape's names.
+//!   2026-10-04 and again, as wikitext, 2026-10-05
+//!   (`wikipedia-kurdish-calendar`): the months, their lengths and
+//!   approximate spans, Newroz on 21 March, the recognition in the
+//!   Kurdistan Region, the 612 BC statement, and the date it displayed on
+//!   4 October 2026, 12 Rezber 2726. A secondary source.
+//! * Wikipedia, "Template:Kurdish calendar date today", wikitext read
+//!   2026-10-05 (`wikipedia-template-kurdish-calendar-date-today`): the
+//!   `#time:xi` codes and the `+ 1321`.
+//! * MediaWiki, `includes/Language/Language.php`, `tsToIranian`, read
+//!   2026-10-05 (`mediawiki-language-tstoiranian`): the algorithm the `xi`
+//!   codes compute, and MediaWiki's Help:Extension:ParserFunctions
+//!   (`mediawiki-parserfunctions-time`) for the codes being the Iranian
+//!   calendar.
 //!
 //! # Exactness
 //!
-//! Exact over the Gregorian dates the source tabulates.
+//! Exact to the date the page's template displays, for every day from
+//! 20 March 1600, the first day the template's arithmetic is defined for;
+//! before it, the 33-year rule's own arithmetic carried back, which no
+//! page displays. Whether the Kurdistan Region reckons the year the same
+//! way is not established by any source read.
 
 use hc_calendar::shape::{CycleShape, MONTH, WEEKDAY};
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
 };
 
-use crate::{common, gregorian};
+use crate::{gregorian, persian_33};
 
 /// The calendar identifier.
 pub const ID: &str = "kurdish";
 
-/// The month names, romanised as the source gives them.
+/// The month names, romanised as the source gives them, in the order of
+/// the Solar Hijri months they stand for, Farvardin to Esfand.
 pub const MONTHS: [&str; 12] = [
     "Xakelêwe",
     "Gulan",
@@ -60,75 +99,63 @@ pub const MONTHS: [&str; 12] = [
     "Reşeme",
 ];
 
-/// How far the Kurdish year runs ahead of the Gregorian year it begins in.
-pub const YEAR_OFFSET: i64 = 700;
+/// How far the Kurdish year runs ahead of the Solar Hijri year: the
+/// template's `+ 1321`.
+pub const YEAR_OFFSET: i64 = 1321;
 
-/// The month whose length varies, Reşeme.
+/// The month whose length varies, Reşeme, which stands for Esfand.
 pub const RESHEME: u8 = 12;
 
-/// The earliest year this implementation converts.
-pub const MIN_YEAR: i64 = 1;
+/// The earliest year this implementation converts: Solar Hijri 1.
+pub const MIN_YEAR: i64 = persian_33::MIN_YEAR + YEAR_OFFSET;
 
 /// The latest year this implementation converts.
 pub const MAX_YEAR: i64 = 9_999;
 
-/// Whether `year` has a 30th of Reşeme: the Gregorian year it ends in has
-/// a 29 February.
+/// The first day the template's arithmetic is defined for: 20 March 1600,
+/// 1 Farvardin 979, from which `tsToIranian` counts its days.
+pub const TEMPLATE_FROM: Rd = match gregorian::to_fixed(1600, 3, 20) {
+    Ok(rd) => rd,
+    Err(_) => Rd(0),
+};
+
+/// Whether `year` has a 30th of Reşeme: its Solar Hijri year is a leap
+/// year of the 33-year rule.
 #[must_use]
 pub const fn is_leap_year(year: i64) -> bool {
-    gregorian::is_leap_year(year - YEAR_OFFSET + 1)
+    persian_33::is_leap_year(year - YEAR_OFFSET)
 }
 
 /// The number of days in `month` of `year`, or `None` outside `1..=12`.
 #[must_use]
 pub const fn days_in_month(year: i64, month: u8) -> Option<u8> {
-    match month {
-        1..=6 => Some(31),
-        7..=11 => Some(30),
-        RESHEME => Some(if is_leap_year(year) { 30 } else { 29 }),
-        _ => None,
-    }
+    persian_33::days_in_month(year - YEAR_OFFSET, month)
 }
 
 /// The number of days in `year`, 365 or 366.
 #[must_use]
 pub const fn days_in_year(year: i64) -> u16 {
-    if is_leap_year(year) { 366 } else { 365 }
+    persian_33::days_in_year(year - YEAR_OFFSET)
 }
 
-/// Days in the year before the first of `month`.
-const fn days_before_month(month: u8) -> i64 {
-    let month = month as i64 - 1;
-    if month <= 6 {
-        31 * month
-    } else {
-        186 + 30 * (month - 6)
-    }
-}
-
-/// The fixed day of Newroz, 1 Xakelêwe, 21 March.
+/// The fixed day of Newroz, 1 Xakelêwe, which is 1 Farvardin.
 ///
 /// # Errors
 ///
 /// Returns [`CalendarError::YearOutOfRange`] outside
 /// [`MIN_YEAR`]..=[`MAX_YEAR`].
 pub const fn new_year(year: i64) -> CalendarResult<Rd> {
-    if year < MIN_YEAR || year > MAX_YEAR {
-        return Err(CalendarError::YearOutOfRange);
-    }
-    gregorian::to_fixed(year - YEAR_OFFSET, 3, 21)
+    to_fixed(year, 1, 1)
 }
 
-/// The earliest fixed day this implementation converts.
-pub const EARLIEST: Rd = match new_year(MIN_YEAR) {
-    Ok(rd) => rd,
-    Err(_) => Rd(0),
-};
+/// The earliest fixed day this implementation converts, 1 Xakelêwe 1322,
+/// which is 1 Farvardin 1.
+pub const EARLIEST: Rd = persian_33::EARLIEST;
 
-/// The latest fixed day this implementation converts, 20 March of the
-/// Gregorian year after [`MAX_YEAR`] began.
-pub const LATEST: Rd = match gregorian::to_fixed(MAX_YEAR - YEAR_OFFSET + 1, 3, 20) {
-    Ok(rd) => rd,
+/// The latest fixed day this implementation converts, the last day of
+/// [`MAX_YEAR`].
+pub const LATEST: Rd = match persian_33::to_fixed(MAX_YEAR - YEAR_OFFSET + 1, 1, 1) {
+    Ok(rd) => Rd(rd.0 - 1),
     Err(_) => Rd(0),
 };
 
@@ -139,14 +166,10 @@ pub const LATEST: Rd = match gregorian::to_fixed(MAX_YEAR - YEAR_OFFSET + 1, 3, 
 /// Returns [`CalendarError::YearOutOfRange`],
 /// [`CalendarError::MonthOutOfRange`] or [`CalendarError::DayOutOfRange`].
 pub const fn to_fixed(year: i64, month: u8, day: u8) -> CalendarResult<Rd> {
-    let start = match new_year(year) {
-        Ok(start) => start,
-        Err(error) => return Err(error),
-    };
-    match common::check_day(day, days_in_month(year, month)) {
-        Err(error) => Err(error),
-        Ok(()) => Ok(Rd(start.0 + days_before_month(month) + day as i64 - 1)),
+    if year < MIN_YEAR || year > MAX_YEAR {
+        return Err(CalendarError::YearOutOfRange);
     }
+    persian_33::to_fixed(year - YEAR_OFFSET, month, day)
 }
 
 /// The Kurdish year, month and day of a fixed day.
@@ -156,40 +179,19 @@ pub const fn to_fixed(year: i64, month: u8, day: u8) -> CalendarResult<Rd> {
 /// Returns [`CalendarError::BeforeEpoch`] or
 /// [`CalendarError::AfterSupportedRange`] outside [`EARLIEST`]..=[`LATEST`].
 pub const fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
-    if rd.0 < EARLIEST.0 {
-        return Err(CalendarError::BeforeEpoch);
-    }
     if rd.0 > LATEST.0 {
         return Err(CalendarError::AfterSupportedRange);
     }
-    // The year begins on 21 March, so it is the Gregorian year of the day
-    // 286 days on — 1 January is day 287 of the year — less 1, plus 700.
-    let year = match gregorian::year_from_fixed(Rd(rd.0 + 286)) {
-        Ok(gregorian_year) => gregorian_year - 1 + YEAR_OFFSET,
-        Err(error) => return Err(error),
-    };
-    let start = match new_year(year) {
-        Ok(start) => start,
-        Err(error) => return Err(error),
-    };
-    let day_of_year = rd.0 - start.0;
-    let (month, day) = if day_of_year < 186 {
-        (day_of_year / 31 + 1, day_of_year % 31)
-    } else {
-        let after = day_of_year - 186;
-        if after < 150 {
-            (after / 30 + 7, after % 30)
-        } else {
-            (RESHEME as i64, after - 150)
-        }
-    };
-    Ok((year, month as u8, (day + 1) as u8))
+    match persian_33::from_fixed(rd) {
+        Ok((year, month, day)) => Ok((year + YEAR_OFFSET, month, day)),
+        Err(error) => Err(error),
+    }
 }
 
 /// A Kurdish date.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct KurdishDate {
-    /// The year, 700 ahead of the Gregorian year it begins in.
+    /// The year, 1321 ahead of the Solar Hijri year.
     pub year: i64,
     /// The month, 1 for Xakelêwe through 12 for Reşeme.
     pub month: u8,
@@ -292,86 +294,130 @@ mod tests {
         gregorian::to_fixed(year, month, day).unwrap()
     }
 
+    /// MediaWiki's `Language::tsToIranian`, the algorithm "by Roozbeh
+    /// Pournader and Mohammad Toossi", written out as the PHP has it: days
+    /// since 1 January 1600, less 79, in cycles of 12 053 days of 33 years
+    /// from 979, whose first four-year block opens with a 366-day year.
+    fn ts_to_iranian(year: i64, month: u8, day: u8) -> (i64, u8, u8) {
+        const GREG_DAYS: [i64; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+        const IRANIAN_DAYS: [i64; 12] = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
+        let gy = year - 1600;
+        let gm = i64::from(month) - 1;
+        let gd = i64::from(day) - 1;
+        let mut g_day_no = 365 * gy + (gy + 3).div_euclid(4) - (gy + 99).div_euclid(100)
+            + (gy + 399).div_euclid(400);
+        for days in &GREG_DAYS[..gm as usize] {
+            g_day_no += days;
+        }
+        if gm > 1 && ((gy % 4 == 0 && gy % 100 != 0) || gy % 400 == 0) {
+            g_day_no += 1;
+        }
+        g_day_no += gd;
+        let mut j_day_no = g_day_no - 79;
+        assert!(
+            j_day_no >= 0,
+            "the template's arithmetic begins on 20 March 1600"
+        );
+        let j_np = j_day_no / 12_053;
+        j_day_no %= 12_053;
+        let mut jy = 979 + 33 * j_np + 4 * (j_day_no / 1461);
+        j_day_no %= 1461;
+        if j_day_no >= 366 {
+            jy += (j_day_no - 1) / 365;
+            j_day_no = (j_day_no - 1) % 365;
+        }
+        let mut i = 0;
+        while i < 11 && j_day_no >= IRANIAN_DAYS[i] {
+            j_day_no -= IRANIAN_DAYS[i];
+            i += 1;
+        }
+        (jy, i as u8 + 1, j_day_no as u8 + 1)
+    }
+
+    #[test]
+    fn the_template_is_the_pournader_toossi_algorithm() {
+        // Every day from the first the template's arithmetic is defined for
+        // to the end of Gregorian 2600: the page's reckoning and this module
+        // agree, the month under its Kurdish name and the year 1321 ahead.
+        let end = gregorian(2600, 12, 31);
+        assert_eq!(TEMPLATE_FROM, gregorian(1600, 3, 20));
+        assert_eq!(from_fixed(TEMPLATE_FROM), Ok((979 + YEAR_OFFSET, 1, 1)));
+        for rd in TEMPLATE_FROM.0..=end.0 {
+            let (y, m, d) = gregorian::from_fixed(Rd(rd)).unwrap();
+            let (jy, jm, jd) = ts_to_iranian(y, m, d);
+            assert_eq!(
+                from_fixed(Rd(rd)),
+                Ok((jy + YEAR_OFFSET, jm, jd)),
+                "{y}-{m}-{d}"
+            );
+        }
+    }
+
     #[test]
     fn the_source_wrote_12_rezber_2726_for_4_october_2026() {
+        // 4 October 2026 is 12 Mehr 1405; the page displayed 12 Rezber 2726.
         assert_eq!(from_fixed(gregorian(2026, 10, 4)), Ok((2726, 7, 12)));
         assert_eq!(
             KurdishDate::new(2726, 7, 12).unwrap().month_name(),
             "Rezber"
         );
-        // Newroz, 21 March 2026, begins 2726.
+        // Newroz 2726 is 1 Farvardin 1405, 21 March 2026.
         assert_eq!(new_year(2726), Ok(gregorian(2026, 3, 21)));
         assert_eq!(from_fixed(gregorian(2026, 3, 20)), Ok((2725, 12, 29)));
-    }
-
-    /// The source's table: each month's first and last Gregorian day, the
-    /// same in every year.
-    #[test]
-    fn every_month_spans_its_gregorian_dates() {
-        const SPANS: [((u8, u8), (u8, u8)); 12] = [
-            ((3, 21), (4, 20)),
-            ((4, 21), (5, 21)),
-            ((5, 22), (6, 21)),
-            ((6, 22), (7, 22)),
-            ((7, 23), (8, 22)),
-            ((8, 23), (9, 22)),
-            ((9, 23), (10, 22)),
-            ((10, 23), (11, 21)),
-            ((11, 22), (12, 21)),
-            ((12, 22), (1, 20)),
-            ((1, 21), (2, 19)),
-            ((2, 20), (3, 20)),
-        ];
-        for year in 2600..=2800 {
-            for (index, ((first_month, first_day), (last_month, last_day))) in
-                SPANS.iter().enumerate()
-            {
-                let month = index as u8 + 1;
-                // Befranbar begins on 22 December and ends on 20 January.
-                let first_year = if month <= 10 { year - 700 } else { year - 699 };
-                let last_year = if month <= 9 { year - 700 } else { year - 699 };
-                assert_eq!(
-                    to_fixed(year, month, 1),
-                    Ok(gregorian(first_year, *first_month, *first_day)),
-                    "{year} month {month}"
-                );
-                let length = days_in_month(year, month).unwrap();
-                assert_eq!(
-                    to_fixed(year, month, length),
-                    Ok(gregorian(last_year, *last_month, *last_day)),
-                    "{year} month {month}"
-                );
-            }
-        }
+        // Where the Solar Hijri Nowruz falls on 20 March, so does Newroz:
+        // 1 Xakelêwe 2724 on 20 March 2024, 30 Reşeme 2724 on 20 March 2025
+        // and 1 Xakelêwe 2728 on 20 March 2028, as the template computes them.
+        assert_eq!(from_fixed(gregorian(2024, 3, 20)), Ok((2724, 1, 1)));
+        assert_eq!(from_fixed(gregorian(2025, 3, 20)), Ok((2724, 12, 30)));
+        assert_eq!(from_fixed(gregorian(2028, 3, 20)), Ok((2728, 1, 1)));
+        assert_eq!(from_fixed(gregorian(2028, 3, 19)), Ok((2727, 12, 29)));
     }
 
     #[test]
-    fn resheme_has_thirty_days_when_february_has_twenty_nine() {
+    fn resheme_has_thirty_days_in_the_rules_leap_years() {
         for year in MIN_YEAR..=MAX_YEAR {
             assert_eq!(
                 is_leap_year(year),
-                gregorian::is_leap_year(year - 699),
+                persian_33::is_leap_year(year - YEAR_OFFSET),
                 "{year}"
             );
             let length =
                 new_year(year + 1).map_or(LATEST.0 + 1, |rd| rd.0) - new_year(year).unwrap().0;
             assert_eq!(length, i64::from(days_in_year(year)), "{year}");
+            assert_eq!(
+                days_in_month(year, RESHEME),
+                Some(if is_leap_year(year) { 30 } else { 29 })
+            );
         }
-        assert_eq!(days_in_month(2727, RESHEME), Some(30));
-        assert_eq!(to_fixed(2727, RESHEME, 10), Ok(gregorian(2028, 2, 29)));
-        assert_eq!(to_fixed(2727, RESHEME, 30), Ok(gregorian(2028, 3, 20)));
-        assert_eq!(to_fixed(2726, RESHEME, 10), Ok(gregorian(2027, 3, 1)));
-        assert_eq!(days_in_month(2726, RESHEME), Some(29));
+        // Solar Hijri 1403 is a leap year of the rule and 1404 to 1407 are
+        // not; 1408 is.
+        assert!(is_leap_year(2724));
+        assert!(!is_leap_year(2725));
+        assert!(!is_leap_year(2726));
+        assert!(!is_leap_year(2727));
+        assert!(is_leap_year(2729));
+        assert_eq!(to_fixed(2724, RESHEME, 30), Ok(gregorian(2025, 3, 20)));
         assert_eq!(
             to_fixed(2726, RESHEME, 30),
             Err(CalendarError::DayOutOfRange)
         );
         assert_eq!(days_in_month(2726, 13), None);
         assert_eq!(to_fixed(2726, 0, 1), Err(CalendarError::MonthOutOfRange));
-        assert_eq!(to_fixed(0, 1, 1), Err(CalendarError::YearOutOfRange));
+        assert_eq!(
+            to_fixed(MIN_YEAR - 1, 1, 1),
+            Err(CalendarError::YearOutOfRange)
+        );
+        assert_eq!(
+            to_fixed(MAX_YEAR + 1, 1, 1),
+            Err(CalendarError::YearOutOfRange)
+        );
         assert_eq!(
             KurdishCalendar.from_fields(&DateFields::ymd_leap_month(2726, 1, 1)),
             Err(CalendarError::MonthOutOfRange)
+        );
+        assert_eq!(
+            KurdishCalendar.is_leap_year(MAX_YEAR + 1),
+            Err(CalendarError::YearOutOfRange)
         );
     }
 

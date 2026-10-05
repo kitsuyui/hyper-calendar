@@ -161,12 +161,7 @@ pub const fn days_in_year(year: i64) -> u16 {
 
 /// Days elapsed in the year before the first of `month`.
 const fn days_before_month(year: i64, month: u8) -> i64 {
-    let elapsed = DAYS_IN_MONTH as i64 * (month as i64 - 1);
-    if month > LEAP_DAY_MONTH && is_leap_year(year) {
-        elapsed + 1
-    } else {
-        elapsed
-    }
+    crate::common::perennial_days_before_month(month, is_leap_year(year), LEAP_DAY_MONTH)
 }
 
 /// The fixed day of an International Fixed date.
@@ -201,22 +196,14 @@ pub const fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
         Err(error) => return Err(error),
         Ok(start) => start,
     };
-    // The day's place in the year, counting from 0.
-    let mut elapsed = rd.0 - start.0;
-    let leap_day_at = DAYS_IN_MONTH as i64 * LEAP_DAY_MONTH as i64;
-    if is_leap_year(year) {
-        if elapsed == leap_day_at {
-            return Ok((year, LEAP_DAY_MONTH, INTERCALARY_DAY));
-        }
-        if elapsed > leap_day_at {
-            elapsed -= 1;
-        }
-    }
-    if elapsed == DAYS_IN_MONTH as i64 * YEAR_DAY_MONTH as i64 {
-        return Ok((year, YEAR_DAY_MONTH, INTERCALARY_DAY));
-    }
-    let month = (elapsed / DAYS_IN_MONTH as i64 + 1) as u8;
-    let day = (elapsed % DAYS_IN_MONTH as i64 + 1) as u8;
+    // The day's place in the year, counting from 0; Leap Day is the day
+    // after the 28th of June, Year Day the day after the 28th of December.
+    let leap_day = if is_leap_year(year) {
+        Some((DAYS_IN_MONTH as i64 * LEAP_DAY_MONTH as i64, LEAP_DAY_MONTH))
+    } else {
+        None
+    };
+    let (month, day) = crate::common::perennial_from_elapsed(rd.0 - start.0, leap_day);
     Ok((year, month, day))
 }
 

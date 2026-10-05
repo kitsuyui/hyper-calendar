@@ -54,7 +54,7 @@ such counts, and are here as regional calendars.
 | `manchukuo` | Manchukuo's 大同 from 1 March 1932 and 康德 from 1 March 1934 to 17 August 1945, on the Gregorian calendar ([docs/systems/east-asian-eras.md](../../docs/systems/east-asian-eras.md)) |
 | `burmese` | The Burmese lunisolar calendar of the Myanmar Era: watat years, First Waso and the Nayon day, by the published arithmetic |
 | `thai-lunar` | The Thai lunar calendar as Thailand publishes it: the adhikamāsa and adhikavāra years carried as data for 2535–2570 BE (1992–2027) |
-| `buddhist-lk` | Sri Lanka's Buddhist year over the Gregorian day: the Common Era year plus 544 from the Vesak Full Moon Poya Day and plus 543 before it, over the Vesak days the Holidays Act orders fix, 2023–2027; the Gregorian year travels as the extra field `gregorian-year` ([docs/systems/era-counts.md](../../docs/systems/era-counts.md)) |
+| `buddhist-lk` | Sri Lanka's Buddhist year over the Gregorian day: the Common Era year plus 544 from the Vesak Full Moon Poya Day and plus 543 before it, over the Vesak days carried for 2023–2027; the Gregorian year travels as the extra field `gregorian-year` ([docs/systems/era-counts.md](../../docs/systems/era-counts.md)) |
 | `vietnamese-regnal-nguyen` | The eleven eras of the Nguyễn dynasty, 嘉隆 to 保大, over the Vietnamese lunisolar calendar from the day each began, 1 June 1802 to the abdication of 30 August 1945; Hiệp Hòa in the table, never counted ([docs/systems/east-asian-eras.md](../../docs/systems/east-asian-eras.md)) |
 | `khmer` | The Khmer *Chhankitek*: the leap-month and leap-day years by the *suryayatra* rule as Cambodia applies it, 1900–2200 |
 | `lao` | The Lao lunar calendar: the same rule as Dupertuis states it for Laos, Chulasakarat 1301–1401 (1938–2039) |

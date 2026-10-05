@@ -133,12 +133,7 @@ pub const fn days_in_year(year: i64) -> u16 {
 
 /// Days in the year before the first of `month`.
 const fn days_before_month(year: i64, month: u8) -> i64 {
-    let elapsed = DAYS_IN_MONTH as i64 * (month as i64 - 1);
-    if month > ALDRIN_DAY_MONTH && is_leap_year(year) {
-        elapsed + 1
-    } else {
-        elapsed
-    }
+    common::perennial_days_before_month(month, is_leap_year(year), ALDRIN_DAY_MONTH)
 }
 
 /// Days into `month` of `year` of its day `day`: `day - 1`, except in a
@@ -220,32 +215,26 @@ pub const fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
     if rd.0 > LATEST.0 {
         return Err(CalendarError::AfterSupportedRange);
     }
-    // The year begins on 21 July, so it is the Gregorian year of the day
-    // 164 days on — 1 January is day 165 of the year — less 1969.
-    let year = match gregorian::year_from_fixed(Rd(rd.0 + 164)) {
-        Ok(gregorian_year) => gregorian_year - GREGORIAN_OFFSET - 1,
+    // The year begins on 21 July of the Gregorian year 1968 ahead of it.
+    let year = match common::gregorian_year_begun_on(rd, 7, 21) {
+        Ok(gregorian_year) => gregorian_year - GREGORIAN_OFFSET,
         Err(error) => return Err(error),
     };
     let start = match new_year(year) {
         Ok(start) => start,
         Err(error) => return Err(error),
     };
-    let mut elapsed = rd.0 - start.0;
-    // Day 223, counting from 0, is the day after 27 Hippocrates.
-    let aldrin_day_at = DAYS_IN_MONTH as i64 * (ALDRIN_DAY_MONTH as i64 - 1) + 27;
-    if is_leap_year(year) {
-        if elapsed == aldrin_day_at {
-            return Ok((year, ALDRIN_DAY_MONTH, INTERCALARY_DAY));
-        }
-        if elapsed > aldrin_day_at {
-            elapsed -= 1;
-        }
-    }
-    if elapsed == DAYS_IN_MONTH as i64 * ARMSTRONG_DAY_MONTH as i64 {
-        return Ok((year, ARMSTRONG_DAY_MONTH, INTERCALARY_DAY));
-    }
-    let month = (elapsed / DAYS_IN_MONTH as i64 + 1) as u8;
-    let day = (elapsed % DAYS_IN_MONTH as i64 + 1) as u8;
+    // Day 223, counting from 0, is the day after 27 Hippocrates: Aldrin
+    // Day in a leap year. Armstrong Day is the day after 28 Mendel.
+    let aldrin_day = if is_leap_year(year) {
+        Some((
+            DAYS_IN_MONTH as i64 * (ALDRIN_DAY_MONTH as i64 - 1) + 27,
+            ALDRIN_DAY_MONTH,
+        ))
+    } else {
+        None
+    };
+    let (month, day) = common::perennial_from_elapsed(rd.0 - start.0, aldrin_day);
     Ok((year, month, day))
 }
 

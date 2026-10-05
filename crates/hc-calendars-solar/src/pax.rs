@@ -23,11 +23,13 @@
 //!
 //! * Wikipedia, "Pax Calendar", <https://en.wikipedia.org/wiki/Pax_Calendar>,
 //!   retrieved 2026-10-04 (`wikipedia-pax-calendar`): the months, the leap
-//!   rule as quoted above, the Sunday, and its two tables of the Gregorian
-//!   date of Pax New Year's Day, 1928–2054 and the turns of the centuries
-//!   2091–2112 and 2291–2312, which the tests check. A secondary source: Colligan's proposal of 1930 and his *An
-//!   unchangeable calendar without blank days* (University of San
-//!   Francisco, 1933), which it cites, were not read, and would replace it.
+//!   rule as quoted above, the Sunday, and its three tables of the
+//!   Gregorian date of Pax New Year's Day, 1928–1990, 1991–2054 and the
+//!   turns of the centuries 2091–2112 and 2291–2312, 171 years, all of
+//!   which the test `the_published_new_years_days` holds. A secondary
+//!   source: Colligan's proposal of 1930 and his *An unchangeable calendar
+//!   without blank days* (University of San Francisco, 1933), which it
+//!   cites, were not read, and would replace it.
 //!
 //! # Exactness
 //!
@@ -227,16 +229,16 @@ pub const fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
     let day_of_year = rd.0 - new_year_raw(year);
     let before_pax = 12 * DAYS_IN_MONTH as i64;
     let (month, day) = if day_of_year < before_pax {
-        (day_of_year / 28 + 1, day_of_year % 28)
+        common::perennial_month_and_day(day_of_year)
     } else if is_leap_year(year) && day_of_year < before_pax + 7 {
-        (PAX as i64, day_of_year - before_pax)
+        (PAX, (day_of_year - before_pax + 1) as u8)
     } else {
         (
-            DECEMBER as i64,
-            day_of_year - days_before_month(year, DECEMBER),
+            DECEMBER,
+            (day_of_year - days_before_month(year, DECEMBER) + 1) as u8,
         )
     };
-    Ok((year, month as u8, (day + 1) as u8))
+    Ok((year, month, day))
 }
 
 /// A Pax date.
@@ -354,85 +356,101 @@ mod tests {
         gregorian::to_fixed(year, month, day).unwrap()
     }
 
-    /// Wikipedia's two tables of Pax New Year's Day, 1928–2054 and the
-    /// turns of the centuries, 2091–2112 and 2291–2312: (Pax year,
-    /// Gregorian year, month, day).
-    const NEW_YEARS: [(i64, i64, u8, u8); 66] = [
-        (1928, 1928, 1, 1),
-        (1929, 1928, 12, 30),
-        (1930, 1929, 12, 29),
-        (1931, 1931, 1, 4),
-        (1932, 1932, 1, 3),
-        (1935, 1934, 12, 30),
-        (1936, 1935, 12, 29),
-        (1998, 1997, 12, 28),
-        (1999, 1998, 12, 27),
-        (2000, 2000, 1, 2),
-        (2001, 2000, 12, 31),
-        (2002, 2001, 12, 30),
-        (2003, 2002, 12, 29),
-        (2004, 2003, 12, 28),
-        (2005, 2004, 12, 26),
-        (2006, 2005, 12, 25),
-        (2007, 2006, 12, 31),
-        (2026, 2025, 12, 28),
-        (2027, 2026, 12, 27),
-        (2028, 2027, 12, 26),
-        (2029, 2028, 12, 24),
-        (2030, 2029, 12, 23),
-        (2091, 2090, 12, 24),
-        (2092, 2091, 12, 23),
-        (2093, 2092, 12, 21),
-        (2094, 2093, 12, 20),
-        (2095, 2094, 12, 19),
-        (2096, 2095, 12, 18),
-        (2097, 2096, 12, 23),
-        (2098, 2097, 12, 22),
-        (2099, 2098, 12, 21),
-        (2100, 2099, 12, 27),
-        (2101, 2101, 1, 2),
-        (2102, 2102, 1, 1),
-        (2103, 2102, 12, 31),
-        (2104, 2103, 12, 30),
-        (2105, 2104, 12, 28),
-        (2106, 2105, 12, 27),
-        (2107, 2107, 1, 2),
-        (2108, 2108, 1, 1),
-        (2109, 2108, 12, 30),
-        (2110, 2109, 12, 29),
-        (2111, 2110, 12, 28),
-        (2112, 2111, 12, 27),
-        (2291, 2290, 12, 28),
-        (2292, 2291, 12, 27),
-        (2293, 2292, 12, 25),
-        (2294, 2293, 12, 24),
-        (2295, 2294, 12, 23),
-        (2296, 2295, 12, 22),
-        (2297, 2296, 12, 27),
-        (2298, 2297, 12, 26),
-        (2299, 2298, 12, 25),
-        (2300, 2299, 12, 31),
-        (2301, 2301, 1, 6),
-        (2302, 2302, 1, 5),
-        (2303, 2303, 1, 4),
-        (2304, 2304, 1, 3),
-        (2305, 2305, 1, 1),
-        (2306, 2305, 12, 31),
-        (2307, 2307, 1, 6),
-        (2308, 2308, 1, 5),
-        (2309, 2309, 1, 3),
-        (2310, 2310, 1, 2),
-        (2311, 2311, 1, 1),
-        (2312, 2311, 12, 31),
+    /// Wikipedia's three tables of Pax New Year's Day, 1928–1990, 1991–2054
+    /// and the turns of the centuries 2091–2112 and 2291–2312, as the
+    /// article lays them out: one row per Gregorian date, 18 December to
+    /// 6 January, with the Pax years that begin on it. A December date is
+    /// in the Gregorian year before the Pax year, a January date in the
+    /// same one. 171 years in all.
+    const NEW_YEARS: [(u8, u8, &[i64]); 44] = [
+        // 1928–1990.
+        (1, 4, &[1931]),
+        (1, 3, &[1932, 1937, 1943]),
+        (1, 2, &[1938, 1944, 1949, 1955]),
+        (1, 1, &[1928, 1933, 1939, 1950, 1956, 1961, 1967]),
+        (12, 31, &[1934, 1940, 1945, 1951, 1962, 1968, 1973, 1979]),
+        (
+            12,
+            30,
+            &[1929, 1935, 1946, 1952, 1957, 1963, 1974, 1980, 1985],
+        ),
+        (
+            12,
+            29,
+            &[1930, 1936, 1941, 1947, 1958, 1964, 1969, 1975, 1986],
+        ),
+        (12, 28, &[1942, 1948, 1953, 1959, 1970, 1976, 1981, 1987]),
+        (12, 27, &[1954, 1960, 1965, 1971, 1982, 1988]),
+        (12, 26, &[1966, 1972, 1977, 1983]),
+        (12, 25, &[1978, 1984, 1989]),
+        (12, 24, &[1990]),
+        // 1991–2054.
+        (1, 2, &[2000]),
+        (12, 31, &[2001, 2007]),
+        (12, 30, &[1991, 2002, 2008, 2013, 2019]),
+        (12, 29, &[1992, 1997, 2003, 2014, 2020, 2025, 2031]),
+        (12, 28, &[1998, 2004, 2009, 2015, 2026, 2032, 2037, 2043]),
+        (
+            12,
+            27,
+            &[1993, 1999, 2010, 2016, 2021, 2027, 2038, 2044, 2049],
+        ),
+        (12, 26, &[1994, 2005, 2011, 2022, 2028, 2033, 2039, 2050]),
+        (
+            12,
+            25,
+            &[1995, 2006, 2012, 2017, 2023, 2034, 2040, 2045, 2051],
+        ),
+        (12, 24, &[1996, 2018, 2024, 2029, 2035, 2046, 2052]),
+        (12, 23, &[2030, 2036, 2041, 2047]),
+        (12, 22, &[2042, 2048, 2053]),
+        (12, 21, &[2054]),
+        // 2091–2112 and 2291–2312.
+        (1, 6, &[2301, 2307]),
+        (1, 5, &[2302, 2308]),
+        (1, 4, &[2303]),
+        (1, 3, &[2304, 2309]),
+        (1, 2, &[2101, 2107, 2310]),
+        (1, 1, &[2102, 2108, 2305, 2311]),
+        (12, 31, &[2103, 2300, 2306, 2312]),
+        (12, 30, &[2104, 2109]),
+        (12, 29, &[2110]),
+        (12, 28, &[2105, 2111, 2291]),
+        (12, 27, &[2100, 2106, 2112, 2292, 2297]),
+        (12, 26, &[2298]),
+        (12, 25, &[2293, 2299]),
+        (12, 24, &[2091, 2294]),
+        (12, 23, &[2092, 2097, 2295]),
+        (12, 22, &[2098, 2296]),
+        (12, 21, &[2093, 2099]),
+        (12, 20, &[2094]),
+        (12, 19, &[2095]),
+        (12, 18, &[2096]),
     ];
 
     #[test]
     fn the_published_new_years_days() {
-        for (year, gregorian_year, month, day) in NEW_YEARS {
-            let expected = gregorian(gregorian_year, month, day);
-            assert_eq!(new_year(year), Ok(expected), "{year}");
-            assert_eq!(from_fixed(expected), Ok((year, 1, 1)), "{year}");
-            assert_eq!(Weekday::from_rd(expected), Weekday::Sunday, "{year}");
+        let mut seen = [false; 2313 - 1928];
+        let mut count = 0;
+        for (month, day, years) in NEW_YEARS.iter() {
+            for &year in *years {
+                let gregorian_year = if *month == 12 { year - 1 } else { year };
+                let expected = gregorian(gregorian_year, *month, *day);
+                assert_eq!(new_year(year), Ok(expected), "{year}");
+                assert_eq!(from_fixed(expected), Ok((year, 1, 1)), "{year}");
+                assert_eq!(Weekday::from_rd(expected), Weekday::Sunday, "{year}");
+                let slot = &mut seen[(year - 1928) as usize];
+                assert!(!*slot, "{year} twice");
+                *slot = true;
+                count += 1;
+            }
+        }
+        // 1928–2054, 2091–2112 and 2291–2312, every year once: 171 rows.
+        assert_eq!(count, 171);
+        for year in 1928..2313 {
+            let tabulated =
+                (1928..=2054).contains(&year) || (2091..=2112).contains(&year) || year >= 2291;
+            assert_eq!(seen[(year - 1928) as usize], tabulated, "{year}");
         }
         // Pax 2006 has the month of Pax, so Pax 2007 begins a week later
         // than 364 days would put it: Pax 1 is 26 November 2006.

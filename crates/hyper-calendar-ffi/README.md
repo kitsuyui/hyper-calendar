@@ -151,7 +151,7 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a line | `hc_maya_long_count` | `fixed` from 0.0.0.0.0 to 19.19.19.17.19 under the correlation: −1 137 142 through 1 742 857 under `gmt`, two days later under `gmt2` and three under `martin-skidmore`; any other is `HC_ERROR_OUT_OF_RANGE`, and a correlation not named `HC_ERROR_UNKNOWN` |
 | a line | `hc_akan_day` | every `fixed` from −9 223 372 036 854 053 701, the first day whose distance from the cycle's epoch is an `int64_t`; any earlier is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_weton` | every `fixed` |
-| a line | `hc_buddhist_lk_year` | `fixed` 738 521 (1 January 2023) through 740 346 (31 December 2027), the years whose Vesak Poya Day a Holidays Act order read fixes; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_buddhist_lk_year` | `fixed` 738 521 (1 January 2023) through 740 346 (31 December 2027), the years whose Vesak Poya Day is carried; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a Tiruvaḷḷuvar year | `hc_tiruvalluvar_year` | `fixed` within the days `hindu-solar-tamil` converts, the Tamil solar years that open in the Gregorian years 1700 to 2299; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_japanese_era_year` | `year` from 1, as far as the Han numerals write; 0 and below, and a year beyond them, are `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_holidays_in_year` | every `year`; a year the table has no entries or gaps for writes no lines |

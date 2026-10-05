@@ -2088,7 +2088,7 @@ export interface BuddhistLkYear {
   gregorianYear: number;
   /** The fixed day of that Gregorian year's Vesak Full Moon Poya Day. */
   vesak: number;
-  /** The fixed day the Buddhist year began on; `null` where no order read fixes it. */
+  /** The fixed day the Buddhist year began on; `null` where it is not carried. */
   began: number | null;
   /** The last fixed day of the Buddhist year, the eve of the next Vesak; `null` likewise. */
   ends: number | null;

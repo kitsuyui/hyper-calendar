@@ -171,10 +171,9 @@ pub const fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
     if rd.0 > LATEST.0 {
         return Err(CalendarError::AfterSupportedRange);
     }
-    // The year begins on 2 November, so it is the Gregorian year of the day
-    // sixty days on — 1 January is day 60 of the Tabot year — less 1931.
-    let year = match gregorian::year_from_fixed(Rd(rd.0 + 60)) {
-        Ok(gregorian_year) => gregorian_year - GREGORIAN_OFFSET - 1,
+    // The year begins on 2 November of the Gregorian year 1930 ahead of it.
+    let year = match crate::common::gregorian_year_begun_on(rd, 11, 2) {
+        Ok(gregorian_year) => gregorian_year - GREGORIAN_OFFSET,
         Err(error) => return Err(error),
     };
     let start = match new_year(year) {
