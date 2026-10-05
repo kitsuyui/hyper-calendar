@@ -1337,19 +1337,38 @@ const fn us_closure(month: u8, day: u8, year: i32, order: &'static str) -> Holid
     .cited(order)
 }
 
-/// The federal "in lieu of" rule: Executive Order 11582 of 1971 codified
-/// what Executive Order 10358 had begun in 1959 — a Saturday holiday is kept
-/// the preceding Friday, a Sunday holiday the following Monday.
-static US_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
-    trigger: &[Weekday::Saturday, Weekday::Sunday],
-    direction: SubstituteDirection::Nearest,
-    skip_occupied: false,
-    on_collision: false,
-    regions: &[],
-    avoid: &[],
-    valid_from: Some(1959),
-    valid_until: None,
-}];
+/// The federal "in lieu of" rules, in two stretches. Executive Order 10358 of
+/// 9 June 1952 (in force sixty days after) closes the federal offices on the
+/// Monday after a holiday that falls on a Sunday, and says nothing of a
+/// Saturday; the Friday before a holiday that falls on a Saturday is in lieu
+/// of it from Pub. L. 86-362 of 22 September 1959, which Executive Order
+/// 11582 of 1971 and 5 U.S.C. § 6103(b) carry on. The first year of the two
+/// triggers together is 1960: no holiday fell on a Saturday between
+/// 22 September and 31 December 1959. Executive Order 10358 supersedes
+/// Executive Order 9636 of 3 October 1945 on Sunday holidays, which was not
+/// read, so the years before 1952 are not carried.
+static US_SUBSTITUTION: &[SubstitutionPolicy] = &[
+    SubstitutionPolicy {
+        trigger: &[Weekday::Sunday],
+        direction: SubstituteDirection::Forward,
+        skip_occupied: false,
+        on_collision: false,
+        regions: &[],
+        avoid: &[],
+        valid_from: Some(1952),
+        valid_until: Some(1959),
+    },
+    SubstitutionPolicy {
+        trigger: &[Weekday::Saturday, Weekday::Sunday],
+        direction: SubstituteDirection::Nearest,
+        skip_occupied: false,
+        on_collision: false,
+        regions: &[],
+        avoid: &[],
+        valid_from: Some(1960),
+        valid_until: None,
+    },
+];
 
 /// The table's rules: [`US_RULES`] and the states' commemorative days.
 static US_ALL_RULES: [HolidayRule; US_RULES.len() + commemorative::DAYS.len()] =
@@ -1364,14 +1383,18 @@ pub static UNITED_STATES: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: weekends::US,
-    sources_checked: SourceDate::new(2026, 9, 29),
+    sources_checked: SourceDate::new(2026, 10, 5),
     sources: "5 U.S.C. § 6103(a) to (c), on the Legal Information Institute \
               (law.cornell.edu/uscode/text/5/6103), retrieved 2026-09-26, whose subsection (b) \
               states the in-lieu-of rule; Pub. L. 90-363 (1968, the Uniform Monday Holiday \
               Act), Pub. L. 94-97 (1975) restoring Veterans Day, Pub. L. 98-144 (1983) for \
               Martin Luther King Jr. Day and Pub. L. 117-17 (2021) for Juneteenth, not read; \
-              Executive Orders 10358 and 11582 on the in-lieu-of rule before it was in the \
-              statute, not read. The full-day closures by executive order from 2018 — \
+              Executive Order 10358 of 9 June 1952 (the American Presidency Project's \
+              page, read 2026-10-05) for the Sunday rule from 1952; \
+              Pub. L. 86-362 (1959) for the Saturday rule, from the Legal Information \
+              Institute's source note to § 6103(b) and a search engine's summary of the Act \
+              (its Statutes at Large page is a PDF, not read); Executive Order 11582, not \
+              read. The full-day closures by executive order from 2018 — \
               Executive Orders 13852, 13854, 13900, 13965, 14129, 14133 and 14371 — from the \
               Federal Register's documents API (federalregister.gov/api/v1), retrieved \
               2026-09-26, each cited on its entry; the closures before 2018, the Christmas \

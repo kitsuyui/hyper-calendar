@@ -384,7 +384,11 @@ impl DeepTime {
     /// underflows `f64`.
     pub fn in_unit(self, unit: DeepUnit) -> DeepTimeResult<Uncertain> {
         if unit.is_defined() {
-            Ok(self.seconds.scaled(1.0 / unit.seconds())?)
+            // Divide by the unit: multiplying by its rounded reciprocal
+            // writes a gigayear as 999999999.9999999 Julian years.
+            Ok(self
+                .seconds
+                .checked_div(Uncertain::exact(unit.seconds())?)?)
         } else {
             Ok(self.seconds.checked_div(unit.seconds_uncertain()?)?)
         }
@@ -883,6 +887,16 @@ mod tests {
                 assert_eq!(back.std_dev, 0.0);
             }
         }
+    }
+
+    #[test]
+    fn a_gigayear_is_a_thousand_million_julian_years_exactly() {
+        // 3.15576e16 s over 31 557 600 s is exactly 1e9; the product with the
+        // rounded reciprocal of the year is 999999999.9999999.
+        let deep = DeepTime::exact_in(1.0, DeepUnit::Gigayear).unwrap();
+        let years = deep.in_unit(DeepUnit::JulianYear).unwrap();
+        assert_eq!(years.value, 1.0e9);
+        assert_eq!(years.std_dev, 0.0);
     }
 
     #[test]

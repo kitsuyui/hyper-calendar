@@ -1136,7 +1136,7 @@ describe("holidays", () => {
     assert.ok(positions.every((position, index) => index === 0 || position >= positions[index - 1]));
     // A gap on an ordinary day is a table whose announcement for the year
     // has not been read, reported rather than left out.
-    const gap = rows.find((row) => row.kind === "gap");
+    const gap = rows.find((row) => row.kind === "gap" && row.source === null);
     assert.ok(gap, "a gap");
     assert.equal(gap.confidence, null);
     assert.equal(gap.source, null);
@@ -4203,6 +4203,28 @@ describe("day periods, numbering systems, eras, groups and holiday names in a lo
     assert.ok(hc.numberingSystems().some((row) => row.system === "latn" && row.digits === "0123456789"));
     assert.ok(hc.calendarEras("japanese", "ja").some((era) => era.code === "reiwa" && era.wide === "令和"));
     refused(() => hc.calendarEras("no-such", "ja"), "unknown");
+  });
+
+  test("the rules of a table say which substitution reaches each, and an exchange names the table it includes", () => {
+    const rules = hc.holidayRules("KR");
+    assert.equal(rules[0].id, "new-years-day");
+    assert.equal(rules[0].localName, "신정");
+    assert.equal(rules[0].substitution, null);
+    const seollal = rules.find((rule) => rule.id === "seollal");
+    assert.deepEqual(seollal?.substitution, { trigger: [7], direction: null, first: 2014 });
+    assert.equal(seollal?.kind, "public");
+    assert.equal(seollal?.confidence, "exact");
+    const independence = rules.find((rule) => rule.id === "independence-movement-day" && rule.validFrom === 1991);
+    assert.deepEqual(independence?.substitution, { trigger: null, direction: null, first: 2021 });
+    const alaska = hc.holidayRules("US").find((rule) => rule.id === "sewards-day");
+    assert.deepEqual(alaska?.regions, ["US-AK"]);
+    assert.equal(alaska?.readFrom, 2025);
+    assert.match(alaska?.source ?? "", /^Alaska Stat\./);
+    refused(() => hc.holidayRules("ZZ"), "unknown");
+    const tables = new Map(hc.holidayTables("en").map((table) => [table.code, table]));
+    assert.deepEqual(tables.get("XKRX")?.includes, [{ table: "KR", region: null, first: 2009 }]);
+    assert.deepEqual(tables.get("XLON")?.includes, [{ table: "GB", region: "GB-EAW", first: 2026 }]);
+    assert.deepEqual(tables.get("KR")?.includes, []);
   });
 
   test("the years a table answers for are listed, and a gap names the days it leaves open", () => {

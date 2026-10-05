@@ -75,7 +75,7 @@ fn every_table_is_described_in_the_order_of_the_codes() {
         .lines()
         .map(|line| line.split('\t').collect())
         .collect();
-    assert!(rows.iter().all(|row| row.len() == 15));
+    assert!(rows.iter().all(|row| row.len() == 16));
     assert_eq!(
         rows.iter().map(|row| row[0]).collect::<Vec<_>>(),
         codes.lines().collect::<Vec<_>>()
@@ -105,7 +105,8 @@ fn every_table_is_described_in_the_order_of_the_codes() {
             "",
             "",
             "unread//2006-07-02/;6+7/2006-07-03//",
-            "7/forward/skip-occupied+on-collision////"
+            "7/forward/skip-occupied+on-collision////",
+            ""
         ]
     );
     let japanese = read_lines(|buffer, capacity| unsafe {
@@ -117,7 +118,7 @@ fn every_table_is_described_in_the_order_of_the_codes() {
         .expect("HK");
     assert!(
         hong_kong.ends_with(
-            "\t\t香港\t\t\t\t\t\tunread//2006-07-02/;6+7/2006-07-03//\t7/forward/skip-occupied+on-collision////"
+            "\t\t香港\t\t\t\t\t\tunread//2006-07-02/;6+7/2006-07-03//\t7/forward/skip-occupied+on-collision////\t"
         ),
         "{hong_kong}"
     );

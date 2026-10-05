@@ -384,9 +384,16 @@ pub static NEW_ZEALAND: AcademicProfile = AcademicProfile {
         (None, 2026),
         "Wikipedia's \"Education in New Zealand\" says the year runs from late January to mid- \
          December in four terms and that term dates are set by individual schools within \
-         government guidelines, not fixed nationally. The Gazette notice and the statutory \
-         window said to apply (28 January to 4 February for 2027) were not \
-         read, and 28 January is the table's representative date, not a fixed day.",
+         government guidelines, not fixed nationally. The Gazette notice \
+         2025-sl2489 (gazette.govt.nz, read 2026-10-05), issued under the Education (When \
+         State Schools Must Be Open and Closed) Regulations 2024 and s. 66(1) of the \
+         Education and Training Act 2020, has Term 1 of 2027 start between Thursday \
+         28 January and Thursday 4 February; the Ministry of Education's page on school \
+         terms (education.govt.nz) says between Thursday 28 January and Wednesday \
+         3 February, as a search summary of it gave it (the page renders its dates in \
+         the browser and was not read as text). The instruments' windows are for 2027 \
+         and 2028 only, so the authority stays unread, and 28 January is the table's \
+         representative date, not a fixed day.",
     ),
     university: Some(school(
         "New Zealand university year",
@@ -402,7 +409,8 @@ pub static NEW_ZEALAND: AcademicProfile = AcademicProfile {
     sources_checked: SourceDate::new(2026, 10, 4),
     sources: "Wikipedia, \"Education in New Zealand\" (secondary); Education and Training Act \
               2020 s. 66(1) and the Education (When State Schools Must Be Open and Closed) \
-              Regulations 2024 (legislation.govt.nz refused them), read 2026-10-04",
+              Regulations 2024 (legislation.govt.nz refused them), read 2026-10-04; New Zealand \
+              Gazette notice 2025-sl2489 (gazette.govt.nz), read 2026-10-05",
 };
 
 /// India 🇮🇳 — April **or** June, and saying one of them is over-general.

@@ -590,9 +590,10 @@ mod tests {
             .find(|row| row[2] == "government")
             .cloned()
             .unwrap_or_default();
+        // The tax of 1799 to 1815 are systems of their own, absent in 2024.
         let tax = uk
             .iter()
-            .find(|row| row[2] == "personal-tax")
+            .find(|row| row[2] == "personal-tax" && row[4] == "in-force")
             .cloned()
             .unwrap_or_default();
         assert_eq!(government[5], "2024");

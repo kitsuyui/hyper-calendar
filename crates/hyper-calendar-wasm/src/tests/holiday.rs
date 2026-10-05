@@ -220,7 +220,10 @@ fn one_day_across_every_table_decodes_column_by_column() {
     );
     // A gap on an ordinary day is a table whose announcement for
     // the year has not been read, and it is reported as such.
-    let gap = rows.iter().find(|row| row[4] == "gap").expect("a gap");
+    let gap = rows
+        .iter()
+        .find(|row| row[4] == "gap" && row[6].is_empty())
+        .expect("a gap");
     assert_eq!(gap[5..11], ["", "", "0", "", "", ""], "{gap:?}");
 }
 

@@ -87,7 +87,7 @@ fn the_tables_the_lectionary_and_easter_cross_the_boundary() {
         japan[14], "7/forward///1973/2006/;7/forward/skip-occupied//2007//",
         "and moves a Sunday holiday to the Monday, past a holiday from 2007"
     );
-    assert_eq!(japan.len(), 15);
+    assert_eq!(japan.len(), 16);
     // A region with only a weekend law of its own is listed.
     let cells = |code: &str| -> Vec<&str> {
         english
@@ -235,6 +235,28 @@ fn the_years_a_table_answers_for_cross_the_boundary() {
     let mut written = 0usize;
     assert_eq!(
         unsafe { hc_holiday_coverage(c"ZZ".as_ptr(), core::ptr::null_mut(), 0, &mut written) },
+        HC_ERROR_UNKNOWN
+    );
+}
+
+/// The rules of South Korea's table are lines, Seollal's moved for a Sunday
+/// alone from 2014, and a code that names no table is unknown.
+#[test]
+fn the_rules_of_a_table_cross_the_boundary() {
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_holiday_rules(c"KR".as_ptr(), buffer, capacity, written)
+    });
+    let seollal: Vec<&str> = text
+        .lines()
+        .find(|line| line.starts_with("seollal\t"))
+        .expect("Seollal")
+        .split('\t')
+        .collect();
+    assert_eq!(seollal.len(), 12);
+    assert_eq!(seollal[10], "7//2014");
+    let mut written = 0usize;
+    assert_eq!(
+        unsafe { hc_holiday_rules(c"ZZ".as_ptr(), core::ptr::null_mut(), 0, &mut written) },
         HC_ERROR_UNKNOWN
     );
 }

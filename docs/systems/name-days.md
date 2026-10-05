@@ -236,11 +236,11 @@ only; the crate carries the file of 2026-03-16.
 | [helsinki-copyright] | Finland's terms and the free-use limit | yes |
 | [helsinki-pricing] | Finland's royalty | no, via the research report |
 | [kko-2000-56] | the legal basis of Finland's terms | no, via the research report |
-| [almanakkforlaget-navnedager] | Norway's terms | no, via the research report |
+| [almanakkforlaget-navnedager] | Norway's terms | yes, 2026-10-04: the page prints no list and no fee or terms |
 | [isof-namnsdagar], [svenska-akademien-namnlangden], [riksdagen-kru4] | Sweden's committee, revisions and status | no, via the research report |
-| [culture-sk-kalendarium] | Slovakia's list and commission | no, via the research report |
-| [ptejteseknihovny-kalendarium] | Czechia | no, via the research report |
-| [huwiki-nevnap], [dawiki-navnedag], [ltwiki-vardadienis], [plwiki-imieniny] | Hungary, Denmark, Lithuania, Poland | no, via the research report |
+| [culture-sk-kalendarium] | Slovakia's list and commission | the ministry's page, yes, 2026-10-04; the calendarium itself is a PDF and was not opened |
+| [ptejteseknihovny-kalendarium] | Czechia | no, via the research report; Czech Wikipedia's "Jmeniny v Česku" yes, 2026-10-04 |
+| [huwiki-nevnap], [dawiki-navnedag], [stat-ee-nimepaevad], [ltwiki-vardadienis], [plwiki-imieniny] | Hungary, Denmark, Estonia, Lithuania, Poland | no, via the research report; the pages each country's gap names as read on 2026-10-04 (archive.nytud.hu, hun-ren.hu, science.ku.dk, rjp.pan.pl, dane.gov.pl, Estonian Wikipedia's "Nimepäev"), yes |
 | [huwiki-februar-24] | the worked example: the Hungarian names of 24, 25, 28 and 29 February and the leap-year shift | yes, 2026-09-26 |
 | [bg-patriarshia-calendar], [elwiki-eortologio], [ruwiki-imeniny] | the Orthodox countries and the movable rules | no, via the research report |
 | [eortologio-pasxa] | the Greek movable feasts, their days from Pascha and their names; St George, St Mark, Chloe and the Forefathers | yes, 2026-09-29 |
@@ -252,7 +252,10 @@ only; the crate carries the file of 2026-03-16.
 
 "Via the research report" means the page was read during the survey of
 2026-09-25 that preceded the crate and quoted there; the crate's text
-repeats the quotation and the URL.
+repeats the quotation and the URL. Where a gap's `sources` in
+`crates/hc-name-days/src/gaps.rs` says a page was read on 2026-10-04, the
+row says so too; the key is then read directly for what that page says and
+via the report for the rest.
 
 ## Code
 

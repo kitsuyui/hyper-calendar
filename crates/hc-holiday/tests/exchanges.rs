@@ -1889,3 +1889,28 @@ fn the_catalogue_is_keyed_by_market_identifier_code() {
     assert!(exchanges::ALL.iter().all(|e| e.code.len() == 4));
     assert_eq!(exchanges::ALL.len(), 42);
 }
+
+#[test]
+fn an_exchange_does_not_inherit_the_included_country_unread_weekend() {
+    use hc_holiday::rule::UNREAD_WEEKEND;
+    // The Korea Exchange trades Monday to Friday by its own calendar, read
+    // from 2009; South Korea's weekend law is read from a later year, and a
+    // year before that is South Korea's gap, not the exchange's.
+    let coverage = KOREA_EXCHANGE.coverage(None);
+    assert_eq!(coverage.weekend_from, Some(2009));
+    let year_2010 = HolidayCalendar::for_year(&KOREA_EXCHANGE, None, 2010);
+    assert!(
+        year_2010
+            .gaps()
+            .iter()
+            .all(|gap| gap.name != UNREAD_WEEKEND),
+        "{:?}",
+        year_2010.gaps()
+    );
+    assert!(year_2010.weekend_is_read(ymd(2010, 3, 2)));
+    assert!(!year_2010.is_weekend(ymd(2010, 3, 2)));
+    // Its own weekend is a gap before it was read, which the engine still
+    // reports for the exchange itself.
+    let before = HolidayCalendar::for_year(&KOREA_EXCHANGE, None, 2008);
+    assert!(before.gaps().iter().any(|gap| gap.name == UNREAD_WEEKEND));
+}

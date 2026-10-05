@@ -83,9 +83,16 @@ from the weaker gravitational potential, and about 7.2 µs a day slow from its
 orbital speed, for a net 38.4 µs a day fast. The test suite checks all three
 figures.
 
-The two boundary crates carry a constant-velocity clock and a clock held
-still at a radius as their `relativity` layer, a layer of its own because it
-shares no crate with `planetary`; each line names the constants it used.
+The two boundary crates carry the `relativity` layer, a layer of its own
+because it shares no crate with `planetary`, in ten exports: a clock at a
+constant speed (`hc_proper_time`) and one with an uncertain speed
+(`hc_proper_time_uncertain`), a clock held still at a radius from a body
+(`hc_gravitational_dilation`) and the bodies carried (`hc_gravitating_bodies`),
+the offset of a clock on a circular orbit (`hc_orbit_rate_offset`), a rocket
+and a flip-and-burn voyage (`hc_rocket`, `hc_flip_and_burn`), the Doppler
+factor (`hc_doppler`), velocity composition (`hc_velocity_add`) and the
+Schwarzschild radius (`hc_schwarzschild_radius`); each line names the
+constants it used.
 
 ### Worldlines
 

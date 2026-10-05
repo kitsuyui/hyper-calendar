@@ -83,7 +83,17 @@ year the sources read reach: every year from the establishment to it is a
 *gap* (`gap`, `FiscalError::NotRead`), and so is every year in an `unread`
 span, a stretch after it that no source reaches either. A system whose
 establishment no source gives has no `valid_from`, and is a gap before its
-`read_from` at every label. The first year read is the first whole year of the
+`read_from` at every label; where the state or the tax it belongs to is
+dated by a source read, that year is its `valid_from` and the years before it
+are absent: Australia's from 1901, the Commonwealth's inception; the United
+States' calendar year from 1789, when the Treasury Department was
+established [wikipedia-us-treasury]; Hong Kong's two from 1841, when Britain
+occupied the island [wikipedia-history-hong-kong]; the
+United Kingdom's personal tax in three systems, for the years it was levied
+(1799 to 1801, 1803 to 1815, and from 1842 [wikipedia-income-tax-uk]), with the
+years of the lapses, 1802 and 1816 to 1841, in none of them and so absent. The other entries with no
+`valid_from` are a gap before their first year read, including years before the
+state or the tax existed, because no source read dates their establishment. The first year read is the first whole year of the
 earliest instrument, edition or page read: an Act in force from 1 April 1947
 begins with 1947 for a year that starts on 1 April, one in force on
 23 March begins with the next year, and a page of 2026 that states a year
@@ -178,7 +188,7 @@ establishment in any source read, and its years before R are a gap.
 
 | Code | Country | Systems carried |
 | --- | --- | --- |
-| AU | Australia | Government: 1 July, start year (R 1902) |
+| AU | Australia | Government: 1 July, start year (E 1901, R 1902) |
 | BR | Brazil | Government: 1 January, start year (R 1965) |
 | CA | Canada | Government: 1 April, start year (E and R 1907) |
 | CN | China | Government: 1 January, start year (R 1992) |
@@ -186,8 +196,8 @@ establishment in any source read, and its years before R are a gap.
 | EG | Egypt | Government: 1 January, start year (R 1974, to 1979); 1 July, start year (E and R 1980) |
 | ET | Ethiopia | Government: Hamle 1 of the Ethiopic calendar, end year (R 2014) |
 | FR | France | Government: 1 January, start year (R 2006) |
-| GB | United Kingdom | Government: 1 April, start year (E 1854, R 1855); personal tax: 6 April, start year (R 2007); England and Wales before 1752: 25 March in proleptic Gregorian dates, start year (E and R 1155, to 1750) |
-| HK | Hong Kong | Government: 1 April, start year (R 2025); year of assessment: 1 April, start year (R 1947) |
+| GB | United Kingdom | Government: 1 April, start year (E 1854, R 1855); personal tax: 6 April, start year, in three systems (E 1799 to 1801 and 1803 to 1815, read in none; E 1842, R 2007); England and Wales before 1752: 25 March in proleptic Gregorian dates, start year (E and R 1155, to 1750) |
+| HK | Hong Kong | Government: 1 April, start year (E 1841, R 2025); year of assessment: 1 April, start year (E 1841, R 1947) |
 | IN | India | Government: 1 April, start year (E 1867, R 1868) |
 | IR | Iran | Government: 1 Farvardin on `persian-arithmetic-33`, start year (R 1350) |
 | JP | Japan | Government: 1 July, start year (E and R 1875, to 1884); 1 April, start year (E and R 1886, with 1921 to 1946 unread); the school year, 1 April (R 1947) |
@@ -198,7 +208,7 @@ establishment in any source read, and its years before R are a gap.
 | SE | Sweden | Government: 1 January, start year (R 1921, to 1922); 1 July, start year (E and R 1923, to 1994); 1 January, start year (E and R 1997); company accounts: 1 January (R 1977) |
 | SG | Singapore | Government: 1 April, start year (R 2026); personal tax basis period: 1 January (R 2026) |
 | TH | Thailand | Government: 1 October of the Buddhist calendar, end year (E and R 2505); 1 January, start year (E and R 2484, to 2503) |
-| US | United States | Government: 1 October, end year (E and R 1977); 1 July, end year (E and R 1844, to 1976); 1 January (R 1842, to 1842) |
+| US | United States | Government: 1 October, end year (E and R 1977); 1 July, end year (E and R 1844, to 1976); 1 January (E 1789, R 1842, to 1842) |
 | ZA | South Africa | Government: 1 April, start year (R 2026); personal tax: 1 March, end year (R 1985) |
 
 Years in these systems are labelled by the system: Iran's by Solar Hijri
@@ -293,17 +303,19 @@ periods) and `last-saturday-of-december-4-4-5` (last Saturday of December,
 4-4-5, end year).
 
 **The boundary.** `hyper_calendar::fiscal_lines` writes one line per year
-system for `hc_fiscal_profiles` (18 cells: the country, the table, the kind,
+system for `hc_fiscal_profiles` (20 cells: the country, the table, the kind,
 the names, the authority, the start in its calendar, the label convention,
-the validity bounds, the note, the date the sources were checked and the
-sources), for `hc_fiscal_year_on` (18 cells) and for `hc_fiscal_year_span`
-(9 cells); one line per week-year system for `hc_week_year_systems` (10 cells)
-and `hc_week_year_on` (14). A year line carries the label convention and the
-start's calendar as cells, never defaulted, since "FY2024" begins in 2024 in
-Japan and on 1 October 2023 in the United States. Its status is `in-force`,
-`outside-validity`, where the system was not in force in that year, or
-`outside-calendar-range`, where the start's calendar does not reach the day,
-and the cells after the status are then empty. A country or kind not carried
+the validity bounds, the note, the date the sources were checked, the
+sources, the first year read and the unread spans), for `hc_fiscal_year_on`
+(18 cells) and for `hc_fiscal_year_span` (9 cells); one line per week-year
+system for `hc_week_year_systems` (10 cells) and `hc_week_year_on` (14). A
+year line carries the label convention and the start's calendar as cells,
+never defaulted, since "FY2024" begins in 2024 in Japan and on 1 October
+2023 in the United States. Its status is `in-force`, `gap`, where the system
+was in force and no source read reaches the year, `outside-validity`, where
+the system was not in force in that year, or `outside-calendar-range`, where
+the start's calendar does not reach the day, and the cells after the status
+are then empty. A country or kind not carried
 is `HC_ERR_UNKNOWN`; a country with no system of the kind asked is
 `HC_ERR_NO_DATA`. Nepal, whose year starts on 1 Shrawan of the Bikram Sambat,
 is present only in a build that has the `calendars` layer too. The columns are
@@ -417,8 +429,13 @@ The Australian states give Term 1 of 2027 on 28 January, 1 February and 3 or
 10 February; the Education Act 1996 s. 579 defines the school year by "the
 first school term to begin after July"; and the one page on New Zealand's
 term dates says they are set by individual schools, so the entry does not
-claim that a statute or a regulation fixes them. Those are recorded in the
-entries' notes.
+claim that a statute or a regulation fixes them. The Gazette notice of 8 May
+2025 does set a window for 2027 and 2028, Term 1 starting between Thursday
+28 January and Thursday 4 February [nz-gazette-2025-sl2489] (the Ministry's
+page gives the end of the window as Wednesday 3 February in a search summary;
+it was not read as text), which is two years of dates and no rule for the
+others, so the authority stays unread. Those are recorded in the entries'
+notes.
 
 **The calendar anchors.**
 `the_iranian_fiscal_year_matches_the_published_gregorian_starts` reproduces

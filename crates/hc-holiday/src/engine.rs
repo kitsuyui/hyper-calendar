@@ -905,6 +905,14 @@ fn evaluate_with_includes(
         // Only the days off: an included set's commemorations are its own.
         // Hong Kong keeps the Winter Solstice as an observance, and the
         // exchange that closes on Hong Kong's holidays trades through it.
+        // Nor the included set's weekend: the weekend the including set
+        // keeps is its own (an exchange's trading week), so a year in which
+        // the included country's weekend law was not read is no gap of the
+        // including set's, whose own weekend policies report their own.
+        let more_gaps: Vec<Gap> = more_gaps
+            .into_iter()
+            .filter(|gap| gap.id != UNREAD_WEEKEND_ID)
+            .collect();
         let (more, more_gaps) = match included.read_from {
             Some(first) => {
                 let first = i64::from(first);
@@ -1057,7 +1065,22 @@ fn evaluate(
                 // not answer is one gap, not two. The gaps are written year
                 // by year, so only the tail can share the year.
                 if (first_year..=last_year).contains(&year) {
-                    let window = rule.gap_window(year, margin, context);
+                    // A rule that keeps no day ([`Rule::NO_DAY`]) negates a
+                    // day of the same identifier elsewhere in the table — a
+                    // province's text leaving a federal day out — and the
+                    // years its sources were not read for are open on the
+                    // days that other rule places, not on the whole year.
+                    let window = rule.gap_window(year, margin, context).or_else(|| {
+                        rules
+                            .rules
+                            .iter()
+                            .filter(|other| {
+                                !core::ptr::eq(*other, rule)
+                                    && other.id() == rule.id()
+                                    && other.applies_in(year)
+                            })
+                            .find_map(|other| other.gap_window(year, margin, context))
+                    });
                     let written = gaps
                         .iter()
                         .rposition(|gap| gap.year == year && gap.id == rule.id());

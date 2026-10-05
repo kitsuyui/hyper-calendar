@@ -9732,3 +9732,29 @@ fn expect_rule_dates(code: &str, region: Option<&str>, days: &[(i64, u8, u8, &st
         );
     }
 }
+
+#[test]
+fn the_us_in_lieu_rule_starts_with_the_sunday_in_1952_and_the_saturday_in_1960() {
+    let us = table("US");
+    let calendar = |year| HolidayCalendar::for_year(us, None, year);
+    let observed = |year: i64, month: u8, day: u8| {
+        calendar(year)
+            .on(ymd(year, month, day))
+            .iter()
+            .any(|holiday| holiday.is_day_off())
+    };
+    // Executive Order 10358 of 9 June 1952: a Sunday holiday is kept on the
+    // Monday. New Year's Day 1956 was a Sunday, as was Independence Day 1954.
+    assert!(observed(1956, 1, 2));
+    assert!(observed(1954, 7, 5));
+    // It says nothing of a Saturday; the Friday before is in lieu of one
+    // from Pub. L. 86-362 of 22 September 1959. Memorial Day (30 May) and
+    // Independence Day 1959 were Saturdays, and the Fridays were worked.
+    assert!(!observed(1959, 5, 29));
+    assert!(!observed(1959, 7, 3));
+    // Veterans Day 1961 and Independence Day 1964 were Saturdays.
+    assert!(observed(1961, 11, 10));
+    assert!(observed(1964, 7, 3));
+    // Before 1952 nothing is claimed of the Sunday rule.
+    assert!(!observed(1950, 1, 2));
+}

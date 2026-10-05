@@ -19,6 +19,20 @@
 //! Disarmament Week and the rest — are spans, a table of their own,
 //! [`UNITED_NATIONS_WEEKS`], each on every day of its week.
 //!
+//! # The first years
+//!
+//! A day is absent before its first observance
+//! ([`HolidayRule::valid_from`](crate::rule::HolidayRule::valid_from)). Where
+//! a page read gives the date the resolution was adopted, the day begins in
+//! the year of the first occurrence of its date on or after it; a day an
+//! earlier body observed on the same date (Wetlands, Family Remittances,
+//! Elder Abuse, Kiswahili) begins with the proclamation, and the
+//! precursor's year is not the day's. A day proclaimed on its own date
+//! (Mother Earth Day, 22 April 2009) has that year as a gap. The first
+//! observance a source read states for a day the list cites a resolution for
+//! but that no resolution created (Detained and Missing Staff Members, 1986)
+//! is its own. The detail per day is in `docs/systems/holiday-first-years.md`.
+//!
 //! # The days that are rules
 //!
 //! Most fall on a fixed date. Seven do not, and the list shows them on the
@@ -59,7 +73,7 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "International Day of Clean Energy",
         Rule::gregorian(1, 26),
         "A/RES/77/327",
-    ).years(Some(2022), None).read_from(2024),
+    ).years(Some(2024), None),
     day(
         "International Day of Commemoration in Memory of the Victims of the Holocaust",
         Rule::gregorian(1, 27),
@@ -70,7 +84,7 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         Rule::gregorian(1, 28),
         "A/RES/79/269",
     ).years(Some(2025), None).read_from(2026),
-    day("World Wetlands Day", Rule::gregorian(2, 2), "A/RES/75/317").years(Some(2020), None).read_from(2022),
+    day("World Wetlands Day", Rule::gregorian(2, 2), "A/RES/75/317").years(Some(2022), None),
     day(
         "International Day of Human Fraternity",
         Rule::gregorian(2, 4),
@@ -85,7 +99,7 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "International Day of the Arabian Leopard",
         Rule::gregorian(2, 10),
         "A/RES/77/295",
-    ).years(Some(2022), None).read_from(2024),
+    ).years(Some(2024), None),
     day(
         "World Pulses Day",
         Rule::gregorian(2, 10),
@@ -100,13 +114,13 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "International Day for the Prevention of Violent Extremism as and when Conducive to Terrorism",
         Rule::gregorian(2, 12),
         "A/RES/77/243",
-    ).years(Some(2022), None).read_from(2024),
+    ).years(Some(2023), None),
     day("World Radio Day", Rule::gregorian(2, 13), "A/RES/67/124").years(Some(2012), None),
     day(
         "Global Tourism Resilience Day",
         Rule::gregorian(2, 17),
         "A/RES/77/269",
-    ).years(Some(2022), None).read_from(2024),
+    ).years(Some(2023), None),
     day(
         "World Day of Social Justice",
         Rule::gregorian(2, 20),
@@ -124,7 +138,7 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "International Day for Disarmament and Non-Proliferation Awareness",
         Rule::gregorian(3, 5),
         "A/RES/77/51",
-    ).years(Some(2022), None).read_from(2024),
+    ).years(Some(2023), None),
     day(
         "International Women's Day",
         Rule::gregorian(3, 8),
@@ -169,7 +183,7 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "World Day for Glaciers",
         Rule::gregorian(3, 21),
         "A/RES/77/158",
-    ).years(Some(2022), None).read_from(2024),
+    ).years(Some(2025), None),
     day(
         "World Down Syndrome Day",
         Rule::gregorian(3, 21),
@@ -201,7 +215,7 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "International Day of Solidarity with Detained and Missing Staff Members",
         Rule::gregorian(3, 25),
         "A/RES/49/59",
-    ).years(Some(1994), None).read_from(1996),
+    ).years(Some(1986), None),
     day(
         "International Day of Zero Waste",
         Rule::gregorian(3, 30),
@@ -231,7 +245,7 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "International Day of Reflection on the 1994 Genocide against the Tutsi in Rwanda",
         Rule::gregorian(4, 7),
         "A/RES/58/234",
-    ).years(Some(2003), None).read_from(2005),
+    ).years(Some(2004), None),
     day(
         "World Health Day",
         Rule::gregorian(4, 7),
@@ -247,7 +261,7 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "International Wellness Day",
         Rule::gregorian(4, 15),
         "A/RES/80/249",
-    ).years(Some(2025), None).read_from(2027),
+    ).years(Some(2026), None),
     day(
         "Chinese Language Day",
         Rule::gregorian(4, 20),
@@ -262,7 +276,12 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "International Mother Earth Day",
         Rule::gregorian(4, 22),
         "A/RES/63/278",
-    ).years(Some(2008), None).read_from(2010),
+    ).years(Some(2009), None).read_from(2010),
+    day(
+        "International Day of Greening the Planet",
+        Rule::gregorian(4, 22),
+        "A/RES/80/300",
+    ).years(Some(2027), None),
     day(
         "English Language Day",
         Rule::gregorian(4, 23),
@@ -319,7 +338,7 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         Rule::gregorian(4, 30),
         "UNESCO, 36 C/Resolution 39",
     ).years(Some(2012), None),
-    day("World Tuna Day", Rule::gregorian(5, 2), "A/RES/71/124").years(Some(2016), None).read_from(2018),
+    day("World Tuna Day", Rule::gregorian(5, 2), "A/RES/71/124").years(Some(2017), None),
     day(
         "World Press Freedom Day",
         Rule::gregorian(5, 3),
@@ -344,7 +363,7 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "International Day of Plant Health",
         Rule::gregorian(5, 12),
         "FAO, A/RES/76/256",
-    ).years(Some(2021), None).read_from(2023),
+    ).years(Some(2022), None),
     day(
         "International Day of Families",
         Rule::gregorian(5, 15),
@@ -385,7 +404,7 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "International Day for Biological Diversity",
         Rule::gregorian(5, 22),
         "A/RES/55/201",
-    ).years(Some(2000), None).read_from(2002),
+    ).years(Some(2001), None),
     day(
         "International Day to End Obstetric Fistula",
         Rule::gregorian(5, 23),
@@ -442,7 +461,7 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "World Food Safety Day",
         Rule::gregorian(6, 7),
         "A/RES/73/250",
-    ).years(Some(2018), None).read_from(2020),
+    ).years(Some(2019), None),
     day("World Oceans Day", Rule::gregorian(6, 8), "A/RES/63/111").years(Some(2008), None).read_from(2009),
     day(
         "International Day for Dialogue among Civilizations",
@@ -453,7 +472,7 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "International Day of Play",
         Rule::gregorian(6, 11),
         "A/RES/78/268",
-    ).years(Some(2023), None).read_from(2025),
+    ).years(Some(2024), None),
     day(
         "World Day Against Child Labour",
         Rule::gregorian(6, 12),
@@ -473,12 +492,12 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "World Elder Abuse Awareness Day",
         Rule::gregorian(6, 15),
         "A/RES/66/127",
-    ).years(Some(2011), None).read_from(2013),
+    ).years(Some(2012), None),
     day(
         "International Day of Family Remittances",
         Rule::gregorian(6, 16),
         "A/RES/72/281",
-    ).years(Some(2017), None).read_from(2019),
+    ).years(Some(2018), None),
     day(
         "World Day to Combat Desertification and Drought",
         Rule::gregorian(6, 17),
@@ -493,7 +512,7 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "Sustainable Gastronomy Day",
         Rule::gregorian(6, 18),
         "FAO, A/RES/71/246",
-    ).years(Some(2016), None).read_from(2018),
+    ).years(Some(2017), None),
     day(
         "International Day for the Elimination of Sexual Violence in Conflict",
         Rule::gregorian(6, 19),
@@ -509,7 +528,7 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "International Day of the Celebration of the Solstice",
         Rule::gregorian(6, 21),
         "A/RES/73/300",
-    ).years(Some(2018), None).read_from(2020),
+    ).years(Some(2019), None),
     day(
         "International Widows' Day",
         Rule::gregorian(6, 23),
@@ -524,7 +543,7 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "International Day of Women in Diplomacy",
         Rule::gregorian(6, 24),
         "A/RES/76/269",
-    ).years(Some(2021), None).read_from(2023),
+    ).years(Some(2022), None),
     day(
         "Day of the Seafarer",
         Rule::gregorian(6, 25),
@@ -544,12 +563,12 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "International Day of Deafblindness",
         Rule::gregorian(6, 27),
         "A/RES/79/294",
-    ).years(Some(2024), None).read_from(2026),
+    ).years(Some(2025), None),
     day(
         "Micro-, Small and Medium-sized Enterprises Day",
         Rule::gregorian(6, 27),
         "A/RES/71/279",
-    ).years(Some(2016), None).read_from(2018),
+    ).years(Some(2017), None),
     day(
         "International Day of the Tropics",
         Rule::gregorian(6, 29),
@@ -569,12 +588,12 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "World Rural Development Day",
         Rule::gregorian(7, 6),
         "A/RES/78/326",
-    ).years(Some(2023), None).read_from(2025),
+    ).years(Some(2025), None),
     day(
         "World Kiswahili Language Day",
         Rule::gregorian(7, 7),
         "A/RES/78/312",
-    ).years(Some(2023), None).read_from(2025),
+    ).years(Some(2024), None),
     day(
         "International Day of Reflection and Commemoration of the 1995 Genocide in Srebrenica",
         Rule::gregorian(7, 11),
@@ -590,12 +609,12 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "International Day of Combating Sand and Dust Storms",
         Rule::gregorian(7, 12),
         "A/RES/77/294",
-    ).years(Some(2022), None).read_from(2024),
+    ).years(Some(2023), None),
     day(
         "International Day of Hope",
         Rule::gregorian(7, 12),
         "A/RES/79/270",
-    ).years(Some(2024), None).read_from(2026),
+    ).years(Some(2025), None),
     day(
         "World Youth Skills Day",
         Rule::gregorian(7, 15),
@@ -690,6 +709,11 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         Rule::gregorian(8, 31),
         "A/RES/75/170",
     ).years(Some(2020), None).read_from(2021),
+    day(
+        "International Day of Safe, Secure and Trustworthy Artificial Intelligence",
+        Rule::gregorian(8, 31),
+        "A/RES/80/302",
+    ).years(Some(2027), None),
     day(
         "International Day of Charity",
         Rule::gregorian(9, 5),
@@ -945,7 +969,7 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
     day(
         "International Day for the Elimination of Child, Early and Forced Marriage",
         Rule::gregorian(11, 27),
-        "A/80/L.99",
+        "A/RES/80/309",
     ).years(Some(2026), None).read_from(2027),
     day(
         "International Day of Solidarity with the Palestinian People",
@@ -1034,11 +1058,11 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
         "International Migrants Day",
         Rule::gregorian(12, 18),
         "A/RES/55/93",
-    ).years(Some(2000), None).read_from(2002),
+    ).years(Some(2000), None),
     day(
         "International Day of Recognition for Women Searchers of Missing Persons",
         Rule::gregorian(12, 19),
-        "A/80/L.108",
+        "A/RES/80/301",
     ).years(Some(2026), None).read_from(2027),
     day(
         "International Human Solidarity Day",
@@ -1127,11 +1151,21 @@ pub static UNITED_NATIONS: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: NO_WEEKEND,
-    sources_checked: SourceDate::new(2026, 9, 22),
+    sources_checked: SourceDate::new(2026, 10, 5),
     sources: "United Nations, \"International Days and Weeks\", \
-              un.org/en/observances/list-days-weeks, retrieved 2026-09-22, \
-              and each rule-based day's own page; every entry cites its \
-              resolution or designating body in its `source`",
+              un.org/en/observances/list-days-weeks, retrieved 2026-09-22 and again \
+              2026-10-05 (the citations of A/RES/80/300, 80/301, 80/302 and 80/309 and \
+              the days of the 80th session), and each rule-based day's own page; every \
+              entry cites its resolution or designating body in its `source`. The first \
+              year of a day is the year of its first observance where a page read says \
+              so (an observance page, a United Nations or agency press release, a \
+              report of the first observance), and otherwise the year of the first \
+              occurrence of the day's date on or after the date the resolution was \
+              adopted, the date taken from the meetings coverage of the United Nations or a \
+              news report of the adoption, as docs/systems/holiday-first-years.md lists; \
+              for the days with no such page read, the year Wikipedia's article gives \
+              (secondary) or the session of the resolution. The resolutions' own texts, \
+              which are PDFs, were not read",
     subdivisions: Subdivisions::Undivided,
 };
 

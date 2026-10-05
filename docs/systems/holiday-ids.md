@@ -87,6 +87,18 @@ year whose weekend law in the region was not read is `unread-weekend`
 - **The names in a locale** are keyed by identifier: `hc-i18n`'s
   `holiday_names` carries the seven Coptic feasts by `nayrouz-new-year`,
   `feast-of-the-cross` and so on.
+- **The rules of a table**, `hc_holiday_rules(code)`: one line for each
+  rule, in the table's order, with the identifier first, so that a reader
+  who has an identifier from a day's line finds the rule behind it: its
+  names, its kind, the years it was established, abolished and read from,
+  its regions and groups, how the table's substitution law reaches it
+  (`none`, or the weekdays, the direction and the first year it has of its
+  own, each empty where the table's law, column 15 of `hc_holiday_tables`, is
+  the rule's), and its source. A day kept on different dates in
+  different years is a line for each stretch under one identifier, as the
+  United States' `memorial-day` is (1888 to 1970 and from 1971).
+  Column 16 of
+  `hc_holiday_tables` names the tables an exchange includes.
 
 Not carried: an identifier across tables. `new-years-day` of `JP` and of
 `CN` are two holidays, as their tables are; a page joins on the table's

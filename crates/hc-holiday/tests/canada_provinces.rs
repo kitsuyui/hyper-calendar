@@ -368,3 +368,20 @@ fn a_province_keeps_only_the_federal_days_its_text_read_lists() {
     assert!(!HolidayCalendar::for_year(&CANADA, Some("CA-NT"), 2021).is_holiday(ymd(2021, 9, 30)));
     assert!(!HolidayCalendar::for_year(&CANADA, Some("CA-YT"), 2022).is_holiday(ymd(2022, 9, 30)));
 }
+
+#[test]
+fn a_federal_day_a_province_leaves_out_is_open_on_the_days_the_federal_rule_places() {
+    // Alberta's text leaves Boxing Day out; its earlier texts were not read,
+    // so 1984 is open on the days Boxing Day falls, not on the whole year.
+    let calendar = HolidayCalendar::for_year(&CANADA, Some("CA-AB"), 1984);
+    let boxing: Vec<_> = calendar
+        .gaps()
+        .iter()
+        .filter(|gap| gap.name == "Boxing Day")
+        .collect();
+    assert_eq!(boxing.len(), 1, "{:?}", calendar.gaps());
+    let (first, last) = boxing[0].window.expect("a window");
+    assert!(first <= ymd(1984, 12, 26) && ymd(1984, 12, 26) <= last);
+    // The day, widened by the days a substitution can move it.
+    assert!(last.0 - first.0 <= 14);
+}
