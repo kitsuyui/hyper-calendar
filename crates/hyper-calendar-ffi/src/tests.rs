@@ -74,7 +74,6 @@ fn read_lines(call: impl Fn(*mut c_char, usize, *mut usize) -> HcStatus) -> Stri
 /// buffer, which is `HC_ERROR_BUFFER_TOO_SMALL` when the entry point
 /// answers, and the refusal when it does not.
 #[cfg(any(
-    feature = "civil",
     feature = "timestamps",
     feature = "time-codes",
     feature = "calendars",

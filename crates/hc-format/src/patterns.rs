@@ -677,10 +677,9 @@ impl ParsedFields {
             return crate::OffsetDateTime::from_unix(unix, zone);
         }
         let day = self.resolve_day()?;
-        let time = self.resolve_time()?;
-        let local = CivilDateTime::new(day, time);
+        let (hour, minute, second, subsec_attos) = self.resolve_clock();
         let zone = self.zone.unwrap_or(ZoneInfo::Unspecified);
-        crate::value::check_leap_second(local, zone)?;
+        let local = crate::value::local_reading(day, hour, minute, second, subsec_attos, zone)?;
         Ok(crate::OffsetDateTime {
             local,
             zone,
@@ -794,7 +793,7 @@ impl ParsedFields {
         self
     }
 
-    fn resolve_time(&self) -> ValueResult<hc_calendar::CivilTime> {
+    fn resolve_clock(&self) -> (u8, u8, u8, u64) {
         let hour = match (self.hour, self.hour12, self.day_period) {
             (Some(hour), _, _) => hour,
             (None, Some(hour12), period) => {
@@ -807,12 +806,12 @@ impl ParsedFields {
             }
             (None, None, _) => 0,
         };
-        Ok(hc_calendar::CivilTime::new(
+        (
             hour,
             self.minute.unwrap_or(0),
             self.second.unwrap_or(0),
             self.subsec_attos.unwrap_or(0),
-        )?)
+        )
     }
 }
 

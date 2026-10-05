@@ -408,9 +408,23 @@ fn scan_year(scanner: &mut Scanner<'_>, strictness: &Strictness) -> ParseResult<
     }
     // ISO 8601 leaves the digit count of an expanded year to agreement
     // between the parties. In extended format a separator marks where it
-    // ends; in basic format nothing does, so `+0020260921` could be a
-    // six-digit year and a month-day or an eight-digit year and a day of the
-    // year. This refuses to guess. See the crate README.
+    // ends, and in a week date the `W` does; in basic format nothing does,
+    // so `+0020260921` could be a six-digit year and a month-day or an
+    // eight-digit year and a day of the year. The count the workspace writes
+    // is `expanded_year_digits`, six below a million and seven below ten
+    // million, and a run of digits that nothing delimits is read by it:
+    // nine digits are a six-digit year and a day of the year, ten a
+    // six-digit year, a month and a day, eleven a seven-digit year, a month
+    // and a day. A run of up to eight digits is the year alone, a reduced
+    // accuracy date; a run of twelve or more is refused, as is the ordinal
+    // date of a seven-digit year, which the writers refuse, so that a text a
+    // writer here wrote reads back and none reads as another year.
+    let delimited = matches!(scanner.peek_ahead(run), Some(b'-' | b'W'));
+    let run = match run {
+        9 | 10 if !delimited => 6,
+        11 if !delimited => 7,
+        _ => run,
+    };
     if run > 9 {
         return Err(Scanner::error_at(
             ErrorKind::Forbidden("an expanded year in the basic format"),
@@ -568,7 +582,7 @@ pub(crate) fn scan_time(
         } else if scanner.eat(b':') {
             let second_start = scanner.pos();
             let second = scanner.take_digits(2)? as u8;
-            check_second(strictness, hour, minute, second, second_start)?;
+            check_second(strictness, second, second_start)?;
             time.second = Some(second);
             if let Some((fraction, mark)) = scan_fraction(scanner, strictness)? {
                 time.fraction = Some(fraction);
@@ -591,7 +605,7 @@ pub(crate) fn scan_time(
         if scanner.peek().is_some_and(|b| b.is_ascii_digit()) {
             let second_start = scanner.pos();
             let second = scanner.take_digits(2)? as u8;
-            check_second(strictness, hour, minute, second, second_start)?;
+            check_second(strictness, second, second_start)?;
             time.second = Some(second);
         } else if scanner.peek() == Some(b':') {
             return Err(scanner.error(ErrorKind::MixedFormat));
@@ -821,13 +835,7 @@ fn check_minute(minute: u8, at: usize) -> ParseResult<()> {
     }
 }
 
-fn check_second(
-    strictness: &Strictness,
-    hour: u8,
-    minute: u8,
-    second: u8,
-    at: usize,
-) -> ParseResult<()> {
+fn check_second(strictness: &Strictness, second: u8, at: usize) -> ParseResult<()> {
     if second <= 59 {
         return Ok(());
     }
@@ -837,18 +845,12 @@ fn check_second(
     if !strictness.allow_leap_second {
         return Err(Scanner::error_at(ErrorKind::Forbidden("a leap second"), at));
     }
-    // A positive leap second is only ever inserted at the end of a UTC day,
-    // and `hc_calendar::CivilTime` can hold it only there. A local reading of
-    // `08:59:60` in Tokyo names the same physical second but is not a value
-    // this library can carry, so it is refused rather than silently moved.
-    if hour == 23 && minute == 59 {
-        Ok(())
-    } else {
-        Err(Scanner::error_at(
-            ErrorKind::Invalid("a leap second outside 23:59"),
-            at,
-        ))
-    }
+    // A positive leap second is inserted at the end of a UTC day, which a
+    // zone's clock reads at 23:59:60 less its offset, `15:59:60` in Pacific
+    // Standard Time (RFC 3339 §5.7). Whether this second 60 is one is the
+    // zone's and the day's question, answered when the value is resolved
+    // (`value::local_reading`); the scan takes the digits.
+    Ok(())
 }
 
 fn require_offset_seconds(strictness: &Strictness, at: usize) -> ParseResult<()> {
@@ -1026,7 +1028,15 @@ mod tests {
         assert!(parse("2016-W52-6T23:59:60Z").is_ok());
         assert!(parse("2016-12-30T23:59:60Z").is_err());
         assert!(parse("2016-W52-7T23:59:60Z").is_err());
+        // 23:59:60 at +01:00 is 22:59:60 UTC, which is no leap second.
         assert!(parse("2016-12-31T23:59:60+01:00").is_err());
+        // RFC 3339 §5.8: the leap second of 1990 as Pacific Standard Time
+        // and as Japan reads it, on the days they read it.
+        assert!(parse("1990-12-31T15:59:60-08:00").is_ok());
+        assert!(parse("2017-01-01T08:59:60+09:00").is_ok());
+        assert!(parse("1990-12-31T15:59:60+00:00").is_err());
+        assert!(parse("1990-12-30T15:59:60-08:00").is_err());
+        assert!(parse("1990-12-31T16:00:60-08:00").is_err());
         // With no zone the reading is no instant, and the day cannot be
         // told to have a leap second until a zone is given.
         assert!(parse("2026-09-21T23:59:60").is_ok());
@@ -1047,13 +1057,13 @@ mod tests {
     }
 
     #[test]
-    fn a_leap_second_anywhere_but_midnight_is_refused() {
+    fn a_leap_second_is_refused_where_the_zone_does_not_put_it() {
         let error = parse("1972-06-30T12:59:60Z").unwrap_err();
         assert_eq!(
             error.kind(),
-            ErrorKind::Invalid("a leap second outside 23:59")
+            ErrorKind::Invalid("a leap second that UTC did not insert")
         );
-        assert_eq!(error.offset(), 17);
+        assert_eq!(error.offset(), 20);
     }
 
     #[test]

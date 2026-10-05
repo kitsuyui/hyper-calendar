@@ -254,6 +254,22 @@ describe("civil", () => {
     assert.deepEqual(hc.weekOfYear(newYear), { weekYear: 2020, week: 53, weeksInYear: 53, weekOfMonth: 0 });
     assert.deepEqual(hc.weekOfYear(newYear, 7, 1), { weekYear: 2021, week: 1, weeksInYear: 52, weekOfMonth: 1 });
     refused(() => hc.weekOfYear(newYear, 8, 1), "out-of-range");
+    // Its inverse, with CPython's date.fromisocalendar(2020, 53, 5) and (2026, 1, 1).
+    assert.equal(hc.fixedFromWeek(2020, 53, 5), newYear);
+    assert.equal(hc.fixedFromWeek(2026, 1, 1), hc.gregorianToFixed(2025, 12, 29));
+    // Under Sunday and 1, week 1 of 2021 begins on Sunday 27 December 2020.
+    assert.equal(hc.fixedFromWeek(2021, 1, 7, 7, 1), hc.gregorianToFixed(2020, 12, 27));
+    refused(() => hc.fixedFromWeek(2025, 53, 1), "invalid-date");
+    refused(() => hc.fixedFromWeek(2026, 1, 8), "invalid-date");
+    refused(() => hc.fixedFromWeek(2026, 1, 1, 0, 4), "out-of-range");
+  });
+
+  test("asctime writes a reading as Python's ctime does", () => {
+    assert.equal(hc.asctime(1993, 6, 20, 23, 21, 5), "Sun Jun 20 23:21:05 1993");
+    assert.equal(hc.asctime(2026, 9, 21), "Mon Sep 21 00:00:00 2026");
+    refused(() => hc.asctime(2016, 12, 31, 23, 59, 60), "invalid-date");
+    refused(() => hc.asctime(2026, 2, 30), "invalid-date");
+    refused(() => hc.asctime(0, 1, 1), "out-of-range");
   });
 });
 
@@ -696,6 +712,21 @@ describe("date-times, durations and intervals as text", () => {
     assert.deepEqual([fraction.zone, fraction.unixSeconds, fraction.attoseconds], ["utc", 482_196_050, 520_000_000_000_000_000n]);
     assert.equal(hc.parseDatetime("rfc3339", "1990-12-31T23:59:60Z").leapSecond, true);
     assert.equal(hc.parseDatetime("rfc3339", "1990-12-31T23:59:60Z").unixSeconds, 662_688_000);
+    // RFC 3339 §5.8: the same leap second as Pacific Standard Time reads it; §5.7 shifts it by the offset.
+    const pacific = hc.parseDatetime("rfc3339", "1990-12-31T15:59:60-08:00");
+    assert.equal(pacific.leapSecond, true);
+    assert.equal(pacific.unixSeconds, 662_688_000);
+    assert.equal(hc.parseDatetime("iso8601", "2017-01-01T08:59:60+09:00").unixSeconds, 1_483_228_800);
+    refused(() => hc.parseDatetime("rfc3339", "1990-12-31T15:59:60+08:00"), "invalid-date");
+    refused(() => hc.parseDatetime("rfc3339", "1990-12-31T23:59:60-08:00"), "invalid-date");
+    // One status for one refusal in both parsers.
+    refused(() => hc.parsePattern("strftime", "%Y-%m-%dT%H:%M:%S%z", "2016-12-31T23:59:60+0900"), "invalid-date");
+    refused(() => hc.parseDatetime("iso8601", "2016-12-31T23:59:60+0900"), "invalid-date");
+    // The basic style's expanded years read back as the workspace writes them.
+    assert.equal(hc.isoDateParts("-000001001").year, -1);
+    assert.equal(hc.isoDateParts("-000001001").dayOfYear, 1);
+    assert.equal(hc.parseIsoDate("-0000010101"), hc.parseIsoDate("-000001-01-01"));
+    assert.equal(hc.parseDatetime("iso8601", "-0000010101T000000Z").unixSeconds, -62_198_755_200);
     assert.equal(hc.parseDatetime("rfc3339", "2026-09-21T14:30:05-00:00").zone, "unknown-local");
     const local = hc.parseDatetime("iso8601", "2026-09-21T14:30:05");
     assert.deepEqual([local.zone, local.offsetSeconds, local.unixSeconds], ["none", null, null]);
@@ -1770,6 +1801,30 @@ describe("time zones", () => {
     assert.equal(hc.mktime(2026, 10, 25, 2, 30, 0, "Europe/Berlin", "latest") - earliest, 3600);
     refused(() => hc.mktime(2026, 1, 1, 0, 0, 0, "Mars/Olympus"), "unknown");
     refused(() => hc.mktime(2026, 1, 1, 0, 0, 0, "Asia/Tokyo", /** @type {any} */ ("guess")), "unknown");
+    // A second of 60 is no wall-clock reading, on a day that ended in a leap second or not.
+    refused(() => hc.mktime(2016, 12, 31, 23, 59, 60, "UTC"), "invalid-date");
+    refused(() => hc.mktime(2026, 6, 30, 23, 59, 60, "UTC"), "invalid-date");
+    refused(() => hc.mktime(2026, 1, 1, 23, 59, 60, "America/New_York"), "invalid-date");
+  });
+
+  test("a local reading is resolved to its instants before a policy chooses, and the policies are listed", () => {
+    // CPython 3.9.6's zoneinfo, fold 0 and 1.
+    assert.deepEqual(hc.localResolution(2026, 7, 1, 12, 0, 0, "Europe/Berlin"), {
+      kind: "unique", firstUnixSeconds: 1_782_900_000, firstOffset: 7200, secondUnixSeconds: 1_782_900_000, secondOffset: 7200,
+    });
+    assert.deepEqual(hc.localResolution(2026, 10, 25, 2, 30, 0, "Europe/Berlin"), {
+      kind: "ambiguous", firstUnixSeconds: 1_792_888_200, firstOffset: 7200, secondUnixSeconds: 1_792_891_800, secondOffset: 3600,
+    });
+    assert.deepEqual(hc.localResolution(2026, 3, 29, 2, 30, 0, "Europe/Berlin"), {
+      kind: "nonexistent", firstUnixSeconds: 1_774_744_200, firstOffset: 7200, secondUnixSeconds: 1_774_747_800, secondOffset: 3600,
+    });
+    refused(() => hc.localResolution(2016, 12, 31, 23, 59, 60, "Europe/Berlin"), "invalid-date");
+    refused(() => hc.localResolution(2026, 1, 1, 0, 0, 0, "Mars/Olympus"), "unknown");
+    const policies = hc.mktimePolicies();
+    assert.deepEqual(policies.map((policy) => policy.id), ["earliest", "latest", "reject", "push-forward"]);
+    for (const policy of policies) {
+      assert.ok(policy.description.length > 20, policy.id);
+    }
   });
 });
 

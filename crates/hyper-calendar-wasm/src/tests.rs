@@ -261,7 +261,6 @@ fn the_plum_rains_of_2026_cross_the_boundary() {
 }
 
 #[cfg(any(
-    feature = "civil",
     feature = "timestamps",
     feature = "calendars",
     feature = "holiday",

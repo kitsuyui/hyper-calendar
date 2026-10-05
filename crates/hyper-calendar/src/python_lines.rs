@@ -10,10 +10,16 @@
 //! * `calendar.isleap`, `leapdays`, `weekday`, `monthrange` and
 //!   `monthcalendar`: [`isleap`], [`leapdays`], [`calendar_weekday`],
 //!   [`monthrange_line`], [`monthcalendar_lines`].
+//! * `time.asctime` as text, in a build with the `format` feature:
+//!   `asctime_line`.
 //! * The week of the year under a week rule — the first day of the week and
 //!   the fewest days a first week holds, which is ISO 8601's Monday and 4,
 //!   `%U`'s Sunday and 7, `%W`'s Monday and 7, and every locale's pair:
-//!   [`week_of_year_line`].
+//!   [`week_of_year_line`], and the day a week date names under it:
+//!   [`fixed_from_week`].
+//! * What a wall-clock reading means in a zone, before a policy reduces it
+//!   to one instant: [`local_resolution_line`], and the policies
+//!   [`mktime`] reads, [`mktime_policies_lines`].
 //!
 //! The years are the Gregorian module's, [`gregorian::MIN_YEAR`] to
 //! [`gregorian::MAX_YEAR`]; a year outside them is [`Refusal::OutOfRange`],
@@ -40,6 +46,15 @@ pub const MONTHCALENDAR_COLUMNS: usize = 7;
 
 /// How many columns [`week_of_year_line`] writes.
 pub const WEEK_OF_YEAR_COLUMNS: usize = 4;
+
+/// How many columns `asctime_line` writes.
+pub const ASCTIME_COLUMNS: usize = 1;
+
+/// How many columns each line of [`mktime_policies_lines`] writes.
+pub const MKTIME_POLICY_COLUMNS: usize = 2;
+
+/// How many columns [`local_resolution_line`] writes.
+pub const LOCAL_RESOLUTION_COLUMNS: usize = 5;
 
 /// A year the Gregorian module converts, or [`Refusal::OutOfRange`].
 fn year_in_range(year: i64) -> Answer<i64> {
@@ -253,6 +268,69 @@ pub fn week_of_year_line(fixed: i64, first_weekday: u32, min_days: u32) -> Answe
     Ok(out)
 }
 
+/// The value of `hc_fixed_from_week`: the fixed day a week date names under
+/// a week rule, the inverse of [`week_of_year_line`] — the week-numbering
+/// year, the week of it from 1, the weekday as an ISO 8601 number (Monday 1
+/// to Sunday 7), and the rule's first weekday and minimal days as
+/// [`week_rule`] reads them. ISO 8601's week date is Monday and 4.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a rule [`week_rule`] does not read or a year
+/// whose weeks lie beyond the Gregorian years, and [`Refusal::InvalidDate`]
+/// for a weekday outside 1 to 7 or a week the year does not have: week 53
+/// of a year of 52 weeks names no day, as 31 February does not.
+pub fn fixed_from_week(
+    week_year: i64,
+    week: u32,
+    weekday: u32,
+    first_weekday: u32,
+    min_days: u32,
+) -> Answer<i64> {
+    let rule = week_rule(first_weekday, min_days)?;
+    if !(gregorian::MIN_YEAR + 1..=gregorian::MAX_YEAR - 1).contains(&week_year) {
+        return Err(Refusal::OutOfRange);
+    }
+    let weekday = u8::try_from(weekday)
+        .ok()
+        .and_then(Weekday::from_iso_number)
+        .ok_or(Refusal::InvalidDate)?;
+    let week = u8::try_from(week).map_err(|_| Refusal::InvalidDate)?;
+    if week == 0 || week > rule.weeks_in_year(week_year) {
+        return Err(Refusal::InvalidDate);
+    }
+    Ok(rule.to_fixed(week_year, week, weekday).0)
+}
+
+/// The line of `hc_asctime`: Python's `time.asctime` of a Gregorian
+/// reading, `Sun Jun 20 23:21:05 1993`, the day padded with a space, one
+/// cell. The weekday is the date's, as `datetime.ctime` computes it; the
+/// tuple's `tm_wday` that `time.asctime` reads is not an argument.
+///
+/// # Errors
+///
+/// [`Refusal::InvalidDate`] for a field out of range, as
+/// `datetime(*tuple[:6])` raises, a second of 60 included, and
+/// [`Refusal::OutOfRange`] for a year outside 1 to 9999, which `datetime`
+/// cannot hold.
+#[cfg(feature = "format")]
+pub fn asctime_line(fields: [i64; 6]) -> Answer<String> {
+    if !(1..=9_999).contains(&fields[0]) {
+        return Err(Refusal::OutOfRange);
+    }
+    let text = struct_time_of(fields)
+        .asctime()
+        .map_err(|error| match error {
+            crate::civil::AsctimeError::Value(error) => Refusal::from(error),
+            crate::civil::AsctimeError::Format(_) => Refusal::OutOfRange,
+        })?;
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.cell(&text);
+    line.end();
+    Ok(out)
+}
+
 /// The refusal a zone error is: a reading no instant names, or two name,
 /// is [`Refusal::InvalidDate`], as a date that does not exist is; a value
 /// the rules do not reach, [`Refusal::OutOfRange`].
@@ -266,26 +344,102 @@ fn zone_refusal(error: hc_tz::TzError) -> Refusal {
     }
 }
 
-/// The disambiguation policy a name selects: `earliest`, `latest`,
-/// `reject` or `push-forward`, in any case, as [`hc_tz::Disambiguation`]
-/// has them.
+/// The disambiguation policy a name selects, from [`hc_tz::Disambiguation::ALL`]:
+/// `earliest`, `latest`, `reject` or `push-forward`, in any case.
 ///
 /// # Errors
 ///
 /// [`Refusal::Unknown`] for another name.
 #[cfg(all(feature = "tz", feature = "std"))]
 pub fn disambiguation(name: &str) -> Answer<hc_tz::Disambiguation> {
-    use hc_tz::Disambiguation;
-    [
-        ("earliest", Disambiguation::Earliest),
-        ("latest", Disambiguation::Latest),
-        ("reject", Disambiguation::Reject),
-        ("push-forward", Disambiguation::PushForward),
-    ]
-    .into_iter()
-    .find(|(id, _)| hc_core::catalogue::matches(name, id))
-    .map(|(_, policy)| policy)
-    .ok_or(Refusal::Unknown)
+    hc_tz::Disambiguation::by_id(name).ok_or(Refusal::Unknown)
+}
+
+/// The lines of `hc_mktime_policies`: the policies `hc_mktime` reads a
+/// word for, one a line in the order of [`hc_tz::Disambiguation::ALL`] — the
+/// identifier, and what the policy makes of a reading two instants name and
+/// of one no instant names.
+#[cfg(all(feature = "tz", feature = "std"))]
+pub fn mktime_policies_lines() -> String {
+    let mut out = String::new();
+    for policy in hc_tz::Disambiguation::ALL {
+        let mut line = Line::new(&mut out);
+        line.cell(policy.id()).cell(policy.description());
+        line.end();
+    }
+    out
+}
+
+/// The line of `hc_local_resolution`: what a wall-clock reading given as a
+/// year, a month and a day, an hour, a minute and a second means in a zone
+/// before any policy reduces it to one instant. The cells:
+///
+/// 1. `unique` where the zone's clock showed the reading once, `ambiguous`
+///    where the clocks went back and showed it twice, `nonexistent` where
+///    they went forward past it;
+/// 2. the first instant, as a POSIX second: the reading itself, the first of
+///    the two occurrences, or, for a skipped reading, the instant it would
+///    be under the offset in force after the gap, before the gap opened;
+/// 3. the offset of the first instant, in seconds east of UTC, which is the
+///    offset the reading is subtracted by;
+/// 4. the second instant: the reading again where it is unique, the second
+///    occurrence, or, for a skipped reading, the instant it would be under
+///    the offset in force before the gap, after the gap closed;
+/// 5. the offset of the second instant.
+///
+/// The `earliest`, `latest`, `reject` and `push-forward` policies of
+/// [`mktime`] choose between cells 2 and 4 or refuse. The reading's fields
+/// are checked as [`mktime`]'s are.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a zone neither loaded nor built in,
+/// [`Refusal::InvalidDate`] for a field out of range, and
+/// [`Refusal::OutOfRange`] for a reading the zone's rules do not reach.
+#[cfg(all(feature = "tz", feature = "std"))]
+pub fn local_resolution_line(fields: [i64; 6], zone: &str) -> Answer<String> {
+    use hc_tz::LocalResolution;
+    crate::zone_lines::with_zone(zone, |rules, _| {
+        let reading = struct_time_of(fields)
+            .to_date_time()
+            .map_err(Refusal::from)?;
+        crate::zone_lines::day_in_zone_range(reading.date.fixed().0)?;
+        let (kind, first, first_offset, second, second_offset) =
+            match rules.resolve_local(reading.to_civil()) {
+                LocalResolution::Unambiguous(instant) => {
+                    let offset = rules.offset_at(instant);
+                    ("unique", instant, offset, instant, offset)
+                }
+                LocalResolution::Ambiguous {
+                    earlier,
+                    later,
+                    earlier_offset,
+                    later_offset,
+                } => ("ambiguous", earlier, earlier_offset, later, later_offset),
+                LocalResolution::Nonexistent {
+                    before_gap,
+                    after_gap,
+                    offset_before,
+                    offset_after,
+                    ..
+                } => (
+                    "nonexistent",
+                    before_gap,
+                    offset_after,
+                    after_gap,
+                    offset_before,
+                ),
+            };
+        let mut out = String::new();
+        let mut line = Line::new(&mut out);
+        line.cell(kind)
+            .value(first.seconds())
+            .value(first_offset.seconds())
+            .value(second.seconds())
+            .value(second_offset.seconds());
+        line.end();
+        Ok(out)
+    })?
 }
 
 /// The line of `hc_localtime`: Python's `time.localtime(seconds)` in a
@@ -463,5 +617,193 @@ mod tests {
             Err(Refusal::Unknown)
         );
         assert_eq!(localtime_line(0, "Mars/Olympus"), Err(Refusal::Unknown));
+    }
+
+    /// `datetime(2026, 6, 30, 23, 59, 60)` raises in CPython, and `time.mktime`
+    /// here checks the reading as it does: a second 60 is refused on every
+    /// day, in every zone, whether or not the day ended in a leap second.
+    #[cfg(all(feature = "tz", feature = "std"))]
+    #[test]
+    fn mktime_refuses_a_second_60_on_every_day_in_every_zone() {
+        for (fields, zone) in [
+            ([2026, 6, 30, 23, 59, 60], "UTC"),
+            ([2016, 12, 31, 23, 59, 60], "UTC"),
+            ([2026, 1, 1, 23, 59, 60], "America/New_York"),
+            ([2026, 9, 21, 12, 0, 60], "Asia/Tokyo"),
+            ([2017, 1, 1, 8, 59, 60], "Asia/Tokyo"),
+        ] {
+            for policy in ["earliest", "reject"] {
+                assert_eq!(
+                    mktime(fields, zone, policy),
+                    Err(Refusal::InvalidDate),
+                    "{fields:?} {zone}"
+                );
+            }
+            assert_eq!(
+                local_resolution_line(fields, zone),
+                Err(Refusal::InvalidDate)
+            );
+        }
+        assert_eq!(
+            mktime([2026, 6, 30, 23, 59, 59], "UTC", "reject").unwrap(),
+            1_782_863_999
+        );
+    }
+
+    /// CPython 3.9.6's `zoneinfo`: Berlin read at 02:30 on 2026-10-25 is
+    /// 1 792 888 200 at +2 h with `fold=0` and 1 792 891 800 at +1 h with
+    /// `fold=1`; at 02:30 on 2026-03-29 `fold=0` is 1 774 747 800 at +1 h and
+    /// `fold=1` 1 774 744 200 at +2 h, the skipped reading under each side's
+    /// offset.
+    #[cfg(all(feature = "tz", feature = "std"))]
+    #[test]
+    fn a_local_reading_resolves_to_one_two_or_no_instants() {
+        assert_eq!(
+            local_resolution_line([2026, 7, 1, 12, 0, 0], "Europe/Berlin").unwrap(),
+            "unique\t1782900000\t7200\t1782900000\t7200\n"
+        );
+        assert_eq!(
+            local_resolution_line([2026, 10, 25, 2, 30, 0], "Europe/Berlin").unwrap(),
+            "ambiguous\t1792888200\t7200\t1792891800\t3600\n"
+        );
+        assert_eq!(
+            local_resolution_line([2026, 3, 29, 2, 30, 0], "Europe/Berlin").unwrap(),
+            "nonexistent\t1774744200\t7200\t1774747800\t3600\n"
+        );
+        // The policies of `mktime` choose between the two instants.
+        for (fields, policy, cell) in [
+            ([2026, 10, 25, 2, 30, 0], "earliest", 1),
+            ([2026, 10, 25, 2, 30, 0], "latest", 3),
+            ([2026, 10, 25, 2, 30, 0], "push-forward", 1),
+            ([2026, 3, 29, 2, 30, 0], "earliest", 1),
+            ([2026, 3, 29, 2, 30, 0], "latest", 3),
+            ([2026, 3, 29, 2, 30, 0], "push-forward", 3),
+        ] {
+            let line = local_resolution_line(fields, "Europe/Berlin").unwrap();
+            let cells: Vec<&str> = line.trim_end().split('\t').collect();
+            assert_eq!(cells.len(), LOCAL_RESOLUTION_COLUMNS);
+            assert_eq!(
+                mktime(fields, "Europe/Berlin", policy).unwrap().to_string(),
+                cells[cell],
+                "{fields:?} {policy}"
+            );
+        }
+        assert_eq!(
+            local_resolution_line([2026, 2, 30, 0, 0, 0], "Europe/Berlin"),
+            Err(Refusal::InvalidDate)
+        );
+        assert_eq!(
+            local_resolution_line([2026, 1, 1, 0, 0, 0], "Mars/Olympus"),
+            Err(Refusal::Unknown)
+        );
+    }
+
+    /// The four policies, each with a sentence, in the table's order.
+    #[cfg(all(feature = "tz", feature = "std"))]
+    #[test]
+    fn the_mktime_policies_are_the_tables() {
+        let lines = mktime_policies_lines();
+        let ids: Vec<&str> = lines
+            .lines()
+            .map(|line| line.split('\t').next().unwrap())
+            .collect();
+        assert_eq!(ids, ["earliest", "latest", "reject", "push-forward"]);
+        for line in lines.lines() {
+            assert_eq!(line.split('\t').count(), MKTIME_POLICY_COLUMNS);
+        }
+        for id in ids {
+            assert!(disambiguation(id).is_ok());
+        }
+    }
+
+    /// `datetime.date.fromisocalendar` of CPython 3.9.6: week 53 of 2020, day
+    /// 5, is 2021-01-01 and week 1 of 2026, day 1, is 2025-12-29. The inverse
+    /// of `week_of_year_line` on every day of three years, under four rules.
+    #[test]
+    fn a_week_date_names_the_day_week_of_year_gave_it() {
+        assert_eq!(
+            fixed_from_week(2020, 53, 5, 1, 4).unwrap(),
+            fixed(2021, 1, 1)
+        );
+        assert_eq!(
+            fixed_from_week(2026, 1, 1, 1, 4).unwrap(),
+            fixed(2025, 12, 29)
+        );
+        for (first, min) in [(1, 4), (7, 1), (7, 7), (1, 7)] {
+            for day in fixed(2019, 12, 20)..=fixed(2022, 1, 10) {
+                let line = week_of_year_line(day, first, min).unwrap();
+                let cells: Vec<i64> = line
+                    .trim_end()
+                    .split('\t')
+                    .map(|cell| cell.parse().unwrap())
+                    .collect();
+                let weekday = (day - 1).rem_euclid(7) + 1;
+                assert_eq!(
+                    fixed_from_week(
+                        cells[0],
+                        u32::try_from(cells[1]).unwrap(),
+                        u32::try_from(weekday).unwrap(),
+                        first,
+                        min
+                    ),
+                    Ok(day),
+                    "{day} under {first} and {min}"
+                );
+            }
+        }
+        // A week or a weekday the year does not have, and a rule that is none.
+        assert_eq!(
+            fixed_from_week(2025, 53, 1, 1, 4),
+            Err(Refusal::InvalidDate)
+        );
+        assert_eq!(fixed_from_week(2026, 0, 1, 1, 4), Err(Refusal::InvalidDate));
+        assert_eq!(fixed_from_week(2026, 1, 0, 1, 4), Err(Refusal::InvalidDate));
+        assert_eq!(fixed_from_week(2026, 1, 8, 1, 4), Err(Refusal::InvalidDate));
+        assert_eq!(fixed_from_week(2026, 1, 1, 0, 4), Err(Refusal::OutOfRange));
+        assert_eq!(fixed_from_week(2026, 1, 1, 1, 8), Err(Refusal::OutOfRange));
+        assert_eq!(
+            fixed_from_week(gregorian::MAX_YEAR, 1, 1, 1, 4),
+            Err(Refusal::OutOfRange)
+        );
+    }
+
+    /// CPython 3.9.6: `datetime(1993, 6, 20, 23, 21, 5).ctime()` is `Sun Jun 20
+    /// 23:21:05 1993`; the weekday is the date's, where `time.asctime` reads
+    /// the tuple's.
+    #[cfg(feature = "format")]
+    #[test]
+    fn asctime_is_ctime_of_the_reading() {
+        assert_eq!(
+            asctime_line([1993, 6, 20, 23, 21, 5]).unwrap(),
+            "Sun Jun 20 23:21:05 1993\n"
+        );
+        assert_eq!(
+            asctime_line([2026, 9, 21, 1, 2, 3]).unwrap(),
+            "Mon Sep 21 01:02:03 2026\n"
+        );
+        assert_eq!(
+            asctime_line([2026, 2, 30, 1, 2, 3]),
+            Err(Refusal::InvalidDate)
+        );
+        assert_eq!(
+            asctime_line([2026, 9, 21, 24, 0, 0]),
+            Err(Refusal::InvalidDate)
+        );
+        // A second of 60 is no reading, on a day that ended in a leap second or not.
+        for fields in [[2016, 12, 31, 23, 59, 60], [2026, 6, 30, 23, 59, 60]] {
+            assert_eq!(
+                asctime_line(fields),
+                Err(Refusal::InvalidDate),
+                "{fields:?}"
+            );
+        }
+        // A year Python's `datetime` cannot hold, outside 1 to 9999.
+        for year in [0, -5, 12_345, 10_000_000] {
+            assert_eq!(
+                asctime_line([year, 9, 21, 1, 2, 3]),
+                Err(Refusal::OutOfRange),
+                "{year}"
+            );
+        }
     }
 }

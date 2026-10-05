@@ -1240,6 +1240,9 @@ export const COLUMNS: {
   readonly monthrange: ReadonlyArray<string>;
   readonly monthcalendar: ReadonlyArray<string>;
   readonly weekOfYear: ReadonlyArray<string>;
+  readonly asctime: ReadonlyArray<string>;
+  readonly localResolution: ReadonlyArray<string>;
+  readonly mktimePolicy: ReadonlyArray<string>;
   readonly solarNewYear: ReadonlyArray<string>;
   readonly pentadsInYear: ReadonlyArray<string>;
   readonly moonCrossing: ReadonlyArray<string>;
@@ -3821,6 +3824,33 @@ export interface WeekOfYear {
 /** How `mktime` reads a wall-clock reading two instants name, or none: Python reads `tm_isdst` instead. */
 export type DisambiguationPolicy = "earliest" | "latest" | "reject" | "push-forward";
 
+/** One line of `hc_mktime_policies`. */
+export interface MktimePolicy {
+  id: DisambiguationPolicy;
+  /** What the policy makes of a repeated reading and of a skipped one, in words. */
+  description: string;
+}
+
+/** What a wall-clock reading is in a zone: once, twice or never. */
+export type LocalResolutionKind = "unique" | "ambiguous" | "nonexistent";
+
+/** The one line of `hc_local_resolution`. */
+export interface LocalResolution {
+  kind: LocalResolutionKind;
+  /**
+   * The first instant, as a POSIX second: the reading itself, the first of two
+   * occurrences, or for a skipped reading the instant it would be under the
+   * offset in force after the gap, before the gap opened.
+   */
+  firstUnixSeconds: number;
+  /** The offset of the first instant, in seconds east of UTC. */
+  firstOffset: number;
+  /** The second instant: the reading again where it is unique, the second occurrence, or for a skipped reading the instant under the offset before the gap. */
+  secondUnixSeconds: number;
+  /** The offset of the second instant, in seconds east of UTC. */
+  secondOffset: number;
+}
+
 /** The one line of `hc_list_forms`. */
 export interface ListForms {
   /** The pattern for exactly two items: `{0} and {1}`. */
@@ -4845,6 +4875,10 @@ export class HyperCalendar {
   monthcalendar(year: number | bigint, month: number, firstWeekday?: number): number[][];
   /** `hc_week_of_year`: the week of the year under a week rule, ISO 8601's Monday and 4 by default. */
   weekOfYear(fixed: number | bigint, firstWeekday?: number, minDays?: number): WeekOfYear;
+  /** `hc_fixed_from_week`: the day a week date names under a week rule; a week or weekday the year lacks is `invalid-date`. */
+  fixedFromWeek(weekYear: number | bigint, week: number, weekday: number, firstWeekday?: number, minDays?: number): number;
+  /** `hc_asctime`: Python's `time.asctime` of a reading, the weekday the date's; a second of 60 is `invalid-date`. */
+  asctime(year: number | bigint, month: number | bigint, day: number | bigint, hour?: number | bigint, minute?: number | bigint, second?: number | bigint): string;
   /** `hc_format_iso_date`. */
   formatIsoDate(fixed: number | bigint): string;
   /** `hc_parse_iso_date`; text that is not a date is `invalid-date`. */
@@ -5379,6 +5413,10 @@ export class HyperCalendar {
   localtime(unixSeconds: number | bigint, zone: string): StructTime;
   /** `hc_mktime`: Python's `time.mktime` in a zone, with a policy where Python reads `tm_isdst`. */
   mktime(year: number | bigint, month: number | bigint, day: number | bigint, hour: number | bigint, minute: number | bigint, second: number | bigint, zone: string, policy?: DisambiguationPolicy): number;
+  /** `hc_local_resolution`: what a wall-clock reading is in a zone, with both instants and their offsets, before a policy chooses. */
+  localResolution(year: number | bigint, month: number | bigint, day: number | bigint, hour: number | bigint, minute: number | bigint, second: number | bigint, zone: string): LocalResolution;
+  /** `hc_mktime_policies`: the policies `mktime` reads, each its own convention. */
+  mktimePolicies(): MktimePolicy[];
 
   /** `hc_sky_at`; an instant outside −1000 through 3000 is `out-of-range`. */
   skyAt(unixSeconds: number | bigint): Sky;

@@ -337,9 +337,29 @@ impl IsoDate {
     /// # Errors
     ///
     /// [`crate::FormatError::Unrepresentable`] when a plain four-digit year
-    /// is asked to hold a year outside `0000..=9999`, and
+    /// is asked to hold a year outside `0000..=9999`, when a basic-format
+    /// date has an expanded year whose digits no separator delimits and the
+    /// reader would not take back as written (see below), and
     /// [`crate::FormatError::Sink`] when the sink refuses.
+    ///
+    /// In the basic format an expanded year has no separator after it, so
+    /// the readers split the digits by the count the workspace writes
+    /// (`hc_calendar::gregorian::expanded_year_digits`): a calendar date takes
+    /// six or seven digits for its year and an ordinal date six. Another count
+    /// there is refused, not written as a date that reads as another year.
     pub fn write<W: fmt::Write>(self, out: &mut W) -> crate::FormatResult<()> {
+        if let (Style::Basic, YearStyle::Expanded(digits)) = (self.style, self.year_style) {
+            let reads_back = match self.parts {
+                DateParts::Calendar { day: Some(_), .. } => matches!(digits, 6 | 7),
+                DateParts::Ordinal { .. } => digits == 6,
+                DateParts::Calendar { day: None, .. } | DateParts::Week { .. } => true,
+            };
+            if !reads_back {
+                return Err(crate::FormatError::Unrepresentable(
+                    "an expanded year in the basic format whose digits nothing delimits",
+                ));
+            }
+        }
         write_year(out, self.parts.year(), self.year_style)?;
         let separator = self.style.has_separators();
         match self.parts {
@@ -481,7 +501,10 @@ impl IsoTime {
         Duration::from_attos(attos as i128)
     }
 
-    /// The civil reading this names.
+    /// The civil reading this names. A second 60 is held at the hour and
+    /// minute written, `15:59:60` as well as `23:59:60`; whether it is a
+    /// leap second UTC inserted is the zone's and the day's question
+    /// ([`IsoDateTime::to_offset_date_time`]), not the clock's.
     ///
     /// # Errors
     ///
@@ -495,7 +518,11 @@ impl IsoTime {
         let seconds = span.whole_seconds();
         let subsec = span.subsec_attos();
         if self.is_leap_second() {
-            return Ok(TimeOfDay::Clock(CivilTime::new(23, 59, 60, subsec)?));
+            return Ok(TimeOfDay::Clock(CivilTime::leap_second(
+                self.hour,
+                self.minute.unwrap_or(0),
+                subsec,
+            )?));
         }
         let hour = (seconds / 3_600) as u8;
         let minute = ((seconds % 3_600) / 60) as u8;
@@ -688,21 +715,35 @@ impl IsoDateTime {
     /// [`ValueError::ReducedAccuracy`] when no day is named,
     /// [`ValueError::MissingTime`] when no time is, and
     /// [`ValueError::Time`] when the second is 60 and the reading, in
-    /// its zone, is not a leap second UTC inserted: only at 23:59:60 UTC, on a
-    /// day `hc_core::leap` says ended in one.
+    /// its zone, is not a leap second UTC inserted: 23:59:60 UTC, read at
+    /// the zone's offset, on a day `hc_core::leap` says ended in one
+    /// (`local_reading`).
     pub fn to_offset_date_time(self) -> ValueResult<OffsetDateTime> {
         let day = self.date.to_fixed()?;
         let time = self.time.ok_or(ValueError::MissingTime)?;
+        if time.is_leap_second() {
+            let local = local_reading(
+                day,
+                time.hour,
+                time.minute.unwrap_or(0),
+                60,
+                time.since_midnight().subsec_attos(),
+                self.zone,
+            )?;
+            return Ok(OffsetDateTime {
+                local,
+                zone: self.zone,
+                written_as_end_of_day: false,
+            });
+        }
         let (clock, next_day) = time.to_time_of_day()?.normalise();
         let day = if next_day {
             day.checked_add_days(1)?
         } else {
             day
         };
-        let local = CivilDateTime::new(day, clock);
-        check_leap_second(local, self.zone)?;
         Ok(OffsetDateTime {
-            local,
+            local: CivilDateTime::new(day, clock),
             zone: self.zone,
             written_as_end_of_day: next_day,
         })
@@ -746,38 +787,89 @@ pub struct OffsetDateTime {
     pub written_as_end_of_day: bool,
 }
 
-/// Whether a second 60 in a reading is one UTC had.
+/// The seconds in a day on the nominal timeline.
+const SECONDS_PER_DAY: i64 = 86_400;
+
+/// A second 60 as a clock reads it in a zone, where the clock's reading is
+/// UTC's 23:59:60: the leap second itself, and how many days the UTC day it
+/// ends lies from the local day (0, or −1 east of UTC where the local
+/// reading falls in the morning after).
 ///
-/// A positive leap second is only ever inserted at the end of a UTC day, at
-/// 23:59:60, so a reading in a zone is such a second only when the zone is UTC
-/// and the day ends in an inserted second (`hc_core::leap`). A reading with
-/// no zone names no instant and is let through. A reading that is no leap
-/// second is let through.
+/// A positive leap second is inserted at the end of a UTC day, 23:59:60,
+/// and a zone's clock reads it at that time less its offset: RFC 3339 §5.7,
+/// "in time zones other than 'Z', the leap second point is shifted by the
+/// zone offset (so it happens at the same instant around the globe)", and
+/// §5.8's `1990-12-31T15:59:60-08:00`, "the same leap second in Pacific
+/// Standard Time". A reading with no zone names no instant, and its second
+/// 60 is read at 23:59 alone, UTC's own clock.
 ///
 /// # Errors
 ///
-/// [`hc_core::TimeError::OutOfRange`] when the second is 60 and the day,
-/// or the zone, is not one that has it, and
-/// [`hc_core::TimeError::AfterModelEnd`] when the day ends after the
-/// leap-second table's validity, so that no one has announced whether it
-/// ends in one.
-pub(crate) fn check_leap_second(local: CivilDateTime, zone: ZoneInfo) -> ValueResult<()> {
-    if !local.time.is_leap_second() {
-        return Ok(());
-    }
+/// [`ValueError::Calendar`] when the hour, the minute or the fraction is
+/// no time of day, and [`hc_core::TimeError::OutOfRange`] when the reading,
+/// shifted to UTC, is not 23:59:60.
+pub(crate) fn leap_second_clock(
+    hour: u8,
+    minute: u8,
+    subsec_attos: u64,
+    zone: ZoneInfo,
+) -> ValueResult<(CivilTime, i64)> {
+    let clock = CivilTime::leap_second(hour, minute, subsec_attos)?;
     let Some(offset) = zone.offset() else {
-        return Ok(());
+        if hour == 23 && minute == 59 {
+            return Ok((clock, 0));
+        }
+        return Err(hc_core::TimeError::OutOfRange.into());
     };
-    if !offset.is_utc() {
+    let local_seconds = i64::from(hour) * 3_600 + i64::from(minute) * 60 + 60;
+    let utc_seconds = local_seconds - i64::from(offset.seconds());
+    if utc_seconds.rem_euclid(SECONDS_PER_DAY) != 0 {
         return Err(hc_core::TimeError::OutOfRange.into());
     }
-    if hc_core::leap::end_of_day_step(local.day.to_unix_days())? != 1 {
-        return Err(hc_core::TimeError::OutOfRange.into());
-    }
-    Ok(())
+    Ok((clock, utc_seconds.div_euclid(SECONDS_PER_DAY) - 1))
 }
 
-/// The refusal of a parse whose reading [`check_leap_second`] turned down, at
+/// The local reading a day and a clock name in a zone, a second 60 among
+/// them only where it is a leap second UTC inserted: the reading shifted
+/// to UTC by the zone's offset is 23:59:60 ([`leap_second_clock`]) of a day
+/// the leap-second table says ended in one (`hc_core::leap`). With no zone
+/// the second 60 is read at 23:59, and no day is checked, since the reading
+/// names no instant.
+///
+/// # Errors
+///
+/// [`ValueError::Calendar`] when the fields are no time of day,
+/// [`hc_core::TimeError::OutOfRange`] when the second is 60 and the reading
+/// is no leap second UTC inserted, [`hc_core::TimeError::AfterModelEnd`]
+/// when the UTC day it would end is after the leap-second table's validity,
+/// so that no one has announced whether it ends in one, and
+/// [`hc_core::TimeError::Overflow`] for a day at the end of the range.
+pub(crate) fn local_reading(
+    day: Rd,
+    hour: u8,
+    minute: u8,
+    second: u8,
+    subsec_attos: u64,
+    zone: ZoneInfo,
+) -> ValueResult<CivilDateTime> {
+    if second != 60 {
+        let time = CivilTime::new(hour, minute, second, subsec_attos)?;
+        return Ok(CivilDateTime::new(day, time));
+    }
+    let (time, days_to_utc_day) = leap_second_clock(hour, minute, subsec_attos, zone)?;
+    if zone.offset().is_some() {
+        let utc_day = day
+            .get()
+            .checked_add(days_to_utc_day)
+            .ok_or(hc_core::TimeError::Overflow)?;
+        if hc_core::leap::end_of_day_step(Rd(utc_day).to_unix_days())? != 1 {
+            return Err(hc_core::TimeError::OutOfRange.into());
+        }
+    }
+    Ok(CivilDateTime::new(day, time))
+}
+
+/// The refusal of a parse whose reading [`local_reading`] turned down, at
 /// the byte `at`: the second is inconsistent with the day, or cannot be
 /// told because the table ends.
 pub(crate) fn leap_second_error(error: ValueError, at: usize) -> ParseError {

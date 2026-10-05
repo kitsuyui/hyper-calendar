@@ -213,10 +213,11 @@ every disagreement was either fixed or is listed in the parity document.
   `crates/hyper-calendar/tests/python.rs` and `hc-core`'s `duration`. The
   boundary's `hc_gmtime`, `hc_timegm`, `hc_isleap`, `hc_leapdays`,
   `hc_calendar_weekday`, `hc_monthrange` and `hc_monthcalendar` (`civil`),
-  and `hc_localtime` and `hc_mktime` (`tz`), are `python_lines.rs`. The
-  boundary's `hc_gmtime`, `hc_timegm`, `hc_isleap`, `hc_leapdays`,
-  `hc_calendar_weekday`, `hc_monthrange` and `hc_monthcalendar` (`civil`),
-  and `hc_localtime` and `hc_mktime` (`tz`), are `python_lines.rs`.
+  and `hc_localtime` and `hc_mktime` (`tz`), are `python_lines.rs`, as are
+  `hc_asctime` (`time.asctime` of a reading, the weekday the date's as
+  `datetime.ctime` has it), `hc_fixed_from_week` (`date.fromisocalendar`
+  under any week rule), and `hc_local_resolution` and `hc_mktime_policies`
+  (`tz`, what `zoneinfo`'s `fold` chooses between).
 - `NaturalPhrases::for_locale` and `NaturalWords` choose the catalogue for a
   locale (`crates/hc-humanize/src/natural.rs`; test
   `a_locale_is_served_by_the_first_catalogue_that_translates_the_words`).

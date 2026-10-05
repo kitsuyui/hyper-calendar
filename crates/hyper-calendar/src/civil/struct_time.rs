@@ -145,11 +145,19 @@ impl StructTime {
 
     /// `datetime(*tt[:6])`: the reading the first six fields name.
     ///
+    /// A `tm_sec` of 60 is refused on every day and in every zone, as
+    /// `datetime(2016, 12, 31, 23, 59, 60)` raises in CPython: a wall-clock
+    /// reading names an instant by its zone's rules, which carry no leap
+    /// seconds, and the second after 23:59:59 is the next day's 00:00:00.
+    ///
     /// # Errors
     ///
     /// [`CalendarError`] when a field is out of range, as Python's
     /// `ValueError`.
     pub fn to_date_time(&self) -> CalendarResult<DateTime> {
+        if self.tm_sec == 60 {
+            return Err(CalendarError::DayOutOfRange);
+        }
         let field = |value: i64| u8::try_from(value).map_err(|_| CalendarError::MonthOutOfRange);
         let date = Date::new(self.tm_year, field(self.tm_mon)?, field(self.tm_mday)?)?;
         let time = Time::hms(

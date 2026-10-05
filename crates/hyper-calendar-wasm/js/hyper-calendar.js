@@ -64,6 +64,8 @@ export const METHODS = Object.freeze([
   { method: "monthrange", export: "hc_monthrange", feature: "civil" },
   { method: "monthcalendar", export: "hc_monthcalendar", feature: "civil" },
   { method: "weekOfYear", export: "hc_week_of_year", feature: "civil" },
+  { method: "fixedFromWeek", export: "hc_fixed_from_week", feature: "civil" },
+  { method: "asctime", export: "hc_asctime", feature: "civil" },
   { method: "formatIsoDate", export: "hc_format_iso_date", feature: "civil" },
   { method: "parseIsoDate", export: "hc_parse_iso_date", feature: "civil" },
   { method: "tai64Encode", export: "hc_tai64_encode", feature: "timestamps" },
@@ -255,6 +257,8 @@ export const METHODS = Object.freeze([
   { method: "zoneOffset", export: "hc_zone_offset", feature: "tz" },
   { method: "localtime", export: "hc_localtime", feature: "tz" },
   { method: "mktime", export: "hc_mktime", feature: "tz" },
+  { method: "localResolution", export: "hc_local_resolution", feature: "tz" },
+  { method: "mktimePolicies", export: "hc_mktime_policies", feature: "tz" },
   { method: "skyAt", export: "hc_sky_at", feature: "sky" },
   { method: "solarTermsBetween", export: "hc_solar_terms_between", feature: "sky" },
   { method: "moonPhasesBetween", export: "hc_moon_phases_between", feature: "sky" },
@@ -830,6 +834,9 @@ export const COLUMNS = Object.freeze({
   monthrange: Object.freeze(["first weekday", "days"]),
   monthcalendar: Object.freeze(["day 1", "day 2", "day 3", "day 4", "day 5", "day 6", "day 7"]),
   weekOfYear: Object.freeze(["week year", "week", "weeks in year", "week of month"]),
+  asctime: Object.freeze(["text"]),
+  localResolution: Object.freeze(["kind", "first unix seconds", "first offset", "second unix seconds", "second offset"]),
+  mktimePolicy: Object.freeze(["id", "description"]),
   solarNewYear: Object.freeze([
     "calendar", "year", "new year", "seconds", "chulasakarat year", "akyo", "akya", "last akyat", "atat",
   ]),
@@ -6569,6 +6576,56 @@ export class HyperCalendar {
   }
 
   /**
+   * What a wall-clock reading means in a zone before a policy reduces it to
+   * one instant: `unique`, `ambiguous` (the clocks went back and showed it
+   * twice, the earlier first) or `nonexistent` (they went forward past it:
+   * the reading under the offset in force after the gap, an instant before
+   * the gap, then under the offset before it, an instant after). The fields
+   * are checked as {@link mktime} checks them.
+   *
+   * @param {number | bigint} year
+   * @param {number | bigint} month
+   * @param {number | bigint} day
+   * @param {number | bigint} hour
+   * @param {number | bigint} minute
+   * @param {number | bigint} second
+   * @param {string} zone
+   * @returns {import("./hyper-calendar.d.ts").LocalResolution}
+   */
+  localResolution(year, month, day, hour, minute, second, zone) {
+    const text = this.#call("hc_local_resolution", [
+      ["i64", "year", year], ["i64", "month", month], ["i64", "day", day],
+      ["i64", "hour", hour], ["i64", "minute", minute], ["i64", "second", second],
+      ["str", "zone", zone],
+    ]);
+    const [kind, firstUnixSeconds, firstOffset, secondUnixSeconds, secondOffset] =
+      this.#oneLine("hc_local_resolution", text, COLUMNS.localResolution);
+    return {
+      kind: /** @type {import("./hyper-calendar.d.ts").LocalResolutionKind} */ (kind),
+      firstUnixSeconds: integer(firstUnixSeconds, "first unix seconds"),
+      firstOffset: integer(firstOffset, "first offset"),
+      secondUnixSeconds: integer(secondUnixSeconds, "second unix seconds"),
+      secondOffset: integer(secondOffset, "second offset"),
+    };
+  }
+
+  /**
+   * The policies {@link mktime} reads for a reading two instants name or
+   * none names, each its own convention: `earliest`, `latest`, `reject` and
+   * `push-forward`, with what each makes of a repeated and a skipped reading.
+   *
+   * @returns {import("./hyper-calendar.d.ts").MktimePolicy[]}
+   */
+  mktimePolicies() {
+    const fn = this.#export("hc_mktime_policies");
+    const text = this.#text("hc_mktime_policies", (buffer, capacity) => fn(buffer, capacity), true);
+    return rows(text, COLUMNS.mktimePolicy, "hc_mktime_policies").map(([id, description]) => ({
+      id: /** @type {import("./hyper-calendar.d.ts").DisambiguationPolicy} */ (id),
+      description,
+    }));
+  }
+
+  /**
    * Python's `calendar.isleap(year)`.
    *
    * @param {number | bigint} year
@@ -6661,6 +6718,58 @@ export class HyperCalendar {
       weeksInYear: integer(weeksInYear, "weeks in year"),
       weekOfMonth: integer(weekOfMonth, "week of month"),
     };
+  }
+
+  /**
+   * The fixed day a week date names under a week rule, the inverse of
+   * {@link weekOfYear}: the week-numbering year, the week of it from 1 and
+   * the ISO weekday, Monday 1 to Sunday 7, under a rule given as for
+   * {@link weekOfYear} (ISO 8601's week date is 1 and 4, the default). A
+   * week the year does not have, week 53 of a year of 52 weeks, or a
+   * weekday outside 1 to 7 is `invalid-date`; a rule outside 1 to 7 is
+   * `out-of-range`.
+   *
+   * @param {number | bigint} weekYear
+   * @param {number} week
+   * @param {number} weekday
+   * @param {number} [firstWeekday]
+   * @param {number} [minDays]
+   * @returns {number}
+   */
+  fixedFromWeek(weekYear, week, weekday, firstWeekday = 1, minDays = 4) {
+    const fn = this.#export("hc_fixed_from_week");
+    return toNumber(
+      fn(
+        toI64(weekYear, "weekYear"),
+        toU32(week, "week"),
+        toU32(weekday, "weekday"),
+        toU32(firstWeekday, "firstWeekday"),
+        toU32(minDays, "minDays"),
+      ),
+      "hc_fixed_from_week",
+    );
+  }
+
+  /**
+   * Python's `time.asctime` of a Gregorian reading, `Sun Jun 20 23:21:05
+   * 1993`: the weekday is the date's, as `datetime.ctime` computes it, and
+   * each field is checked as `datetime` checks it, a second of 60 included
+   * (`invalid-date`); a year outside 1 to 9999 is `out-of-range`.
+   *
+   * @param {number | bigint} year
+   * @param {number | bigint} month
+   * @param {number | bigint} day
+   * @param {number | bigint} [hour]
+   * @param {number | bigint} [minute]
+   * @param {number | bigint} [second]
+   * @returns {string}
+   */
+  asctime(year, month, day, hour = 0, minute = 0, second = 0) {
+    const text = this.#call("hc_asctime", [
+      ["i64", "year", year], ["i64", "month", month], ["i64", "day", day],
+      ["i64", "hour", hour], ["i64", "minute", minute], ["i64", "second", second],
+    ]);
+    return this.#oneLine("hc_asctime", text, COLUMNS.asctime)[0];
   }
 
   /**

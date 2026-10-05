@@ -165,7 +165,7 @@ places. The library's reading is in the last column.
 | Week and ordinal dates | ISO 8601 yes; RFC 3339 "not permitted" [wikipedia-iso-8601] | `ISO` and `FULL` yes; `RFC_3339` no |
 | Date and time separator | ISO 8601 `T`; RFC 3339 `T`, `t` or, by its note, a space | `ISO` `T` only; `RFC_3339` `T`, `t` or a space |
 | Date and time in one format | ISO 8601 the same format for both; RFC 3339 Appendix A "permits mixtures" | mixtures accepted under all three presets (see Accuracy) |
-| A leap second | RFC 3339: only at the end of a month in which a leap second occurs, shifted by the offset | a second 60 only at `23:59` and in UTC, on a day the leap-second table says ended in an inserted second; in a zone that is not UTC it is refused, and `1990-12-31T15:59:60-08:00` with it (see Accuracy) |
+| A leap second | RFC 3339: only at the end of a month in which a leap second occurs, shifted by the offset | a second 60 where the zone's clock reads UTC's 23:59:60, `15:59:60-08:00` as well as `23:59:60Z`, on a day the leap-second table says ended in an inserted second; at any other clock, in any other zone or on any other day it is refused |
 | The offset | RFC 3339: `+hh:mm`, an hour 00-23, no seconds | `RFC_3339` the same; the ISO presets read an hour above 23 and seconds |
 | A fraction | ISO 8601 no limit, comma or dot; RFC 3339 dot and `1*DIGIT`; W3C leaves the digits to the adopting standard | at most 18 digits, a comma only where the preset allows |
 | The year before 1900 | RFC 5322 "1900 or later"; ISO 8601 `0000`-`1582` by agreement | read with no flag for the agreement: RFC 5322 from 0001, ISO from 0000 |
@@ -202,7 +202,15 @@ nine hours ahead of UTC.
   [iana-leap-seconds-list]): 1990-12-31 is one of the 27 days that ended in
   an inserted second, and `2026-09-21T23:59:60Z`, `2016-06-30T23:59:60Z` and
   `2015-12-31T23:59:60Z` are refused, as is every second 60 after the table's
-  validity, 2027-06-28, which no one has announced.
+  validity, 2027-06-28, which no one has announced. RFC 3339 §5.7 shifts the
+  second by the zone's offset, so a second 60 is read where the zone's clock
+  shows UTC's 23:59:60: `1990-12-31T15:59:60-08:00`, §5.8's own example,
+  names the same instant as `1990-12-31T23:59:60Z`, and Japan's clock read
+  the end of 2016 as `2017-01-01T08:59:60+09:00`. Both are the leap second
+  of their UTC day and nothing else is: `1990-12-31T15:59:60+08:00`,
+  `1990-12-31T16:00:60-08:00` and `1991-01-01T15:59:60-08:00` are refused.
+  `CivilTime::leap_second` holds such a reading at its own hour and minute,
+  and the day the table is asked about is the UTC day it ends.
 - Durations: `P3Y6M4DT12H30M5S` has years and months and refuses to become a
   span; `PT1.5H` is 5,400 s, `P1W` 604,800 s and `PT0.5S` is
   500,000,000,000,000,000 attoseconds. `P0003-06-04T12:30:05` is the same
@@ -280,11 +288,22 @@ Not carried, with the reason each time:
   [wikipedia-iso-8601] gives as allowed: not yet done; the parser asks for
   four digits. The standard's own text, which would say whether the 2019
   edition keeps them, was not read.
-- An expanded year in the basic format: the sources leave its digit count
-  to agreement [wikipedia-iso-8601], so `+0020260921` is a six-digit year and
-  a day or an eight-digit year and an ordinal. The parser refuses a run of
-  ten digits or more and reads a shorter run as the whole year, so
-  `+20260921` is a year out of range.
+- An expanded year in the basic format, which has no separator to say where
+  the year ends: the sources leave its digit count to agreement
+  [wikipedia-iso-8601], so `+0020260921` could be a six-digit year and a
+  month and a day or an eight-digit year and an ordinal. The reader takes
+  the count the workspace writes, `hc_calendar::gregorian::expanded_year_digits`,
+  six below a million and seven below ten million: nine digits are a
+  six-digit year and a day of the year (`-000001001`, the first day of the
+  year -1), ten a six-digit year, a month and a day (`+0123450607`), eleven a
+  seven-digit year, a month and a day. A run of eight digits or fewer is the
+  year alone, a date of reduced accuracy, and one of twelve or more is
+  refused. A week date's `W` and an extended date's hyphen end the year
+  wherever they stand. The ordinal date of a year beyond six digits is the
+  one spelling this cannot give back, as it would read as another year's
+  month and day, and the writers refuse it (`FormatError::Unrepresentable`,
+  `HC_ERR_OUT_OF_RANGE` at the boundary). A basic date with any other count of
+  digits is refused by the writer in the same way.
 - An interval end that leaves out elements (`2007-12-14T13:30/15:30`,
   `2007-11-13/15`): not yet done. [wikipedia-iso-8601] gives examples for a
   start of full accuracy only; what the standard says of a reduced start
@@ -299,10 +318,6 @@ Not carried, with the reason each time:
   two examples of `P2M` above, and no rule for a month that is short.
 - More than 18 fractional digits: the library's resolution is an
   attosecond; RFC 3339's `1*DIGIT` and ISO 8601's "no limit" admit more.
-- A leap second read at a zone's wall clock, as RFC 3339 §5.8's
-  `1990-12-31T15:59:60-08:00`: not yet done, and refused. `hc_calendar::CivilTime` holds a
-  second 60 only at 23:59, so a reading the zone shifts to another hour has
-  no value to be.
 - Offsets with hours above 25: RFC 2822 gives the range as -9959 to +9959
   [rfc2822], and RFC 5322 constrains only the last two digits [rfc5322].
   Not yet done; `hc_tz::UtcOffset` stops at 25:59:59.
@@ -325,8 +340,9 @@ The library refuses these, and says what and where:
   the ISO presets; mixing separators inside the date, the time or the week
   date; `24:00` with a non-zero part; an hour above 24; a month 13, a 30th of
   February, a day 366 in a common year, a week 53 in a 52-week year, a
-  weekday 8; a leap second outside `23:59`, in a zone that is not UTC, on a
-  day the table says did not end in one or past the table; a second above 60;
+  weekday 8; a second 60 that is not UTC's 23:59:60 at the zone's offset, or
+  is one on a day the table says did not end in a leap second, or past the
+  table; a second above 60;
   an offset with minutes or seconds above 59 or beyond 25:59:59.
 - Duration components out of order, a second `T`, a fraction on a component
   that is not the last, a number of more than 18 digits, `P` alone, an
@@ -343,7 +359,8 @@ The library refuses these, and says what and where:
   answers `HC_ERR_OUT_OF_RANGE` for it in every syntax but `python`, whose
   `isoformat` writes `+05:30:15`.
 - In `rfc2822::parse`: an unknown month name, a day beyond the month, an
-  hour above 23, a minute above 59, a second 60 away from 23:59, a year of
+  hour above 23, a minute above 59, a second 60 that is not 23:59:60 UTC at
+  the zone's offset, a year of
   fewer than two or more than nine digits, an offset minute above 59, an
   unclosed comment and text after the zone.
 
@@ -371,24 +388,16 @@ the four-digit forms of RFC 3339 and RFC 5322 are limited to 0000 to 9999.
   and `rfc2822` pass in a debug build.
 - Published values. Wikipedia's `2009-W53-7` and `2010-01-03`, `2009-W01-1`
   and `2008-12-29`, and `1981-095` and `1981-04-05` read as one day each.
-  Four of RFC 3339 §5.8's five examples parse; the fifth is a departure below. The POSIX seconds of
+  All five of RFC 3339 §5.8's examples parse. The POSIX seconds of
   `1990-12-31T23:59:60Z` (662,688,000), `1996-12-19T16:39:57-08:00`
   (851,042,397), RFC 9110's `Sun, 06 Nov 1994 08:49:37 GMT` (784,111,777)
   and the example above (1,789,968,605 and 1,790,001,005) are the UTC
   timestamps Python gives for the same instants.
 
 **Departures from the text.** Each is the behaviour of the code against the
-text read. The leap second at a zone's wall clock, the first below, is not
-done; the tests that assert the behaviour the text asks for in the others
-are named under Code.
+text read; the tests that assert the behaviour the text asks for are named
+under Code.
 
-- **The leap second is in the wrong place for an offset.** RFC 3339 shifts
-  the leap second by the offset, so that `1990-12-31T15:59:60-08:00` is the
-  second of `1990-12-31T23:59:60Z`. The parser reads a second 60 only at
-  `23:59` and in UTC, and refuses §5.8's own `1990-12-31T15:59:60-08:00`:
-  `CivilTime` holds the second 60 only there. A second 60 at an offset on any
-  other reading, `1972-06-30T23:59:60+09:00`, which names 14:59:60 UTC and
-  was once read as an inserted second, is refused.
 - **The two formats mix across the date and the time.** The `ISO` preset
   reads `2026-09-21T143005` and `20260921T14:30:05+09:00`.
   [wikipedia-iso-8601] says both must use the same format; RFC 3339
@@ -418,12 +427,6 @@ are named under Code.
   60 away from `23:59` is refused, though the range of §3.3 is "00:00:00
   through 23:59:60". An offset of 2600 to 9959 is refused though the grammar
   has four digits and §3.3 constrains only the last two.
-- **Two spellings of a year outside 0000 to 9999.** `IsoDate::from_fixed`
-  writes six digits at least, `+012345-01-01` and `-000001-01-01`, as the
-  formatter of `hc-format` does; the facade's `Date` display, which
-  `hc_format_iso_date` uses, writes `{:+06}`, `+12345-01-01` and
-  `-00001-01-01`. ISO 8601 leaves the digit count to agreement; both
-  spellings are read back.
 - **`-00:00` and `Z` follow RFC 3339 (2002).** Under RFC 9557, `Z` means the
   unknown offset. Read as RFC 9557 reads them, `Zulu` and
   `UnknownLocalOffset` are one value. The library has no name for that
@@ -477,9 +480,10 @@ The tests that anchor it: in `iso8601.rs`,
 `a_month_accuracy_date_has_no_basic_spelling`,
 `iso_8601_forbids_the_negative_zero_offset`,
 `twenty_four_hundred_survives_a_round_trip`,
-`a_leap_second_anywhere_but_midnight_is_refused`,
+`a_leap_second_is_refused_where_the_zone_does_not_put_it`,
 `a_second_60_with_a_zone_is_read_only_on_a_day_that_ended_in_one` and
 `an_hours_only_offset_is_iso_but_not_rfc_3339`; in `rfc3339.rs`,
+`the_leap_second_is_read_at_the_zones_own_clock`,
 `plus_zero_and_minus_zero_name_the_same_instant_and_different_facts`,
 `the_1972_leap_second_parses_and_round_trips`,
 `a_second_60_is_read_only_on_a_day_that_ended_in_a_leap_second`,
@@ -495,7 +499,13 @@ The tests that anchor it: in `iso8601.rs`,
 `a_fraction_may_not_sit_on_a_component_that_is_not_the_last`; in
 `iso8601/interval.rs`, `all_four_interval_shapes_round_trip` and
 `zero_repetitions_are_not_the_same_as_unbounded`; and the sweeps of
-`crates/hc-format/tests/round_trip.rs`.
+`crates/hc-format/tests/round_trip.rs`, among them
+`a_date_written_in_either_style_reads_back_with_its_expanded_year` and
+`the_basic_format_reads_expanded_years_by_the_workspaces_digit_count`; at the
+boundary, `a_date_written_in_the_basic_style_reads_back`,
+`a_second_60_is_read_at_the_zones_own_clock` and
+`a_refused_second_60_has_one_status_in_both_parsers`
+(`datetime_lines.rs`).
 
 The WebAssembly and C exports `hc_parse_iso_date` and `hc_format_iso_date`
 (`crates/hyper-calendar-wasm/src/civil.rs`,

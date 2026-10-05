@@ -846,8 +846,8 @@ fn every_error_path_reports_the_offset_the_documentation_promises() {
         ("2026-09-21T14:30:61", ErrorKind::OutOfRange("second"), 17),
         (
             "2026-09-21T12:59:60",
-            ErrorKind::Invalid("a leap second outside 23:59"),
-            17,
+            ErrorKind::Invalid("a leap second that UTC did not insert"),
+            19,
         ),
         (
             "2026-09-21T24:00:01",
@@ -920,4 +920,145 @@ fn full_strictness_refuses_everything_it_documents_and_nothing_else() {
             "ISO should accept {text}"
         );
     }
+}
+
+/// A date spelled by a writer here, in either style, reads back as the same
+/// date: the expanded years included, which the basic format has no separator
+/// to delimit. The readers split the digits by the count the workspace writes
+/// (`expanded_year_digits`): the ordinal date of a year beyond six digits is
+/// the one spelling it cannot give back, and the writer refuses it.
+#[test]
+fn a_date_written_in_either_style_reads_back_with_its_expanded_year() {
+    let years = [
+        -9_999_999, -1_000_000, -999_999, -10_000, -1_001, -1, 0, 1, 2_026, 9_999, 10_000, 12_345,
+        999_999, 1_000_000, 9_999_999,
+    ];
+    for year in years {
+        let shapes = [
+            DateParts::Calendar {
+                year,
+                month: Some(6),
+                day: Some(7),
+            },
+            DateParts::Ordinal {
+                year,
+                day_of_year: 158,
+            },
+            DateParts::Week {
+                year,
+                week: 23,
+                weekday: Some(4),
+            },
+        ];
+        for parts in shapes {
+            for style in [Style::Extended, Style::Basic] {
+                let date = IsoDate {
+                    parts,
+                    style,
+                    year_style: YearStyle::for_year(year),
+                };
+                let mut text = String::new();
+                if date.write(&mut text).is_err() {
+                    // The ordinal date of a seven-digit year in the basic
+                    // format, and no other.
+                    assert!(
+                        matches!(parts, DateParts::Ordinal { .. })
+                            && style == Style::Basic
+                            && year.unsigned_abs() >= 1_000_000,
+                        "{date:?}"
+                    );
+                    continue;
+                }
+                let read = iso8601::parse_date(&text).unwrap_or_else(|e| panic!("{text}: {e:?}"));
+                assert_eq!((read.parts, read.style), (date.parts, date.style), "{text}");
+                assert_eq!(read.year_style, date.year_style, "{text}");
+                // With a time and a zone, which the date's digits run into.
+                let with_time = format!(
+                    "{text}T{}",
+                    if style == Style::Basic {
+                        "000000Z"
+                    } else {
+                        "00:00:00Z"
+                    }
+                );
+                let value =
+                    iso8601::parse(&with_time).unwrap_or_else(|e| panic!("{with_time}: {e:?}"));
+                assert_eq!(value.date.parts, date.parts, "{with_time}");
+            }
+        }
+    }
+}
+
+/// The spellings the basic writers produce, by name, and the one that read
+/// as another year: `-000001001` is the first day of the year −1, not the
+/// year −1001.
+#[test]
+fn the_basic_format_reads_expanded_years_by_the_workspaces_digit_count() {
+    for (text, parts) in [
+        (
+            "-0000010101",
+            DateParts::Calendar {
+                year: -1,
+                month: Some(1),
+                day: Some(1),
+            },
+        ),
+        (
+            "+0123450607",
+            DateParts::Calendar {
+                year: 12_345,
+                month: Some(6),
+                day: Some(7),
+            },
+        ),
+        (
+            "-000001001",
+            DateParts::Ordinal {
+                year: -1,
+                day_of_year: 1,
+            },
+        ),
+        (
+            "+012345158",
+            DateParts::Ordinal {
+                year: 12_345,
+                day_of_year: 158,
+            },
+        ),
+        (
+            "+10000000607",
+            DateParts::Calendar {
+                year: 1_000_000,
+                month: Some(6),
+                day: Some(7),
+            },
+        ),
+    ] {
+        let date = iso8601::parse_date(text).unwrap();
+        assert_eq!(date.parts, parts, "{text}");
+        assert_eq!(date.style, hc_format::Style::Basic, "{text}");
+    }
+    let value = iso8601::parse("-0000010101T000000Z").unwrap();
+    assert_eq!(value.date.parts.year(), -1);
+    assert_eq!(
+        value
+            .to_offset_date_time()
+            .unwrap()
+            .to_unix()
+            .unwrap()
+            .seconds(),
+        -62_198_755_200
+    );
+    // A year alone, a week date and an extended date keep their reading.
+    assert_eq!(iso8601::parse_date("+002026").unwrap().parts.year(), 2_026);
+    assert_eq!(
+        iso8601::parse_date("+012345W234").unwrap().parts.year(),
+        12_345
+    );
+    assert_eq!(
+        iso8601::parse_date("-001000-01-01").unwrap().parts.year(),
+        -1_000
+    );
+    // Twelve digits are no year and a date the digits do not split.
+    assert!(iso8601::parse_date("+000000000607").is_err());
 }
