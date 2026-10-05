@@ -851,7 +851,7 @@ fn the_akan_day_and_the_weton_cross_the_boundary() {
 
 /// Sri Lanka's Vesak of 12 May 2025 opened the Buddhist year 2569, "B.C
 /// 2569/2025"; the day before was 2568's last, and the first days of 2023
-/// are 2566 from a Vesak no order read fixes.
+/// are 2566 from a Vesak that is not carried.
 #[test]
 fn sri_lankas_buddhist_year_crosses_the_boundary() {
     let year = |day: i64| {

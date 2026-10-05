@@ -102,15 +102,6 @@ pub const fn days_in_year(year: i64) -> u16 {
     if is_leap_year(year) { 366 } else { 365 }
 }
 
-/// Days elapsed in the year before the first of `month`.
-pub(crate) const fn days_before_month(month: u8) -> i64 {
-    if month <= 7 {
-        31 * (month as i64 - 1)
-    } else {
-        30 * (month as i64 - 1) + 6
-    }
-}
-
 /// The fixed day of a date, without validation.
 const fn to_fixed_raw(year: i64, month: u8, day: u8) -> i64 {
     let (offset, within) = cycle_position(year);
@@ -118,7 +109,7 @@ const fn to_fixed_raw(year: i64, month: u8, day: u8) -> i64 {
         + CYCLE_DAYS * offset.div_euclid(CYCLE_YEARS)
         + 365 * (within - 1)
         + (31 * within - 5).div_euclid(128)
-        + days_before_month(month)
+        + common::six_thirty_ones_days_before_month(month)
         + day as i64
 }
 
@@ -180,15 +171,7 @@ pub const fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
         Err(error) => Err(error),
         Ok(year) => {
             let day_of_year = rd.0 - to_fixed_raw(year, 1, 1) + 1;
-            // The first six months are 31 days and the rest 30, so the month
-            // falls out of one division on each side of day 186.
-            let ordinal = if day_of_year <= 186 {
-                (day_of_year + 30) / 31
-            } else {
-                (day_of_year + 23) / 30
-            };
-            let month = ordinal as u8;
-            let day = (day_of_year - days_before_month(month)) as u8;
+            let (month, day) = common::six_thirty_ones_month_and_day(day_of_year);
             Ok((year, month, day))
         }
     }

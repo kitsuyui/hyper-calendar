@@ -22,13 +22,13 @@
 //!
 //! | Era | Chữ Hán | Year 1 | First day | Source for the day |
 //! |---|---|---|---|---|
-//! | Gia Long | 嘉隆 | 1802 | 1 June 1802, 5/2 of Nhâm Tuất | `wikipedia-vi-gia-long` ("Đăng quang: 1 tháng 6 năm Nhâm Tuất (1802)") |
+//! | Gia Long | 嘉隆 | 1802 | 1 June 1802, 5/2 of Nhâm Tuất | "Nguyễn Ánh làm lễ lên ngôi hoàng đế ngày 2 tháng 5 (âm lịch) năm Nhâm Tuất (1802)" (`wikipedia-vi-gia-long`, the article's body); 5/2 of Nhâm Tuất is 1 June 1802 by the engine, the day the article's infobox gives |
 //! | Minh Mạng | 明命 | 1820 | 14 February 1820, Tết | "Tháng giêng năm Canh Thìn (1820) … đặt niên hiệu là Minh Mạng" (`wikipedia-vi-minh-mang`); Gia Long died on 3 February 1820, before Tết |
 //! | Thiệu Trị | 紹治 | 1841 | 11 February 1841, 1/20 of Tân Sửu | `wikipedia-vi-thieu-tri`; Minh Mạng died on 20 January 1841 |
 //! | Tự Đức | 嗣德 | 1848 | 5 February 1848, Tết | enthroned in the tenth month of 1847, the era "bắt đầu từ năm sau là 1848" (`wikipedia-vi-tu-duc`) |
 //! | Kiến Phúc | 建福 | 1884 | 28 January 1884, Tết | enthroned 2 December 1883 (`wikipedia-vi-kien-phuc`); year 1 is 1884 in every list |
 //! | Hàm Nghi | 咸宜 | 1885 | 15 February 1885, Tết | enthroned 2 August 1884, 6/12 of Giáp Thân (`wikipedia-vi-ham-nghi`); year 1 is 1885 in every list |
-//! | Đồng Khánh | 同慶 | 1885 | 7 November 1885, 10/1 of Ất Dậu | "Từ tháng 10 âm lịch trở đi gọi là năm Đồng Khánh Ất Dậu" (`wikipedia-vi-dong-khanh`); enthroned 19 September 1885 |
+//! | Đồng Khánh | 同慶 | 1886 | 7 November 1885, 10/1 of Ất Dậu | "Từ tháng 10 âm lịch trở đi gọi là năm Đồng Khánh Ất Dậu, và từ Tết Nguyên Đán năm sau (Bính Tuất 1886) lấy làm năm Đồng Khánh nguyên niên", citing *Đồng Khánh Khải Định chính yếu*, p. 28 (`wikipedia-vi-dong-khanh`); "改咸宜元年（1885年）十月以后为同庆乙酉年，明年（1886年）为同庆元年" (`wikipedia-zh-vietnamese-era-list`); enthroned 19 September 1885. The tenth to twelfth months of Ất Dậu are the era's and numbered 0 here, written 同慶乙酉年, as both sources name them: see below |
 //! | Thành Thái | 成泰 | 1889 | 2 February 1889, 1/3 of Kỷ Sửu | `wikipedia-vi-thanh-thai`, `wikipedia-en-thanh-thai`; Đồng Khánh died on 28 January 1889, 12/27 of Mậu Tý |
 //! | Duy Tân | 維新 | 1907 | 5 September 1907, 7/28 of Đinh Mùi | `wikipedia-vi-duy-tan` |
 //! | Khải Định | 啟定 | 1916 | 18 May 1916, 4/17 of Bính Thìn | `wikipedia-vi-khai-dinh` |
@@ -44,6 +44,23 @@
 //! "planned" and never "put into effective use". 1883 is Tự Đức 36
 //! throughout, as the lists have it, and Hiệp Hòa is in [`ALL`] marked not
 //! in use.
+//!
+//! # Đồng Khánh's first year
+//!
+//! The court took the name in the tenth month of Ất Dậu, 1885, "không cần
+//! đợi đến sang năm", and both sources that number the years make the
+//! following year, Bính Tuất 1886, the first: the Vietnamese article, from
+//! the chronicle *Đồng Khánh Khải Định chính yếu*, calls the rest of 1885
+//! "năm Đồng Khánh Ất Dậu" and 1886 "năm Đồng Khánh nguyên niên", and
+//! dates events "năm Đồng Khánh thứ 2 (1887)" and "thứ 3 (1888)"; the
+//! Chinese list writes "同庆乙酉年" for the months of 1885, "明年（1886年）为
+//! 同庆元年", and the emperor's death in "同慶三年（1888年）十二月". The
+//! English list gives the span "1885–1889 CE, 5 years" and numbers no year.
+//! So `start_year` is 1886, the death on 28 January 1889, 12/27 of Mậu Tý,
+//! is 同慶3年, and the three months of Ất Dậu under the era carry the year
+//! number 0, which [`VietnameseRegnalDate`]'s display writes as the sources
+//! do, 同慶乙酉年10月1日 for 7 November 1885. No source read numbers 1885
+//! as 同慶元年, so no second reading is carried.
 //!
 //! # Readings not carried
 //!
@@ -107,7 +124,9 @@ pub struct VietnameseEra {
     /// The Common Era year in which the lunisolar year that was this era's
     /// year 1 began.
     pub start_year: i64,
-    /// The first day the era was in force.
+    /// The first day the era was in force. For Đồng Khánh it falls in the
+    /// lunisolar year before `start_year`, whose remaining months the
+    /// sources name after the era and number 0 here.
     pub start: Rd,
     /// Whether the era was ever kept: false for Hiệp Hòa, taken and never
     /// counted.
@@ -207,9 +226,9 @@ pub static ALL: [VietnameseEra; 12] = [
         "dong-khanh",
         "同慶",
         "Đồng Khánh",
-        1885,
+        1886,
         day(1885, 11, 7),
-        "from the tenth month of Ất Dậu, 7 November 1885, so that year is Hàm Nghi 1 to its ninth month and Đồng Khánh 1 from its tenth; enthroned 19 September 1885",
+        "from the tenth month of Ất Dậu, 7 November 1885, so that year is Hàm Nghi 1 to its ninth month and năm Đồng Khánh Ất Dậu, 同慶乙酉年, numbered 0, from its tenth; year 1 is Bính Tuất 1886, from Tết, as the chronicle and the Chinese list number it; enthroned 19 September 1885",
     ),
     era(
         "thanh-thai",
@@ -286,7 +305,8 @@ pub const LATEST: Rd = day(1945, 8, 30);
 pub struct VietnameseRegnalDate {
     /// The era.
     pub era: &'static VietnameseEra,
-    /// The year of the era, counting from 1.
+    /// The year of the era, counting from 1; 0 for the months of Ất Dậu,
+    /// 1885, that belong to Đồng Khánh before his year 1.
     pub year: i64,
     /// The lunisolar month, with its intercalary flag.
     pub month: Month,
@@ -301,14 +321,33 @@ impl VietnameseRegnalDate {
     pub const fn common_era_year(&self) -> i64 {
         self.era.start_year + self.year - 1
     }
+
+    /// Whether this date falls in the months an era was in force before
+    /// its year 1: Đồng Khánh's tenth to twelfth months of Ất Dậu, 1885,
+    /// which the sources name after the era and number not at all.
+    #[must_use]
+    pub const fn is_before_year_one(&self) -> bool {
+        self.year == 0
+    }
 }
 
 impl fmt::Display for VietnameseRegnalDate {
     /// Writes the date as the court wrote it, in chữ Hán: 嗣德36年6月16日,
-    /// the first year as 元年 and a leap month with 閏.
+    /// the first year as 元年, a leap month with 閏, and the months before
+    /// an era's year 1 by the sexagenary name of their year, 同慶乙酉年, as
+    /// the sources write them.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.era.han)?;
-        if self.year == 1 {
+        if self.is_before_year_one() {
+            let year =
+                hc_calendar::cycle::sexagenary_year_from_gregorian_year(self.common_era_year());
+            write!(
+                f,
+                "{}{}年",
+                hc_calendar::cycle::readings::HAN.stem(year),
+                hc_calendar::cycle::readings::HAN.branch(year)
+            )?;
+        } else if self.year == 1 {
             write!(f, "元年")?;
         } else {
             write!(f, "{}年", self.year)?;
@@ -341,20 +380,23 @@ pub fn from_fixed(rd: Rd) -> CalendarResult<VietnameseRegnalDate> {
 /// # Errors
 ///
 /// [`CalendarError::YearOutOfRange`] when the era was not in force on that
-/// day — a year below 1, a year after the era ended, or a day of the era's
+/// day — a year below 1 (below 0 for Đồng Khánh's months of Ất Dậu), a year after the era ended, or a day of the era's
 /// first or last year that belongs to its neighbour — the lunisolar errors
 /// for a month or day the year did not have, and
 /// [`CalendarError::AfterSupportedRange`] after the abdication.
 pub fn to_fixed(date: VietnameseRegnalDate) -> CalendarResult<Rd> {
-    if date.year < 1 || !date.era.in_use {
+    if date.year < 0 || !date.era.in_use {
         return Err(CalendarError::YearOutOfRange);
     }
     let rd = vietnamese::PARAMETERS.to_fixed(date.common_era_year(), date.month, date.day)?;
     if rd > LATEST {
         return Err(CalendarError::AfterSupportedRange);
     }
-    if era_at(rd)? != date.era {
-        return Err(CalendarError::YearOutOfRange);
+    // Year 0 is a year of the era only for the months Đồng Khánh's
+    // sources name after it; for any other era it falls in a neighbour's.
+    match era_at(rd) {
+        Ok(era) if era == date.era => {}
+        _ => return Err(CalendarError::YearOutOfRange),
     }
     Ok(rd)
 }
@@ -505,7 +547,13 @@ mod tests {
         ] {
             let era = by_id(id).expect("in the table");
             assert_eq!(lunisolar(era.start).1, month, "{id}");
-            assert_eq!(lunisolar(era.start).0, era.start_year, "{id}");
+            // Đồng Khánh's tenth month is in the year before his year 1.
+            let first_year = if id == "dong-khanh" {
+                era.start_year - 1
+            } else {
+                era.start_year
+            };
+            assert_eq!(lunisolar(era.start).0, first_year, "{id}");
         }
         // The year-start eras begin on Tết.
         for id in ["minh-mang", "tu-duc", "kien-phuc", "ham-nghi", "bao-dai"] {
@@ -541,10 +589,19 @@ mod tests {
         assert_eq!(date(greg(1883, 11, 29)).to_string(), "嗣德36年10月30日");
         assert_eq!(date(greg(1884, 1, 27)).to_string(), "嗣德36年12月30日");
         assert_eq!(date(greg(1884, 1, 28)).to_string(), "建福元年1月1日");
-        // Hàm Nghi 1 to the ninth month of 1885, Đồng Khánh 1 from the tenth.
+        // Hàm Nghi 1 to the ninth month of 1885; from the tenth, "năm Đồng
+        // Khánh Ất Dậu", and Đồng Khánh 1 from Tết 1886, Bính Tuất.
         assert_eq!(date(greg(1885, 11, 6)).to_string(), "咸宜元年9月30日");
-        assert_eq!(date(greg(1885, 11, 7)).to_string(), "同慶元年10月1日");
-        assert_eq!(date(greg(1889, 2, 1)).to_string(), "同慶5年1月2日");
+        assert_eq!(date(greg(1885, 11, 7)).to_string(), "同慶乙酉年10月1日");
+        assert_eq!(date(greg(1885, 11, 7)).year, 0);
+        assert_eq!(date(greg(1886, 2, 3)).to_string(), "同慶乙酉年12月30日");
+        assert_eq!(date(greg(1886, 2, 4)).to_string(), "同慶元年1月1日");
+        // The chronicle's "thứ 2 (1887)" and "thứ 3 (1888)", and the
+        // Chinese list's death in 同慶三年（1888年）十二月.
+        assert_eq!(date(greg(1887, 2, 1)).year, 2);
+        assert_eq!(date(greg(1888, 2, 20)).year, 3);
+        assert_eq!(date(greg(1889, 1, 28)).to_string(), "同慶3年12月27日");
+        assert_eq!(date(greg(1889, 2, 1)).to_string(), "同慶4年1月2日");
         assert_eq!(date(greg(1889, 2, 2)).to_string(), "成泰元年1月3日");
         assert_eq!(date(greg(1907, 9, 4)).year, 19);
         assert_eq!(date(greg(1907, 9, 5)).to_string(), "維新元年7月28日");

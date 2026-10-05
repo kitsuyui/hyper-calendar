@@ -82,8 +82,11 @@ Chinese list gives the month of each — 嘉隆 in the fifth month of 1802,
 of 1885, 維新 in the seventh of 1907, 啟定 in the fourth of 1916
 [wikipedia-zh-vietnamese-era-list] — and the emperors' articles the day:
 1 June 1802, 11 February 1841, 7 November 1885 (the first of the tenth
-month, "Từ tháng 10 âm lịch trở đi gọi là năm Đồng Khánh Ất Dậu"
-[wikipedia-vi-dong-khanh]), 2 February 1889, 5 September 1907 and 18 May
+month, "Từ tháng 10 âm lịch trở đi gọi là năm Đồng Khánh Ất Dậu, và từ Tết
+Nguyên Đán năm sau (Bính Tuất 1886) lấy làm năm Đồng Khánh nguyên niên"
+[wikipedia-vi-dong-khanh]; the Chinese list writes the same, "同庆乙酉年" for
+the months of 1885 and "同庆元年" for 1886 [wikipedia-zh-vietnamese-era-list]),
+2 February 1889, 5 September 1907 and 18 May
 1916 [wikipedia-vi-gia-long, wikipedia-vi-thieu-tri, wikipedia-vi-thanh-thai,
 wikipedia-vi-duy-tan, wikipedia-vi-khai-dinh]. Two emperors of 1883 have no
 era: Dục Đức, three days, "chưa kịp đặt niên hiệu" [wikipedia-vi-duc-duc],
@@ -169,7 +172,15 @@ Beijing's meridian as the Republic's almanacs kept it.
   the lunisolar year's distance from the era's year 1, so a year with a
   mid-year change belongs to the old era until the day and to the new one
   from it, Minh Mạng 22 to 10 February 1841 and Thiệu Trị 1 from the 11th,
-  Hàm Nghi 1 to the ninth month of 1885 and Đồng Khánh 1 from the tenth.
+  Hàm Nghi 1 to the ninth month of 1885. Đồng Khánh's year 1 is Bính Tuất
+  1886, from Tết, and his tenth to twelfth months of Ất Dậu, from 7
+  November 1885, are "năm Đồng Khánh Ất Dậu", which the sources number
+  not at all: they are year 0 here, written 同慶乙酉年, so 4 February 1886
+  is 同慶元年1月1日 and the death on 28 January 1889 is 同慶3年12月27日.
+  The English list gives the span 1885–1889 and numbers no year, and no
+  source read numbers 1885 as year 1, so no second reading is carried;
+  the Vietnamese article's sentence and the Chinese list's are the
+  reading's two sources.
   Bảo Đại runs from Tết 1926: the name was taken at the enthronement of
   8 January 1926 [wikipedia-vi-bao-dai, wikipedia-en-bao-dai], and every
   list makes the lunisolar year 1926 its year 1 and 1945 its twentieth, so

@@ -36,6 +36,8 @@ crates, modules, functions or holiday tables.
 | System | Document | Backs |
 | --- | --- | --- |
 | Babylonian calendar of the Seleucid era | [babylonian.md](babylonian.md) | `babylonian` |
+| The perennial calendars of 13 months of 28 days: Pax's leap week and Tranquility's two days outside the week | [pax.md](pax.md), [tranquility.md](tranquility.md) | `pax`; `tranquility`; `common`'s `perennial_*` |
+| The Kurdish calendar as English Wikipedia's template displays it: the Solar Hijri date under Kurdish month names, 1321 years ahead, and the fixed-date and equinox readings that no source states | [kurdish.md](kurdish.md) | `kurdish` |
 | Name-day lists, and the movable Orthodox name days | [name-days.md](name-days.md) | `hc-name-days`; `hc-holiday`'s `name-days-greek-movable` and `name-days-bulgarian-movable` |
 | The Chinese lunisolar calendars from 104 BCE to 597: the 太初曆, 四分曆, 乾象曆, 景初曆, 元嘉曆, 大明曆, 興和曆, 天和曆, 開皇曆, 三紀甲子元曆 and 正光曆 on their own arithmetic, their epochs read from the treatises, and what is not carried | [chinese-historical-lunisolar.md](chinese-historical-lunisolar.md) | `chinese-taichu`, `chinese-sifen`, `chinese-qianxiang`, `chinese-jingchu`, `chinese-yuanjia`, `chinese-daming`, `chinese-xinghe`, `chinese-tianhe`, `chinese-kaihuang`, `chinese-sanji`, `chinese-zhengguang`; `chinese_historical` |
 | The Japanese lunisolar calendars, Senmyō to Tenpō | [japanese-lunisolar.md](japanese-lunisolar.md) | `japanese-senmyo`, `japanese-jokyo`, `japanese-horyaku`, `japanese-kansei`, `japanese-tenpo`; the seasonal 進朔 and the 修正宝暦暦 as parameter sets |
@@ -182,7 +184,10 @@ crates, modules, functions or holiday tables.
 A system is written up from its sources before it is coded, with the
 sections above and a row in the table above. A system found to need a
 document only after it is coded is listed here until it has one
-([policy.md §12](../policy.md)). None is listed.
+([policy.md §12](../policy.md)). One is listed: the International
+Fixed calendar (`international-fixed`), thirteen months of 28 days with Year
+Day and Leap Day outside the week, which shares its arithmetic with `pax`
+and `tranquility` and has no document of its own yet.
 
 ## Systems judged not to need one
 

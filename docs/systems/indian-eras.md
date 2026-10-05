@@ -336,15 +336,15 @@ Faṣlī 1434, which opened on 1 July 2024.
   fourth to the thirteenth centuries the inscriptions are dated in. Their
   era codes are `gupta`, `valabhi`, `kalachuri` and `lakshmana-sena`. The
   Gupta and Chedi eras are pūrṇimānta, the Valabhī and Lakṣmaṇa Sena
-  amānta, each with the opening the source gives. Their usage is the
-  period from the opening of year 1, the epoch the source states, with no
-  end: the dated inscriptions a source reports — the years 82 to 945 of the
-  Gupta and Valabhī eras together, 793 to 934 of the Chedi — are a lower
-  bound on the use and are named in the usage's source, not carried as its
-  limits, and no source read dates the last use of the Gupta, Valabhī or
-  Chedi era, so none is carried and a day after the inscriptions reads as in
-  use, not as extended. The Lakṣmaṇa Sena era's period opens with year 1 on
-  Kielhorn's epoch and is still in use, the Mithila Panchang printing it. The
+  amānta, each with the opening the source gives. The usage of the
+  Gupta, Valabhī and Chedi eras runs from the opening of year 1, the epoch
+  the source states, to the end of the last year a dated inscription is read
+  in: 945 for the Gupta and Valabhī eras together, 934 for the Chedi
+  (`UsageStart::EpochToLastAttested`). No source read dates a later use or
+  an end of the era, so a day after that year reads as `extended` and not as
+  in use: the end carried is the last attestation, and not a date of
+  abandonment, which is not carried for want of a source. The Lakṣmaṇa Sena
+  era's period opens with year 1 on Kielhorn's epoch and is still in use, the Mithila Panchang printing it. The
   `EraYear` values `GUPTA`, `VALABHI`, `KALACHURI` and `LAKSHMANA_SENA` give
   the year of an amānta date and the first day of a year over any months.
   `hc_era_new_year` is `LunarEra::new_year` at the boundary, for the seven

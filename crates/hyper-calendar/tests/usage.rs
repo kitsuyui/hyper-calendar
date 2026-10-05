@@ -233,10 +233,12 @@ fn the_calendars_in_use_today_say_so() {
     }
 }
 
-/// The Gupta, Valabhī, Chedi and Lakṣmaṇa Sena eras are in use from the
-/// opening of their year 1, the epoch Sewell and Dikshit give (Art. 71,
-/// pp. 42-46), and no source read dates an end; the dated inscriptions are a
-/// lower bound that the sources name, not the period.
+/// The Gupta, Valabhī and Chedi eras are in use from the opening of their
+/// year 1, the epoch Sewell and Dikshit give (Art. 71, pp. 42-43), to the
+/// end of the last year a dated inscription is read in, 945 and 934; no
+/// source read dates a later use, so the days after read as extended. The
+/// Lakṣmaṇa Sena era is in use from the opening of its year 1 with no end,
+/// the Mithila Panchang printing its year today (p. 46).
 #[test]
 fn the_four_indian_eras_are_in_use_from_their_epoch() {
     let registry = hyper_calendar::registry();
@@ -246,13 +248,14 @@ fn the_four_indian_eras_are_in_use_from_their_epoch() {
     let julian = |year, month, day| {
         hyper_calendar::hc_calendars_solar::julian::to_fixed(year, month, day).unwrap()
     };
+    let today = gregorian::to_fixed(2026, 9, 26).unwrap();
     for (id, opening) in [
         ("gupta", julian(320, 2, 26)),
         ("kalachuri", julian(248, 9, 5)),
     ] {
         let usage = registry.get_by_name(id).expect(id).usage();
         assert_eq!(usage.from, Some(opening), "{id}");
-        assert_eq!(usage.until, None, "{id}");
+        assert!(usage.until.is_some(), "{id}");
         assert_eq!(usage.standing(opening), Standing::InUse, "{id}");
         assert_eq!(
             usage.standing(Rd(opening.0 - 1)),
@@ -261,13 +264,35 @@ fn the_four_indian_eras_are_in_use_from_their_epoch() {
         );
         assert!(!usage.source.is_empty(), "{id}");
     }
+    // The Gupta count's year 945 ends in A.D. 1265 and the Chedi's year
+    // 934 in A.D. 1183: nothing after them is in use on a source read.
+    let gupta = registry.get_by_name("gupta").expect("gupta").usage();
+    let last = gupta.until.expect("a last attested day");
+    assert!(
+        julian(1264, 1, 1) < last && last < julian(1266, 1, 1),
+        "{last:?}"
+    );
+    assert_eq!(gupta.standing(last), Standing::InUse);
+    assert_eq!(gupta.standing(Rd(last.0 + 1)), Standing::Extended);
+    assert_eq!(gupta.standing(today), Standing::Extended);
+    let kalachuri = registry
+        .get_by_name("kalachuri")
+        .expect("kalachuri")
+        .usage();
+    let last = kalachuri.until.expect("a last attested day");
+    assert!(
+        julian(1182, 1, 1) < last && last < julian(1184, 1, 1),
+        "{last:?}"
+    );
+    assert_eq!(kalachuri.standing(today), Standing::Extended);
     let valabhi = registry.get_by_name("valabhi").expect("valabhi").usage();
     let from = valabhi.from.expect("a first day");
     assert!(
         julian(319, 1, 1) < from && from < julian(320, 2, 26),
         "{from:?}"
     );
-    assert_eq!(valabhi.until, None);
+    assert!(valabhi.until.is_some());
+    assert_eq!(valabhi.standing(today), Standing::Extended);
     let sena = registry
         .get_by_name("lakshmana-sena")
         .expect("lakshmana-sena")
@@ -278,7 +303,6 @@ fn the_four_indian_eras_are_in_use_from_their_epoch() {
         "{from:?}"
     );
     assert_eq!(sena.until, None);
-    let today = gregorian::to_fixed(2026, 9, 26).unwrap();
     assert_eq!(sena.standing(today), Standing::InUse);
 }
 

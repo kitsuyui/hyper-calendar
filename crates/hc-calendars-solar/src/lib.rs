@@ -774,9 +774,15 @@ mod tests {
                 DynAdapter::new(TranquilityCalendar).is_leap_year(year),
                 Ok(tranquility::is_leap_year(year))
             );
+            // The Kurdish year runs 1321 ahead of Solar Hijri 1, so the
+            // early years are out of range.
             assert_eq!(
                 DynAdapter::new(KurdishCalendar).is_leap_year(year),
-                Ok(kurdish::is_leap_year(year))
+                if year < kurdish::MIN_YEAR {
+                    Err(hc_calendar::CalendarError::YearOutOfRange)
+                } else {
+                    Ok(kurdish::is_leap_year(year))
+                }
             );
             assert_eq!(
                 DynAdapter::new(IcelandicCalendar::GREGORIAN).is_leap_year(year),

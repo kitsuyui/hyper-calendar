@@ -7096,8 +7096,8 @@ export class HyperCalendar {
   /**
    * Sri Lanka's Buddhist year of a fixed day, counted from the Vesak Full
    * Moon Poya Day, with the Vesak of its Gregorian year and the days the
-   * Buddhist year began and ends on, `null` where no order read fixes
-   * them. A day outside 2023 through 2027 is `out-of-range`.
+   * Buddhist year began and ends on, `null` where they are not
+   * carried. A day outside 2023 through 2027 is `out-of-range`.
    *
    * @param {number | bigint} fixed
    * @returns {import("./hyper-calendar.d.ts").BuddhistLkYear}

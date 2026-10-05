@@ -965,19 +965,20 @@ pub const BUDDHIST_LK_YEAR_COLUMNS: usize = 5;
 /// day, the Common Era year plus 544 from the Vesak Full Moon Poya Day and
 /// plus 543 before it ([`buddhist_lk::year_of`]) — the Buddhist year; the
 /// Gregorian year the day is in; the fixed day of that Gregorian year's
-/// Vesak Poya, as the Holidays Act order read fixes it
-/// ([`buddhist_lk::vesak_poya`]); the fixed day the Buddhist year began on,
-/// that Vesak or the year before's, empty where no order read fixes it;
+/// Vesak Poya, as carried ([`buddhist_lk::vesak_poya`]); the fixed day the Buddhist year began on,
+/// that Vesak or the year before's, empty where it is not carried;
 /// and the last fixed day of the Buddhist year, the eve of the next Vesak,
 /// empty likewise.
 ///
 /// # Errors
 ///
-/// [`Refusal::OutOfRange`] for a day outside the years whose Vesak day an
-/// order read fixes, 2023 to 2027: a gap, not a computed full moon.
+/// [`Refusal::OutOfRange`] for a day outside the years whose Vesak day is
+/// carried, 2023 to 2027: a gap, not a computed full moon.
 pub fn buddhist_lk_year_line(fixed: i64) -> Answer<String> {
     let day = Rd(fixed);
-    let year = buddhist_lk::year_of(day)?;
+    // A year whose Vesak day is not carried is a gap at the boundary, not an
+    // invalid date.
+    let year = buddhist_lk::year_of(day).map_err(|_| Refusal::OutOfRange)?;
     let gregorian_year = hc_calendar::gregorian::year_from_fixed(day);
     let vesak = buddhist_lk::vesak_poya(gregorian_year).ok_or(Refusal::OutOfRange)?;
     let (began, ends) = if day >= vesak {

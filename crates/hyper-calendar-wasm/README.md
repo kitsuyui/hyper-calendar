@@ -135,7 +135,7 @@ out of range is `out-of-range`, never an unrecognised number.
 | a byte length | `hc_maya_long_count` | `fixed` from 0.0.0.0.0 to 19.19.19.17.19 under the correlation: −1 137 142 through 1 742 857 under `gmt`, two days later under `gmt2` and three under `martin-skidmore`; any other is `HC_ERR_OUT_OF_RANGE`, and a correlation not named `HC_ERR_UNKNOWN` |
 | a byte length | `hc_akan_day` | every `fixed` from −9 223 372 036 854 053 701, the first day whose distance from the cycle's epoch is an `i64`; any earlier is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_weton` | every `fixed` |
-| a byte length | `hc_buddhist_lk_year` | `fixed` 738 521 (1 January 2023) through 740 346 (31 December 2027), the years whose Vesak Poya Day a Holidays Act order read fixes; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_buddhist_lk_year` | `fixed` 738 521 (1 January 2023) through 740 346 (31 December 2027), the years whose Vesak Poya Day is carried; any other is `HC_ERR_OUT_OF_RANGE` |
 | a Tiruvaḷḷuvar year | `hc_tiruvalluvar_year` | `fixed` within the days `hindu-solar-tamil` converts, the Tamil solar years that open in the Gregorian years 1700 to 2299, as `hc_calendars` lists its earliest and latest; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_japanese_era_year` | `year` from 1, as far as the Han numerals write; 0 and below, and a year beyond them, are `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_holidays_in_year` | every `year`; a year the table has no entries or gaps for writes nothing |
@@ -3843,21 +3843,21 @@ feature and writes Sri Lanka's Buddhist year of a fixed day, the Common Era
 year plus 544 from the Vesak Full Moon Poya Day and plus 543 before it,
 `hc_describe_day`'s calendar `buddhist-lk`, from
 `hc-calendars-regional`'s `buddhist_lk::year_of` and `vesak_poya`. The
-Vesak day is whatever the Minister declares under the Holidays Act, and the
-orders read fix it for 2023 to 2027; a day outside those years is
+Vesak day is whatever the Minister declares under the Holidays Act; no order
+was read, and the days carried are those of 2023 to 2027; a day outside those years is
 `HC_ERR_OUT_OF_RANGE`, a gap and never a computed full moon.
 
 | # | Column | Holds |
 | --- | --- | --- |
 | 1 | year | the Buddhist year |
 | 2 | gregorian year | the Gregorian year the day is in |
-| 3 | vesak | the fixed day of that Gregorian year's Vesak Poya, as the order read fixes it |
-| 4 | began | the fixed day the Buddhist year began on, that Vesak or the year before's; empty where no order read fixes it |
+| 3 | vesak | the fixed day of that Gregorian year's Vesak Poya, as carried |
+| 4 | began | the fixed day the Buddhist year began on, that Vesak or the year before's; empty where it is not carried |
 | 5 | ends | the last fixed day of the Buddhist year, the eve of the next Vesak; empty likewise |
 
 Vesak 2025, 12 May, opened 2569, "B.C 2569/2025"; the day before was the
 last of 2568, begun at Vesak 2024, 23 May; and 1 January 2023 is 2566, begun
-at a Vesak no order read fixes.
+at a Vesak not carried.
 
 ## Anniversaries and Olympiads
 

@@ -210,7 +210,7 @@ an Anno and its 1st to 28th close the one before.
 | `masonic-anno-lucis-march` | Gregorian days, months numbered from March | + 4000, from 1 March | A.L. 1 (from 1 March 3999 BC) on | Attested, undated |
 | `egyptian-ptolemy` | `egyptian`, the day from noon at Alexandria | as `egyptian` | as `egyptian` | Unrecorded |
 | `philip-era-ptolemy` | `philip-era`, the day from noon at Alexandria | as `philip-era` | as `philip-era` | Unrecorded |
-| `buddhist-lk` | Gregorian | + 544 from the Vesak Full Moon Poya Day, + 543 before it | 1 January 2023 to 31 December 2027, the years whose Vesak day the Holidays Act orders read fix | Attested at Vesak 2025 (2569) and 2026 (2570); the count is older, and the years outside the orders are a gap |
+| `buddhist-lk` | Gregorian | + 544 from the Vesak Full Moon Poya Day, + 543 before it | 1 January 2023 to 31 December 2027, the years whose Vesak day is carried | Undated: attested at Vesak 2025 (2569) and 2026 (2570), the count is older, and the years outside 2023–2027 are a gap |
 
 The nine pure offsets on a solar year are one table, `year_counts::ALL`,
 read by one calendar type, whose `Base` is the Julian, the Gregorian or
@@ -262,11 +262,20 @@ Thailand's 543 from 1 January — is the Malaysian society's statement for
 Sri Lanka, Malaysia and Singapore [wesak-determining-be]; no Sri Lankan
 text read states the rule itself, and the government desk calendars whose
 covers carry a year's two numbers are PDFs, not read. The Vesak day is the
-Minister's order under the Holidays Act, No. 29 of 1971, and `buddhist-lk`
-carries the five the orders read fix, 5 May 2023, 23 May 2024, 12 May 2025,
-30 May 2026 (moved from 1 May by the Cabinet decision of 30 March 2026
-[adaderana-vesak-2026]) and 19 May 2027, the same days `hc-holiday` lists
-for Sri Lanka; a year outside them is a gap, not a computed full moon. The
+Minister's order under the Holidays Act, No. 29 of 1971; no order was read,
+and `buddhist-lk` carries the five days 5 May 2023, 23 May 2024, 12 May 2025,
+30 May 2026 and 19 May 2027, the same days `hc-holiday` lists for Sri Lanka.
+12 May 2025 is the Central Bank's list [cbsl-bank-holidays-2025]. 30 May 2026
+is the day of the Cabinet decision of 30 March 2026, number
+AMB/26/0553/822/018, reported by [ziradaily-vesak-2026]; the Mahanayake
+Theros' request for it is reported by [adaderana-vesak-2026]; the Central
+Bank's 2026 list still shows Vesak Full Moon Poya Day on Friday 1 May and
+30 May as Adhi Poson [cbsl-bank-holidays-2026], which is where "from 1 May"
+comes from. Not read: the orders themselves, and any page that keys 5 May
+2023, 23 May 2024 or 19 May 2027. A year outside 2023–2027 is a gap, not a
+computed full moon and not a time before the count: `year_of` refuses it as
+`year-out-of-range`, and the usage is undated because the count is older
+than any source read. The
 month and day are the Gregorian ones, as the documents write them beside
 the year, and because the Vesak day moves a Buddhist year with a month and
 day can name two days — 20 May 2569 is 20 May 2025 and 20 May 2026 — so the
@@ -319,10 +328,11 @@ those changes; none was read.
 | Key | Used for | Read |
 | --- | --- | --- |
 | [media-gov-lk-vesak-2025], [media-gov-lk-vesak-message-2569] | The Buddhist Year 2569 at Vesak 2025 | Yes, 2026-10-04 |
-| [ziradaily-vesak-2026] | The Buddhist Year 2570 at Vesak 2026, 30 May | Yes, 2026-10-04 |
+| [ziradaily-vesak-2026] | The Buddhist Year 2570 at Vesak 2026, 30 May, and the Cabinet decision of 30 March 2026 | Yes, 2026-10-04; re-read 2026-10-05 |
 | [wesak-determining-be] | The rule, + 544 from Wesak and + 543 before, for Sri Lanka, Malaysia and Singapore | Yes, 2026-10-03 |
-| [adaderana-vesak-2026] | Vesak 2026 confirmed for 30 May | Yes, 2026-10-04 |
+| [adaderana-vesak-2026] | Vesak 2026 proposed for 30 May on the Mahanayake Theros' request; names no Cabinet decision and no 1 May | Yes, 2026-10-04; re-read 2026-10-05 |
 | [cbsl-bank-holidays-2025] | Vesak 2025 on 12 May; the page carries no Buddhist year | Yes, 2026-10-04 |
+| [cbsl-bank-holidays-2026] | Vesak Full Moon Poya Day on Friday 1 May 2026 and Adhi Poson on 30 May, the list before the Cabinet decision | Yes, 2026-10-05 |
 | [wikipedia-en-buddhist-calendar] | The epochs of the Theravada traditions and 2569 as 2025–2026 | Yes, 2026-10-04 |
 | The Government Printer's desk calendars for 2025 and 2026 | The two numbers of each year on the cover | Not read (PDF) |
 | [wikipedia-spanish-era] | The epoch, the offset and Era 941, the kingdoms' years, the year from 1 January and later 25 December, the 1137 document | Yes, 2026-09-26 |

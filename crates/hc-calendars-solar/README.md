@@ -83,7 +83,7 @@ file does not:
 | `tabot` | Tabot (Moore, rules by Meyer): from 2 November 1930, twelve months on fixed Gregorian dates, Ras of 31 days in the Gregorian leap February | `tabot` |
 | `pax` | Pax (Colligan, 1930): thirteen months of 28 days with Columbus before December, the week *Pax* when the year's last two digits are divisible by six or are 99 and the year not by 400, every year from a Sunday | `pax` |
 | `tranquility` | Tranquility (Siggins, 1989): thirteen months of 28 days, Archimedes to Mendel, from 21 July, Armstrong Day on 20 July and Aldrin Day on 29 February outside the week, year 1 A.T. from 21 July 1969 | `tranquility` |
-| `kurdish` | Kurdish solar year: from Newroz, 21 March, six months of 31 days, five of 30 and Reşeme of 29 or 30 on fixed Gregorian dates, the year 700 ahead of the Gregorian | `kurdish` |
+| `kurdish` | Kurdish solar year as Wikipedia's template displays it: the Solar Hijri date under the 33-year rule with Kurdish month names, the year 1321 ahead of the Solar Hijri | `kurdish` |
 | `taiping` | The Taiping Heavenly Calendar, 1852–1869: every year 366 days, odd months of 31 and even of 30, and the day names the calendar printed a day ahead ([docs/systems/taiping-tianli.md](../../docs/systems/taiping-tianli.md)) | `taiping-tianli` |
 | `terran` | The Terran Computational Calendar: elapsed time since 0TC over TAI, the minimonth of leap days and IERS leap seconds, year bases — two functions over `hc_core::Instant<Tai>`, not a calendar of days ([docs/systems/terran-computational.md](../../docs/systems/terran-computational.md)) | *(not registered)* |
 

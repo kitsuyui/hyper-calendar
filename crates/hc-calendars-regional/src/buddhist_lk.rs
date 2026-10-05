@@ -16,12 +16,22 @@
 //! numbers of a year are PDFs, not read.
 //!
 //! The Vesak Poya Day is whatever the Minister declares under the Holidays
-//! Act, No. 29 of 1971, and the orders read fix it for 2023–2027: 5 May
-//! 2023, 23 May 2024, 12 May 2025, 30 May 2026 (the Cabinet decision of
-//! 30 March 2026, which moved it from 1 May; `adaderana-vesak-2026`) and
-//! 19 May 2027, the same days `hc-holiday` carries for Sri Lanka. A year
-//! outside them is a gap (ADR 0013), not a computed full moon: the rule
-//! the Poya committee follows is the roadmap's `sinhalese-lunar` question.
+//! Act, No. 29 of 1971; no order itself was read. The days carried for
+//! 2023–2027 are 5 May 2023, 23 May 2024, 12 May 2025, 30 May 2026 and
+//! 19 May 2027, the same days `hc-holiday` carries for Sri Lanka. 12 May
+//! 2025 is the Central Bank's list (`cbsl-bank-holidays-2025`); 30 May 2026
+//! is the day of the Cabinet decision of 30 March 2026, number
+//! AMB/26/0553/822/018, as a news report states it (`ziradaily-vesak-2026`)
+//! and the Mahanayake Theros' request as another does
+//! (`adaderana-vesak-2026`); the Central Bank's 2026 list still shows
+//! Vesak Full Moon Poya Day on Friday 1 May, with 30 May as Adhi Poson, so
+//! "from 1 May" is that list's day (`cbsl-bank-holidays-2026`). The other
+//! two years' days are not keyed here to a page read. A year outside
+//! 2023–2027 is a gap (ADR 0013), not a computed full moon and not a time
+//! before the count: [`year_of`] refuses it as
+//! [`CalendarError::YearOutOfRange`] and the usage is undated, since the
+//! count is older than any source read. The rule the Poya committee
+//! follows is the roadmap's `sinhalese-lunar` question.
 //!
 //! The month and the day are the Gregorian ones, as the Sri Lankan
 //! documents write them beside the year. Because the Vesak day moves, a
@@ -40,8 +50,7 @@ use hc_calendars_solar::gregorian;
 /// The machine identifier.
 pub const ID: CalendarId = CalendarId("buddhist-lk");
 
-/// The Vesak Full Moon Poya Day of each year the Holidays Act orders read
-/// fix, as a Gregorian date.
+/// The Vesak Full Moon Poya Day of each year carried, as a Gregorian date.
 pub static VESAK_POYA: [(i64, u8, u8); 5] = [
     (2023, 5, 5),
     (2024, 5, 23),
@@ -50,7 +59,7 @@ pub static VESAK_POYA: [(i64, u8, u8); 5] = [
     (2027, 5, 19),
 ];
 
-/// The first Common Era year whose Vesak day is fixed here.
+/// The first Common Era year whose Vesak day is carried here.
 pub const FIRST_YEAR: i64 = 2023;
 
 /// The last.
@@ -77,8 +86,10 @@ pub const USAGE_SOURCE: &str = "The Buddhist year of Sri Lanka, the Common Era y
     2569 and the Vesak message of 12 May 2025 headed B.C 2569/2025 [media-gov-lk-vesak-2025, \
     media-gov-lk-vesak-message-2569], the festival of 2026 for the Buddhist Year 2570 \
     [ziradaily-vesak-2026], the rule as stated for Sri Lanka, Malaysia and Singapore \
-    [wesak-determining-be]; the Vesak days are the Holidays Act orders of 2023-2027, so the count is \
-    carried from 1 January 2023 and a year outside them is a gap, not the count's beginning";
+    [wesak-determining-be]; the count is older than any source read, so its period is undated, and \
+    the Vesak days are carried for 2023-2027 only, 12 May 2025 from the Central Bank's list \
+    [cbsl-bank-holidays-2025] and 30 May 2026 from the Cabinet decision of 30 March 2026 \
+    [ziradaily-vesak-2026], so a year outside them is a gap, not the count's beginning";
 
 /// The Vesak Full Moon Poya Day of a Common Era year, where an order fixes it.
 #[must_use]
@@ -93,12 +104,12 @@ pub fn vesak_poya(year: i64) -> Option<Rd> {
 ///
 /// # Errors
 ///
-/// [`CalendarError::BeforeEpoch`] before 2023 and
+/// [`CalendarError::YearOutOfRange`] before 2023 and
 /// [`CalendarError::AfterSupportedRange`] after 2027, the years whose
-/// Vesak day no order read fixes.
+/// Vesak day is not carried: a gap, since the count is older than 2023.
 pub fn year_of(rd: Rd) -> CalendarResult<i64> {
     if rd < EARLIEST {
-        return Err(CalendarError::BeforeEpoch);
+        return Err(CalendarError::YearOutOfRange);
     }
     if rd > LATEST {
         return Err(CalendarError::AfterSupportedRange);
@@ -164,11 +175,11 @@ pub struct BuddhistLkCalendar;
 impl Calendar for BuddhistLkCalendar {
     type Date = BuddhistLkDate;
 
-    /// From 1 January 2023, the first day whose Vesak the orders read fix,
-    /// and onwards; the count is centuries older, and the years before are
-    /// a gap, not a time before the count.
+    /// Undated: the count is older than any source read, and the years
+    /// outside 2023 to 2027 are a gap in the Vesak days carried, not a time
+    /// before the count.
     fn usage(&self) -> hc_calendar::Usage {
-        hc_calendar::Usage::since(EARLIEST, USAGE_SOURCE)
+        hc_calendar::Usage::undated(USAGE_SOURCE)
     }
 
     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
@@ -278,7 +289,11 @@ mod tests {
 
     #[test]
     fn the_years_outside_the_orders_are_a_gap() {
-        assert_eq!(year_of(greg(2022, 12, 31)), Err(CalendarError::BeforeEpoch));
+        // Not `BeforeEpoch`: the count is centuries older than 2023.
+        assert_eq!(
+            year_of(greg(2022, 12, 31)),
+            Err(CalendarError::YearOutOfRange)
+        );
         assert_eq!(
             year_of(greg(2028, 1, 1)),
             Err(CalendarError::AfterSupportedRange)
@@ -344,7 +359,14 @@ mod tests {
     fn the_metadata_and_usage_say_what_the_module_says() {
         let calendar = BuddhistLkCalendar;
         assert_eq!(calendar.meta().id, ID);
-        assert_eq!(calendar.usage().from, Some(EARLIEST));
+        // The count is older than any source read: no first day.
+        assert_eq!(calendar.usage().from, None);
+        assert_eq!(calendar.usage().until, None);
+        assert!(calendar.usage().source.contains("undated"));
+        assert_eq!(
+            calendar.usage().standing(greg(2026, 10, 5)),
+            hc_calendar::Standing::InUse
+        );
         assert_eq!(calendar.is_leap_year(2568), Ok(true));
         assert_eq!(calendar.is_leap_year(2569), Ok(false));
         assert_eq!(

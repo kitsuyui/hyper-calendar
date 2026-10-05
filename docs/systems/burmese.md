@@ -316,11 +316,11 @@ through the calendar (`every_day_of_three_decades_round_trips_and_counts_on`),
 and so does every day of the whole range, 639 to 3639 CE, in a release build;
 a debug build takes a deterministic sample and, besides it, the first Tagu of
 every year it spans and the day before (`every_day_of_the_range_round_trips`).
-The one day of the range that could share its date with another is the day
-before 16 ME's first Tagu, which is also the Sun's New Year of 16 ME. It is
-the last day of 15 ME, a 385-day big watat year whose months run on to the
-day before 16 ME's first Tagu, and its Tabaung has 30 days, not 16 ME's own
-Tabaung 30
+No two days of the range share a date. The one place the New Year and the
+first Tagu come apart is the day before 16 ME's first Tagu, which is also the
+Sun's New Year of 16 ME: it is 15 ME's Tabaung 30, the last day of a 385-day
+big watat year whose months run on to the day before 16 ME's first Tagu and
+whose Tabaung has 30 days, and not a day of 16 ME
 (`the_day_before_the_first_tagu_that_follows_a_new_year_ends_the_year_before`).
 
 **Re-read on 2026-09-25.** The module's dates for 1387 and 1388 ME were

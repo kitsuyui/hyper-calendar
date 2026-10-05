@@ -4767,7 +4767,7 @@ macro_rules! exports {
             /// buffer.
             ///
             /// The line is the WebAssembly module's. A day outside 2023 to 2027,
-            /// the years whose Vesak day a Holidays Act order read fixes, is
+            /// the years whose Vesak day is carried, is
             /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
             /// terminator, into `written`.
         }
@@ -4778,9 +4778,9 @@ macro_rules! exports {
             /// The Common Era year plus 544 from the Vesak Poya and plus 543 before
             /// it, `hc_describe_day`'s calendar `buddhist-lk`. Tab-separated: the
             /// Buddhist year; the Gregorian year the day is in; the fixed day of
-            /// that Gregorian year's Vesak Poya, as the Holidays Act order read fixes
-            /// it; the fixed day the Buddhist year began on, that Vesak or the year
-            /// before's, empty where no order read fixes it; and the last fixed day
+            /// that Gregorian year's Vesak Poya, as carried; the fixed
+            /// day the Buddhist year began on, that Vesak or the year
+            /// before's, empty where it is not carried; and the last fixed day
             /// of the Buddhist year, the eve of the next Vesak, empty likewise. A
             /// day outside 2023 to 2027, the years whose Vesak day an order read
             /// fixes, is `HC_ERR_OUT_OF_RANGE`: a gap, never a computed full moon. A

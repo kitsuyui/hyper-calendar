@@ -43,7 +43,7 @@ use hc_calendar::{
 };
 
 use crate::common;
-use crate::persian::{ERA, MONTHS, PersianDate, days_before_month};
+use crate::persian::{ERA, MONTHS, PersianDate};
 
 /// The calendar's identifier.
 pub const ID: CalendarId = CalendarId("persian-arithmetic-33");
@@ -119,7 +119,7 @@ pub const fn to_fixed(year: i64, month: u8, day: u8) -> CalendarResult<Rd> {
     match common::check_day(day, days_in_month(year, month)) {
         Err(error) => Err(error),
         Ok(()) => Ok(Rd(new_year_raw(year)
-            + days_before_month(month)
+            + common::six_thirty_ones_days_before_month(month)
             + day as i64
             - 1)),
     }
@@ -148,13 +148,7 @@ pub const fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
         year += 1;
     }
     let day_of_year = rd.0 - new_year_raw(year) + 1;
-    let ordinal = if day_of_year <= 186 {
-        (day_of_year + 30) / 31
-    } else {
-        (day_of_year + 23) / 30
-    };
-    let month = ordinal as u8;
-    let day = (day_of_year - days_before_month(month)) as u8;
+    let (month, day) = common::six_thirty_ones_month_and_day(day_of_year);
     Ok((year, month, day))
 }
 

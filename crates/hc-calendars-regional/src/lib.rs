@@ -26,7 +26,7 @@
 //! | [`gregorian_eras`] | `hongxian` — Yuan Shikai's 洪憲 of 1916; `manchukuo` — Manchukuo's 大同 and 康德, 1932–1945; both on the Gregorian calendar |
 //! | [`burmese`] | `burmese` — the Myanmar Era's lunisolar calendar, its watat years and full moons by the Calendar Advisory Board's arithmetic and the record's exceptions |
 //! | [`thai_lunar`] | `thai-lunar` — the Thai lunar calendar, its adhikamāsa and adhikavāra years carried as published for 2535–2570 BE (1992–2027) |
-//! | [`buddhist_lk`] | `buddhist-lk` — Sri Lanka's Buddhist year over the Gregorian day, the Common Era year plus 544 from the Vesak Poya Day and plus 543 before it, over the Vesak days the Holidays Act orders fix, 2023–2027 |
+//! | [`buddhist_lk`] | `buddhist-lk` — Sri Lanka's Buddhist year over the Gregorian day, the Common Era year plus 544 from the Vesak Poya Day and plus 543 before it, over the Vesak days carried for 2023–2027 |
 //! | [`vietnamese_regnal`] | `vietnamese-regnal-nguyen` — the eleven eras of the Nguyễn dynasty over the Vietnamese lunisolar calendar, from the day each began, 1 June 1802 to the abdication of 30 August 1945 |
 //! | [`tibetan_almanac`] | No calendar: the Tibetan almanac's columns — lunar mansion, *yoga*, *karaṇa*, true Sun and Moon — the planets and Rāhu, the *rab byung* year names and the count from 127 BCE, the Bhutanese weekday and winter solstice, the Mongolian months and colours, and where a festival on a skipped or repeated date falls |
 //! | [`khmer`] | `khmer` — the Khmer *Chhankitek*, its leap-month and leap-day years by the *suryayatra* rule as Cambodia applies it, 1900–2200 |

@@ -1,11 +1,16 @@
 //! Arithmetic shared by more than one calendar in this crate.
 //!
-//! Two shapes recur often enough to be worth factoring out:
+//! Four shapes recur often enough to be worth factoring out:
 //!
 //! * the "twelve months of thirty days plus a short thirteenth" year of the
 //!   Coptic, Ethiopic, Egyptian, Armenian and French Republican calendars;
 //! * "Gregorian structure with a different year number", which is all the
-//!   Buddhist, Minguo, Juche and Holocene calendars are.
+//!   Buddhist, Minguo, Juche and Holocene calendars are;
+//! * the perennial "thirteen months of 28 days" of the International Fixed,
+//!   Tranquility and Pax calendars, with a day or a week outside them;
+//! * the Solar Hijri "six months of 31 days, five of 30 and a last of 29 or
+//!   30" of the two arithmetic Persian calendars and the Kurdish year over
+//!   one of them.
 //!
 //! Sharing the arithmetic rather than copying it is the point: a bug fixed in
 //! the month table is fixed everywhere, and the per-calendar modules are left
@@ -116,9 +121,152 @@ pub(crate) fn offset_from_fixed(rd: Rd, offset: i64) -> CalendarResult<(i64, u8,
     Ok((shifted, month, day))
 }
 
+/// The length of every ordinary month of a perennial 13 × 28 year.
+pub(crate) const PERENNIAL_MONTH: i64 = 28;
+
+/// The day number the perennial calendars give a day outside the week,
+/// which they attach to the month before it.
+pub(crate) const PERENNIAL_ADDED_DAY: u8 = 29;
+
+/// Days in a 13 × 28 year before the first of `month`, where a leap year's
+/// added day follows the days of `leap_day_month`.
+pub(crate) const fn perennial_days_before_month(month: u8, leap: bool, leap_day_month: u8) -> i64 {
+    let elapsed = PERENNIAL_MONTH * (month as i64 - 1);
+    if leap && month > leap_day_month {
+        elapsed + 1
+    } else {
+        elapsed
+    }
+}
+
+/// The month and day of the `elapsed`th day of a 13 × 28 year, counting
+/// from 0, with every month 28 days long.
+pub(crate) const fn perennial_month_and_day(elapsed: i64) -> (u8, u8) {
+    (
+        (elapsed / PERENNIAL_MONTH + 1) as u8,
+        (elapsed % PERENNIAL_MONTH + 1) as u8,
+    )
+}
+
+/// The month and day of the `elapsed`th day of a 13 × 28 year that ends in
+/// a 365th day outside the week, numbered day 29 of month 13, and in a leap
+/// year holds one more, the `at`th day counting from 0, numbered day 29 of
+/// `month`: `leap_day` is `Some((at, month))` in a leap year.
+pub(crate) const fn perennial_from_elapsed(elapsed: i64, leap_day: Option<(i64, u8)>) -> (u8, u8) {
+    let mut elapsed = elapsed;
+    if let Some((at, month)) = leap_day {
+        if elapsed == at {
+            return (month, PERENNIAL_ADDED_DAY);
+        }
+        if elapsed > at {
+            elapsed -= 1;
+        }
+    }
+    if elapsed == 13 * PERENNIAL_MONTH {
+        return (13, PERENNIAL_ADDED_DAY);
+    }
+    perennial_month_and_day(elapsed)
+}
+
+/// The Gregorian year in which the year of a calendar that begins on
+/// `month`/`day` of the Gregorian calendar, and contains `rd`, began.
+///
+/// # Errors
+///
+/// Propagates the Gregorian range check.
+pub(crate) const fn gregorian_year_begun_on(rd: Rd, month: u8, day: u8) -> CalendarResult<i64> {
+    match gregorian::from_fixed(rd) {
+        Err(error) => Err(error),
+        Ok((year, m, d)) => {
+            if m < month || (m == month && d < day) {
+                Ok(year - 1)
+            } else {
+                Ok(year)
+            }
+        }
+    }
+}
+
+/// Days of a Solar Hijri-shaped year before the first of `month`: six
+/// months of 31 days, then months of 30.
+pub(crate) const fn six_thirty_ones_days_before_month(month: u8) -> i64 {
+    if month <= 7 {
+        31 * (month as i64 - 1)
+    } else {
+        30 * (month as i64 - 1) + 6
+    }
+}
+
+/// The month and day of the `day_of_year`th day, counting from 1, of a
+/// Solar Hijri-shaped year: the month falls out of one division on each
+/// side of day 186, the end of the sixth month.
+pub(crate) const fn six_thirty_ones_month_and_day(day_of_year: i64) -> (u8, u8) {
+    let ordinal = if day_of_year <= 186 {
+        (day_of_year + 30) / 31
+    } else {
+        (day_of_year + 23) / 30
+    };
+    let month = ordinal as u8;
+    (
+        month,
+        (day_of_year - six_thirty_ones_days_before_month(month)) as u8,
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_perennial_shape_places_its_added_days() {
+        // A common year: 364 days in the months and Year Day after them.
+        assert_eq!(perennial_from_elapsed(0, None), (1, 1));
+        assert_eq!(perennial_from_elapsed(27, None), (1, 28));
+        assert_eq!(perennial_from_elapsed(28, None), (2, 1));
+        assert_eq!(perennial_from_elapsed(363, None), (13, 28));
+        assert_eq!(perennial_from_elapsed(364, None), (13, 29));
+        // A leap day after the 28th of month 6 (the International Fixed
+        // Leap Day) shifts everything after it by one.
+        let after_june = Some((6 * PERENNIAL_MONTH, 6));
+        assert_eq!(perennial_from_elapsed(167, after_june), (6, 28));
+        assert_eq!(perennial_from_elapsed(168, after_june), (6, 29));
+        assert_eq!(perennial_from_elapsed(169, after_june), (7, 1));
+        assert_eq!(perennial_from_elapsed(365, after_june), (13, 29));
+        // A leap day between the 27th and 28th of month 8 (Aldrin Day).
+        let in_month_8 = Some((7 * PERENNIAL_MONTH + 27, 8));
+        assert_eq!(perennial_from_elapsed(222, in_month_8), (8, 27));
+        assert_eq!(perennial_from_elapsed(223, in_month_8), (8, 29));
+        assert_eq!(perennial_from_elapsed(224, in_month_8), (8, 28));
+        assert_eq!(perennial_days_before_month(7, false, 6), 168);
+        assert_eq!(perennial_days_before_month(7, true, 6), 169);
+        assert_eq!(perennial_days_before_month(6, true, 6), 140);
+    }
+
+    #[test]
+    fn the_year_begun_on_a_gregorian_day_is_found_either_side_of_it() {
+        let rd = |y, m, d| gregorian::to_fixed(y, m, d).unwrap();
+        assert_eq!(gregorian_year_begun_on(rd(2026, 7, 21), 7, 21), Ok(2026));
+        assert_eq!(gregorian_year_begun_on(rd(2026, 7, 20), 7, 21), Ok(2025));
+        assert_eq!(gregorian_year_begun_on(rd(2026, 1, 1), 11, 2), Ok(2025));
+        assert_eq!(gregorian_year_begun_on(rd(2026, 11, 2), 11, 2), Ok(2026));
+    }
+
+    #[test]
+    fn the_six_thirty_ones_shape_turns_at_day_186() {
+        assert_eq!(six_thirty_ones_month_and_day(1), (1, 1));
+        assert_eq!(six_thirty_ones_month_and_day(31), (1, 31));
+        assert_eq!(six_thirty_ones_month_and_day(32), (2, 1));
+        assert_eq!(six_thirty_ones_month_and_day(186), (6, 31));
+        assert_eq!(six_thirty_ones_month_and_day(187), (7, 1));
+        assert_eq!(six_thirty_ones_month_and_day(216), (7, 30));
+        assert_eq!(six_thirty_ones_month_and_day(217), (8, 1));
+        assert_eq!(six_thirty_ones_month_and_day(365), (12, 29));
+        assert_eq!(six_thirty_ones_month_and_day(366), (12, 30));
+        for month in 1..=12u8 {
+            let first = six_thirty_ones_days_before_month(month) + 1;
+            assert_eq!(six_thirty_ones_month_and_day(first), (month, 1));
+        }
+    }
 
     #[test]
     fn the_wandering_year_never_grows() {
