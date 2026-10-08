@@ -3036,8 +3036,9 @@ const LK_FIRST: i64 = 2023;
 /// The last year they fix.
 const LK_LAST: i64 = 2027;
 
-/// The days the Holidays Act orders name: each year's section 4 schedule in
-/// its order, with the section 10 orders that add or move a day applied.
+/// The days the 2023-2027 orders name, as the sources of the table cite them:
+/// each year's section 4 schedule, with the section 10 orders that add or move
+/// a day applied. The orders themselves are PDFs and were not opened.
 static LK_GAZETTED: Listing = Listing::Named(&[
     // 2023
     (2023, 1, 6, "Duruthu Full Moon Poya Day"),
@@ -3344,8 +3345,8 @@ pub static SRI_LANKA: RuleSet = RuleSet {
               section 4, Nos. 2287/4 (2023), 2341/46 (2024), 2395/33 (2025), 2438/22 (2026) \
               and 2493/5 (2027); under section 10, Nos. 2337/18 (30 June 2023), 2402/25 \
               (23 September 2024) and 2485/14 (the day following Vesak 2026 on 31 May); \
-              from the Department of Government Printing (documents.gov.lk), retrieved \
-              2026-09-23 and 2026-09-27. Vesak 2026 on 30 May, the Cabinet decision \
+              the orders are PDFs on the Department of Government Printing's site (documents.gov.lk) and were not opened, so the days are not checked against the Gazette text. \
+              Vesak 2026 on 30 May, the Cabinet decision \
               No. අමප/26/0553/822/018 of 30 March 2026 in force over the schedule of \
               No. 2438/22: the Department of Buddhist Affairs' letter DBA/4/5/01/2026 of \
               29 April 2026, as the Department of Government Information publishes it \

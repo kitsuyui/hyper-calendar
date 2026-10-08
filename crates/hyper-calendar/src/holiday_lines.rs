@@ -318,12 +318,7 @@ pub fn weekend_cell(set: &RuleSet) -> String {
         if policy.is_unread() {
             out.push_str("unread");
         } else {
-            for (position, day) in policy.days.iter().enumerate() {
-                if position > 0 {
-                    out.push('+');
-                }
-                out.push_str(&day.iso_number().to_string());
-            }
+            push_iso_days(&mut out, policy.days);
         }
         out.push('/');
         if let Some(year) = policy.valid_from {
@@ -339,6 +334,17 @@ pub fn weekend_cell(set: &RuleSet) -> String {
         out.push_str(&policy.regions.join(","));
     }
     out
+}
+
+/// Writes weekdays as ISO 8601 numbers joined by `+`, Monday 1 to Sunday 7:
+/// the form the weekend and the substitution cells both use.
+fn push_iso_days(out: &mut String, days: &[Weekday]) {
+    for (position, day) in days.iter().enumerate() {
+        if position > 0 {
+            out.push('+');
+        }
+        out.push_str(&day.iso_number().to_string());
+    }
 }
 
 /// Column 16 of `hc_holiday_tables`: the tables whose days off a table keeps
@@ -402,19 +408,11 @@ pub fn includes_cell(set: &RuleSet) -> String {
 #[must_use]
 pub fn substitution_cell(set: &RuleSet) -> String {
     let mut out = String::new();
-    let days = |out: &mut String, days: &[Weekday]| {
-        for (position, day) in days.iter().enumerate() {
-            if position > 0 {
-                out.push('+');
-            }
-            out.push_str(&day.iso_number().to_string());
-        }
-    };
     for (index, policy) in set.substitution.iter().enumerate() {
         if index > 0 {
             out.push(';');
         }
-        days(&mut out, policy.trigger);
+        push_iso_days(&mut out, policy.trigger);
         out.push('/');
         out.push_str(policy.direction.id());
         out.push('/');
@@ -429,7 +427,7 @@ pub fn substitution_cell(set: &RuleSet) -> String {
             out.push_str(flag);
         }
         out.push('/');
-        days(&mut out, policy.avoid);
+        push_iso_days(&mut out, policy.avoid);
         out.push('/');
         if let Some(year) = policy.valid_from {
             out.push_str(&year.to_string());
@@ -1194,7 +1192,7 @@ pub fn is_weekend(code: &str, region: Option<&str>, fixed: i64) -> Answer<bool> 
     table
         .weekend_in(scope.region, day)
         .map(|days| days.contains(&Weekday::from_rd(day)))
-        .ok_or(Refusal::OutOfRange)
+        .ok_or(refusal(Unanswered::UnreadWeekend))
 }
 
 /// How many years [`holiday_beyond`] looks at most: the next and the last

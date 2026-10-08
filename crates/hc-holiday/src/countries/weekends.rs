@@ -143,13 +143,19 @@ pub static AL: &[WeekendPolicy] = &[
 /// into force: article 155 gives the general rest day as Sunday and, "in the
 /// case of a five-day working week, Saturday and Sunday", except in the cases
 /// of parts 2 to 4 of the article and of other legal acts. It is the general
-/// labour law, which covers the public sector. The redaction read is the
-/// original, whose status ARLIS gives as in force from 21 June to 22 August
-/// 2005; whether later amendments changed the article was not checked.
+/// labour law, which covers the public sector. The quoted words are the
+/// Armenian of article 155 as the page now reads, "հնգօրյա աշխատանքային շաբաթվա
+/// դեպքում՝ շաբաթը և կիրակին" (in the case of a five-day working week, the
+/// Saturday and the Sunday); the English is this note's translation. The
+/// address now serves the consolidated text under "Official incorporation",
+/// read on 2026-10-09. That text does not show the original redaction or its
+/// status line, which on 2026-10-05 gave the original as in force from 21 June
+/// to 22 August 2005. The 2005 date therefore rests on that earlier reading and
+/// is not verified again, and whether later amendments changed the article was
+/// not checked.
 ///
-/// Sources, retrieved 2026-10-05: Labour Code of Armenia (HO-124-N), article
-/// 155, original redaction (ARLIS)
-/// <https://www.arlis.am/documentview.aspx?docid=51>.
+/// Sources, retrieved 2026-10-09: Labour Code of Armenia (HO-124-N), article
+/// 155, the consolidated text (ARLIS) <https://www.arlis.am/documentview.aspx?docid=51>.
 pub static AM: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until_day(2005, 6, 20),
     WeekendPolicy::of(SAT_SUN).from_day(2005, 6, 21),
@@ -319,21 +325,25 @@ pub static BN: &[WeekendPolicy] = &[
     WeekendPolicy::of(FRI_SUN).from(2019),
 ];
 
-/// Bolivia: Saturday and Sunday from 26 December 2010, the date of Decreto
-/// Supremo 751, which fixes the working hours of the Executive and the bodies
-/// under it as 08:30 to 12:30 and 14:30 to 18:30 "de lunes a viernes" (the
-/// decree's date; the day it came into force is not on the page read). An
-/// earlier decree, 29000 of 2 January 2007, gives the same days for the
-/// Presidency and the Ministry of the Presidency only, and is not carried as
-/// the country's.
+/// Bolivia: Saturday and Sunday from 2 January 2007, the date of Decreto
+/// Supremo 29000, which sets the working day of the public institutions under
+/// the Poder Ejecutivo, "con excepción de la Presidencia de la República y el
+/// Ministerio de la Presidencia", as a split day "de lunes a viernes", 08:30 to
+/// 12:30 and 14:30 to 18:30. Decreto Supremo 751 of 26 December 2010 makes the
+/// day continuous, eight hours "de lunes a viernes" (its article 2), and its
+/// recital calls 29000 the split day of the Executive; the days do not change,
+/// so the weekend is not dated from 2010. Neither decree has an entry-into-force
+/// clause, so each regime is taken from its own decree's date. The weekend is
+/// that of the Executive's bodies: the Presidency's and the private sector's
+/// were not read, and every year before 2007 is a gap.
 ///
-/// Sources, retrieved 2026-10-05: Bolivia, Decreto Supremo No. 751 of 26
-/// December 2010 (Lexivox) <https://www.lexivox.org/norms/BO-DS-N751.html>;
-/// Bolivia, Decreto Supremo No. 29000 of 2 January 2007 (Lexivox)
-/// <https://www.lexivox.org/norms/BO-DS-29000.html>.
+/// Sources, retrieved 2026-10-09: Bolivia, Decreto Supremo No. 29000 of 2
+/// January 2007, scope and split day (Lexivox) <https://www.lexivox.org/norms/BO-DS-29000.html>;
+/// Bolivia, Decreto Supremo No. 751 of 26 December 2010, article 2 and recital
+/// (Lexivox) <https://www.lexivox.org/norms/BO-DS-N751.html>.
 pub static BO: &[WeekendPolicy] = &[
-    WeekendPolicy::unread().until_day(2010, 12, 25),
-    WeekendPolicy::of(SAT_SUN).from_day(2010, 12, 26),
+    WeekendPolicy::unread().until(2006),
+    WeekendPolicy::of(SAT_SUN).from_day(2007, 1, 2),
 ];
 
 /// Brazil: Saturday and Sunday, from 2026, the year
@@ -647,35 +657,36 @@ pub static DO: &[WeekendPolicy] = &[
     WeekendPolicy::of(SAT_SUN).from(2026),
 ];
 
-/// Algeria: Saturday and Sunday until the ordinances of 1976 made it Thursday
-/// and Friday (ordonnance no. 76-77 of 11 August 1976 on the weekly rest, known
-/// by its title only, so the change is carried from 1 January 1976), and Friday
-/// and Saturday from Friday 14 August 2009, by the Council of Ministers'
-/// decision of 21 July 2009, which Jeune Afrique (AFP) of that day reports as
-/// "au lieu de jeudi et vendredi". The date of the first regime is the year
-/// before the change, a news report's own reference; no page read states
-/// Saturday and Sunday for 1975, so that regime is the one that no source read
-/// confirms.
+/// Algeria: Thursday and Friday from 1 January 1976, the year of ordonnance no.
+/// 76-77 of 11 August 1976 on the weekly rest. The ordinance is known by its
+/// title only, and its date of effect is not read, so the change is carried
+/// from the start of that year. Friday and Saturday from Friday 14 August 2009,
+/// by the Council of Ministers' decision of 21 July 2009, which Jeune Afrique
+/// (AFP) of that day reports as "au lieu de jeudi et vendredi". No page read
+/// states the weekend before the ordinance, so the years before 1976 are a gap
+/// and no Saturday and Sunday is assumed for 1975 (ADR 0015).
 ///
 /// Sources, retrieved 2026-10-05: Jeune Afrique (AFP), 21 July 2009
 /// <https://www.jeuneafrique.com/depeches/109375/politique/lalgerie-decide-de-faire-du-vendredi-et-samedi-jours-de-conge-hebdomadaire-2/>.
 pub static DZ: &[WeekendPolicy] = &[
-    WeekendPolicy::unread().until(1974),
-    WeekendPolicy::of(SAT_SUN).from(1975).until(1975),
+    WeekendPolicy::unread().until(1975),
     WeekendPolicy::of(THU_FRI).from(1976).until_day(2009, 8, 13),
     WeekendPolicy::of(FRI_SAT).from_day(2009, 8, 14),
 ];
 
 /// Ecuador: Saturday and Sunday from 6 October 2010, the date of the Registro
 /// Oficial Suplemento 294 that published the Ley Orgánica de Servicio Público
-/// (LOSEP): article 25(a) gives the ordinary working day as eight effective
-/// hours "de lunes a viernes y durante los cinco días de cada semana", forty
-/// hours a week. The text read is the consolidated one (reformed to 2020), so
-/// the wording of 2010 itself is not verified.
+/// (LOSEP). The page read for that date gives the publication and the reformed
+/// status (last modified 22 June 2020), and it does not carry the articles. The
+/// wording of article 25(a), which gives the ordinary working day as Monday to
+/// Friday, five days a week, forty hours, is not on that page and is not quoted
+/// here: it was read on 2026-10-05 in the consolidated text on vLex Ecuador,
+/// which has no URL recorded and was not read again. The Registro Oficial text
+/// of 2010 is not read.
 ///
-/// Sources, retrieved 2026-10-05: Ecuador, Ley Orgánica de Servicio Público
-/// (Registro Oficial Suplemento 294 of 6 October 2010), article 25(a)
-/// <https://derechoecuador.com/ley-organica-de-servicio-publico-losep/>.
+/// Sources, retrieved 2026-10-09: Ecuador, Ley Orgánica de Servicio Público
+/// (Registro Oficial Suplemento 294 of 6 October 2010), publication and reformed
+/// status <https://derechoecuador.com/ley-organica-de-servicio-publico-losep/>.
 pub static EC: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until_day(2010, 10, 5),
     WeekendPolicy::of(SAT_SUN).from_day(2010, 10, 6),
@@ -1035,6 +1046,13 @@ pub static IQ: &[WeekendPolicy] = &[
 /// day are reported by sources that were not re-read here, and none is read in
 /// force, so Friday stands for the years to 2026.
 ///
+/// No read source dates the start. The year 1991 is an inference from the
+/// confirmation, not a source's date: the page read gives the rule with no date
+/// of effect. A search extract of the ILO and Refworld record of the Code gives
+/// its publication in the Gazette on 17 February 1991, which would be consistent
+/// with that year, but the Refworld page was not opened (HTTP 403 on
+/// 2026-10-09), and the entry into force is not read.
+///
 /// Sources, retrieved 2026-10-05: Iran Data Portal, Labor Law of Iran, article
 /// 62 (translation) <https://irandataportal.syr.edu/labor-conditions/>.
 pub static IR: &[WeekendPolicy] = &[
@@ -1174,15 +1192,20 @@ pub static KP: &[WeekendPolicy] = &[
 ];
 
 /// South Korea: Saturday and Sunday from 1 July 2005. Presidential Decree 18438
-/// of 24 June 2004 amended article 9 of the regulation on the service of
-/// national civil servants, which gives the week's working time as forty hours,
-/// "Saturday being a day off in principle" (토요일은 휴무함을 원칙으로 한다), from 1 July
-/// 2004, and let Saturday leave be given only twice a month until 30 June 2005.
-/// The weekend is therefore read from the end of that transition, and every
-/// year before it is a gap. The regulation is read as Wikisource transcribes
-/// it.
+/// of 24 June 2004 amended articles 9 and 13 of the regulation on the service
+/// of national civil servants. Article 9(1) gives the week's working time as
+/// forty hours, "Saturday being a day off in principle" (토요일은 휴무함을 원칙으로 한다),
+/// and the supplementary provisions make the amendments in force from 1 July
+/// 2004. A special provision on the implementation of the Saturday day-off
+/// system lets that day off be given only twice a month until 30 June 2005.
+/// The rule is therefore in force from 2004 but was not yet given on every
+/// Saturday, and the weekend is read from 1 July 2005, the end of that special
+/// provision; every year before it is a gap. The page read is the consolidated
+/// text of 2016, which shows article 9 and the supplementary provisions of 2004
+/// but not article 13 as it stood in 2004, so the wording of article 13 is not
+/// verified.
 ///
-/// Sources, retrieved 2026-10-05: Korea, 국가공무원 복무규정, article 9 and the
+/// Sources, retrieved 2026-10-09: Korea, 국가공무원 복무규정, article 9 and the
 /// supplementary provisions of 대통령령 제18438호 (Wikisource)
 /// <https://ko.wikisource.org/wiki/%EA%B5%AD%EA%B0%80%EA%B3%B5%EB%AC%B4%EC%9B%90_%EB%B3%B5%EB%AC%B4%EA%B7%9C%EC%A0%95>.
 pub static KR: &[WeekendPolicy] = &[
@@ -2049,16 +2072,18 @@ pub static SN: &[WeekendPolicy] = &[
     WeekendPolicy::of(SAT_SUN).from(2026),
 ];
 
-/// Somalia: Friday: article 64(1) of the Labour Code of 2024 (Law 36 of 2024),
-/// one day's rest a week, which "should normally fall on Friday" ("maalinta
-/// Jimcaha"); a 2025 news article says Friday is the designated weekly day off.
-/// The policy begins with 2025, the year the Code is read from. Neither the
-/// Code's text nor the article of 2025 could be found again on 2026-10-05: a
-/// search extract gives the same rule as article 96 of the earlier Code (Law 65
-/// of 1972), so this entry is not re-verified.
+/// Somalia: Friday from 2026, the year the sources were read in. The live
+/// English Wikipedia article "Workweek and weekend", retrieved 2026-10-09 and
+/// secondary, says in its introduction that the one-day weekend "can be Friday
+/// only (in Djibouti, Iran, Somalia and Libya)", and its table gives Saturday to
+/// Thursday as the working week. The Labour Code of 2024 (Law 36 of 2024), whose
+/// article 64(1) an earlier reading gave as Friday, and the 2025 news article it
+/// cited could not be read on 2026-10-09: the FAOLEX and LEAP record of the Code
+/// refused the connection (HTTP 403). No dated source for an earlier weekend is
+/// carried, so every year before 2026 is a gap.
 pub static SO: &[WeekendPolicy] = &[
-    WeekendPolicy::unread().until(2024),
-    WeekendPolicy::of(FRIDAY).from(2025),
+    WeekendPolicy::unread().until(2025),
+    WeekendPolicy::of(FRIDAY).from(2026),
 ];
 
 /// Suriname: Saturday and Sunday, from 2026, the year
@@ -2362,7 +2387,8 @@ pub static VE: &[WeekendPolicy] = &[
 /// agencies are closed on Saturday and Sunday could not be identified again,
 /// and is not carried. The years before 2021 are a gap.
 ///
-/// Sources, retrieved 2026-10-05: the Ministry of Labour's, the Ministry of
+/// Sources. The notices were read on 2026-09-23 and not re-read on 2026-10-09
+/// (no URL is recorded for them): the Ministry of Labour's, the Ministry of
 /// Home Affairs' and the Government Office's notices of the civil service's
 /// days off, 2021 to 2026 (4875/TB-LĐTBXH of 10 December 2020 and the others)
 /// (docs/references.bib); Vietnam, Bộ luật Lao động, Luật số 45/2019/QH14,
@@ -2445,7 +2471,7 @@ pub static ZW: &[WeekendPolicy] = &[
 /// the table's closed days are read from, which name weekday closures only; the
 /// exchange's trading week before it is not read, and the years before are a
 /// gap. The lists are B3, "Trading calendar"
-/// (<https://www.b3.com.br/en_us/solutions/platforms/puma-trading-system/for-members-and-traders/trading-calendar/holidays/>),
+/// (<https://www.b3.com.br/en_us/solutions/platforms/puma-trading-system/for-members-and-traders/trading-calendar/holidays/> (bib key: `b3-trading-calendar`)),
 /// retrieved 2026-09-23, as the table's `sources` names them.
 pub static BVMF: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2020),
@@ -2478,7 +2504,7 @@ pub static XAMS: &[WeekendPolicy] = &[
 /// year of the lists the table's closed days are read from, which name weekday
 /// closures only; the exchange's trading week before it is not read, and the
 /// years before are a gap. The lists are ASX, "Trading calendar"
-/// (<https://www.asx.com.au/markets/market-resources/trading-hours-calendar/cash-market-trading-hours/trading-calendar>),
+/// (<https://www.asx.com.au/markets/market-resources/trading-hours-calendar/cash-market-trading-hours/trading-calendar> (bib key: `asx-trading-calendar`)),
 /// retrieved 2026-09-23, as the table's `sources` names them.
 pub static XASX: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2025),
@@ -2489,7 +2515,7 @@ pub static XASX: &[WeekendPolicy] = &[
 /// the lists the table's closed days are read from, which name weekday closures
 /// only; the exchange's trading week before it is not read, and the years
 /// before are a gap. The lists are SET, "SET Holidays"
-/// (<https://www.set.or.th/en/about/event-calendar/holiday>), retrieved
+/// (<https://www.set.or.th/en/about/event-calendar/holiday> (bib key: `set-holidays`)), retrieved
 /// 2026-09-25, as the table's `sources` names them.
 pub static XBKK: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2021),
@@ -2500,7 +2526,7 @@ pub static XBKK: &[WeekendPolicy] = &[
 /// of the lists the table's closed days are read from, which name weekday
 /// closures only; the exchange's trading week before it is not read, and the
 /// years before are a gap. The lists are BSE, "Trading Holidays" notices
-/// (<https://www.bseindia.com/markets/MarketInfo/DispNewNoticesCirculars.aspx?page=NOTICE>),
+/// (<https://www.bseindia.com/markets/MarketInfo/DispNewNoticesCirculars.aspx?page=NOTICE> (bib key: `bse-trading-holidays-notices`)),
 /// retrieved 2026-09-23, as the table's `sources` names them.
 pub static XBOM: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2019),
@@ -2545,7 +2571,7 @@ pub static XDUB: &[WeekendPolicy] = &[
 /// closures only; the exchange's trading week before it is not read, and the
 /// years before are a gap. The lists are Deutsche Börse, "Trading calendar and
 /// trading hours"
-/// (<https://www.cashmarket.deutsche-boerse.com/cash-en/trading/trading-calendar-and-trading-hours>),
+/// (<https://www.cashmarket.deutsche-boerse.com/cash-en/trading/trading-calendar-and-trading-hours> (bib key: `deutsche-boerse-trading-calendar`)),
 /// retrieved 2026-09-23, as the table's `sources` names them.
 pub static XETR: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2025),
@@ -2567,7 +2593,7 @@ pub static XHEL: &[WeekendPolicy] = &[
 /// year of the lists the table's closed days are read from, which name weekday
 /// closures only; the exchange's trading week before it is not read, and the
 /// years before are a gap. The lists are HKEX, "HKEX Calendar"
-/// (<https://www.hkex.com.hk/News/HKEX-Calendar>), retrieved 2026-09-23, as the
+/// (<https://www.hkex.com.hk/News/HKEX-Calendar> (bib key: `hkex-calendar`)), retrieved 2026-09-23, as the
 /// table's `sources` names them.
 pub static XHKG: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2025),
@@ -2589,7 +2615,7 @@ pub static XICE: &[WeekendPolicy] = &[
 /// the lists the table's closed days are read from, which name weekday closures
 /// only; the exchange's trading week before it is not read, and the years
 /// before are a gap. The lists are IDX, "Trading Holiday"
-/// (<https://www.idx.co.id/en-us/news/trading-holiday/>), retrieved 2026-09-23,
+/// (<https://www.idx.co.id/en-us/news/trading-holiday/> (bib key: `idx-trading-holiday`)), retrieved 2026-09-23,
 /// as the table's `sources` names them.
 pub static XIDX: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2019),
@@ -2600,7 +2626,7 @@ pub static XIDX: &[WeekendPolicy] = &[
 /// the table's closed days are read from, which name weekday closures only; the
 /// exchange's trading week before it is not read, and the years before are a
 /// gap. The lists are Borsa İstanbul, "Official Holidays"
-/// (<https://www.borsaistanbul.com/en/official-holidays>), retrieved
+/// (<https://www.borsaistanbul.com/en/official-holidays> (bib key: `borsaistanbul-official-holidays`)), retrieved
 /// 2026-09-23, as the table's `sources` names them.
 pub static XIST: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2018),
@@ -2611,7 +2637,7 @@ pub static XIST: &[WeekendPolicy] = &[
 /// the lists the table's closed days are read from, which name weekday closures
 /// only; the exchange's trading week before it is not read, and the years
 /// before are a gap. The lists are JPX, "Trading calendar"
-/// (<https://www.jpx.co.jp/english/corporate/about-jpx/calendar/index.html>),
+/// (<https://www.jpx.co.jp/english/corporate/about-jpx/calendar/index.html> (bib key: `jpx-trading-calendar`)),
 /// retrieved 2026-09-23, as the table's `sources` names them.
 pub static XJPX: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2025),
@@ -2622,7 +2648,7 @@ pub static XJPX: &[WeekendPolicy] = &[
 /// of the lists the table's closed days are read from, which name weekday
 /// closures only; the exchange's trading week before it is not read, and the
 /// years before are a gap. The lists are JSE, the market calendars
-/// (<https://clientportal.jse.co.za/reports/trading-calendars>), retrieved
+/// (<https://clientportal.jse.co.za/reports/trading-calendars> (bib key: `jse-trading-calendars`)), retrieved
 /// 2026-09-23, as the table's `sources` names them.
 pub static XJSE: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2023),
@@ -2633,7 +2659,7 @@ pub static XJSE: &[WeekendPolicy] = &[
 /// the table's closed days are read from, which name weekday closures only; the
 /// exchange's trading week before it is not read, and the years before are a
 /// gap. The lists are Bursa Malaysia, "Calendar"
-/// (<https://www.bursamalaysia.com/about_bursa/about_us/calendar>), retrieved
+/// (<https://www.bursamalaysia.com/about_bursa/about_us/calendar> (bib key: `bursamalaysia-calendar`)), retrieved
 /// 2026-09-23, as the table's `sources` names them.
 pub static XKLS: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2019),
@@ -2666,7 +2692,7 @@ pub static XLIS: &[WeekendPolicy] = &[
 /// lists the table's closed days are read from, which name weekday closures
 /// only; the exchange's trading week before it is not read, and the years
 /// before are a gap. The lists are London Stock Exchange, "Business days"
-/// (<https://www.londonstockexchange.com/equities-trading/business-days>),
+/// (<https://www.londonstockexchange.com/equities-trading/business-days> (bib key: `lse-business-days`)),
 /// retrieved 2026-09-23, as the table's `sources` names them.
 pub static XLON: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2025),
@@ -2677,7 +2703,7 @@ pub static XLON: &[WeekendPolicy] = &[
 /// lists the table's closed days are read from, which name weekday closures
 /// only; the exchange's trading week before it is not read, and the years
 /// before are a gap. The lists are BME, "Calendario del mercado"
-/// (<https://www.bolsasymercados.es/es/bme-exchange/negociar/calendario-del-mercado.html>),
+/// (<https://www.bolsasymercados.es/es/bme-exchange/negociar/calendario-del-mercado.html> (bib key: `bme-calendario-del-mercado`)),
 /// retrieved 2026-09-23, as the table's `sources` names them.
 pub static XMAD: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2022),
@@ -2688,7 +2714,7 @@ pub static XMAD: &[WeekendPolicy] = &[
 /// the lists the table's closed days are read from, which name weekday closures
 /// only; the exchange's trading week before it is not read, and the years
 /// before are a gap. The lists are BMV, "Calendario de días festivos"
-/// (<https://www.bmv.com.mx/es/grupo-bmv/calendario-de-dias-festivos>),
+/// (<https://www.bmv.com.mx/es/grupo-bmv/calendario-de-dias-festivos> (bib key: `bmv-calendario-dias-festivos`)),
 /// retrieved 2026-09-23, as the table's `sources` names them.
 pub static XMEX: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2018),
@@ -2710,7 +2736,7 @@ pub static XMIL: &[WeekendPolicy] = &[
 /// table's closed days are read from, which name weekday closures only; the
 /// exchange's trading week before it is not read, and the years before are a
 /// gap. The lists are Nasdaq Trader, "Trading Calendar"
-/// (<https://www.nasdaqtrader.com/trader.aspx?id=calendar>), retrieved
+/// (<https://www.nasdaqtrader.com/trader.aspx?id=calendar> (bib key: `nasdaqtrader-trading-calendar`)), retrieved
 /// 2026-09-23, as the table's `sources` names them.
 pub static XNAS: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2025),
@@ -2721,7 +2747,7 @@ pub static XNAS: &[WeekendPolicy] = &[
 /// year of the lists the table's closed days are read from, which name weekday
 /// closures only; the exchange's trading week before it is not read, and the
 /// years before are a gap. The lists are NSE, "Trading Holidays" circulars
-/// (<https://www.nseindia.com/resources/exchange-communication-circulars>),
+/// (<https://www.nseindia.com/resources/exchange-communication-circulars> (bib key: `nse-exchange-circulars`)),
 /// retrieved 2026-09-23, as the table's `sources` names them.
 pub static XNSE: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2019),
@@ -2731,11 +2757,11 @@ pub static XNSE: &[WeekendPolicy] = &[
 /// New York Stock Exchange: Saturday and Sunday from 1953: the exchange stopped
 /// trading on Saturdays in 1952 — "In 1952, Saturday trading hours are
 /// eliminated, establishing the five-day trading week" (Wikipedia, "New York
-/// Stock Exchange", <https://en.wikipedia.org/wiki/New_York_Stock_Exchange>,
+/// Stock Exchange", <https://en.wikipedia.org/wiki/New_York_Stock_Exchange> (bib key: `wikipedia-en-new-york-stock-exchange`),
 /// retrieved 2026-10-05, secondary; the day was not verified), and 1953 is
 /// the first whole year after. The lists the table's closed days come from,
 /// NYSE's "Holidays & Trading Hours"
-/// (<https://www.nyse.com/markets/hours-calendars>, retrieved 2026-09-22), are
+/// (<https://www.nyse.com/markets/hours-calendars> (bib key: `nyse-hours-calendars`), retrieved 2026-09-22), are
 /// read from 2026.
 pub static XNYS: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(1952),
@@ -2746,7 +2772,7 @@ pub static XNYS: &[WeekendPolicy] = &[
 /// closed days are read from, which name weekday closures only; the exchange's
 /// trading week before it is not read, and the years before are a gap. The
 /// lists are NZX, "NZX Market Holidays" memos
-/// (<https://www.nzx.com/announcements/383874>), retrieved 2026-09-23, as the
+/// (<https://www.nzx.com/announcements/383874> (bib key: `nzx-market-holidays-2021-2023`)), retrieved 2026-09-23, as the
 /// table's `sources` names them.
 pub static XNZE: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2020),
@@ -2779,21 +2805,29 @@ pub static XPAR: &[WeekendPolicy] = &[
 /// the lists the table's closed days are read from, which name weekday closures
 /// only; the exchange's trading week before it is not read, and the years
 /// before are a gap. The lists are PSE, "Trading Hours & Holidays"
-/// (<https://www.pse.com.ph/trading-hours-and-holidays/>), retrieved
+/// (<https://www.pse.com.ph/trading-hours-and-holidays/> (bib key: `pse-trading-hours-holidays`)), retrieved
 /// 2026-09-23, as the table's `sources` names them.
 pub static XPHS: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2019),
     WeekendPolicy::of(SAT_SUN).from(2020),
 ];
 
-/// Saudi Exchange (Tadawul): Sunday to Thursday, as the exchange's "Trading
-/// Days: Sunday to Thursday" has it, since the royal order of 23 June 2013
-/// moved the kingdom's working week and named the exchange among those it
-/// bound, from Saturday 29 June 2013; before it the exchange traded Saturday to
-/// Wednesday (Saturday 25 and Sunday 26 February 2006 were trading days, the
-/// earliest dated source read; Thursday as a closed day then is inferred from
-/// the national weekend). Every year before 2023 is a gap for the days in any
-/// case.
+/// Saudi Exchange (Tadawul): Sunday to Thursday, since the royal order of 23
+/// June 2013 moved the kingdom's working week and named the Saudi stock market
+/// among the bodies it bound, from Saturday 29 June 2013 (20/8/1434 H). The
+/// order is the Saudi Press Agency's of 23 June 2013 (`spa-saudi-weekend-2013`,
+/// read 2026-10-05), and the Arabic text that Sayidaty reproduces, read on
+/// 2026-10-09, gives the same effective date and names the stock market. The
+/// exchange's own statement of its trading days, "Trading Days: Sunday to
+/// Thursday", was not found or read, and no URL is recorded for it. Before the
+/// change the exchange traded Saturday to Wednesday (Saturday 25 and Sunday 26
+/// February 2006 were trading days, the earliest dated source read; Thursday as
+/// a closed day then is inferred from the national weekend). Every year before
+/// 2023 is a gap for the days in any case.
+///
+/// Sources: Saudi Press Agency, royal order of 23 June 2013 (`spa-saudi-weekend-2013`)
+/// <https://www.spa.gov.sa/1122964>; Sayidaty, the order's Arabic text, read
+/// 2026-10-09 <https://www.sayidaty.net/node/74992>.
 pub static XSAU: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until_day(2006, 2, 24),
     WeekendPolicy::of(THU_FRI)
@@ -2806,7 +2840,7 @@ pub static XSAU: &[WeekendPolicy] = &[
 /// lists the table's closed days are read from, which name weekday closures
 /// only; the exchange's trading week before it is not read, and the years
 /// before are a gap. The lists are SGX, "Securities Trading"
-/// (<https://www.sgx.com/stock-exchange/trading>), retrieved 2026-09-23, as the
+/// (<https://www.sgx.com/stock-exchange/trading> (bib key: `sgx-securities-trading`)), retrieved 2026-09-23, as the
 /// table's `sources` names them.
 pub static XSES: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2019),
@@ -2850,7 +2884,7 @@ pub static XSTO: &[WeekendPolicy] = &[
 /// lists the table's closed days are read from, which name weekday closures
 /// only; the exchange's trading week before it is not read, and the years
 /// before are a gap. The lists are SIX, "Trading & Currency Holiday Calendar"
-/// (<https://www.six-group.com/en/market-data/news-tools/trading-currency-holiday-calendar.html>),
+/// (<https://www.six-group.com/en/market-data/news-tools/trading-currency-holiday-calendar.html> (bib key: `six-trading-holiday-calendar`)),
 /// retrieved 2026-09-23, as the table's `sources` names them.
 pub static XSWX: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2025),
@@ -2865,11 +2899,11 @@ pub static XSWX: &[WeekendPolicy] = &[
 /// answered 404 on 2026-10-05 and is not re-read); MSCI's announcement
 /// "Change of Israel Trading Schedule - Effective January 5th, 2026" of 12
 /// December 2025
-/// (<https://app2.msci.com/webapp/index_ann/DocGet?pub_key=5P%2FP7%2F0GDSk%3D&lang=en&format=html>,
+/// (<https://app2.msci.com/webapp/index_ann/DocGet?pub_key=5P%2FP7%2F0GDSk%3D&lang=en&format=html> (bib key: `msci-israel-trading-schedule-2026`),
 /// retrieved 2026-10-05) says that "effective January 5th, 2026, its trading
 /// week will move from Sunday-Thursday to Monday-Friday". The schedules of the
 /// exchange's vacation days, TASE's "Trading Vacation Schedule"
-/// (<https://www.tase.co.il/en/content/knowledge_center/trading_vacation_schedule>,
+/// (<https://www.tase.co.il/en/content/knowledge_center/trading_vacation_schedule> (bib key: `tase-trading-vacation-schedule`),
 /// retrieved 2026-09-23), are read from 2024.
 pub static XTAE: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2023),
@@ -2881,7 +2915,7 @@ pub static XTAE: &[WeekendPolicy] = &[
 /// lists the table's closed days are read from, which name weekday closures
 /// only; the exchange's trading week before it is not read, and the years
 /// before are a gap. The lists are 臺灣證券交易所, 市場開休市日期
-/// (<https://www.twse.com.tw/zh/trading/holiday.html>), retrieved 2026-09-23,
+/// (<https://www.twse.com.tw/zh/trading/holiday.html> (bib key: `twse-market-holidays`)), retrieved 2026-09-23,
 /// as the table's `sources` names them.
 pub static XTAI: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2022),
@@ -2892,7 +2926,7 @@ pub static XTAI: &[WeekendPolicy] = &[
 /// lists the table's closed days are read from, which name weekday closures
 /// only; the exchange's trading week before it is not read, and the years
 /// before are a gap. The lists are TMX Group, "Calendar"
-/// (<https://www.tsx.com/en/trading/calendars-and-trading-hours/calendar>),
+/// (<https://www.tsx.com/en/trading/calendars-and-trading-hours/calendar> (bib key: `tmx-calendar`)),
 /// retrieved 2026-09-23, as the table's `sources` names them.
 pub static XTSE: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2024),
@@ -2903,7 +2937,7 @@ pub static XTSE: &[WeekendPolicy] = &[
 /// of the lists the table's closed days are read from, which name weekday
 /// closures only; the exchange's trading week before it is not read, and the
 /// years before are a gap. The lists are GPW, "Szczegóły sesji"
-/// (<https://www.gpw.pl/szczegoly-sesji>), retrieved 2026-09-23, as the table's
+/// (<https://www.gpw.pl/szczegoly-sesji> (bib key: `gpw-szczegoly-sesji`)), retrieved 2026-09-23, as the table's
 /// `sources` names them.
 pub static XWAR: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2018),
@@ -2914,7 +2948,7 @@ pub static XWAR: &[WeekendPolicy] = &[
 /// table's closed days are read from, which name weekday closures only; the
 /// exchange's trading week before it is not read, and the years before are a
 /// gap. The lists are Wiener Börse, "Handelskalender"
-/// (<https://www.wienerborse.at/handel/handelsinformationen/handelskalender/>),
+/// (<https://www.wienerborse.at/handel/handelsinformationen/handelskalender/> (bib key: `wienerborse-handelskalender`)),
 /// retrieved 2026-09-23, as the table's `sources` names them.
 pub static XWBO: &[WeekendPolicy] = &[
     WeekendPolicy::unread().until(2018),
