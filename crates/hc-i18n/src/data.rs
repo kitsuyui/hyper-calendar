@@ -936,6 +936,26 @@ const VI_TEMPLATES: DateTemplates = DateTemplates {
     ..DateTemplates::NONE
 };
 
+/// The Buddhist and Minguo long dates in Vietnamese, as `vi.xml`'s
+/// `calendar type="buddhist"` and `type="roc"` write them:
+/// "'ngày' d 'tháng' M 'năm' y G", *ngày 21 tháng 9 năm 2569 BE*, the day
+/// and the month unpadded and the year with its era after it.
+const VI_NUMBERED_TEMPLATES: DateTemplates = DateTemplates {
+    date: "ngày {day:1} tháng {month:1} năm {year}",
+    ..DateTemplates::NONE
+};
+
+/// The Japanese long date in Vietnamese, as `vi.xml`'s
+/// `calendar type="japanese"` writes it: "'Ngày' dd 'tháng' M 'năm' y G",
+/// *Ngày 21 tháng 9 năm 8 Reiwa*, the day padded to two digits. The month is
+/// written by its name, which is the same words as the number, so that an
+/// intercalary month keeps its *Nhuận*: a number would read back as the
+/// ordinary month.
+const VI_JAPANESE_TEMPLATES: DateTemplates = DateTemplates {
+    date: "Ngày {day:2} {month} năm {year}",
+    ..DateTemplates::NONE
+};
+
 /// The Chinese family's date in Vietnamese, as `vi.xml`'s items for
 /// `calendar type="chinese"` write it: 'Ngày' dd 'tháng' M 'năm' U for the
 /// long date, with the related Gregorian year after the stem and branch
@@ -1212,6 +1232,24 @@ pub(super) const MN_MONGOLIAN: CalendarNames = calendar_entry(
 .with_templates(DateTemplates {
     month: "{month} сар",
     date: "{year} оны {month} сарын {day}",
+    ..DateTemplates::NONE
+});
+
+/// The Buddhist and Minguo calendars' long dates in Mongolian, as `mn.xml`
+/// writes them: "G y\u{202f}'оны' MM 'сарын' dd", *BE 2569 оны 09 сарын 21*,
+/// the month by its number, where the Gregorian date names it (`mn.xml`'s
+/// `calendar type="buddhist"` and `"roc"`, read 2026-10-09). Only the
+/// calendars Mongolian already names are listed: an entry that serves one
+/// more makes the locale write it, with no month names of its own. The
+/// Japanese calendar is not listed: a numbered month would drop the
+/// intercalary month that Mongolian names, so its date keeps the month's name.
+pub(super) const MN_NUMBERED_CALENDARS: CalendarNames = calendar_entry(
+    &[CalendarId("buddhist"), CalendarId("roc")],
+    &[],
+    EraNames::EMPTY,
+)
+.with_templates(DateTemplates {
+    date: "{year}\u{202f}оны {month:2} сарын {day:2}",
     ..DateTemplates::NONE
 });
 
@@ -7722,12 +7760,19 @@ const VI: LocaleData = LocaleData {
             &[CalendarId("roc")],
             &[],
             era_names(&["broc", "roc"], &["Trước R.O.C", "ROC"], &[], &[]),
-        ),
+        )
+        .with_templates(VI_NUMBERED_TEMPLATES),
+        // The Buddhist calendar's long date is the same shape as the Minguo
+        // one's, and its era is root's BE.
+        calendar_entry(&[CalendarId("buddhist")], &[], EraNames::EMPTY)
+            .with_templates(VI_NUMBERED_TEMPLATES),
         // `vi.xml` states no Japanese eras of its own, so the calendar's
         // own names write them. The intercalary month before 1873 takes the
         // pattern the file gives the Chinese calendar's, `{0} Nhuận` (its
         // `monthPatterns`, leap), after the month: tháng 3 Nhuận.
-        CalendarNames::empty(JAPANESE_CALENDARS).with_leap_month_suffix(" Nhuận"),
+        CalendarNames::empty(JAPANESE_CALENDARS)
+            .with_leap_month_suffix(" Nhuận")
+            .with_templates(VI_JAPANESE_TEMPLATES),
         // The Vietnamese calendar and its Chinese-family kin in Vietnamese.
         // `vi.xml`'s `calendar type="chinese"` has the cyclic years, Giáp Tý
         // to Quý Hợi, which `readings::VIETNAMESE` carries, the leap pattern

@@ -38,16 +38,18 @@
 //!
 //! The pieces come from the same fallbacks the rest of the workspace uses:
 //! an era's name is the locale's, else the calendar's own
-//! ([`DynCalendar::era_name`], romanised for a Latin-script locale), else
-//! English's, else nothing — never its code, by
-//! [`hc_i18n::names::era_label`]; a month's is the locale's, else the calendar's own shape name,
-//! else its number; a day's is the locale's day name where it has one and
-//! its number otherwise. A number is written in the locale's numbering
-//! system, or in the one a template names, `{year:hans}`, where a
-//! standard writes a calendar's years in Han numerals and the locale's
-//! other dates in Latin digits. Nothing here invents an orthography: a locale that has stated
-//! no template gets its fields in [`hc_calendar::DateFields`] order,
-//! separated by spaces.
+//! ([`DynCalendar::era_name`], romanised unless the locale writes Han
+//! characters, kana or Hangul), else English's, else nothing — never its
+//! code, by [`hc_i18n::names::era_label`]; a month's is the locale's, else
+//! the calendar's own shape name where it fits the locale's script
+//! (romanised unless the locale writes Han characters, kana or Hangul), else
+//! its number; a day's is the locale's day name where it has one and its
+//! number otherwise. A number is written in the locale's numbering system,
+//! or in the one a template names, `{year:hans}`, where a standard writes a
+//! calendar's years in Han numerals and the locale's other dates in Latin
+//! digits. Nothing here invents an orthography: a locale that has stated no
+//! template gets its fields in [`hc_calendar::DateFields`] order, separated
+//! by spaces.
 //!
 //! # Reading a date back
 //!
@@ -85,18 +87,20 @@ mod read;
 pub use read::{DateRefusal, ParsedDate, parse_date};
 
 /// The locale a calendar is rendered in: the one asked for when it names
-/// the calendar and every name a date of the calendar writes, else English,
-/// else the one asked for with the calendar's own names; only `None` asks
-/// for the calendar's own language first.
+/// the calendar and every name a date of the calendar writes, else English.
+/// A locale that names no calendar keeps its tag only where it writes the
+/// calendar's own names, as below; only `None` asks for the calendar's own
+/// language first.
 ///
 /// A date is in one language. The locale names a month from its own data
 /// and an era from its own data or CLDR's root, whose abbreviations (`AH`,
 /// `BE`) belong to every language; the calendar's own name for a month or
-/// an era is written in the locale's script (romanised for a Latin one, in
-/// Han or Hangul for a Chinese, Japanese or Korean one) or not at all. A
-/// locale that cannot write each of them leaves the whole date to English,
-/// whose tag is then the locale used, and never takes a name from another
-/// language into its own date.
+/// an era is written in the locale's script, or romanised for a locale that
+/// does not write Han characters, kana or Hangul, as CLDR's root romanises a
+/// proper name no language translates; a Chinese, Japanese or Korean locale
+/// takes no romanisation. A locale that cannot write each of them leaves the
+/// whole date to English, whose tag is then the locale used, and never takes
+/// a name from another language into its own date.
 ///
 /// See [`hc_i18n::names::locale_for_calendar_with`], which this wraps.
 #[must_use]
@@ -1004,7 +1008,15 @@ impl<'a> Renderer<'a> {
             .find(|cycle| cycle.kind == MONTH)
             .and_then(|cycle| {
                 let index = usize::from(month.ordinal).checked_sub(1)?;
-                names::position_name(self.locale, self.id, cycle, index, width, context)
+                names::locale_position_name(self.locale, self.id, cycle, index, width, context)
+                    .or_else(|| {
+                        // The calendar's own month name is written in the
+                        // locale's script or romanised, or not at all: a
+                        // Han name in an English date is written by number.
+                        cycle
+                            .name(index)
+                            .filter(|name| own_name_fits(self.locale, name))
+                    })
             });
         match own {
             Some(name) => {

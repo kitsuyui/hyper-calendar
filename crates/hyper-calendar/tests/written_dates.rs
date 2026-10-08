@@ -1002,7 +1002,7 @@ fn written_dates_read_as_their_days() {
         ("yue-Hant", "萬延1年閏3月3日"),
         ("yue-Hans", "万延1年闰3月3日"),
         ("ko", "만엔 (1860 ~ 1861) 1년 윤3월 3일"),
-        ("vi", "3 tháng 3 Nhuận, 1 Man'en"),
+        ("vi", "Ngày 03 tháng 3 Nhuận năm 1 Man'en"),
     ] {
         let locale: Locale = tag.parse().expect("a tag");
         assert_eq!(label::date(japanese, &fields, &locale), text, "{tag}");

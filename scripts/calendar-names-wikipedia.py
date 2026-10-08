@@ -3,7 +3,7 @@
 interlanguage links of Wikipedia's articles on the registry's calendars.
 
     python3 scripts/calendar-names-wikipedia.py            # rewrite the file
-    python3 scripts/calendar-names-wikipedia.py --check    # exit 1 if it is stale
+    python3 scripts/calendar-names-wikipedia.py --check    # exit 1 if the names are stale; moved revision stamps are reported
     python3 scripts/calendar-names-wikipedia.py --dump     # every name, a TSV, and the log
 
 CLDR names the calendars of its own `-u-ca-` keys, and `src/data.rs` and
@@ -48,6 +48,7 @@ import json
 import os
 import re
 import sys
+import textwrap
 import time
 import unicodedata
 import urllib.error
@@ -576,6 +577,13 @@ def generate():
     for reason, identifiers in sorted(by_reason.items(), key=lambda item: item[1][0]):
         listed = ', '.join(f'`{i}`' for i in sorted(identifiers))
         lines.append(f'//! - {listed}: {reason}.')
+    tally = {reason: sum(1 for given in UNNAMED.values() if given == reason)
+             for reason in (NO_ARTICLE, CONVENTION, SHARED, SECTION, OTHER_SUBJECT)}
+    summary = (f'{len(UNNAMED)} calendars are not named: {tally[NO_ARTICLE]} with no article, '
+               f'{tally[CONVENTION]} conventions, {tally[SHARED]} sharing an article, '
+               f'{tally[SECTION]} under a section redirect and {tally[OTHER_SUBJECT]} with a '
+               'title about another subject.')
+    lines += ['//!'] + [f'//! {line}' for line in textwrap.wrap(summary, 76)]
     lines += ['//!', '//! Locales with no edition to read:', '//!']
     for tag, reason in sorted(NO_WIKI.items()):
         lines.append(f'//! - `{tag}`: {reason}.')
@@ -620,13 +628,37 @@ HEADER = '''\
 '''
 
 
+REVISION = re.compile(r'revision \d+')
+STAMP = re.compile(r'^//! - `([^`]+)`: .* revision (\d+)$', re.M)
+
+
+def check(expected):
+    """`--check`: the file is stale where its names differ, its titles and
+    the calendars it lists. A revision stamp that an article has moved to
+    since the read is information, not staleness: the title is what the table
+    carries, and an edit to the article changes its stamp alone."""
+    with open(OUTPUT, encoding='utf-8') as handle:
+        written = handle.read()
+    if REVISION.sub('revision', written) != REVISION.sub('revision', expected):
+        print(f'{OUTPUT} is stale: run scripts/calendar-names-wikipedia.py', file=sys.stderr)
+        sys.exit(1)
+    before, after = dict(STAMP.findall(written)), dict(STAMP.findall(expected))
+    for identifier in sorted(after):
+        if before.get(identifier) != after[identifier]:
+            print(f'{identifier}: revision {before.get(identifier)} is now {after[identifier]} '
+                  f'(information: the title is unchanged, {READ} was the read)', file=sys.stderr)
+
+
 def main():
     text, dump = generate()
     if '--dump' in sys.argv:
         print('\n'.join(dump + log))
         return
+    if '--check' in sys.argv:
+        check(rustfmt(text))
+        return
     write_or_check(OUTPUT, rustfmt(text), 'scripts/calendar-names-wikipedia.py')
-    if log and '--check' not in sys.argv:
+    if log:
         print('\n'.join(log), file=sys.stderr)
 
 

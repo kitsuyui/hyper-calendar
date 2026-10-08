@@ -43,6 +43,7 @@ import http.client
 import os
 import re
 import sys
+import time
 import urllib.request
 import xml.etree.ElementTree as ET
 
@@ -50,6 +51,7 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT = os.path.join(ROOT_DIR, 'crates/hc-humanize/src/data/cldr48.rs')
 OVERRIDES = os.path.join(ROOT_DIR, 'crates/hc-humanize/src/data/cldr48_overrides.tsv')
 BASE = 'https://raw.githubusercontent.com/unicode-org/cldr/release-48/common/'
+READ = '2026-10-09'
 
 # A locale whose files state no relative-time or duration pattern at the
 # `contributed` level or above is listed all the same and skipped with a
@@ -143,16 +145,27 @@ _texts = {}
 
 
 def fetch(path):
+    """The bytes of `common/<path>`, read whole. A read the network cut short
+    is shorter than the Content-Length its server states, or does not parse
+    as XML; either is read again after a pause, four attempts in all."""
+    if path in _texts:
+        return _texts[path]
     for attempt in range(4):
-        if path in _texts:
-            break
         try:
             with urllib.request.urlopen(BASE + path, timeout=60) as response:
-                _texts[path] = response.read()
-        except (OSError, http.client.HTTPException):
+                data = response.read()
+                declared = response.headers.get('Content-Length')
+            if declared is not None and int(declared) != len(data):
+                raise OSError(f'{path}: {len(data)} bytes of {declared}')
+            ET.fromstring(data)
+        except (OSError, http.client.HTTPException, ET.ParseError) as error:
             if attempt == 3:
                 raise
-    return _texts[path]
+            print(f'{path}: read again after {error}', file=sys.stderr)
+            time.sleep(2 * (attempt + 1))
+            continue
+        _texts[path] = data
+        return data
 
 
 def segment(element):
@@ -510,7 +523,7 @@ HEADER = '''\
 //!
 //! **Do not edit.** `scripts/humanize-cldr.py` writes this file from the
 //! Unicode CLDR 48 files (`release-48`, `common/main/<file>.xml` over
-//! `root.xml`, and `supplemental/plurals.xml`), resolved as the script's
+//! `root.xml`, and `supplemental/plurals.xml`, read {read}), resolved as the script's
 //! documentation says, and then applies `cldr48_overrides.tsv`; each
 //! override is written above the value it replaces, with its reason. The
 //! strings CLDR has no field for are not here: `super` adds them.
@@ -548,7 +561,7 @@ def generate():
             print(f'{tag}: CLDR 48 states no phrases; not carried', file=sys.stderr)
             continue
         out.extend(written)
-    return HEADER + '\n'.join(out).rstrip('\n') + '\n', dump
+    return HEADER.replace('{read}', READ) + '\n'.join(out).rstrip('\n') + '\n', dump
 
 
 def rustfmt(text):

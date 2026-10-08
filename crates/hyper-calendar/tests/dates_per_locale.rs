@@ -1,21 +1,21 @@
 //! A date is written the way the locale's CLDR 48 file writes it: one
-//! rendered date of 21 September 2026 for every carried locale in five
-//! calendars, held to the text and to the locale that wrote it.
+//! rendered date of 21 September 2026 for every carried locale in the
+//! calendars the table gives it, held to the text and to the locale that
+//! wrote it.
 //!
 //! `written_dates`, `vocabulary` and `line_digests` read what is written
 //! back, count its names or hold English's lines, and none of them notices a
 //! date written in the wrong order or with a point twice, so each text here
 //! is pinned. Every text is the locale's long date pattern over its names,
 //! as `common/main/<locale>.xml` of CLDR 48 states them (`cldr48-main`,
-//! read 2026-10-04): the Gregorian long date, and for the other calendars
-//! the long date of the file's own formats or, where the file has none,
-//! of its `generic` calendar, which `root.xml` aliases them to. The Gregorian
-//! and Buddhist rows agree with ICU 76 (CLDR 46, `Intl.DateTimeFormat`
-//! with `dateStyle: "long"`) in every locale ICU carries but `ml` and `ps`,
-//! whose long dates CLDR 48 states differently, `th` (below), and the
-//! Buddhist dates of `mn` and `vi`, whose patterns write the month by its
-//! number, `оны 09 сарын` and `ngày 21 tháng 9 năm`, where the crate names
-//! it. A locale that has
+//! read 2026-10-04, and read 2026-10-09 for the `mn`, `vi` and `zh` files
+//! the pins of those locales rest on): the Gregorian long date, and for the
+//! other calendars the long date of the file's own formats or, where the
+//! file has none, of its `generic` calendar, which `root.xml` aliases them
+//! to. The Gregorian and Buddhist rows agree with ICU 76 (CLDR 46,
+//! `Intl.DateTimeFormat` with `dateStyle: "long"`) in every locale ICU
+//! carries but `ml` and `ps`, whose long dates CLDR 48 states differently,
+//! and `th` (below). A locale that has
 //! no names for a calendar's months, or no name for one of its eras, is
 //! written in English whole and says so in `locale used` (`docs/i18n.md`,
 //! "One language per date"): ICU writes root's romanised month names in the
@@ -23,9 +23,12 @@
 //!
 //! Where the crate does not yet write CLDR 48's date: the Gregorian date in
 //! Thai is pinned without its era, since `th.xml`'s long date writes
-//! 21 กันยายน ค.ศ. 2026 and the Gregorian fields carry no era; and the
-//! Hebrew date in Japanese, Korean and Chinese, whose files number the
-//! months, AM5787年1月10日, where the crate names them, is not pinned.
+//! 21 กันยายน ค.ศ. 2026 and the Gregorian fields carry no era; the Hebrew
+//! date in Japanese, Korean and Chinese, whose files number the months,
+//! AM5787年1月10日, where the crate names them, is not pinned; and the
+//! Japanese long date of `mn`, which `mn.xml` writes with the month by its
+//! number, `оны 09 сарын`, is pinned with the month by its name, since a
+//! number would drop the intercalary month that the calendar has before 1873.
 
 #![cfg(all(
     feature = "alloc",
@@ -215,7 +218,7 @@ const PINS: &[(&str, &str, &str, &str)] = &[
     ("ml", "persian", "ml", "AP 1405 ഷഹ്\u{200c}രിവാർ 30"),
     ("ml", "japanese", "ml", "Reiwa 8 സെപ്റ്റംബർ 21"),
     ("mn", "gregory", "mn", "2026 оны есдүгээр сарын 21"),
-    ("mn", "buddhist", "mn", "BE 2569 оны есдүгээр сарын 21"),
+    ("mn", "buddhist", "mn", "BE 2569 оны 09 сарын 21"),
     ("mn", "hebrew", "en", "10 Tishri 5787"),
     ("mn", "persian", "en", "Shahrivar 30, 1405 AP"),
     ("mn", "japanese", "mn", "Reiwa 8 оны есдүгээр сарын 21"),
@@ -340,10 +343,11 @@ const PINS: &[(&str, &str, &str, &str)] = &[
     ("ur-IN", "persian", "ur-IN", "۳۰ شہریوار، ۱۴۰۵ AP"),
     ("ur-IN", "japanese", "ur-IN", "۲۱ ستمبر، ۸ Reiwa"),
     ("vi", "gregory", "vi", "21 tháng 9, 2026"),
-    ("vi", "buddhist", "vi", "21 tháng 9, 2569 BE"),
+    ("vi", "buddhist", "vi", "ngày 21 tháng 9 năm 2569 BE"),
+    ("vi", "roc", "vi", "ngày 21 tháng 9 năm 115 ROC"),
     ("vi", "hebrew", "en", "10 Tishri 5787"),
     ("vi", "persian", "en", "Shahrivar 30, 1405 AP"),
-    ("vi", "japanese", "vi", "21 tháng 9, 8 Reiwa"),
+    ("vi", "japanese", "vi", "Ngày 21 tháng 9 năm 8 Reiwa"),
     ("yua", "gregory", "en", "September 21, 2026"),
     ("yua", "buddhist", "en", "September 21, 2569 BE"),
     ("yua", "hebrew", "en", "10 Tishri 5787"),
@@ -369,6 +373,8 @@ const PINS: &[(&str, &str, &str, &str)] = &[
     ("zgh", "japanese", "zgh", "21 ⵛⵓⵜⴰⵏⴱⵉⵔ 8 Reiwa"),
     ("zh-Hans", "gregory", "zh-Hans", "2026年9月21日"),
     ("zh-Hans", "buddhist", "zh-Hans", "佛历2569年9月21日"),
+    ("zh-Hans", "roc", "zh-Hans", "民国115年9月21日"),
+    ("zh-Hans", "indian", "zh-Hans", "印度历1948年06月30日"),
     ("zh-Hans", "persian", "zh-Hans", "波斯历1405年6月30日"),
     ("zh-Hans", "japanese", "zh-Hans", "令和8年9月21日"),
     ("zh-Hant", "gregory", "zh-Hant", "2026年9月21日"),
