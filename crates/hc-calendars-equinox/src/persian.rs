@@ -583,6 +583,30 @@ mod tests {
         }
     }
 
+    /// Every day from 1 Farvardin 1178 to 29 Esfand 1634 falls on the same
+    /// Gregorian day under both reckonings. They part on one day: the 33-year
+    /// rule's 30 Esfand 1634, a leap day of that rule, is 1 Farvardin 1635
+    /// here, and the rule's 1 Farvardin 1635 is the next day. A debug build
+    /// walks every 61st day and the last day before the leap day; a release
+    /// build walks every day.
+    #[test]
+    fn the_33_year_rule_agrees_day_by_day_until_its_leap_day_in_1634() {
+        use hc_calendars_solar::persian_33;
+        let start = persian_33::to_fixed(1_178, 1, 1).unwrap();
+        let leap_day = persian_33::to_fixed(1_634, 12, 30).unwrap();
+        assert_eq!(persian_33::from_fixed(leap_day), Ok((1_634, 12, 30)));
+        let step = if cfg!(debug_assertions) { 61 } else { 1 };
+        for rd in (start.0..leap_day.0).step_by(step).chain([leap_day.0 - 1]) {
+            assert_eq!(from_fixed(Rd(rd)), persian_33::from_fixed(Rd(rd)), "{rd}");
+        }
+        assert_eq!(from_fixed(leap_day), Ok((1_635, 1, 1)));
+        assert_eq!(
+            persian_33::from_fixed(Rd(leap_day.0 + 1)),
+            Ok((1_635, 1, 1))
+        );
+        assert_eq!(from_fixed(Rd(leap_day.0 + 1)), Ok((1_635, 1, 2)));
+    }
+
     #[test]
     fn the_tolerance_is_a_minute_plus_the_two_delta_t_models_disagreement() {
         // Where the observed ΔT table answers, from 1974 (SH 1353), both

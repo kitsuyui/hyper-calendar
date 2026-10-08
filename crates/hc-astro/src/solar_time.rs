@@ -1735,19 +1735,28 @@ mod tests {
         assert!((seconds - 2_852.6).abs() < 0.05, "offset {seconds} s");
     }
 
-    /// Meeus, example 28.a: on 1992 October 13.0 TD the equation of time
-    /// is +13 min 42.6 s, so a sundial at Greenwich reads that far ahead
-    /// of the clock. Meeus takes his mean Sun at TD, which puts it 59 s of
-    /// its motion, 0.16 s of time, ahead of the one Universal Time counts.
+    /// Meeus, example 28.a, as PR #323 cites it: on 1992 October 13.0 TD
+    /// (JDE 2 448 908.5) the equation of time is +13 min 42.6 s, so a
+    /// sundial at Greenwich reads that far ahead of the clock. The instant
+    /// is taken as Terrestrial Time, the scale of Meeus's JDE arguments
+    /// (the book was not read here; pymeeus reproduces the example at
+    /// `Epoch(1992, 10, 13.0)` and prints 13 min 42.6 s without naming a
+    /// scale). The test converts TD to Universal Time with the ΔT model,
+    /// because `local_apparent_time` takes Universal Time. At that instant
+    /// the function gives 822.380 s, and 822.390 s if the same JDE were read
+    /// as Universal Time: the scale is worth 0.01 s, so the test pins the
+    /// TD value to 5 ms, and holds it to the cited 822.6 s within a quarter
+    /// of a second.
     #[test]
     fn a_greenwich_sundial_runs_ahead_by_meeus_example_28a() {
         let universal = universal_from_dynamical_julian_date(2_448_908.5);
         let apparent = local_apparent_time(universal, GREENWICH);
         let seconds = (apparent.0 - universal.0) * 86_400.0;
         assert!(
-            (seconds - 822.6).abs() < 0.5,
+            (seconds - 822.380).abs() < 0.005,
             "sundial ahead by {seconds} s"
         );
+        assert!((seconds - 822.6).abs() < 0.25, "Meeus 28.a: {seconds} s");
     }
 
     #[test]

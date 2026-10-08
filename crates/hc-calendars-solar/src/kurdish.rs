@@ -38,9 +38,12 @@
 //! * A Kurdish year over the astronomical Solar Hijri calendar
 //!   (`persian`, in `hc-calendars-equinox`), the Iranian civil rule: it
 //!   would need a source stating that the Kurdistan Region reckons the year
-//!   by the equinox, and none was read. The two agree on every day between
-//!   Solar Hijri 1178 and 1634 — Kurdish 2499 to 2955 — as the 33-year
-//!   rule's module says.
+//!   by the equinox, and none was read. The two agree on every day from
+//!   1 Farvardin 1178 to 29 Esfand 1634 — Kurdish 2499 to 2955 — and part
+//!   company on the 33-year rule's leap day, 30 Esfand 1634, which the
+//!   equinox calendar has as 1 Farvardin 1635. The span is the one Borkowski
+//!   gives, not read here, as Heydari-Malayeri reports it; the day-by-day
+//!   agreement is checked in `hc-calendars-equinox`.
 //! * The Sorani spellings, خاکەلێوە to ڕەشەمە, for want of a Kurdish
 //!   locale; the romanised forms are the shape's names.
 //! * The Kurdistan Region's own instrument, which was not found and would
@@ -67,9 +70,13 @@
 //! # Exactness
 //!
 //! Exact to the date the page's template displays, for every day from
-//! 20 March 1600, the first day the template's arithmetic is defined for;
-//! before it, the 33-year rule's own arithmetic carried back, which no
-//! page displays. Whether the Kurdistan Region reckons the year the same
+//! 20 March 1600, the first day the template's arithmetic is defined for.
+//! Before it nothing is answered: [`from_fixed`] refuses a day before
+//! [`EARLIEST`] with [`CalendarError::BeforeEpoch`], and [`to_fixed`]
+//! refuses a year before [`MIN_YEAR`] with [`CalendarError::YearOutOfRange`].
+//! The 33-year rule carried back past 1600 would give dates no page
+//! displays, and a gap is the answer ADR 0013 gives to a year the sources
+//! do not reach. Whether the Kurdistan Region reckons the year the same
 //! way is not established by any source read.
 
 use hc_calendar::shape::{CycleShape, MONTH, WEEKDAY};
@@ -106,8 +113,14 @@ pub const YEAR_OFFSET: i64 = 1321;
 /// The month whose length varies, Reşeme, which stands for Esfand.
 pub const RESHEME: u8 = 12;
 
-/// The earliest year this implementation converts: Solar Hijri 1.
-pub const MIN_YEAR: i64 = persian_33::MIN_YEAR + YEAR_OFFSET;
+/// The Solar Hijri year the template's arithmetic begins in: 979, which
+/// begins on [`TEMPLATE_FROM`].
+const TEMPLATE_YEAR: i64 = 979;
+
+/// The earliest year this implementation converts: Solar Hijri 979, which
+/// the template's 1600 begins, so 2300 in the Kurdish count. No source read
+/// displays a date before it.
+pub const MIN_YEAR: i64 = TEMPLATE_YEAR + YEAR_OFFSET;
 
 /// The latest year this implementation converts.
 pub const MAX_YEAR: i64 = 9_999;
@@ -148,9 +161,9 @@ pub const fn new_year(year: i64) -> CalendarResult<Rd> {
     to_fixed(year, 1, 1)
 }
 
-/// The earliest fixed day this implementation converts, 1 Xakelêwe 1322,
-/// which is 1 Farvardin 1.
-pub const EARLIEST: Rd = persian_33::EARLIEST;
+/// The earliest fixed day this implementation converts: [`TEMPLATE_FROM`],
+/// 1 Xakelêwe 2300, which is 1 Farvardin 979.
+pub const EARLIEST: Rd = TEMPLATE_FROM;
 
 /// The latest fixed day this implementation converts, the last day of
 /// [`MAX_YEAR`].
@@ -179,6 +192,9 @@ pub const fn to_fixed(year: i64, month: u8, day: u8) -> CalendarResult<Rd> {
 /// Returns [`CalendarError::BeforeEpoch`] or
 /// [`CalendarError::AfterSupportedRange`] outside [`EARLIEST`]..=[`LATEST`].
 pub const fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
+    if rd.0 < EARLIEST.0 {
+        return Err(CalendarError::BeforeEpoch);
+    }
     if rd.0 > LATEST.0 {
         return Err(CalendarError::AfterSupportedRange);
     }
@@ -418,6 +434,28 @@ mod tests {
         assert_eq!(
             KurdishCalendar.is_leap_year(MAX_YEAR + 1),
             Err(CalendarError::YearOutOfRange)
+        );
+    }
+
+    #[test]
+    fn the_range_begins_where_the_template_does() {
+        // The template's first day, 20 March 1600, is 1 Farvardin 979 and
+        // 1 Xakelêwe 2300; the days and years before it are out of range,
+        // not carried back by the 33-year rule (ADR 0013, policy §4).
+        assert_eq!(EARLIEST, TEMPLATE_FROM);
+        assert_eq!(MIN_YEAR, 979 + YEAR_OFFSET);
+        assert_eq!(to_fixed(MIN_YEAR, 1, 1), Ok(gregorian(1600, 3, 20)));
+        assert_eq!(
+            from_fixed(Rd(EARLIEST.0 - 1)),
+            Err(CalendarError::BeforeEpoch)
+        );
+        assert_eq!(
+            to_fixed(MIN_YEAR - 1, 1, 1),
+            Err(CalendarError::YearOutOfRange)
+        );
+        assert_eq!(
+            KurdishCalendar.meta().earliest,
+            Some(gregorian(1600, 3, 20))
         );
     }
 

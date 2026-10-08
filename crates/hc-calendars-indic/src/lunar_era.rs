@@ -427,7 +427,7 @@ pub const VALABHI_ERA: LunarEra = LunarEra {
     usage_source: "Sewell and Dikshit 1896, Art. 71, p. 43 [sewell1896]: the Gupta era \"with its \
         name changed\", used in Kathiawar from about the fourth Gupta century, its year thrown back \
         to the previous Karttika sukla 1, \"its months seem to be both amanta and purnimanta\"; \
-        Wikipedia's \"Gupta era\" [wikipedia-gupta-era], after Salomon, gives them as amanta; the \
+        Wikipedia's \"Gupta era\" [wikipedia-gupta-era], after Salomon, gives them as amanta, and the amanta reading is the one registered, the purnimanta one of Sewell and Dikshit not being an id of its own; the \
         inscriptions of the two eras together run from the year 82 to 945; the period runs from \
         the opening of year 1, the epoch the sources state, to the end of year 945, the last dated \
         inscription read; no source read dates a later use or the end of the era, so the days \
@@ -471,7 +471,8 @@ pub const LAKSHMANA_SENA_ERA: LunarEra = LunarEra {
     usage_source: "Sewell and Dikshit 1896, Art. 71, p. 46 [sewell1896]: in use in Tirhut and \
         Mithila, and dated in six inscriptions of A.D. 1194 to 1551 that Kielhorn reads as \
         Karttikadi and amanta, its first year A.D. 1119-20; the Mithila Panchang prints its year, \
-        907 in October 2026 [hinducalculator-mithila-panchang]; the period runs from the opening \
+        907 in October 2026, and reckons its months purnimanta, which this era does not register \
+        [hinducalculator-mithila-panchang]; the period runs from the opening \
         of year 1 on Kielhorn's epoch, which earlier writers placed in 1105 to 1109, and is still \
         in use, as docs/systems/indian-eras.md states",
     lunar: Months::SIDDHANTA,

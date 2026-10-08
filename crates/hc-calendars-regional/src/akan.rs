@@ -18,10 +18,14 @@
 //! on 10 February, and says the rest "may be calculated infinitely from
 //! these by adding or subtracting six-week intervals". [`EPOCH`] is that
 //! *Fɔdwo*, Monday 23 January 1978, ordinal zero of the cycle; the
-//! module's arithmetic is a modulo from it. The source's list of the nine
-//! *Akwasidae* of 1978 carries two dates the six-week rule does not give,
-//! "2 March" and "30 July", where the rule gives 2 April and 6 August; the
-//! other seven agree, and the rule is what is carried.
+//! module's arithmetic is a modulo from it. The source's sentence on 1978
+//! says there are nine *Akwasidae* and then lists ten dates: 8 January,
+//! 19 February, 2 March, 14 May, 25 June, 30 July, 6 August, 17 September,
+//! 29 October and 10 December. Eight of the ten are the six-week rule's.
+//! "2 March" and "30 July" are not: the rule gives 2 April, which the list
+//! omits, and 6 August, which the list has. The rule is what is carried,
+//! and the source's own count of nine disagrees with its list (the article
+//! read again on 2026-10-09 for this sentence).
 //!
 //! # A cycle, not a calendar
 //!

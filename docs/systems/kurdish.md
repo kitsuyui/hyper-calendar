@@ -64,7 +64,10 @@ so 1 Farvardin 1403 is 20 March 2024 and 1 Xakelêwe 2724 is that day, and
   date, the months under their Kurdish names and the year 1321 ahead
   (`YEAR_OFFSET`). Policy §5 gives each reckoning its own id; this id names
   the template's, and says so, so that a reckoning from a Kurdish source gets
-  another. It converts Kurdish 1322 (Solar Hijri 1) to 9999.
+  another. It converts Kurdish 2300 (Solar Hijri 979, the year that begins on 20 March 1600,
+  the template's first day) to 9999. Days before 20 March 1600 and years before 2300 are
+  refused, not answered: the sources read display no date earlier, and a year they do not
+  reach is a gap (ADR 0013).
 - Not carried, each for want of a source that states it:
   - A year on fixed Gregorian dates, every month beginning on the same Gregorian day each year
     and Reşeme taking its 30th day from a Gregorian February. The article's spans are headed
@@ -73,8 +76,11 @@ so 1 Farvardin 1403 is 20 March 2024 and 1 Xakelêwe 2724 is that day, and
     year.
   - A Kurdish year over the astronomical Solar Hijri calendar, the Iranian civil rule
     (`persian`, in `hc-calendars-equinox`): it needs a source stating that the Kurdistan Region
-    reckons the year by the equinox. The two agree on every day between Solar Hijri 1178 and
-    1634, Kurdish 2499 to 2955.
+    reckons the year by the equinox. The two agree on every day from 1 Farvardin 1178 to
+    29 Esfand 1634, Kurdish 2499 to 2955, and part company on the 33-year rule's leap day,
+    30 Esfand 1634, which the equinox calendar has as 1 Farvardin 1635. The span is the one
+    Borkowski gives, not read here, as Heydari-Malayeri reports it; the day-by-day agreement
+    is the test `the_33_year_rule_agrees_day_by_day_until_its_leap_day_in_1634`.
   - The article's epoch of 612 BC: it gives neither 2726 for 2026 nor any other year the article
     writes.
   - A period of use. The article names the Kurdistan Region of Iraq and no date, so the usage is unrecorded.
@@ -86,8 +92,11 @@ so 1 Farvardin 1403 is 20 March 2024 and 1 Xakelêwe 2724 is that day, and
 ## Accuracy
 
 Exact to the date the page's template displays, from 20 March 1600, the first
-day the template's arithmetic is defined for, to the year 9999; before 1600
-the 33-year rule's arithmetic carried back, which no page displays. The
+day the template's arithmetic is defined for, to the year 9999. Before 1600
+nothing is answered: the 33-year rule's arithmetic carried back is a date no
+page displays, so `from_fixed` refuses a day before 20 March 1600 with
+`BeforeEpoch` and `to_fixed` refuses a year before 2300 with `YearOutOfRange`
+(ADR 0013; policy §4). The
 test `the_template_is_the_pournader_toossi_algorithm` holds this module to a
 Rust transcription of `tsToIranian` on every day from 20 March 1600 to the
 end of 2600, the month under its Kurdish name and the year 1321 ahead;
