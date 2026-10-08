@@ -114,12 +114,14 @@ government_year! {
     None, 2025,
     "\
         The Ministry of Finance's budget page says the budget is approved for adoption on 1 July every \
-        year and the \"2026/2027\" Annual Budget was enacted on 1 July 2026; its documents are named \
-        \"FY2026/2027 Budget\" and \"FY2025/2026 Supplementary Budget\", the span led by the year it \
+        year, and its Budget Communication of 27 May 2026 says the 2026/2027 budget will be officially \
+        enacted on 1 July 2026; its headings name the budgets \"FY2026/27 Budget\" and \"Supplementary \
+        Budget 2025/26\" (under \"FY25/26 Budget Document Archives\"), the span led by the year it \
         begins in. The Public Finance Management Act 2023 is a PDF and was not read, so the earliest \
         year carried is the earliest it names, 2025.",
     "\
-        Ministry of Finance, The Bahamas, budget page (bahamasbudget.gov.bs), read 2026-10-04"
+        Ministry of Finance, The Bahamas, budget page (bahamasbudget.gov.bs), read 2026-10-04 and \
+        2026-10-09"
 }
 
 government_year! {
@@ -597,15 +599,16 @@ government_year! {
 }
 
 government_year! {
-/// Samoa — 1 July to 30 June, as the Ministry of Finance's documents say.
+/// Samoa — 1 July to 30 June, read from the Ministry's quarterly reports and budget titles.
     SAMOA, "WS", "Samoa", "", "Samoan financial year",
     Unread, (7, 1), LabelledByStartYear,
     None, 2025,
     "\
-        The Ministry of Finance's home page lists the \"Quarterly Financial Report 2025-2026 (First \
-        Quarter: July to September 2025)\" and the \"Budget 2025/2026\", the span led by the year it \
-        begins in. The Public Finance Management Act 2001 is a PDF and was not read, so the earliest \
-        year carried is 2025.",
+        The Ministry of Finance's home page lists the heading \"Quarterly Financial Report 2025-2026\" \
+        with the subtitle \"First Quarterly Report for the months July to September 2025\", and the \
+        heading \"Budget 2025 2026\"; the page does not state the year's start and end dates. The span \
+        is led by the year it begins in. The Public Finance Management Act 2001 is a PDF and was not \
+        read, so the earliest year carried is 2025.",
     "\
         Ministry of Finance, Samoa (mof.gov.ws), read 2026-10-04"
 }
