@@ -670,7 +670,7 @@ warning an error, one job a layer.
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zone_offset`, `hc_zones`, `hc_zone_location`, `hc_localtime`, `hc_mktime`, `hc_local_resolution`, `hc_mktime_policies`: the day and the offset by a zone's rules, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` or `zone-names` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 116,191 | 113 KiB |
 | `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_decan_at`, `hc_drekkana_at`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event`, `hc_horizons`, `hc_sunrise`, `hc_sunset`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_gmat_from_gmt`, `hc_gmt_from_gmat`, `hc_prayer_times`, `hc_prayer_methods`, `hc_zmanim`, `hc_temporal_hour`, `hc_edo_time`, `hc_unix_from_edo_time`, `hc_planetary_hour`, `hc_planetary_hours_of_day`, `hc_moonrise`, `hc_moonset`, `hc_ut1r_iers2010`, `hc_ut1s_iers2010`, `hc_zonal_tide_ut1_effect`, `hc_equation_of_time`, `hc_solar_noon`, `hc_solar_midnight`, `hc_dawn`, `hc_dusk` | `hc-astro`, `hc-seasons`, and `hc-i18n`'s names of the horizons and the planets | 185,767 | 181 KiB |
 | `orbital` | `hc_orbit_at`, `hc_orbit_series`, `hc_daily_insolation` | `hc-orbital`, `hc-uncertainty` | 65,436 | 64 KiB |
-| `jupiter` | `hc_jupiter_at`, `hc_jupiter_ingresses`, `hc_jupiter_risings`, `hc_kumbh_by_sky`, `hc_pushkaram_by_sky`, `hc_pushkarams_in_year`, `hc_kumbhs_in_year_by_sky`, `hc_jupiter_stations`, `hc_pushkaram_rules`: where Jupiter is, tropical and sidereal; its entries into the sidereal signs, its heliacal risings and its stations; and the Kumbh Mela and Pushkaram found from them, where `hc_kumbh` and `hc_pushkaram` take Jupiter's sign from the caller | `hc-astro`'s `jupiter` and `vsop87_jupiter` (3 625 terms of VSOP87B, 55 kB of tables), `hc-seasons`, `hc-calendars-indic`, `hc-i18n` | 236,163 | 231 KiB |
+| `jupiter` | `hc_jupiter_at`, `hc_jupiter_ingresses`, `hc_jupiter_risings`, `hc_kumbh_by_sky`, `hc_pushkaram_by_sky`, `hc_pushkarams_in_year`, `hc_kumbhs_in_year_by_sky`, `hc_jupiter_stations`, `hc_pushkaram_rules`: where Jupiter is, tropical and sidereal; its entries into the sidereal signs, its heliacal risings and its stations; and the Kumbh Mela and Pushkaram found from them by sky, whose forms that take Jupiter's sign from the caller are in `calendars` | `hc-astro`'s `jupiter` and `vsop87_jupiter` (3 625 terms of VSOP87B, 55 kB of tables), `hc-seasons`, `hc-calendars-indic`, `hc-i18n` | 236,163 | 231 KiB |
 | `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`, `hc_circad_date`: Mars time, the Darian date, the surface missions' sols, the solar day and local time of every body in `hc-planetary`'s table, and the dates of the Titan, Galilean and Martiana calendars | `hc-planetary`, `hc-astro` | 97,713 | 95 KiB |
 | `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies`, `hc_orbit_rate_offset`, `hc_rocket`, `hc_flip_and_burn`, `hc_doppler`, `hc_velocity_add`, `hc_schwarzschild_radius`, `hc_proper_time_uncertain` | `hc-relativity`, `hc-uncertainty` | 78,319 | 76 KiB |
 | `places` | `hc_territories`, `hc_subdivisions`, `hc_place_name`: what each carried locale calls every territory and every ISO 3166-2 subdivision CLDR 48 names | `hc-i18n`'s `place_names`: 2.8 MB of names, 2.6 MB of them the subdivisions' | 2,969,197 | 2.83 MiB |
@@ -1147,10 +1147,12 @@ shifts the leap second by the zone's offset, so the second 60 is read where
 the zone's clock shows UTC's `23:59:60`, on one of the 27 days from
 1972-06-30 to 2016-12-31 that ended in one: `1990-12-31T15:59:60-08:00`
 (RFC 3339 §5.8's own example) and `2017-01-01T08:59:60+09:00` are read, and
-`1990-12-31T15:59:60+08:00` or `1990-12-31T23:59:60-08:00` are not; a
-reading with no zone names no instant, and its second 60 is read at `23:59`
-alone. A value the library cannot hold, and a second 60 past the table's
-validity, whose day no one has announced, is `HC_ERR_OUT_OF_RANGE`; a syntax, form or precision not named `HC_ERR_UNKNOWN`. The library will not take an unqualified local
+`1990-12-31T15:59:60+08:00` or `1990-12-31T23:59:60-08:00` are not. A reading
+with no zone names no instant, but its clock is read as UTC's, so its second
+60 is at `23:59` on one of those days too: `2016-12-31T23:59:60` is read and
+`2026-09-21T23:59:60` is not. A value the library cannot hold, and a second 60
+past the table's validity, whose day no one has announced, is
+`HC_ERR_OUT_OF_RANGE`; a syntax, form or precision not named `HC_ERR_UNKNOWN`. The library will not take an unqualified local
 time for UTC: `2026-09-21T14:30:05` is a reading on somebody's wall clock,
 the same text 14 hours apart in Auckland and Honolulu, and the line that
 reads it has no offset and no instant.

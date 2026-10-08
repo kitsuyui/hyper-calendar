@@ -36,6 +36,7 @@ commands:
 ```sh
 cargo check --workspace --all-features
 cargo test --workspace --all-features
+cargo test --release --workspace --all-features                        # the release-mode sweeps; CI runs them in shards (scripts/release-shards.sh)
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo fmt --all -- --check
 typos                                                                  # the spellcheck workflow
@@ -57,11 +58,13 @@ scripts/wasm-tzdata.sh                                                 # the tzd
 cargo build -p hyper-calendar-ffi --release                            # shared library
 cargo build -p hyper-calendar-ffi --release --features holiday
 cargo audit                                                            # the security audit
+actionlint                                                             # the workflow files (CI: shellcheck off)
+cargo llvm-cov --workspace --all-features --lcov --output-path coverage.lcov -- --test-threads=1   # octocov.yml's coverage run
 ```
 
-CI also runs `actionlint` over the workflow files and, in `octocov.yml`, the
-coverage build (`cargo llvm-cov --workspace --all-features`, one test
-thread) whose result octocov reports on the pull request.
+The coverage run takes one test thread, because every thread of an
+instrumented binary increments the same counters; octocov reports its result
+on the pull request.
 
 The long day-by-day sweeps sample their days in a debug build and walk every
 day in a release one; CI runs both, so run

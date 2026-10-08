@@ -95,7 +95,7 @@ All three are the dates Wikipedia gives, and 1370 Y.Z. is 3738 ZRE in each
   - *The villages of Naṭanz*, which put the epagomenal days after Bahman
     rather than Esfandārmoḏ [panaino1990]: Panaino's fourth part places
     them among the communities that adopted the seasonal Jalālī calendar,
-    not the wandering Yazdegerdī year [panaino1990iv], so they are
+    not the wandering Yazdegerdī year [panaino1990], so they are
     `jalali-natanz` in `hc-calendars-equinox`, written up in
     [jalali.md](jalali.md), and not a form of these three.
 

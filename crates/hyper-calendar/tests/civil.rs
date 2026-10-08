@@ -1,7 +1,7 @@
 //! The ergonomic layer, checked against an independent implementation.
 //!
-//! Python's `datetime` is the reference requirement 2 of the project brief
-//! names, and its `date.toordinal()` is the same proleptic Gregorian day
+//! Python's `datetime` is the independent reference that docs/policy.md §7
+//! asks for, and its `date.toordinal()` is the same proleptic Gregorian day
 //! number as this library's `Rd`. That makes it a genuinely independent
 //! oracle rather than a restatement of our own arithmetic, so the anchors
 //! below were produced by running CPython and are quoted as its output.

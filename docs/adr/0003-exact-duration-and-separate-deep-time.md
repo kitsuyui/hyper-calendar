@@ -4,10 +4,11 @@
 
 ## Context
 
-The brief asks for both attosecond-scale civil precision and cosmological
-spans, including Planck time at 5.39×10⁻⁴⁴ s. No single exact integer
-representation covers both without absurd width, and the Planck-scale value is
-not exact anyway — it is derived from measured constants.
+docs/policy.md §3 asks for civil precision to the attosecond, computed exactly,
+and for every value to state how well it is known. Cosmological spans, including
+Planck time at 5.39×10⁻⁴⁴ s, need more than an exact integer count can give
+without absurd width, and the Planck-scale value is not exact anyway: it is
+derived from measured constants.
 
 ## Decision
 

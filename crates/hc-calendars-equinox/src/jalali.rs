@@ -35,7 +35,7 @@
 //! Jalālī calendar, "the 5 or 6 epagomenal days follow the month of
 //! Esfandārmoḏ or, in some villages in the district of Naṭanz, the month
 //! of Bahman" (Panaino, "Calendars iv. Other modern calendars", in the same
-//! article, `panaino1990iv`); at Abyāna in the district, in 1969, the five
+//! article, `panaino1990`); at Abyāna in the district, in 1969, the five
 //! days "are added ... to the end of Bahman, the eleventh month, and not to
 //! the end of the twelfth month" (Yarshater, "Abyāna", *Encyclopaedia
 //! Iranica*, 1983, `yarshater1983-abyana`, read 2026-09-29). That is
@@ -93,11 +93,11 @@ const RULE: Noon = Noon::Apparent(ISFAHAN);
 pub const USAGE_SOURCE: &str = "Abdollahy, \"Calendars ii\", Encyclopaedia Iranica IV (1990) \
     [abdollahy1990]: the reform dated from Friday 9 Ramaḍān 471, 15 March 1079, with Nowruz \
     thenceforth on the day the Sun entered Aries before noon; Panaino, \"Calendars iv\" \
-    [panaino1990iv], for the Zoroastrian communities of Iran that kept it; no end is dated";
+    [panaino1990], for the Zoroastrian communities of Iran that kept it; no end is dated";
 
 /// Where the Naṭanz placement's period comes from.
 pub const NATANZ_USAGE_SOURCE: &str = "Panaino, \"Calendars iv\", Encyclopaedia Iranica IV (1990) \
-    [panaino1990iv]: some villages in the district of Naṭanz put the 5 or 6 epagomenal days \
+    [panaino1990]: some villages in the district of Naṭanz put the 5 or 6 epagomenal days \
     after Bahman; Panaino, \"Calendars i\", \"still inserted after the eleventh month\"; \
     Yarshater, \"Abyāna\" (1983) [yarshater1983-abyana], the five days at the end of Bahman \
     there in 1969. No source dates the practice's beginning or end";

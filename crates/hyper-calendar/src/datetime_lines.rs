@@ -1197,8 +1197,17 @@ mod tests {
             parse_datetime_line("rfc3339", "2030-12-31T23:59:60Z"),
             Err(Refusal::OutOfRange)
         );
-        // A reading with no zone names no instant, so no day is refused.
-        assert_eq!(reading("iso8601", "2026-09-21T23:59:60")[6], "1");
+        // A reading with no zone is read as UTC's own clock, so its day must
+        // be one that ended in a leap second all the same.
+        assert_eq!(reading("iso8601", "2016-12-31T23:59:60")[6], "1");
+        assert_eq!(
+            parse_datetime_line("iso8601", "2026-09-21T23:59:60"),
+            Err(Refusal::InvalidDate)
+        );
+        assert_eq!(
+            parse_datetime_line("iso8601", "2030-12-31T23:59:60"),
+            Err(Refusal::OutOfRange)
+        );
     }
 
     /// RFC 3339 §5.8: `1990-12-31T15:59:60-08:00` is the leap second of

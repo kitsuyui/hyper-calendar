@@ -4,8 +4,9 @@
 
 ## Context
 
-Requirement 8 of the brief: bundling everything together would be wasteful, so
-it must be possible to compile in only what is needed. A lunar ephemeris,
+docs/policy.md §6 holds that not everything should be compiled into everything:
+bundling everything together would be wasteful, so it must be possible to
+compile in only what is needed. A lunar ephemeris,
 twenty-odd locales' worth of name data and holiday tables for most of the
 world's countries have no business in a WebAssembly bundle that formats Gregorian
 dates.
