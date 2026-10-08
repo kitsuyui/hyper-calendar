@@ -26,7 +26,8 @@ list has since been taken over by a secular body, a publisher or nobody:
   academies and the Institute for Language and Folklore keeps the list
   [isof-namnsdagar] [svenska-akademien-namnlangden]; it has had no official
   status since 1972 [riksdagen-kru4].
-- **Norway.** A private publisher, Almanakkforlaget, owns the list
+- **Norway.** A private publisher, Almanakkforlaget, states that its name-day
+  calendar is copyright-protected and gives no licence for it
   [almanakkforlaget-navnedager].
 - **Slovakia.** The Ministry of Culture's Kalendárová komisia publishes an
   official but recommendatory list [culture-sk-kalendarium].
@@ -166,7 +167,7 @@ about what the crate carries.
 | Country | Reason | Because |
 | --- | --- | --- |
 | Finland | `LicensedForAFee` | The University holds the copyright to the Finnish and Finland-Swedish lists, confirmed by the Supreme Court in 2000; free publication stops at two weeks or 15 names; a whole year is charged per copy. The Orthodox and Sámi lists carry no copyright fee, and whether a third party may redistribute them is not stated [helsinki-copyright] [helsinki-pricing] [kko-2000-56] |
-| Norway, Germany and Austria, France, Greece | `RightsReserved` | A named owner states copyright and asks for written permission: Almanakkforlaget [almanakkforlaget-navnedager]; PubliKath GmbH's namenstage.katholisch.de [katholisch-namenstage]; Nominis's legal notice, which covers its data on first names [nominis-legal-notice] [frwiki-fleuristes]; eortologio.gr, compiled by lay Orthodox Christians and not an official church document [eortologio-terms] [elwiki-eortologio] |
+| Norway, Germany and Austria, France, Greece | `RightsReserved` | Named owners state copyright. PubliKath GmbH's namenstage.katholisch.de and Nominis's legal notice, which covers its data on first names, ask for written permission [katholisch-namenstage] [nominis-legal-notice] [frwiki-fleuristes]; Almanakkforlaget states copyright and gives no licence or permission request [almanakkforlaget-navnedager]; eortologio.gr, compiled by lay Orthodox Christians and not an official church document [eortologio-terms] [elwiki-eortologio] |
 | Sweden, Estonia | `LicenceUnknown` | A keeper's or a publisher's list is readable and no terms are stated for it: the Swedish Academy's and Isof's pages, with the Academy's site-wide copyright notice and Isof's permission to copy site texts with credit [isof-namnsdagar] [svenska-akademien-namnlangden] [isof-alla-namn-i-almanackan]; Statistics Estonia's list, credited to a commercial book of 2011 [stat-ee-nimepaevad] |
 | Czechia, Denmark, Croatia, Hungary, Poland | `NoKeeperFound` | No body keeps a list that a page read names. Czechia and Hungary have a source that says so [ptejteseknihovny-kalendarium] [huwiki-nevnap]; for Denmark, Croatia and Poland none was found [dawiki-navnedag] [plwiki-imieniny] |
 | Lithuania, Slovakia, Latvia before 2023 | `NotYetRead` | The keeper's list exists and was not read: the State Commission's pages refused (HTTP 403) [ltwiki-vardadienis]; the Ministry of Culture's calendarium is a PDF [culture-sk-kalendarium]; Latvia's lists before the 2022 revision are not readable (below) |
@@ -236,11 +237,11 @@ only; the crate carries the file of 2026-03-16.
 | [helsinki-copyright] | Finland's terms and the free-use limit | yes |
 | [helsinki-pricing] | Finland's royalty | no, via the research report |
 | [kko-2000-56] | the legal basis of Finland's terms | no, via the research report |
-| [almanakkforlaget-navnedager] | Norway's terms | yes, 2026-10-04: the page prints no list and no fee or terms |
+| [almanakkforlaget-navnedager] | Norway's terms | yes, 2026-10-04 and 2026-10-09: the page prints a copyright line, no list, and no licence, fee or terms |
 | [isof-namnsdagar], [svenska-akademien-namnlangden], [riksdagen-kru4] | Sweden's committee, revisions and status | no, via the research report |
 | [culture-sk-kalendarium] | Slovakia's list and commission | the ministry's page, yes, 2026-10-04; the calendarium itself is a PDF and was not opened |
 | [ptejteseknihovny-kalendarium] | Czechia | no, via the research report; Czech Wikipedia's "Jmeniny v Česku" yes, 2026-10-04 |
-| [huwiki-nevnap], [dawiki-navnedag], [stat-ee-nimepaevad], [ltwiki-vardadienis], [plwiki-imieniny] | Hungary, Denmark, Estonia, Lithuania, Poland | no, via the research report; the pages each country's gap names as read on 2026-10-04 (archive.nytud.hu, hun-ren.hu, science.ku.dk, rjp.pan.pl, dane.gov.pl, Estonian Wikipedia's "Nimepäev"), yes |
+| [huwiki-nevnap], [dawiki-navnedag], [stat-ee-nimepaevad], [ltwiki-vardadienis], [plwiki-imieniny] | Hungary, Denmark, Estonia, Lithuania, Poland | no, via the research report; the pages each country's gap names (archive.nytud.hu, hun-ren.hu, science.ku.dk, rjp.pan.pl, dane.gov.pl, Estonian Wikipedia's "Nimepäev") yes, 2026-10-04 |
 | [huwiki-februar-24] | the worked example: the Hungarian names of 24, 25, 28 and 29 February and the leap-year shift | yes, 2026-09-26 |
 | [bg-patriarshia-calendar], [elwiki-eortologio], [ruwiki-imeniny] | the Orthodox countries and the movable rules | no, via the research report |
 | [eortologio-pasxa] | the Greek movable feasts, their days from Pascha and their names; St George, St Mark, Chloe and the Forefathers | yes, 2026-09-29 |

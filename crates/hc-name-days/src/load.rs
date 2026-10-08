@@ -1,8 +1,8 @@
 //! A loader for lists this crate does not ship.
 //!
 //! The Finnish lists are the University of Helsinki's, licensed for a fee
-//! per copy; the Norwegian list is Almanakkforlaget's, free only for
-//! editorial use with credit; the Swedish list has no stated terms at all.
+//! per copy; the Norwegian list is Almanakkforlaget's, which states copyright
+//! and gives no licence; the Swedish list has no stated terms at all.
 //! None of them can be vendored under this workspace's BSD-3-Clause
 //! licence, and none of them is any less a name-day list for that. So the
 //! evaluator reads a list a caller supplies at run time — one the caller

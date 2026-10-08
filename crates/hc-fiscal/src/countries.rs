@@ -869,11 +869,11 @@ pub static UNITED_KINGDOM: FiscalProfile = FiscalProfile {
             read_from: 1802,
             unread: &[],
             note: "Wikipedia (secondary; the Acts' own texts were PDF only): income tax was \
-                   announced in December 1798, introduced in 1799 and levied from 1799 to \
-                   1802, when Addington abolished it. The first Act's year ran to 5 April \
-                   1800, but no page read gives the dates of each year of this tax, so every \
-                   label from 1799 to 1801 is a gap. The tax lapsed in 1802-03: that year, and \
-                   every one before 1799, is absent.",
+                   announced in Britain in December 1798, introduced in 1799 and levied from \
+                   1799 to 1802, when Addington abolished it. The article gives no end date \
+                   for the first year, so none is stated here: no page read gives the dates of \
+                   each year of this tax, and every label from 1799 to 1801 is a gap. The tax \
+                   lapsed in 1802-03: that year, and every one before 1799, is absent.",
         },
         YearSystem {
             name: "United Kingdom personal tax year, Addington's income tax",
@@ -944,7 +944,8 @@ pub static UNITED_KINGDOM: FiscalProfile = FiscalProfile {
               Act 2010 s. 1119; Calendar (New Style) Act 1750 (24 Geo. 2 c. 23) ss. 1 and 6 \
               (Wikisource); Wikipedia, \"Old Style and New Style dates\" and \"Lady Day\" \
               (secondary), read 2026-10-04, and \"Income tax in the United Kingdom\" \
-              (secondary, for 1799, 1802, 1803, 1816 and 1842), read 2026-10-05",
+              (secondary, for 1798, 1799, 1802, 1803, 1816 and 1842), read 2026-10-05 and \
+              2026-10-09",
 };
 
 /// Germany 🇩🇪 — the calendar year, by statute, with an escape hatch.
@@ -2209,11 +2210,34 @@ mod tests {
         for profile in ALL {
             for system in profile.systems {
                 // A system read in none of its years (the United Kingdom's
-                // income tax of 1799 to 1815) has no span to convert.
+                // income tax of 1799 to 1801 and of 1803 to 1815) has no span
+                // to convert. Each year it covers is a gap instead, so each
+                // label must be refused as not read, and a day in that year
+                // must get no answer.
                 if system
                     .valid_until
                     .is_some_and(|last| last < system.read_from)
                 {
+                    let first = system.valid_from.unwrap_or(system.read_from);
+                    for label in first..=system.valid_until.unwrap_or(first) {
+                        assert_eq!(
+                            system.span(label),
+                            Err(FiscalError::NotRead),
+                            "{} {} at {label}",
+                            profile.code,
+                            system.name
+                        );
+                        let days = system.projected_span(label).unwrap_or_else(|error| {
+                            panic!("{} {} at {label}: {error:?}", profile.code, system.name)
+                        });
+                        assert_eq!(
+                            system.label_at(days.first),
+                            Err(FiscalError::NotRead),
+                            "{} {} at {label}",
+                            profile.code,
+                            system.name
+                        );
+                    }
                     continue;
                 }
                 // Pick a label the system actually covers: its first, or

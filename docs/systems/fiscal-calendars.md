@@ -430,12 +430,12 @@ The Australian states give Term 1 of 2027 on 28 January, 1 February and 3 or
 first school term to begin after July"; and the one page on New Zealand's
 term dates says they are set by individual schools, so the entry does not
 claim that a statute or a regulation fixes them. The Gazette notice of 8 May
-2025 does set a window for 2027 and 2028, Term 1 starting between Thursday
-28 January and Thursday 4 February [nz-gazette-2025-sl2489] (the Ministry's
-page gives the end of the window as Wednesday 3 February in a search summary;
-it was not read as text), which is two years of dates and no rule for the
-others, so the authority stays unread. Those are recorded in the entries'
-notes.
+2025 (2025-sl2489) set a window for 2027 and 2028, Term 1 starting between
+Thursday 28 January and Thursday 4 February; it was revoked on 16 October 2025
+by notice 2025-sl5849 [nz-gazette-2025-sl2489], which replaces it and sets the
+window as Thursday 28 January to Wednesday 3 February 2027 [nz-gazette-2025-sl5849].
+Those are two years of dates and no rule for the others, so the authority
+stays unread. Those are recorded in the entries' notes.
 
 **The calendar anchors.**
 `the_iranian_fiscal_year_matches_the_published_gregorian_starts` reproduces
@@ -598,7 +598,15 @@ Read on 2026-10-04:
   [nz-wikipedia-education], [us-ecs-instructional-time]: the academic years.
 - The 39 countries of the table above are read from the pages and
   instruments their entries' `sources` name; the PwC Worldwide Tax Summaries
-  and Wikipedia pages behind the twelve are named there too.
+  [pwc-worldwide-tax-summaries] and Wikipedia pages behind the twelve are named
+  there too. The pages read for the Bahamas, Argentina, Bangladesh, Fiji,
+  Tanzania and Samoa are keyed as [bs-mof-budget-page], [ar-ley-24156],
+  [bd-general-clauses-act-1897], [bd-finance-act-1974], [bd-finance-act-1975],
+  [bd-finance-act-1981], [fj-finance-budget-process], [tz-mof-home] and
+  [ws-mof-home]. Some sites the entries name, such as the Jamaican ministry and
+  the Turkish, Vietnamese and Ukrainian statute sites, still have no
+  `references.bib` entry; their `sources` strings give the site's domain, not
+  the page's full address.
 
 ## Code
 
