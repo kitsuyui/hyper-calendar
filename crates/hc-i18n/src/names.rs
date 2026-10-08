@@ -1078,13 +1078,29 @@ pub fn position_name(
     width: NameWidth,
     context: NameContext,
 ) -> Option<&'static str> {
+    locale_position_name(locale, calendar, cycle, index, width, context)
+        .or_else(|| cycle.name(index))
+}
+
+/// The name a locale's own data gives a position of a cycle, with no
+/// fallback to the calendar's own: [`position_name`] without its last step,
+/// so that a caller can hold the calendar's name to the rule that it is
+/// written in the locale's script, or not at all.
+#[must_use]
+pub fn locale_position_name(
+    locale: &Locale,
+    calendar: CalendarId,
+    cycle: &CycleShape,
+    index: usize,
+    width: NameWidth,
+    context: NameContext,
+) -> Option<&'static str> {
     resolve(locale, |data| {
         data.cycle_for(calendar, cycle.kind)?
             .get(width, context)
             .get(index)
             .copied()
     })
-    .or_else(|| cycle.name(index))
 }
 
 /// The name of a month, without any leap-month prefix.
@@ -1540,12 +1556,16 @@ pub fn english() -> Locale {
 /// the calendar; when it does not — Japanese has no words for the Burmese
 /// months — English answers, so that a month is named in a language the
 /// reader asked for or the common fallback, never in a script the request
-/// did not choose; and when English does not name the calendar either,
-/// the requested locale is kept for its numbering and its general
-/// templates, with the names coming from the calendar's own shape. Only a
-/// request for the calendar's own (`None`) reaches for it first, where the
-/// crate carries it and it names the calendar, then English. The tag of the
-/// data that answered is [`locale_data`] of the result.
+/// did not choose; and when English does not name the calendar either, the
+/// requested locale is kept for its numbering and its general templates only
+/// where it writes the calendar's own names, in its script or romanised for a
+/// locale that writes no Han characters, kana or Hangul, with the names
+/// coming from the calendar's own shape; where it cannot, English answers,
+/// whole, so that the date is in one language (see
+/// [`locale_for_calendar_with`]). Only a request for the calendar's own
+/// (`None`) reaches for it first, where the crate carries it and it names the
+/// calendar, then English. The tag of the data that answered is
+/// [`locale_data`] of the result.
 ///
 /// This answers for the calendar's months and templates alone. A date also
 /// writes the names of its eras, and a locale that names the months but not
@@ -1573,7 +1593,11 @@ pub fn locale_for_calendar_with(
     let english = english();
     match requested {
         Some(requested) if names(requested) && writes_in_one_language(requested) => *requested,
-        Some(requested) if !names(&english) => *requested,
+        // A locale that names no calendar keeps its tag only where it writes
+        // the calendar's own names in its script, or romanised where it
+        // writes no Han characters, kana or Hangul; else the date is
+        // English's, whole.
+        Some(requested) if !names(&english) && writes_in_one_language(requested) => *requested,
         Some(_) => english,
         None => native_locale(meta)
             .filter(|native| names(native) && writes_in_one_language(native))

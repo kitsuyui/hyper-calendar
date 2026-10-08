@@ -89,7 +89,7 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT = os.path.join(ROOT_DIR, 'crates/hc-i18n/src/data/cldr48_locales.rs')
 CALENDARS = os.path.join(ROOT_DIR, 'crates/hc-i18n/src/data/cldr48_calendars.rs')
 DATA = os.path.join(ROOT_DIR, 'crates/hc-i18n/src/data.rs')
-READ = '2026-09-29'
+READ = '2026-10-09'
 
 # tag, CLDR files child first (root left out), the entry the tag inherits
 # from (None for a language), the region whose weekData gives the first day.
@@ -119,7 +119,8 @@ BERBER = {'shi-Latn'}
 # in src/data.rs from the source their comment names, which the language's
 # entry carries after CLDR's: the constant, and what it carries.
 HAND_WRITTEN = {
-    'mn': [('super::MN_MONGOLIAN', "the Mongolian calendar's months, from Gantumur's calendar")],
+    'mn': [('super::MN_MONGOLIAN', "the Mongolian calendar's months, from Gantumur's calendar"),
+           ('super::MN_NUMBERED_CALENDARS', "the Buddhist and Minguo calendars' long dates, with the month by its number, from mn.xml")],
 }
 # The chains CLDR files the hc-i18n entries of src/data.rs follow, for the
 # era names those entries already carry, which a regional entry compares
@@ -319,8 +320,9 @@ def convert(pattern, fields):
             key = 'y' if ch == 'y' else run
             if run in ('M', 'MM') and pattern[j:j + 1] in ('月', '월'):
                 # The numbered month with its counter is the abbreviated
-                # name in the Chinese, Japanese and Korean files, 9月, 9월.
-                key, j = 'M' + pattern[j], j + 1
+                # name in the Chinese, Japanese and Korean files, 9月, 9월,
+                # and MM月 is the two-digit number, 09月.
+                key, j = run + pattern[j], j + 1
             if key not in fields:
                 raise ValueError(f'{pattern!r}: {run} is not carried')
             out += fields[key]
@@ -369,7 +371,8 @@ def templates(chain):
 # Japanese.
 CALENDAR_FIELDS = {'G': '{era}', 'GGGGG': '{era}', 'y': '{year:1}', 'MMMM': '{month}',
                    'LLLL': '{month}', 'MMM': '{month:abbreviated}', 'M月': '{month:1}月',
-                   'M월': '{month:1}월', 'd': '{day}', 'dd': '{day}', 'U': '{sexagenary}',
+                   'M월': '{month:1}월', 'MM月': '{month:2}月', 'MM월': '{month:2}월',
+                   'd': '{day}', 'dd': '{day}', 'U': '{sexagenary}',
                    'r': '{extra:related-gregorian-year}'}
 
 
@@ -414,7 +417,7 @@ def calendar_templates(chain, calendar, gregorian):
             # month number is the ordinal, 5 for Shevat and for Adar I, so a
             # numbered month would write two first-of-months alike. The
             # name tells them apart: シェバト and アダル I, 五月 and 六月.
-            fields['M月'] = fields['M월'] = '{month}'
+            fields['M月'] = fields['M월'] = fields['MM月'] = fields['MM월'] = '{month}'
         date = convert(long, fields)
     except ValueError as error:
         log.append(f'{chain[0]} {calendar}: templates not read, {error}')
@@ -1258,7 +1261,8 @@ def main():
                     'month_cycle', 'widths'])
     types = used(['CalendarNames', 'ContextualNames', 'DateTemplates', 'EraNames',
                   'LeapMonthNames'])
-    header = CALENDARS_HEADER.replace('{imports}', 'use super::{' + ', '.join(helpers) + '};\n')
+    header = CALENDARS_HEADER.replace('{read}', READ)
+    header = header.replace('{imports}', 'use super::{' + ', '.join(helpers) + '};\n')
     header = header.replace('{names_imports}', 'use crate::names::{' + ', '.join(types) + '};\n')
     if 'CalendarId(' in body:
         header = header.replace('{calendar_id}', 'use hc_calendar::CalendarId;\n\n')
@@ -1272,7 +1276,7 @@ CALENDARS_HEADER = '''\
 //! Unicode CLDR 48, generated.
 //!
 //! **Do not edit.** `scripts/locales-cldr.py` writes this file from CLDR 48
-//! (`release-48`, `common/main/<file>.xml` over `root.xml`;
+//! (`release-48`, `common/main/<file>.xml` over `root.xml`, read {read};
 //! `cldr48-regional-locales`), as the script's documentation says: for each
 //! hand-written entry of `super` that follows a CLDR file, every calendar
 //! its files state months or eras for that the entry does not serve itself,

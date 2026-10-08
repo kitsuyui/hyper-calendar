@@ -51,7 +51,7 @@ const AR_EG_CALENDARS: &[CalendarNames] = &[
 /// The `ar-EG` entry.
 pub(super) const AR_EG: LocaleData = LocaleData {
     tag: "ar-EG",
-    sources: "Unicode CLDR 48, common/main/ar_EG.xml, common/main/ar.xml (cldr48-regional-locales), read 2026-09-29: every group of names the files resolve apart from the parent",
+    sources: "Unicode CLDR 48, common/main/ar_EG.xml, common/main/ar.xml (cldr48-regional-locales), read 2026-10-09: every group of names the files resolve apart from the parent",
     english_name: "Arabic (Egypt)",
     native_name: "العربية (مصر)",
     script: super::AR.script,
@@ -121,7 +121,7 @@ const EN_001_CALENDARS: &[CalendarNames] = &[
 /// The `en-001` entry.
 pub(super) const EN_001: LocaleData = LocaleData {
     tag: "en-001",
-    sources: "Unicode CLDR 48, common/main/en_001.xml, common/main/en.xml (cldr48-regional-locales), read 2026-09-29: every group of names the files resolve apart from the parent",
+    sources: "Unicode CLDR 48, common/main/en_001.xml, common/main/en.xml (cldr48-regional-locales), read 2026-10-09: every group of names the files resolve apart from the parent",
     english_name: "English (world)",
     native_name: "English (world)",
     script: super::EN.script,
@@ -170,7 +170,7 @@ const EN_GB_CALENDARS: &[CalendarNames] = &[
 /// The `en-GB` entry.
 pub(super) const EN_GB: LocaleData = LocaleData {
     tag: "en-GB",
-    sources: "Unicode CLDR 48, common/main/en_GB.xml, common/main/en_001.xml, common/main/en.xml (cldr48-regional-locales), read 2026-09-29: every group of names the files resolve apart from the parent",
+    sources: "Unicode CLDR 48, common/main/en_GB.xml, common/main/en_001.xml, common/main/en.xml (cldr48-regional-locales), read 2026-10-09: every group of names the files resolve apart from the parent",
     english_name: "British English",
     native_name: "British English",
     script: EN_001.script,
@@ -363,7 +363,7 @@ const ES_419_CALENDARS: &[CalendarNames] = &[
 /// The `es-419` entry.
 pub(super) const ES_419: LocaleData = LocaleData {
     tag: "es-419",
-    sources: "Unicode CLDR 48, common/main/es_419.xml, common/main/es.xml (cldr48-regional-locales), read 2026-09-29: every group of names the files resolve apart from the parent",
+    sources: "Unicode CLDR 48, common/main/es_419.xml, common/main/es.xml (cldr48-regional-locales), read 2026-10-09: every group of names the files resolve apart from the parent",
     english_name: "Latin American Spanish",
     native_name: "español latinoamericano",
     script: super::ES.script,
@@ -399,9 +399,10 @@ pub(super) const ES_419: LocaleData = LocaleData {
 //
 // CLDR 48 `mn.xml`. It carries the weekdays, the day periods, the Gregorian
 // months, the quarters and the Gregorian eras. Hand-written in `src/data.rs`
-// beside them: the Mongolian calendar's months, from Gantumur's calendar.
-// Templates from `Gy` "G y", `d` "d" and the whole date "y 'оны' MMMM'ын' d";
-// digits `latn`.
+// beside them: the Mongolian calendar's months, from Gantumur's calendar, the
+// Buddhist and Minguo calendars' long dates, with the month by its number,
+// from mn.xml. Templates from `Gy` "G y", `d` "d" and the whole date "y 'оны'
+// MMMM'ын' d"; digits `latn`.
 
 const MN_TEMPLATES: DateTemplates = DateTemplates {
     year: "{era} {year}",
@@ -514,12 +515,13 @@ const MN_CALENDARS: &[CalendarNames] = &[
         )),
     ),
     super::MN_MONGOLIAN,
+    super::MN_NUMBERED_CALENDARS,
 ];
 
 /// The `mn` entry.
 pub(super) const MN: LocaleData = LocaleData {
     tag: "mn",
-    sources: "Unicode CLDR 48, common/main/mn.xml (cldr48-regional-locales), read 2026-09-29: every group of names the file states",
+    sources: "Unicode CLDR 48, common/main/mn.xml (cldr48-regional-locales), read 2026-10-09: every group of names the file states",
     english_name: "Mongolian",
     native_name: "монгол",
     script: "Cyrl",
@@ -646,7 +648,7 @@ const SHI_LATN_CALENDARS: &[CalendarNames] = &[
 /// The `shi-Latn` entry.
 pub(super) const SHI_LATN: LocaleData = LocaleData {
     tag: "shi-Latn",
-    sources: "Unicode CLDR 48, common/main/shi_Latn.xml (cldr48-regional-locales), read 2026-09-29: every group of names the file states",
+    sources: "Unicode CLDR 48, common/main/shi_Latn.xml (cldr48-regional-locales), read 2026-10-09: every group of names the file states",
     english_name: "Tachelhit (Latin)",
     native_name: "Tashelḥiyt",
     script: "Latn",
@@ -705,7 +707,7 @@ const UR_IN_CALENDARS: &[CalendarNames] = &[
 /// The `ur-IN` entry.
 pub(super) const UR_IN: LocaleData = LocaleData {
     tag: "ur-IN",
-    sources: "Unicode CLDR 48, common/main/ur_IN.xml, common/main/ur.xml (cldr48-regional-locales), read 2026-09-29: every group of names the files resolve apart from the parent",
+    sources: "Unicode CLDR 48, common/main/ur_IN.xml, common/main/ur.xml (cldr48-regional-locales), read 2026-10-09: every group of names the files resolve apart from the parent",
     english_name: "Urdu (India)",
     native_name: "اردو (بھارت)",
     script: super::UR.script,
@@ -787,7 +789,7 @@ const ZH_HANT_HK_CALENDARS: &[CalendarNames] = &[
 /// The `zh-Hant-HK` entry.
 pub(super) const ZH_HANT_HK: LocaleData = LocaleData {
     tag: "zh-Hant-HK",
-    sources: "Unicode CLDR 48, common/main/zh_Hant_HK.xml, common/main/zh_Hant.xml (cldr48-regional-locales), read 2026-09-29: every group of names the files resolve apart from the parent",
+    sources: "Unicode CLDR 48, common/main/zh_Hant_HK.xml, common/main/zh_Hant.xml (cldr48-regional-locales), read 2026-10-09: every group of names the files resolve apart from the parent",
     english_name: "Chinese (Traditional, Hong Kong SAR China)",
     native_name: "中文（繁體字，中國香港特別行政區）",
     script: super::ZH_HANT.script,

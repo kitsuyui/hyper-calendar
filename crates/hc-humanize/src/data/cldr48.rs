@@ -2,7 +2,7 @@
 //!
 //! **Do not edit.** `scripts/humanize-cldr.py` writes this file from the
 //! Unicode CLDR 48 files (`release-48`, `common/main/<file>.xml` over
-//! `root.xml`, and `supplemental/plurals.xml`), resolved as the script's
+//! `root.xml`, and `supplemental/plurals.xml`, read 2026-10-09), resolved as the script's
 //! documentation says, and then applies `cldr48_overrides.tsv`; each
 //! override is written above the value it replaces, with its reason. The
 //! strings CLDR has no field for are not here: `super` adds them.

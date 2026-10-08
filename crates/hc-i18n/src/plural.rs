@@ -1042,12 +1042,12 @@ mod tests {
         );
     }
 
-    /// Languages the earlier hand-written table did not carry, with CLDR
-    /// 48's samples: Greek and Hungarian `n = 1`; Icelandic's `one` for
-    /// every number ending in 1 but 11; Maltese's four categories; Breton's
-    /// five; Scottish Gaelic's `one` for 1 and 11 and `two` for 2 and 12.
+    /// Languages with cardinal rules of their own, each held to CLDR 48's
+    /// samples: Greek and Hungarian `n = 1`; Icelandic's `one` for every
+    /// number ending in 1 but 11; Maltese's four categories; Breton's five;
+    /// Scottish Gaelic's `one` for 1 and 11 and `two` for 2 and 12.
     #[test]
-    fn the_languages_beyond_the_old_table_follow_cldrs_samples() {
+    fn the_languages_with_rules_of_their_own_follow_cldrs_samples() {
         for language in ["el", "hu"] {
             assert_samples(
                 language,

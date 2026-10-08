@@ -119,6 +119,10 @@
 //! - `icelandic`, `icelandic-almanac`, `icelandic-friday`, `icelandic-julian`, `icelandic-julian-friday`, `icelandic-medieval`, `islamic-umalqura`, `khmer`, `maya-round`, `maya-round-584286`, `maya-round-gmt2`, `modified-julian-day`, `reduced-julian-day`, `samaritan`, `valabhi`: the English title redirects to a section of an article on another subject, whose links name that subject.
 //! - `javanese-pasaran`, `odia-anka`, `tabot`: the article of that title is about another subject.
 //!
+//! 155 calendars are not named: 77 with no article, 46 conventions, 14 sharing
+//! an article, 15 under a section redirect and 3 with a title about another
+//! subject.
+//!
 //! Locales with no edition to read:
 //!
 //! - `aeb-Latn`: no Wikipedia edition writes the language.

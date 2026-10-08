@@ -216,8 +216,7 @@ Every rule set of CLDR 48's `plurals.xml` and `ordinals.xml`, as data
 
 A locale `plurals.xml` lists shares its block's one rule set; the legacy
 codes `iw`, `in` and `jw` are rows like any other. The 65 locales of
-`hc-i18n`'s `LOCALES` fall as follows: 54 of their languages have a
-cardinal row; `aeb`, `ayl`, `ban`, `cop`, `mid`, `mix`, `rif`, `sa`,
+`hc-i18n`'s `LOCALES` fall as follows: 54 of them have a cardinal row; `aeb`, `ayl`, `ban`, `cop`, `mid`, `mix`, `rif`, `sa`,
 `yua`, `zap` and `zgh` have none and take root's `other`. 36 of them have
 an ordinal row, and 9 an ordinal rule beyond `other`: `bn en fil fr hi it
 mr ne vi`; the other 27 (`de ja ru zh` among them) have one ordinal form.

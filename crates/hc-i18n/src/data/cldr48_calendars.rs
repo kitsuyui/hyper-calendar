@@ -2,7 +2,7 @@
 //! Unicode CLDR 48, generated.
 //!
 //! **Do not edit.** `scripts/locales-cldr.py` writes this file from CLDR 48
-//! (`release-48`, `common/main/<file>.xml` over `root.xml`;
+//! (`release-48`, `common/main/<file>.xml` over `root.xml`, read 2026-10-09;
 //! `cldr48-regional-locales`), as the script's documentation says: for each
 //! hand-written entry of `super` that follows a CLDR file, every calendar
 //! its files state months or eras for that the entry does not serve itself,
@@ -4144,7 +4144,7 @@ pub(super) const ZH_HANS_CLDR: &[CalendarNames] = &[
         era_names(&["saka"], &["印度历"], &[], &[]),
     )
     .with_templates(DateTemplates {
-        date: "{era}{year:1}年{month:1}月{day}",
+        date: "{era}{year:1}年{month:2}月{day}",
         ..DateTemplates::NONE
     }),
 ];
