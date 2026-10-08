@@ -800,8 +800,9 @@ const SECONDS_PER_DAY: i64 = 86_400;
 /// "in time zones other than 'Z', the leap second point is shifted by the
 /// zone offset (so it happens at the same instant around the globe)", and
 /// §5.8's `1990-12-31T15:59:60-08:00`, "the same leap second in Pacific
-/// Standard Time". A reading with no zone names no instant, and its second
-/// 60 is read at 23:59 alone, UTC's own clock.
+/// Standard Time". A reading with no zone names no instant, so its clock is
+/// read as UTC's own: the second 60 is at 23:59, and the day it is on is
+/// checked as a UTC day all the same ([`local_reading`]).
 ///
 /// # Errors
 ///
@@ -833,8 +834,9 @@ pub(crate) fn leap_second_clock(
 /// them only where it is a leap second UTC inserted: the reading shifted
 /// to UTC by the zone's offset is 23:59:60 ([`leap_second_clock`]) of a day
 /// the leap-second table says ended in one (`hc_core::leap`). With no zone
-/// the second 60 is read at 23:59, and no day is checked, since the reading
-/// names no instant.
+/// the clock is read as UTC's own, so the second 60 is at 23:59 and its day
+/// is checked as a UTC day as well: a reading with no zone is accepted only
+/// on a day that ended in a leap second, as PR #328 states.
 ///
 /// # Errors
 ///
@@ -857,14 +859,14 @@ pub(crate) fn local_reading(
         return Ok(CivilDateTime::new(day, time));
     }
     let (time, days_to_utc_day) = leap_second_clock(hour, minute, subsec_attos, zone)?;
-    if zone.offset().is_some() {
-        let utc_day = day
-            .get()
-            .checked_add(days_to_utc_day)
-            .ok_or(hc_core::TimeError::Overflow)?;
-        if hc_core::leap::end_of_day_step(Rd(utc_day).to_unix_days())? != 1 {
-            return Err(hc_core::TimeError::OutOfRange.into());
-        }
+    // With no zone `days_to_utc_day` is 0, so the reading's own day is the
+    // UTC day it is checked against.
+    let utc_day = day
+        .get()
+        .checked_add(days_to_utc_day)
+        .ok_or(hc_core::TimeError::Overflow)?;
+    if hc_core::leap::end_of_day_step(Rd(utc_day).to_unix_days())? != 1 {
+        return Err(hc_core::TimeError::OutOfRange.into());
     }
     Ok(CivilDateTime::new(day, time))
 }

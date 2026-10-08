@@ -4,8 +4,8 @@
 
 ## Context
 
-The brief asks for every calendar we can know about, usable side by side. A
-naive design gives each pair of calendars its own conversion, which is `n²`
+Every calendar the library carries must be usable side by side with the others,
+as docs/policy.md §5 requires of each convention. A naive design gives each pair of calendars its own conversion, which is `n²`
 work and `n²` places for a bug to hide. It also makes every calendar depend on
 every other, which defeats the modularity requirement.
 

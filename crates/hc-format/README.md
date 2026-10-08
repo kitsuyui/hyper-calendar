@@ -122,8 +122,9 @@ what they are.
   `hc-format` refuses a second 60 whose reading shifted to UTC is not
   `23:59:60`, as `23:59:60+01:00` or `15:59:60+08:00`, one on a day the table
   says had none, and, as no one has announced them, on a day past the
-  table's validity. A reading with no zone names no instant and takes the
-  second 60 at `23:59` alone.
+  table's validity. A reading with no zone names no instant, but its clock is
+  read as UTC's: the second 60 is at `23:59`, and its day must be one the
+  table says had one, as for a zoned reading.
 * **More than 18 fractional digits.** An attosecond is this library's
   resolution. Truncating further digits would produce a value that no longer
   round-trips, so it is an error instead.

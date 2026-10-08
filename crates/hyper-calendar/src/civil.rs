@@ -1,7 +1,8 @@
 //! The everyday date and time types.
 //!
-//! These are the ergonomic layer requirement 2 of the project brief asks for:
-//! the shape of Python's `datetime`, `date`, `time` and `timedelta`, over the
+//! These are the ergonomic layer of the facade, whose operators
+//! docs/policy.md §8 describes: the shape of Python's `datetime`, `date`,
+//! `time` and `timedelta`, over the
 //! machinery in [`hc_core`] and [`hc_calendar`].
 //!
 //! # Why these exist at all

@@ -469,7 +469,8 @@ macro_rules! exports {
             /// read at UTC's `23:59:60` — RFC 3339 §5.7 shifts the leap second by the
             /// offset, so `1990-12-31T15:59:60-08:00` is read and `15:59:60+08:00` is not —
             /// or that is on a day the leap-second table says did not end in an inserted
-            /// second (a reading with no zone is read at `23:59:60` alone); one this
+            /// second (a reading with no zone is read as if its clock were UTC's, so its
+            /// day is checked as well); one this
             /// library cannot hold, and a second 60 past the table's validity, whose day no
             /// one has announced, is `HC_ERR_OUT_OF_RANGE`. `rfc3339` has a calendar date only, an offset hour of
             /// 00 through 23 and no seconds in an offset, and refuses the ISO forms that

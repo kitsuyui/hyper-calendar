@@ -263,8 +263,9 @@ pub mod prelude {
 
 /// A registry populated with every calendar the enabled features provide.
 ///
-/// This is the answer to requirement 4 of the project brief — several
-/// calendars in use at once — in one call. Which calendars appear depends on
+/// This gives several calendars in use at once, in one call, as
+/// docs/policy.md §5 wants each convention to be a calendar of its own that
+/// can be compared with the others in one loop. Which calendars appear depends on
 /// which features are on, so a build that only wants Gregorian dates does not
 /// carry a lunar ephemeris to get them.
 #[cfg(all(feature = "civil", feature = "alloc"))]

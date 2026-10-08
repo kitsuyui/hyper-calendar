@@ -20,7 +20,7 @@
 //! Iranica's Tables 35 and 36, which are images, were not read.
 //!
 //! Where the extra days stand is from the same article's fourth part,
-//! Panaino, "Calendars iv. Other modern calendars" (`panaino1990iv`):
+//! Panaino, "Calendars iv. Other modern calendars" (`panaino1990`):
 //! among the Zoroastrian communities of Iran that adopted the Jalālī
 //! calendar, "the 5 or 6 epagomenal days follow the month of Esfandārmoḏ",
 //! the twelfth, "or, in some villages in the district of Naṭanz, the month
@@ -72,7 +72,7 @@ pub const USAGE_SOURCE: &str = "Abdollahy, \"Calendars ii. In the Islamic period
     Encyclopaedia Iranica IV (1990), read in the Wayback Machine's copy on 2026-09-26 \
     [abdollahy1990]: the Hejrī date of the calendar's adoption, Friday 9 Ramaḍān 471, \
     15 March 1079. It names no end; the Zoroastrian communities of Iran kept it after 1925 \
-    (Panaino, \"Calendars iv\" [panaino1990iv])";
+    (Panaino, \"Calendars iv\" [panaino1990])";
 
 /// Whether `year` has six extra days: (`year` + 3)·39 mod 161 < 39, which
 /// is Ṭūsī's table for every year it covers.

@@ -37,7 +37,7 @@ The calendar has two definitions, and they are not the same calendar
   [abdollahy1990]. This document is about that table.
 
 The Zoroastrian communities of Iran that adopted the Jalālī calendar still
-kept it into the twentieth century [panaino1990iv].
+kept it into the twentieth century [panaino1990].
 
 ## How it works
 
@@ -45,7 +45,7 @@ kept it into the twentieth century [panaino1990iv].
 in a long year. Among the Zoroastrian communities that kept the calendar,
 "the 5 or 6 epagomenal days follow the month of Esfandārmoḏ", the twelfth,
 "or, in some villages in the district of Naṭanz, the month of Bahman"
-[panaino1990iv]. `jalali-tusi` and `jalali` place them after the twelfth
+[panaino1990]. `jalali-tusi` and `jalali` place them after the twelfth
 month, and `jalali-natanz` after Bahman, the eleventh.
 
 **The long years.** Ṭūsī's table puts "an extra day ... every four years,
@@ -113,7 +113,7 @@ long year 2 the table's rule infers, above.
 **Naṭanz.** Among the Zoroastrian communities of Iran that adopted the
 Jalālī calendar, "the 5 or 6 epagomenal days follow the month of
 Esfandārmoḏ or, in some villages in the district of Naṭanz, the month of
-Bahman" [panaino1990iv]; Panaino's pre-Islamic part says the same, "in the
+Bahman" [panaino1990]; Panaino's pre-Islamic part says the same, "in the
 district of Natanz ... the epagomenal days are still inserted after the
 eleventh month, Bahman" [panaino1990], and at Abyāna, a village of the
 district, the five days "are added ... to the end of Bahman, the eleventh
@@ -188,8 +188,7 @@ and is not tested here: the solar crate does not depend on the lunar one.
 | Key | Used for | Read |
 | --- | --- | --- |
 | [abdollahy1990] | The epoch and its Hejrī and Yazdegerdī equivalents; the thirty-day months; Ṭūsī's table of 295 years and its quinquennia; the 295 × 365 + 286 × ¼ days of the table; the mod-161 rule; the astronomical definition of Nowrūz | Yes, in the Wayback Machine's copy, 2026-09-26; the total of 286 quarter-days in a search engine's extract of the article, 2026-09-27, the live page refusing automated access; Tables 35 and 36 are images and were not read |
-| [panaino1990iv] | The extra days after Esfandārmoḏ, or after Bahman in Naṭanz, among the Zoroastrian communities that adopted the calendar | Yes, the same copy; re-read 2026-09-29 |
-| [panaino1990] | "In the district of Natanz ... still inserted after the eleventh month, Bahman" | Yes, 2026-09-29, the same copy |
+| [panaino1990] | The extra days after Esfandārmoḏ, or after Bahman in Naṭanz, among the Zoroastrian communities that adopted the calendar; in the district of Naṭanz, days still inserted after the eleventh month, Bahman | Yes, the same copy; re-read 2026-09-29 |
 | [karamati2014] | Qoṭb-al-Dīn Širāzī's definition at solar noon, the observer's meridian; Isfahan as the place of observations in Ṭabarī's *Zīj-e mofrad* | Yes, 2026-09-29, in the Wayback Machine's copy, the live page refusing |
 | [fawiki-gahshomari-jalali] | The local meridian; the epoch as Solar Hijri 458; thirty-day months and five extra days after the Geophysics Institute; the *Zīj-e Sanjarī*'s month lengths, reported | Yes, 2026-09-29, secondary |
 | [yarshater1983-abyana] | The five days after Bahman at Abyāna, 1969 | Yes, 2026-09-29, in the Wayback Machine's copy |

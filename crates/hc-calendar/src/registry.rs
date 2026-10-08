@@ -1,6 +1,7 @@
 //! A run-time registry of calendars.
 //!
-//! The registry is what makes requirement 4 usable from an application: it
+//! The registry is what makes several calendars at once usable from an
+//! application (docs/policy.md §5): it
 //! holds any number of calendars behind one interface, so a UI can render the
 //! same day in Gregorian, Hijri and Japanese-era form without any of the
 //! three knowing the others exist.

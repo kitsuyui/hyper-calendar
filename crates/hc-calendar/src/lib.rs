@@ -17,8 +17,8 @@
 //! other exists. This is the design from Reingold and Dershowitz's
 //! *Calendrical Calculations* (4th ed., 2018; `reingold2018` in
 //! `docs/references.bib`), chapter 1, "Calendar Basics", and it is what
-//! makes requirement 4 —
-//! separating data from algorithm — mechanical rather than aspirational.
+//! makes separating data from algorithm (docs/policy.md §2) mechanical rather
+//! than aspirational.
 //!
 //! # Two levels of interface
 //!

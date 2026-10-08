@@ -5,7 +5,7 @@
 The Pax calendar is a perennial calendar that James A. Colligan proposed in
 1930, and that nobody adopted. Every year has whole weeks, 52 or 53, and
 "the first day of every week, month and year would be Sunday". There are
-thirteen months of 28 days: the Gregorian twelve from January to November,
+thirteen months of 28 days: the Gregorian eleven from January to November,
 then *Columbus*, then December. In a leap year a seven-day month, *Pax*,
 stands between Columbus and December. English Wikipedia's article "Pax
 Calendar" gives the rule, and its tables of the Gregorian dates of Pax New

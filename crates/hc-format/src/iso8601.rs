@@ -1021,7 +1021,7 @@ mod tests {
     }
 
     #[test]
-    fn a_second_60_with_a_zone_is_read_only_on_a_day_that_ended_in_one() {
+    fn a_second_60_is_read_only_on_a_day_that_ended_in_one() {
         assert!(parse("2016-12-31T23:59:60Z").is_ok());
         assert!(parse("20161231T235960Z").is_ok());
         assert!(parse("2016-366T23:59:60Z").is_ok());
@@ -1037,9 +1037,13 @@ mod tests {
         assert!(parse("1990-12-31T15:59:60+00:00").is_err());
         assert!(parse("1990-12-30T15:59:60-08:00").is_err());
         assert!(parse("1990-12-31T16:00:60-08:00").is_err());
-        // With no zone the reading is no instant, and the day cannot be
-        // told to have a leap second until a zone is given.
-        assert!(parse("2026-09-21T23:59:60").is_ok());
+        // With no zone the clock is read as UTC's own, so the day must be
+        // one that ended in a leap second all the same: 2016-12-31 did, and
+        // no table day is 2016-12-30, 2026-09-21 or past the table.
+        assert!(parse("2016-12-31T23:59:60").is_ok());
+        assert!(parse("2016-12-30T23:59:60").is_err());
+        assert!(parse("2026-09-21T23:59:60").is_err());
+        assert!(parse("2030-12-31T23:59:60").is_err());
     }
 
     #[test]
