@@ -184,7 +184,7 @@ Brunei, Bulgaria, Burkina Faso, Burundi, Cabo Verde, Cambodia, Cameroon, Canada
 (federal plus every province's and territory's own days), Chad, Chile, China,
 Colombia, Comoros, Costa Rica, Côte d'Ivoire, Croatia, Cuba, Cyprus, Czechia, Democratic
 Republic of the Congo, Denmark, Djibouti, Dominica, the Dominican Republic,
-Ecuador, Egypt, El Salvador, Equatorial Guinea, Estonia, Eswatini, Ethiopia, Fiji, Finland, France (métropole
+Ecuador, Egypt (the private sector's paid occasions only), El Salvador, Equatorial Guinea, Estonia, Eswatini, Ethiopia, Fiji, Finland, France (métropole
 plus Alsace-Moselle), Gabon, the Gambia, Georgia, Germany (all 16 *Länder*), Ghana, Greece,
 Grenada, Guatemala, Guinea, Guinea-Bissau, Guyana, Haiti, Honduras, Hong Kong, Hungary,
 Iceland, India, Indonesia, Iran, Iraq, Ireland, Israel, Italy, Jamaica, Japan,
