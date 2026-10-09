@@ -620,7 +620,7 @@ pub static ITALY: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: weekends::IT,
-    sources_checked: SourceDate::new(2026, 9, 29),
+    sources_checked: SourceDate::new(2026, 10, 10),
     sources: "Legge 27 maggio 1949, n. 260, Disposizioni in materia di ricorrenze festive, \
               articles 1 and 2, in the text in force updated to 10 October 2025, on Normattiva \
               (normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:1949-05-27;260), retrieved \
@@ -629,7 +629,9 @@ pub static ITALY: RuleSet = RuleSet {
               1977), and D.P.R. 28 dicembre 1985, n. 792, art. 1 (GU n. 306 del 31 dicembre \
               1985), on Normattiva (urn:nir:stato:legge:1977-03-05;54 and \
               urn:nir:presidente.repubblica:decreto:1985-12-28;792), retrieved 2026-09-26; \
-              legge 20 novembre 2000, n. 336, for Republic Day, not read. The patron-saint days \
+              legge 20 novembre 2000, n. 336, arts. 1 and 2, for Republic Day on 2 June from \
+              2001 and its entry into force, read on Normattiva (`it-legge-336-2000`), \
+              retrieved 2026-10-10. The patron-saint days \
               are the comuni's: no national instrument read lists them — D.P.R. 23 agosto 1988, \
               n. 395, art. 4, comma 8, gives public employees the day of the Santo Patrono \
               without naming one, and D.P.R. 792/1985 names only Rome's 29 June, a day of the \
@@ -916,16 +918,19 @@ pub static AUSTRIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: weekends::AT,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 10, 10),
     sources: "Arbeitsruhegesetz, BGBl. Nr. 144/1983, § 7 Abs. 2, as amended by BGBl. I Nr. \
               22/2019, which repealed Abs. 3 on Good Friday, read on jusline.at (secondary; \
               RIS, Gesetzesnummer 10008541, not reachable), retrieved 2026-09-26; the \
               Bundesgesetz vom 25. Oktober 1965 über den österreichischen Nationalfeiertag, \
               BGBl. Nr. 298/1965, Art. II Abs. 2, from the RIS scan \
               (ogd.ris.bka.gv.at/Dokumente/BgblPdf/1965_298_0/1965_298_0.pdf), and the \
-              Feiertagsruhegesetz 1957, BGBl. Nr. 153/1957 as amended by BGBl. Nr. 264/1967, \
-              § 1 in the version in force from 26 July 1967 (RIS NOR12094414), for 26 October \
-              as a day of rest from 1967; both retrieved 2026-09-26",
+              Feiertagsruhegesetz 1957, BGBl. Nr. 153/1957, § 1 Abs. 1, as the government bill \
+              865/A of 2019 reproduces it (`at-antrag-865-2019`, read as a summary on \
+              the Austrian Parliament's site), which names 26 October as Nationalfeiertag. The RIS text \
+              (NOR12094414) was not reachable, and the 1967 date of the version rests on a \
+              search snippet that was not read, so no start earlier than the table's 1968 is \
+              claimed; retrieved 2026-10-10",
     subdivisions: Subdivisions::Read(&[]),
 };
 
@@ -1010,11 +1015,12 @@ pub static SWEDEN: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: weekends::SE,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 10, 10),
     sources: "Lag (1989:253) om allmänna helgdagar, §§ 1 and 2, as amended by lag (2004:1320), \
               which traded Annandag pingst for the National Day, on riksdagen.se \
               (riksdagen.se/sv/dokument-och-lagar/dokument/svensk-forfattningssamling/lag-1989253-om-allmanna-helgdagar_sfs-1989-253/), \
-              retrieved 2026-09-26. Midsummer Eve, Christmas Eve and New Year's Eve are not \
+              § 1 names midsommardagen and § 2 sets it on the Saturday within 20 to 26 June, \
+              read through the Riksdag's page as a summary, retrieved 2026-10-10. Midsummer Eve, Christmas Eve and New Year's Eve are not \
               allmänna helgdagar but are de facto closed days, so they are recorded as bank \
               holidays",
     subdivisions: Subdivisions::Read(&[]),
@@ -1370,11 +1376,13 @@ pub static CZECHIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: weekends::CZ,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 10, 10),
     sources: "Zákon č. 245/2000 Sb., o státních svátcích, o ostatních svátcích, o významných \
               dnech a o dnech pracovního klidu, §§ 1 and 2, as amended by zákon č. 359/2015 \
-              Sb. adding Good Friday, on Zákony pro lidi (zakonyprolidi.cz/cs/2000-245, the \
-              version of 13 May 2026), retrieved 2026-09-26",
+              Sb., the amendment named in the compilation's history and not read, so the \
+              year Good Friday entered § 2 is not confirmed from a read text. Read through \
+              Zákony pro lidi, a non-official compilation (zakonyprolidi.cz/cs/2000-245), \
+              as a summary; the official Sbírka was not read, retrieved 2026-10-10",
     subdivisions: Subdivisions::Read(&[]),
 };
 

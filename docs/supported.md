@@ -284,7 +284,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `AM` | Armenia | 34 | none | stated | 2026-09-22 |
 | `AO` | Angola | 22 | yes | stated | 2026-09-23 |
 | `AR` | Argentina | 31 | none | stated | 2026-09-22 |
-| `AT` | Austria | 14 | none | stated | 2026-09-26 |
+| `AT` | Austria | 14 | none | stated | 2026-10-10 |
 | `AU` | Australia | 25 | yes | stated | 2026-09-27 |
 | `AZ` | Azerbaijan | 25 | yes | stated | 2026-09-22 |
 | `BA` | Bosnia and Herzegovina | 41 | yes | stated | 2026-09-23 |
@@ -317,7 +317,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `CU` | Cuba | 10 | yes | stated | 2026-09-22 |
 | `CV` | Cabo Verde | 11 | none | stated | 2026-09-23 |
 | `CY` | Cyprus | 17 | none | stated | 2026-09-26 |
-| `CZ` | Czechia | 13 | none | stated | 2026-09-26 |
+| `CZ` | Czechia | 13 | none | stated | 2026-10-10 |
 | `DE` | Germany | 24 | none | stated | 2026-09-26 |
 | `DJ` | Djibouti | 13 | none | stated | 2026-09-23 |
 | `DK` | Denmark | 13 | none | stated | 2026-10-09 |
@@ -357,7 +357,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `IQ` | Iraq | 32 | none | stated | 2026-09-22 |
 | `IR` | Iran | 27 | none | stated | 2026-09-22 |
 | `IS` | Iceland | 16 | none | stated | 2026-09-26 |
-| `IT` | Italy | 20 | none | stated | 2026-09-29 |
+| `IT` | Italy | 20 | none | stated | 2026-10-10 |
 | `JM` | Jamaica | 11 | yes | stated | 2026-09-22 |
 | `JO` | Jordan | 25 | none | stated | 2026-09-26 |
 | `JP` | Japan | 117 | yes | stated | 2026-09-29 |
@@ -430,7 +430,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `SB` | Solomon Islands | 17 | yes | stated | 2026-09-29 |
 | `SC` | Seychelles | 16 | yes | stated | 2026-09-23 |
 | `SD` | Sudan | 6 | none | stated | 2026-09-26 |
-| `SE` | Sweden | 17 | none | stated | 2026-09-26 |
+| `SE` | Sweden | 17 | none | stated | 2026-10-10 |
 | `SG` | Singapore | 20 | yes | stated | 2026-09-27 |
 | `SI` | Slovenia | 16 | none | stated | 2026-09-26 |
 | `SK` | Slovakia | 22 | none | stated | 2026-09-26 |
