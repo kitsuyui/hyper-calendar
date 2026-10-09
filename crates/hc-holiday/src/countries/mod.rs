@@ -11,7 +11,11 @@
 //! * **Japan** ([`japan`]) is complete from 1948 and exact, amendment by
 //!   amendment. It is the crate's proof that the data-not-code rule holds
 //!   for a hard case.
-//! * Every other table is the national list **from the first year its
+//! * **Egypt** (`EGYPT`) carries the twelve paid occasions that Decree 294 of
+//!   2025 fixes for the private sector, not the national list: the Government
+//!   sector's longer occasions are set by the Prime Minister for each occasion
+//!   and are not carried.
+//! * Every other table but Egypt's is the national list **from the first year its
 //!   sources support**, with historical `valid_from` / `valid_until` years
 //!   wherever a change is named in the source. Before that year the engine
 //!   reports a gap, never an answer (ADR 0013): `read_from`, which the
