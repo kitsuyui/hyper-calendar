@@ -405,7 +405,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `NE` | Niger | 12 | none | stated | 2026-09-26 |
 | `NG` | Nigeria | 14 | none | stated | 2026-09-26 |
 | `NI` | Nicaragua | 11 | none | stated | 2026-09-23 |
-| `NL` | Netherlands | 10 | none | stated | 2026-09-26 |
+| `NL` | Netherlands | 10 | none | stated | 2026-10-09 |
 | `NO` | Norway | 12 | none | stated | 2026-09-26 |
 | `NP` | Nepal | 38 | none | stated | 2026-09-29 |
 | `NR` | Nauru | 21 | yes | stated | 2026-09-23 |
