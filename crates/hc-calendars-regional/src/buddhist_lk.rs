@@ -16,17 +16,23 @@
 //! numbers of a year are PDFs, not read.
 //!
 //! The Vesak Poya Day is whatever the Minister declares under the Holidays
-//! Act, No. 29 of 1971; no order itself was read. The days carried for
-//! 2023–2027 are 5 May 2023, 23 May 2024, 12 May 2025, 30 May 2026 and
-//! 19 May 2027, the same days `hc-holiday` carries for Sri Lanka. 12 May
-//! 2025 is the Central Bank's list (`cbsl-bank-holidays-2025`); 30 May 2026
+//! Act, No. 29 of 1971. The orders are the Gazette Extraordinary numbers the
+//! holiday table names (2287/4 for 2023, 2341/46 for 2024, 2395/33 for 2025,
+//! 2438/22 for 2026 and 2493/5 for 2027); the gazettes are PDFs on
+//! documents.gov.lk, and none was opened, so no order's text is read here.
+//! The days carried for 2023–2027 are 5 May 2023, 23 May 2024, 12 May 2025,
+//! 30 May 2026 and 19 May 2027, the same days `hc-holiday` carries for Sri
+//! Lanka. The Central Bank's lists for 2023, 2024, 2025 and 2027
+//! (`cbsl-bank-holidays-2023`, `-2024`, `-2025`, `-2027`) print the Vesak
+//! Full Moon Poya Day with no Buddhist year; the 2023, 2024 and 2027 pages
+//! were read as text on 2026-10-09, and they give 5 May 2023, 23 May 2024
+//! and 19 May 2027, each with the day after Vesak beside it. 30 May 2026
 //! is the day of the Cabinet decision of 30 March 2026, number
 //! AMB/26/0553/822/018, as a news report states it (`ziradaily-vesak-2026`)
 //! and the Mahanayake Theros' request as another does
 //! (`adaderana-vesak-2026`); the Central Bank's 2026 list still shows
 //! Vesak Full Moon Poya Day on Friday 1 May, with 30 May as Adhi Poson, so
-//! "from 1 May" is that list's day (`cbsl-bank-holidays-2026`). The other
-//! two years' days are not keyed here to a page read. A year outside
+//! "from 1 May" is that list's day (`cbsl-bank-holidays-2026`). A year outside
 //! 2023–2027 is a gap (ADR 0013), not a computed full moon and not a time
 //! before the count: [`year_of`] refuses it as
 //! [`CalendarError::YearOutOfRange`] and the usage is undated, since the
@@ -87,9 +93,10 @@ pub const USAGE_SOURCE: &str = "The Buddhist year of Sri Lanka, the Common Era y
     media-gov-lk-vesak-message-2569], the festival of 2026 for the Buddhist Year 2570 \
     [ziradaily-vesak-2026], the rule as stated for Sri Lanka, Malaysia and Singapore \
     [wesak-determining-be]; the count is older than any source read, so its period is undated, and \
-    the Vesak days are carried for 2023-2027 only, 12 May 2025 from the Central Bank's list \
-    [cbsl-bank-holidays-2025] and 30 May 2026 from the Cabinet decision of 30 March 2026 \
-    [ziradaily-vesak-2026], so a year outside them is a gap, not the count's beginning";
+    the Vesak days are carried for 2023-2027 only, 5 May 2023, 23 May 2024, 12 May 2025 and 19 May \
+    2027 from the Central Bank's lists [cbsl-bank-holidays-2023, cbsl-bank-holidays-2024, \
+    cbsl-bank-holidays-2025, cbsl-bank-holidays-2027] and 30 May 2026 from the Cabinet decision of \
+    30 March 2026 [ziradaily-vesak-2026], so a year outside them is a gap, not the count's beginning";
 
 /// The Vesak Full Moon Poya Day of a Common Era year, where an order fixes it.
 #[must_use]

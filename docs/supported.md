@@ -172,7 +172,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `khmer` | Khmer lunar | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 1899-12-03 | 2200-12-06 | no | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `korean-regnal` | Korean Empire eras | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 1896-01-01 | 1910-08-29 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `korean-regnal-backdated` | Korean Empire eras (光武 backdated to 1897) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 1896-01-01 | 1910-08-29 | no | no | midnight | — | month ×12, weekday ×7 | yes |
-| `kurdish` | Kurdish | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0622-03-21 | 9300-03-19 | no | no | midnight | — | month ×12, weekday ×7 | yes |
+| `kurdish` | Kurdish | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1600-03-20 | 9300-03-19 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `lakshmana-sena` | Lakshmana Sena (Karttikadi, Mithila) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | -3100-01-13 | 6900-06-15 | yes | yes | sunrise | start | month ×12–13, weekday ×7 | yes |
 | `lao` | Lao lunar | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 1938-11-23 | 2039-11-15 | no | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `liberalia-triday-lunar` | Liberalia Triday, lunar | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | -94963-01-01 | +99143-12-23 | no | no | midnight | — | month ×12, triday-day ×3 | yes |
