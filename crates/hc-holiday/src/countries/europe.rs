@@ -737,10 +737,10 @@ pub static PORTUGAL: RuleSet = RuleSet {
 
 /// King's Day, the other rule that is a sentence.
 ///
-/// Since 2014 it is 27 April, "or, if that is a Sunday, 26 April" — the
-/// Dutch royal birthday has always been moved *backwards*, unlike every
-/// other substitution in this crate. Queen's Day, 30 April, worked the same
-/// way from 1980, moving to 29 April on a Sunday.
+/// Since 2014 it is 27 April, and 26 April when that is a Sunday. Queen's
+/// Day, 30 April until 2013, moves to 29 April on a Sunday from 1980. The
+/// decrees read name the Sunday exception but not the day moved to; the
+/// Saturday before is the practice this rule follows, as the sources say.
 fn dutch_royal_day(year: i64) -> Days {
     let (month, day) = if year >= 2014 { (4u8, 27u8) } else { (4, 30) };
     let occurrence = Rule::gregorian(month, day).days_in_year(year);
@@ -798,15 +798,21 @@ pub static NETHERLANDS: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: weekends::NL,
-    sources_checked: SourceDate::new(2026, 9, 26),
-    sources: "Algemene termijnenwet, artikel 3, in force from 10 October 2010 \
-              (wetten.overheid.nl/BWBR0002448), and the Besluit van 30 januari 2013, nr. \
-              13.000173, fixing 27 April as Koningsdag from 1 January 2014 \
-              (wetten.overheid.nl/BWBR0032908), both retrieved 2026-09-26; the rule moving a \
-              Sunday royal day to the Saturday is not in the text of the decree read. The \
-              Netherlands gives no statutory right to a day off on these days: Goede Vrijdag \
-              and Bevrijdingsdag are a paid day off only by collective agreement, so they are \
-              recorded as observances",
+    sources_checked: SourceDate::new(2026, 10, 9),
+    sources: "Algemene termijnenwet, artikel 3, `nl-algemene-termijnenwet`, in force from 10 \
+              October 2010 (wetten.overheid.nl/BWBR0002448); Besluit van 30 januari 2013, nr. \
+              13.000173, article 1, fixing 27 April as Koningsdag from 1 January 2014 \
+              (wetten.overheid.nl/BWBR0032908), `nl-besluit-13-000173-2013`, with the Sunday \
+              exception it states; and the Koninginnedag besluit of 1980 (BWBR0031338, \
+              vervallen 1 January 2014, `nl-besluit-koninginnedag-1980`), which fixes 30 April \
+              with a Sunday exception and is identified by its date and title. Read through \
+              wetten.overheid.nl as summarised fetches, so the wording is paraphrased, \
+              retrieved 2026-10-09. The day a Sunday royal day moves to (the Saturday before) \
+              is in none of the decrees read; the nota van toelichting and the Staatscourant \
+              of 2013 were not read, so that rule rests on practice and is marked as such. \
+              The Netherlands gives no statutory right to a day off on these days: Goede \
+              Vrijdag and Bevrijdingsdag are a paid day off only by collective agreement, so \
+              they are recorded as observances",
     subdivisions: Subdivisions::Read(&[]),
 };
 
