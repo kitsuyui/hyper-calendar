@@ -1084,9 +1084,9 @@ static DK_RULES: &[HolidayRule] = &read_all(
             "Anden påskedag",
             Rule::easter(EASTER_MONDAY),
         ),
-        // Store bededag, the fourth Friday after Easter, was abolished with
-        // effect from 2024 by lov nr. 214 af 28. februar 2023 — the first Danish
-        // holiday abolished in three centuries.
+        // Store bededag, the fourth Friday after Easter, was abolished as a
+        // holiday with effect from 1 January 2024 by the royal resolution of
+        // 6 March 2023 (Lovtidende A 2023 nr. 270); its last year is 2023.
         HolidayRule::public("Great Prayer Day", "Store bededag", Rule::easter(26))
             .years(None, Some(2023)),
         HolidayRule::public(
@@ -1116,11 +1116,17 @@ pub static DENMARK: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: weekends::DK,
-    sources_checked: SourceDate::new(2026, 9, 26),
-    sources: "Lov nr. 214 af 6. marts 2023 om konsekvenser ved afskaffelsen af store bededag \
-              som helligdag, in force 1 January 2024, known from Retsinformation's search \
-              result and jurabibliotek.ai (secondary), its text not read, retrieved \
-              2026-09-26; the statute listing the other helligdage not read. Grundlovsdag is \
+    sources_checked: SourceDate::new(2026, 10, 9),
+    sources: "Bekendtgørelse om afskaffelse af bededag som helligdag (kongelig resolution \
+              af 6. marts 2023, Lovtidende A 2023 nr. 270), `dk-bek-270-2023`, which \
+              abolishes store bededag as a holiday from 1 January 2024; Lov nr. 214 af 6. \
+              marts 2023, `dk-lov-214-2023`, § 7 nr. 1, which from the same day lists the \
+              holidays in lukkeloven § 2 stk. 1, a shop-closing rule and not a statute that \
+              defines the holidays; lukkeloven as consolidated in LBK nr. 515 af 30. april \
+              2019, `dk-lbk-515-2019`, as the base text. All three read in full, retrieved \
+              2026-10-09. The helligdagsloven (bekendtgørelse nr. 1023 af 2012, \
+              `dk-hl-1023-2012`) lists no holiday. No statute read defines the other \
+              holidays, so the holiday status of those days is not cited. Grundlovsdag is \
               not a public holiday and is recorded as an observance",
     subdivisions: Subdivisions::Read(&[]),
 };
@@ -1277,13 +1283,20 @@ pub static POLAND: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: weekends::PL,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 10, 9),
     sources: "Ustawa z dnia 18 stycznia 1951 r. o dniach wolnych od pracy (Dz.U. 1951 nr 4 \
-              poz. 28; consolidated text Dz.U. 2025 poz. 296), art. 1, as amended by the \
-              ustawa z dnia 24 września 2010 r. (Dz.U. 2010 poz. 1459), Epiphany from 2011, \
-              and the ustawa z dnia 6 grudnia 2024 r. (Dz.U. 2024 poz. 1965), Christmas Eve \
-              from 2025, read through the Sejm's ELI service \
-              (api.sejm.gov.pl/eli/acts/DU/1951/28 and DU/2024/1965), retrieved 2026-09-26",
+              poz. 28), `pl-ustawa-1951`, art. 1, as amended by the ustawy of 1989 and 1990 \
+              (Dz.U. 1989 nr 29 poz. 154, `pl-ustawa-1989-154`, adding 15 August and 11 \
+              November; Dz.U. 1990 nr 28 poz. 160, `pl-ustawa-1990-160`, restoring 3 May; \
+              Dz.U. 1990 nr 28 poz. 159, `pl-ustawa-1990-159`, removing 22 July), by the \
+              ustawa of 24 September 2010 (Dz.U. 2010 nr 224 poz. 1459, `pl-ustawa-2010`, \
+              Epiphany from 2011) and by the ustawa of 6 December 2024 (Dz.U. 2024 poz. 1965, \
+              `pl-ustawa-2024`, Christmas Eve from 2025); Independence Day from 1989 is \
+              Dz.U. 1989 nr 6 poz. 34 (`pl-ustawa-1989-34`); the one-off day of 12 November \
+              2018 is Dz.U. 2018 poz. 2117 (`pl-ustawa-2018-2117`). The consolidated text \
+              (Dz.U. 2025 poz. 296) was not read. The acts were read through the Sejm's ELI \
+              service as summarised fetches, so the wording is paraphrased, retrieved \
+              2026-10-09",
     subdivisions: Subdivisions::Read(&[]),
 };
 

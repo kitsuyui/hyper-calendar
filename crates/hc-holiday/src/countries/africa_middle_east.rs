@@ -635,17 +635,21 @@ pub static TURKEY: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: weekends::TR,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 10, 9),
     sources: "2429 sayılı Ulusal Bayram ve Genel Tatiller Hakkında Kanun (17/3/1981, Resmî \
-              Gazete 19/3/1981, sayı 17284), maddeler 1 and 2, as amended by the Kanunlar \
-              2818, 4500, 5892 (1 Mayıs from 2009) and 6752 (15 Temmuz from 2017), on Mevzuat \
-              Bilgi Sistemi (mevzuat.gov.tr/mevzuatmetin/1.5.2429.pdf), retrieved 2026-09-26, \
-              with geçici madde 1 as Kanun 4500 of 28/12/1999 added it, in force 30/12/1999, \
+              Gazete 19/3/1981, sayı 17284), `tr-law-2429`, maddeler 1 and 2, as amended by \
+              the Kanunlar 2818, 4500 (`tr-law-4500-1999`), 5892 (1 Mayıs from 2009) and 6752 \
+              (15 Temmuz from 2017), on Mevzuat Bilgi Sistemi \
+              (mevzuat.gov.tr/mevzuatmetin/1.5.2429.pdf), read 2026-10-09 in its consolidated \
+              PDF; geçici madde 1 as Kanun 4500 of 28/12/1999 added it, in force 30/12/1999, \
               for the full-day general holiday of 31 December 1999; the Resmî Gazete issue \
-              that printed Kanun 4500 not read. The arife half-days from 13:00 are not carried. \
-              Türkiye's Islamic dates come from the Diyanet's precomputed calendar rather than \
-              from sighting, so they are firmer than most; the tabular computation here can \
-              still differ by a day, which is why they stay flagged approximate",
+              that printed Kanun 4500 not read. The 23 April holiday from 1921 rests on Kanun \
+              2739 of 27/5/1935, `tr-law-2739`, madde 4, which cites TBMM law no. 112 of 23 \
+              April 1921 (`tr-tbmm-112-1921`, cited, not read itself). The arife half-days \
+              from 13:00 are not carried. Türkiye's Islamic dates come from the Diyanet's \
+              precomputed calendar rather than from sighting, so they are firmer than most; \
+              the tabular computation here can still differ by a day, which is why they stay \
+              flagged approximate",
     subdivisions: Subdivisions::Read(&[]),
 };
 
