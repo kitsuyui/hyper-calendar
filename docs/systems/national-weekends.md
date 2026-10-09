@@ -82,7 +82,7 @@ it gives only the month, unless the note of the policy in
 sources with their URLs and the date they were retrieved, and the last column
 gives the same sources' keys in [`references.bib`](../references.bib).
 
-#### Tables with a dated weekend (72)
+#### Tables with a dated weekend (71)
 
 | Code | Country | First read | Weekend | Sources |
 | --- | --- | --- | --- | --- |
@@ -93,7 +93,7 @@ gives the same sources' keys in [`references.bib`](../references.bib).
 | BD | Bangladesh | 1 April 1982 | Friday from 1 April 1982; Friday and Saturday from 9 September 2005 | `arabnews-bangladesh-weekend-2005`, `financialexpress-bangladesh-weekend` |
 | BH | Bahrain | 1 March 1990 | Thursday and Friday from 1 March 1990; Friday and Saturday from 1 September 2006 | `gulfnews-bahrain-weekend-2006`, `gulfnews-bahrain-weekend-sought-2006` |
 | BN | Brunei | 2019 | Friday and Sunday from 2019 | `tradegov-brunei-business-customs-2019` |
-| BO | Bolivia | 26 December 2010 | Saturday and Sunday from 26 December 2010 | `lexivox-bolivia-ds-751-2010`, `lexivox-bolivia-ds-29000-2007` |
+| BO | Bolivia | 2 January 2007 | Saturday and Sunday from 2 January 2007 | `lexivox-bolivia-ds-751-2010`, `lexivox-bolivia-ds-29000-2007` |
 | BT | Bhutan | 2016 | Saturday and Sunday from 2016 | `thebhutanese-no-school-saturday-2016` |
 | BY | Belarus | 2000 | Saturday and Sunday from 2000 | `zakony-by-trudovoj-kodeks-136`, `pravo-by-working-time-2022` |
 | CD | Democratic Republic of the Congo | 2024 | Sunday from 2024; Saturday and Sunday from 1 August 2024 | `fonctionpublique-rdc-horaires-2024` |
@@ -103,7 +103,7 @@ gives the same sources' keys in [`references.bib`](../references.bib).
 | CZ | Czechia | 10 June 1968 | Saturday and Sunday from 10 June 1968 | `zakonyprolidi-cz-vyhlaska-63-1968` |
 | DE | Germany | 1 March 2006 | Saturday and Sunday from 1 March 2006 | `gesetze-de-azv-2006` |
 | DJ | Djibouti | 2017 | Friday and Saturday from 2017 | `embassy-djibouti-hours-2017`, `jo-djibouti-decret-2025-165`, `lanation-djibouti-horaires-2026`, `jo-djibouti-code-travail-2006` |
-| DZ | Algeria | 1975 | Saturday and Sunday from 1975; Thursday and Friday from 1976; Friday and Saturday from 14 August 2009 | `jeuneafrique-algeria-weekend-2009` |
+| DZ | Algeria | 1976 | Thursday and Friday from 1976; Friday and Saturday from 14 August 2009 | `jeuneafrique-algeria-weekend-2009` |
 | EC | Ecuador | 6 October 2010 | Saturday and Sunday from 6 October 2010 | `derechoecuador-losep-2010` |
 | EG | Egypt | 2006 | Friday from 2006; Friday and Saturday from 21 January 2006 | `amcham-egypt-work-week-2006`, `wikipedia-workweek-and-weekend` |
 | ES | Spain | 1 March 2019 | Saturday and Sunday from 1 March 2019 | `boe-es-jornada-aGE-2019` |
@@ -147,7 +147,6 @@ gives the same sources' keys in [`references.bib`](../references.bib).
 | SD | Sudan | 21 January 1998 | Friday from 21 January 1998; Friday and Saturday from 26 January 2008 | `sudantribune-sudan-weekend-2008`, `mondaq-sudan-hours-1998`, `sudanhorizon-eid-2026` |
 | SG | Singapore | 1 September 2004 | Saturday and Sunday from 1 September 2004 | `mfa-singapore-five-day-workweek-2004` |
 | SK | Slovakia | 10 June 1968 | Saturday and Sunday from 10 June 1968 | `zakonyprolidi-cz-vyhlaska-63-1968` |
-| SO | Somalia | 2025 | Friday from 2025 | not re-read (see the note) |
 | SY | Syria | 1 February 2004 | Friday and Saturday from 1 February 2004 | `addustour-syria-saturday-2003`, `mondaq-syria-hours-1998` |
 | TG | Togo | 2022 | Sunday from 2022 | `lqdd-togo-weekly-rest` |
 | TL | Timor-Leste | 2013 | Sunday from 2013 | `jornal-timor-leste-lei-4-2012` |
@@ -159,7 +158,7 @@ gives the same sources' keys in [`references.bib`](../references.bib).
 | VN | Vietnam | 2021 | Saturday and Sunday from 2021 | `vn-holiday-notices`, `vn-labour-code-2019`, `ecotravelvietnam-business-hours-2024` |
 | YE | Yemen | 2013 | Thursday and Friday from 2013; Friday and Saturday from 15 August 2013 | `yemenpost-yemen-weekend-2013`, `alkhaleej-yemen-weekend-2013`, `albawaba-yemen-weekend-2012` |
 
-#### Tables read from 2026 only (123)
+#### Tables read from 2026 only (124)
 
 For these tables no source read dates the weekend law, so the weekend is the
 one the live English Wikipedia article "Workweek and weekend" gives,
@@ -169,6 +168,7 @@ report lowers each first year.
 
 - Saturday and Sunday from 2026 (119): AD Andorra, AG Antigua and Barbuda, AL Albania, AO Angola, AR Argentina, AT Austria, AZ Azerbaijan, BA Bosnia and Herzegovina, BB Barbados, BE Belgium, BF Burkina Faso, BG Bulgaria, BI Burundi, BJ Benin, BR Brazil, BS Bahamas, BW Botswana, BZ Belize, CA Canada, CG Republic of the Congo, CH Switzerland, CI Côte d'Ivoire, CM Cameroon, CO Colombia, CR Costa Rica, CV Cabo Verde, CY Cyprus, DK Denmark, DM Dominica, DO Dominican Republic, EE Estonia, ET Ethiopia, FJ Fiji, FM Micronesia, FR France, GB United Kingdom, GD Grenada, GE Georgia, GH Ghana, GM The Gambia, GN Guinea, GQ Equatorial Guinea, GT Guatemala, GY Guyana, HN Honduras, HR Croatia, HT Haiti, HU Hungary, IE Ireland, IT Italy, JM Jamaica, KG Kyrgyzstan, KI Kiribati, KM Comoros, KN Saint Kitts and Nevis, KZ Kazakhstan, LB Lebanon, LC Saint Lucia, LK Sri Lanka, LS Lesotho, LT Lithuania, LU Luxembourg, LV Latvia, MC Monaco, MD Moldova, ME Montenegro, MH Marshall Islands, MK North Macedonia, ML Mali, MM Myanmar, MO Macau, MT Malta, MU Mauritius, MW Malawi, MX Mexico, MZ Mozambique, NA Namibia, NE Niger, NG Nigeria, NI Nicaragua, NO Norway, NR Nauru, NZ New Zealand, PA Panama, PG Papua New Guinea, PW Palau, PY Paraguay, RO Romania, RS Serbia, RW Rwanda, SB Solomon Islands, SC Seychelles, SE Sweden, SI Slovenia, SL Sierra Leone, SM San Marino, SN Senegal, SR Suriname, SS South Sudan, SV El Salvador, TD Chad, TH Thailand, TJ Tajikistan, TM Turkmenistan, TO Tonga, TT Trinidad and Tobago, TV Tuvalu, TZ Tanzania, UA Ukraine, UG Uganda, UY Uruguay, UZ Uzbekistan, VC Saint Vincent and the Grenadines, VE Venezuela, VU Vanuatu, WS Samoa, ZA South Africa, ZM Zambia, ZW Zimbabwe.
 - Sunday from 2026 (4): GW Guinea-Bissau, KH Cambodia, KP North Korea, SZ Eswatini.
+- Friday from 2026 (1): SO Somalia. Wikipedia's introduction says the one-day weekend "can be Friday only (in Djibouti, Iran, Somalia and Libya)"; no instrument read dates it, so the 2025 reading of the Labour Code of 2024 is withdrawn.
 
 #### Examined and not carried
 
@@ -284,9 +284,9 @@ their own, [regional-weekends.md](regional-weekends.md).
 - **A source that the table's reading of 2026 contradicts is carried for its
   own years.** Afghanistan's Thursday and Friday of 2010 to 2018 and
   Djibouti's Friday and Saturday from 2017 differ from the Wikipedia page's
-  reading, and Algeria's Saturday and Sunday of 1975 is the one regime that no
-  page read confirms: a news report of 2009 gives the Thursday and Friday it
-  replaced.
+  reading, and Algeria's years before 1976 are a gap, because no page read
+  gives the weekend before the ordinance of that year; a news report of 2009
+  gives only the Thursday and Friday it replaced.
 - **A date the source gives of a report, not of the instrument,** is the
   policy's first day, and the note says so (Laos, Kenya, Palestine's first
   regime). Where the instrument's own day of effect is not on the page read,

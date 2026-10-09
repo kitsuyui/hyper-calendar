@@ -90,10 +90,7 @@ const COUNTRIES: &[(&str, Regimes)] = &[
     ("BI", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("BJ", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("BN", &[((1900, 1, 1), None), ((2019, 1, 1), Some(FRI_SUN))]),
-    (
-        "BO",
-        &[((1900, 1, 1), None), ((2010, 12, 26), Some(SAT_SUN))],
-    ),
+    ("BO", &[((1900, 1, 1), None), ((2007, 1, 2), Some(SAT_SUN))]),
     ("BR", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("BS", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("BT", &[((1900, 1, 1), None), ((2016, 1, 1), Some(SAT_SUN))]),
@@ -143,7 +140,6 @@ const COUNTRIES: &[(&str, Regimes)] = &[
         "DZ",
         &[
             ((1900, 1, 1), None),
-            ((1975, 1, 1), Some(SAT_SUN)),
             ((1976, 1, 1), Some(THU_FRI)),
             ((2009, 8, 14), Some(FRI_SAT)),
         ],
@@ -377,7 +373,7 @@ const COUNTRIES: &[(&str, Regimes)] = &[
     ("SL", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("SM", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("SN", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
-    ("SO", &[((1900, 1, 1), None), ((2025, 1, 1), Some(FRIDAY))]),
+    ("SO", &[((1900, 1, 1), None), ((2026, 1, 1), Some(FRIDAY))]),
     ("SR", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("SS", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),
     ("SV", &[((1900, 1, 1), None), ((2026, 1, 1), Some(SAT_SUN))]),

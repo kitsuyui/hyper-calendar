@@ -272,7 +272,7 @@ the first year and the one before for every row.
 | KR | South Korea | 1949 | The 1949 decree (제124호); the rules carry their own dates as well. Read: the decree as in force from 11 May 2026 and its earlier texts, and the 1949 to 1975 texts as Wikisource carries them; the 1976 decree (제8235호) not read. |
 | KZ | Kazakhstan | 2002 | The Law of 13 December 2001, from its first whole year. Read: the Law as Параграф (prg.kz) consolidates it, to the law of 11 June 2026, retrieved 2026-09-22. |
 | LA | Laos | 2018 | Decree No. 386 of 15 December 2017, from its first whole year. Read: the Decree in the Lao Official Gazette (laoofficialgazette.gov.la). |
-| LK | Sri Lanka | 2023 | The Gazette order for 2023 (No. 2287/4), the earliest read; the Act of 1971 and the orders before 2023 were not read. Read: the Gazette orders at documents.gov.lk, retrieved 2026-09-23 and 2026-09-27. |
+| LK | Sri Lanka | 2023 | The Gazette orders for 2023 to 2027 (Nos. 2287/4 to 2493/5) are cited by number; they are PDFs and were not opened. The Act of 1971 and the orders before 2023 were not read. |
 | MM | Myanmar | 2026 | The list read, Wikipedia's "Public holidays in Myanmar" as of 2026-09-22, secondary and undated; Deepavali's notices of 2020 to 2025 answer in their own years |
 | MN | Mongolia | 2004 | The Law of 18 December 2003, from its first whole year; the five days of Naadam and Tsagaan Sar from 2014 (the amendments of 2014 and 2013 are noted in the consolidated text without their content), 10 July from the law of 28 June 2022. Read: the Law with the notes of its amending laws at legalinfo.mn, retrieved 2026-09-23 and 2026-09-26. |
 | MO | Macau | 2001 | Executive Order 60/2000 (Boletim Oficial No. 40/2000, October 2000), from its first whole year; the Bulletin's own page was not reachable. Known through gov.mo's page on Executive Order 60/2000, retrieved 2026-09-22; the Boletim Oficial's own page was not reachable. |
@@ -350,9 +350,11 @@ engine reports `unread-included-holidays`. The trading week of each exchange is 
 
 ### The United Nations' days and weeks
 
-Each of the 238 days and 11 weeks begins in the year it was first observed,
-`valid_from`, and is absent before. Where a page read gives the first
-observance, that year; where it gives only the date the resolution was
+Each of the 238 days and 11 weeks has a first year, `valid_from`, and is absent
+before it. Where the sources do not read the years from that year on, the years
+before `read_from` are a gap the engine reports, not an absence, and the cases
+below say which applies. Where a page read gives the first observance, that
+year; where it gives only the date the resolution was
 adopted, the year of the first occurrence of the day's date on or after it
 (derived, and said so in the table below); where only the year of the
 proclamation is known, the day is established that year and read from the
