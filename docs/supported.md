@@ -320,7 +320,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `CZ` | Czechia | 13 | none | stated | 2026-09-26 |
 | `DE` | Germany | 24 | none | stated | 2026-09-26 |
 | `DJ` | Djibouti | 13 | none | stated | 2026-09-23 |
-| `DK` | Denmark | 13 | none | stated | 2026-09-26 |
+| `DK` | Denmark | 13 | none | stated | 2026-10-09 |
 | `DM` | Dominica | 12 | yes | stated | 2026-09-23 |
 | `DO` | Dominican Republic | 17 | none | stated | 2026-09-22 |
 | `DZ` | Algeria | 22 | none | stated | 2026-09-26 |
@@ -416,7 +416,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `PG` | Papua New Guinea | 9 | yes | stated | 2026-09-23 |
 | `PH` | Philippines | 45 | none | stated | 2026-09-28 |
 | `PK` | Pakistan | 13 | none | stated | 2026-09-26 |
-| `PL` | Poland | 15 | none | stated | 2026-09-26 |
+| `PL` | Poland | 15 | none | stated | 2026-10-09 |
 | `PS` | Palestine | 47 | none | stated | 2026-09-29 |
 | `PT` | Portugal | 18 | none | stated | 2026-09-26 |
 | `PW` | Palau | 9 | yes | stated | 2026-09-23 |
@@ -451,7 +451,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `TM` | Turkmenistan | 15 | yes | stated | 2026-09-22 |
 | `TN` | Tunisia | 23 | none | stated | 2026-09-22 |
 | `TO` | Tonga | 11 | yes | stated | 2026-09-23 |
-| `TR` | Türkiye | 15 | none | stated | 2026-09-26 |
+| `TR` | Türkiye | 15 | none | stated | 2026-10-09 |
 | `TT` | Trinidad and Tobago | 17 | yes | stated | 2026-09-27 |
 | `TV` | Tuvalu | 10 | yes | stated | 2026-09-23 |
 | `TW` | Taiwan | 26 | yes | stated | 2026-09-29 |
