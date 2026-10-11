@@ -63,6 +63,12 @@ extend-exclude = [
 extend-ignore-re = ["[Ss]haʿot", "Puẹ́rto"]
 
 [default.extend-words]
+# German "Widder", Aries, in hc-i18n's zodiac names, as the German article writes it.
+widder = "widder"
+# Indonesian "Sagitarius", Sagittarius, as the Indonesian article's table writes it.
+sagitarius = "sagitarius"
+# Polish "Lew", Leo, in hc-i18n's zodiac names, as the Polish article writes it.
+lew = "lew"
 # Surnames in US states' commemorative days: Alaska's Anthony J. Dimond
 # Day, and Varian Fry Day.
 dimond = "dimond"
