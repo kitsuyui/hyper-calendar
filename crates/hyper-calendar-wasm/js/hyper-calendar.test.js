@@ -370,14 +370,15 @@ describe("describeDay", () => {
     assert.equal(inLocale("ur", "gregory")?.formatted, "21 ستمبر، 2026");
     assert.equal(inLocale("mr", "gregory")?.formatted, "२१ सप्टेंबर, २०२६");
     assert.equal(inLocale("ur", "islamic-civil")?.localeUsed, "ur");
-    // Japanese names the Hebrew and Hijri months from CLDR 48 ja.xml, so
-    // both calendars answer in Japanese, never in Hebrew or Arabic, and say
-    // so; only `native` borrows a calendar's own language.
+    // Japanese names the Hebrew and Hijri months from CLDR 48 ja.xml. The
+    // Hebrew year's AM is implied, so the Hebrew date answers in Japanese;
+    // the Hijri AH is root's Latin abbreviation, so the Hijri date is
+    // English's, whole. Neither is written in Hebrew or Arabic.
     const hebrew = rows.find((row) => row.id === "hebrew");
     assert.equal(hebrew?.localeUsed, "ja");
     assert.ok(!/[\u0590-\u05FF]/.test(hebrew?.formatted ?? ""), hebrew?.formatted);
     const umalqura = rows.find((row) => row.id === "islamic-umalqura");
-    assert.equal(umalqura?.localeUsed, "ja");
+    assert.equal(umalqura?.localeUsed, "en");
     assert.ok(!/[\u0600-\u06FF]/.test(umalqura?.formatted ?? ""), umalqura?.formatted);
     assert.equal(hc.describeDay(739_880, "en").find((row) => row.id === "gregory")?.monthLabel, "September");
     assert.equal(hc.describeDay(739_880, "en").find((row) => row.id === "gregory")?.formatted, "September 21, 2026");

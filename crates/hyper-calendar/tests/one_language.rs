@@ -1,7 +1,8 @@
 //! A date is written in one language: every month and era name of a
 //! rendered date is a name of the locale the line reports as used, CLDR
-//! root's (the abbreviations `AH`, `AM`, `BE` that belong to every
-//! language), or the calendar's own name for it in the locale's script. A
+//! root's (the abbreviations `AH`, `AM`, `BE` that belong to every language
+//! that writes Latin letters; a Chinese, Japanese or Korean date takes none
+//! of them), or the calendar's own name for it in the locale's script. A
 //! locale that cannot name each of them leaves the whole date to English
 //! and says so in `locale used`, as `hc-humanize` serves a locale only if
 //! one catalogue translates every message of a function
@@ -418,6 +419,15 @@ fn a_described_day_reports_the_locale_that_wrote_it() {
 /// the locale, whatever the script of the calendar's own names.
 #[test]
 fn a_locale_that_names_a_calendar_writes_its_dates() {
+    // The Hebrew year's era is implied in its dates (AM, as the English
+    // entries declare), so it is never written and a Korean Hebrew date
+    // keeps Korean.
+    let calendars = registry();
+    let korean: Locale = "ko".parse().expect("a tag");
+    let hebrew = calendars.get_by_name("hebrew").expect("registered");
+    let used = label::locale_for(hebrew, Some(&korean));
+    assert_eq!(names::locale_data(&used).tag, "ko", "ko hebrew");
+
     let registry = registry();
     for (tag, calendar) in [
         ("fa", "persian"),
@@ -431,7 +441,6 @@ fn a_locale_that_names_a_calendar_writes_its_dates() {
         ("ru", "buddhist"),
         ("ru", "japanese"),
         ("hi", "indian"),
-        ("ko", "hebrew"),
         ("am", "ethiopic"),
         ("bn", "buddhist"),
         ("de", "persian"),
