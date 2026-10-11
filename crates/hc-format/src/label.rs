@@ -93,9 +93,12 @@ pub use read::{DateRefusal, ParsedDate, parse_date};
 /// language first.
 ///
 /// A date is in one language. The locale names a month from its own data
-/// and an era from its own data or CLDR's root, whose abbreviations (`AH`,
-/// `BE`) belong to every language; the calendar's own name for a month or
-/// an era is written in the locale's script, or romanised for a locale that
+/// and an era from its own data or CLDR's root, whose Latin abbreviations
+/// (`AH`, `AM`, `BE`) belong to every language that writes Latin letters,
+/// and to no Chinese, Japanese or Korean one, where a calendar that writes
+/// its era in every date leaves the whole date to English (a calendar with
+/// an implied era keeps them, `docs/i18n.md`); the calendar's own name for a
+/// month or an era is written in the locale's script, or romanised for a locale that
 /// does not write Han characters, kana or Hangul, as CLDR's root romanises a
 /// proper name no language translates; a Chinese, Japanese or Korean locale
 /// takes no romanisation. A locale that cannot write each of them leaves the
@@ -156,11 +159,24 @@ fn writes_in_one_language(calendar: &dyn DynCalendar, locale: &Locale) -> bool {
     }
     let english = names::english();
     let native = names::writes_native_names(locale);
+    // A calendar whose dates write its era write CLDR root's Latin
+    // abbreviation (AM, AH, AP) where the locale names none; a locale that
+    // writes Han characters, kana or Hangul takes none of them. A calendar
+    // with an era implied in its dates (AD, AM for the Hebrew year, as the
+    // English entries declare) writes its era only in its exceptional dates,
+    // so it is left as it was: see `docs/i18n.md`.
+    let templates = names::templates(locale, id).merged();
+    let implied_in_english = names::templates(&english, id).merged().implied_era;
+    let writes_its_era = (templates.date.contains("{era}") || templates.year.contains("{era}"))
+        && implied_in_english.is_empty();
     let writes = |code: &str| {
         // A name at the wide width is one at the abbreviated, which
-        // degrades to it, so the wide is asked.
-        if names::era_name_by_code(locale, id, code, NameWidth::Wide).is_some() {
-            return true;
+        // degrades to it, so the wide is asked. A Latin name where the
+        // calendar writes its era is CLDR root's abbreviation, which a locale
+        // of Han characters, kana or Hangul does not take: the date is then
+        // English's, whole.
+        if let Some(name) = names::era_name_by_code(locale, id, code, NameWidth::Wide) {
+            return !(native && writes_its_era && is_latin_name(name));
         }
         match calendar.era_name(code) {
             // The name the renderer writes, romanised unless the locale
@@ -235,6 +251,16 @@ fn own_name_fits(locale: &Locale, name: &str) -> bool {
                 .chars()
                 .filter(|letter| letter.is_alphabetic())
                 .all(|letter| script_of(letter) == "Latn"))
+}
+
+/// Whether a name's letters are all Latin, as CLDR's root writes its
+/// abbreviations (`AM`, `AH`, `BE`); a name with no letters is not Latin.
+fn is_latin_name(name: &str) -> bool {
+    let mut letters = name
+        .chars()
+        .filter(|letter| letter.is_alphabetic())
+        .peekable();
+    letters.peek().is_some() && letters.all(|letter| script_of(letter) == "Latn")
 }
 
 /// Whether the letters of `text` are written in the script of the locale:

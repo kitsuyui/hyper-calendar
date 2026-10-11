@@ -219,9 +219,10 @@ fn the_hebrew_and_hijri_calendars_are_labelled_as_their_sources_write_them() {
     assert_eq!(label_on(hijri, ramadan, Unit::Year, "ar-SA"), "١٤٤٥ هـ");
     assert_eq!(label_on(hijri, ramadan, Unit::Month, "ar"), "رمضان");
     assert_eq!(date_on(hijri, ramadan, "ar-EG"), "١ رمضان ١٤٤٥ هـ");
-    // Japanese names the Hijri months from CLDR 48 `ja.xml` (ラマダーン),
-    // so a Japanese request is answered in Japanese, never in Arabic.
-    assert_eq!(label_on(hijri, ramadan, Unit::Month, "ja"), "ラマダーン");
+    // Japanese names the Hijri months (ラマダーン), but the Hijri era is
+    // root's Latin AH, which a Japanese date does not take: the calendar is
+    // English's, whole, so its month is English too. Never Arabic.
+    assert_eq!(label_on(hijri, ramadan, Unit::Month, "ja"), "Ramadan");
 }
 
 #[test]
@@ -532,8 +533,10 @@ fn a_japanese_request_writes_the_umm_al_qura_calendar_in_japanese() {
             .find(|row| row[0] == "islamic-umalqura")
             .expect("islamic-umalqura")
     };
+    // Japanese names the Hijri months but not the AH era, which root writes
+    // in Latin letters, so the date is English's, whole.
     let japanese = row("ja");
-    assert_eq!(japanese[15..17], ["AH1448年4月15日", "ja"]);
+    assert_eq!(japanese[15..17], ["Rabiʻ II 15, 1448 AH", "en"]);
     assert!(
         !japanese[15]
             .chars()
@@ -548,5 +551,5 @@ fn a_japanese_request_writes_the_umm_al_qura_calendar_in_japanese() {
         .expect("islamic-umalqura");
     let units = lines::calendar_units(umalqura, Unit::Month, on, day(2026, 9, 27), "ja")
         .expect("within the cap");
-    assert!(units.trim_end().ends_with("\tja"), "{units}");
+    assert!(units.trim_end().ends_with("\ten"), "{units}");
 }

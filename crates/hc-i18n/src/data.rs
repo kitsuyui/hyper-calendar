@@ -1951,7 +1951,8 @@ const ZH_HANT_CALENDAR_NAMES: &[CalendarDisplayName] = &[
 /// The era names CLDR 48 `root.xml` states for the calendars it names
 /// eras of, which every locale inherits where its own file states none
 /// (`cldr48-main`, read 2026-10-04): the abbreviations a date writes in
-/// every language, BE, AH, AM, AP and ROC, and the Śaka of the Indian
+/// every language that writes Latin letters, BE, AH, AM, AP and ROC, and
+/// the Śaka of the Indian
 /// national calendar. They are the end of the lookup for an era's name,
 /// after the locale's chain and before nothing, and so are not entries of
 /// [`ROOT`]: an entry that serves a calendar says the calendar's months
