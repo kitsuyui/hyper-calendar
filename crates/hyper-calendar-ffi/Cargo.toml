@@ -45,8 +45,9 @@ calendars = ["civil", "hc/lunar", "hc/equinox", "hc/indic", "hc/regional", "hc/a
 # The holiday tables: countries, exchanges, traditions and the UN days;
 # and the Eastern Orthodox fasts.
 holiday = ["civil", "hc/holiday"]
-# The 24 solar terms and the 72 pentads.
-seasons = ["civil", "hc/seasons"]
+# The 24 solar terms, the 72 pentads and the signs of the zodiac, whose names
+# hc-i18n gives in a locale.
+seasons = ["civil", "hc/seasons", "hc/i18n"]
 # Cosmic, geologic and archaeological time, the earliest evidence of life,
 # of Homo sapiens and of writing, and the events of the far future.
 deep-time = ["hc/deep-time"]

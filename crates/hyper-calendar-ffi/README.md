@@ -540,8 +540,8 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_cold_food_day(const char *convention, int64_t year, int64_t *out_fixed);` | `seasons` | The fixed day of 寒食, the Cold Food Day, of a Gregorian year under a named reckoning. |
 | `HcStatus hc_plum_rains(const char *rule, int64_t year, const char *meridian, int64_t *out_fixed);` | `seasons` | The fixed day of 入梅 or 出梅 of a Gregorian year by a named rule of the Chinese almanac, with the solar term it counts from at a meridian. |
 | `HcStatus hc_pentads_in_year(int64_t year, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | Every pentad (候) that begins in a Gregorian year at a meridian, named by every tradition at once, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
-| `HcStatus hc_tropical_signs_in_year(int64_t year, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The twelve tropical sign periods of a Gregorian year at a meridian, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
-| `HcStatus hc_sidereal_signs_in_year(int64_t year, const char *ayanamsa, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The twelve sidereal sign periods, the saṅkrāntis, of a Gregorian year in the zodiac of a named ayanāṃśa at a meridian, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_tropical_signs_in_year(int64_t year, const char *meridian, const char *locale, char *buffer, size_t capacity, size_t *written);` | `seasons` | The twelve tropical sign periods of a Gregorian year at a meridian, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_sidereal_signs_in_year(int64_t year, const char *ayanamsa, const char *meridian, const char *locale, char *buffer, size_t capacity, size_t *written);` | `seasons` | The twelve sidereal sign periods, the saṅkrāntis, of a Gregorian year in the zodiac of a named ayanāṃśa at a meridian, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_traditional_tanabata(int64_t year, const char *meridian, int64_t *out_fixed);` | `seasons` | The fixed day of 伝統的七夕, the National Astronomical Observatory's traditional Tanabata, of a Gregorian year at a meridian. |
 | `HcStatus hc_principal_phases_in_month(int64_t year, uint32_t month, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The principal phases of the Moon that fall inside a Gregorian month at a meridian, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_holiday_is_day_off(const char *code, const char *region, const char *group, int64_t fixed, int *out_is_day_off);` | `holiday` | Whether a fixed day is a day off in a holiday table. |
@@ -1455,12 +1455,13 @@ name; a tradition not listed is `HC_ERROR_UNKNOWN`, and null for it
 `HC_ERROR_NULL_POINTER`. `hc_pentads_in_year(year, meridian, buffer,
 capacity, written)` writes every pentad that begins in a Gregorian year at
 a meridian, named by all four traditions at once, one a line in the
-module's columns. `hc_tropical_signs_in_year(year, meridian, buffer,
+module's columns. `hc_tropical_signs_in_year(year, meridian, locale, buffer,
 capacity, written)` and `hc_sidereal_signs_in_year(year, ayanamsa, meridian,
-buffer, capacity, written)` write the module's twelve lines of the sign
-periods of a Gregorian year, tropical from Aquarius and sidereal, the
+locale, buffer, capacity, written)` write the module's twelve lines of the
+sign periods of a Gregorian year, tropical from Aquarius and sidereal, the
 saṅkrāntis, from the first on or after 1 January in the ayanāṃśa's zodiac,
-null for which is `HC_ERROR_NULL_POINTER`; `hc_traditional_tanabata(year,
+null for which is `HC_ERROR_NULL_POINTER`, each with its name in `locale`
+and the tag of the locale that answered; `hc_traditional_tanabata(year,
 meridian, out_fixed)` the fixed day of the Observatory's 伝統的七夕, at
 `japan` for its table; and `hc_principal_phases_in_month(year, month,
 meridian, buffer, capacity, written)` the module's lines of the four or five

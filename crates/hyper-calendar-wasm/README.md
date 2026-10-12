@@ -469,7 +469,7 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `pentadTraditions()`, `pentadInTradition(fixed, tradition, meridian)` | `hc_pentad_traditions`, `hc_pentad_in_tradition` | `PentadTradition[]`; a `PentadInTradition` |
 | `zassetsuInYear(year, meridian)`, `seasonalDaysInYear(year, meridian)` | `hc_zassetsu_in_year`, `hc_seasonal_days_in_year` | `ZassetsuDay[]`; `SeasonalDay[]` |
 | `pentadsInYear(year, meridian)` | `hc_pentads_in_year` | `PentadOfYear[]` |
-| `tropicalSignsInYear(year, meridian)`, `siderealSignsInYear(year, ayanamsa, meridian)`, `traditionalTanabata(year, meridian)`, `principalPhasesInMonth(year, month, meridian)` | `hc_tropical_signs_in_year`, `hc_sidereal_signs_in_year`, `hc_traditional_tanabata`, `hc_principal_phases_in_month` | `SignPeriod[]`; `SiderealSignPeriod[]`; a fixed day number; `PrincipalPhase[]` |
+| `tropicalSignsInYear(year, meridian, locale)`, `siderealSignsInYear(year, ayanamsa, meridian, locale)`, `traditionalTanabata(year, meridian)`, `principalPhasesInMonth(year, month, meridian)` | `hc_tropical_signs_in_year`, `hc_sidereal_signs_in_year`, `hc_traditional_tanabata`, `hc_principal_phases_in_month` | `SignPeriod[]`; `SiderealSignPeriod[]`; a fixed day number; `PrincipalPhase[]` |
 | `coldFoodDay(convention, year)` | `hc_cold_food_day` | a fixed day number |
 | `plumRains(rule, year, meridian)` | `hc_plum_rains` | a fixed day number |
 | `placeYearsAgo(yearsAgo, stdDevYears, locale)`, `cosmicEvents(locale)`, `archaeologicalPeriods(locale)`, `futureEvents(locale)`, `geologicIntervals(rank, locale)` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals` | `DeepTimeRow[]` |
@@ -665,7 +665,7 @@ warning an error, one job a layer.
 | `time-codes` | `hc_ccsds_decode`, `hc_ccsds_encode`, `hc_ccsds_decode_from_epoch`, `hc_ccsds_encode_from_epoch`, `hc_ccsds_ascii_parse`, `hc_ccsds_ascii_format`, `hc_radio_decode`, `hc_radio_encode`, `hc_jjy_call_sign_decode`, `hc_jjy_call_sign_encode`, `hc_irig_decode`, `hc_irig_encode`, `hc_irig_formats`, `hc_irig_frame_start`: the CCSDS time codes, binary and ASCII, the long-wave radio time codes of JJY, DCF77 and WWVB, and the IRIG serial time codes, read and written; a layer of its own so that `timestamps` stays small | nothing beyond `civil`'s crates: `hc-core`'s `ccsds`, `hc-format`'s `ccsds`, `radio` and `irig` | 125,616 | 123 KiB |
 | `calendars` | `hc_describe_day`, `hc_day_extras`, `hc_calendar_units`, `hc_parse_date`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_day_period`, `hc_format_number`, `hc_parse_number`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_gregorian_adoption`, `hc_naming_period_on`, `hc_locale_chain`, `hc_locale_info`, `hc_plural_category`, `hc_names`, `hc_case`, `hc_isolate`, `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_tithi_at`, `hc_tithis_of_day`, `hc_ayanamsas`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor`, `hc_festival_readings`, `hc_janmashtami`, `hc_vaishnava_day`, `hc_vishti_free_span`, `hc_rahu_at`, `hc_rahu_ingresses`, `hc_era_new_year`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_ioc_olympiad_on`, `hc_olympic_games`, `hc_era_table`, `hc_babylonian_regnal_year`, `hc_equinox_new_year_margin`, `hc_shmuel_tekufah`, `hc_day_name`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_chinese_age`, `hc_chinese_almanac_solar_terms`, `hc_hebrew_sabbatical_cycle_year`, `hc_asian_day`, `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_kalam`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_at`, `hc_nakshatra_of_day`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_rounichi`, `hc_mansion_undertakings`, `hc_almanac_person_days`, `hc_tibetan_almanac_day`, `hc_tibetan_planets`, `hc_bhutanese_winter_solstice`, `hc_tibetan_festival_day`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_kumbh_yogas`, `hc_pushkaram_rivers`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`, `hc_solar_new_year`, `hc_southeast_asian_year_type`, `hc_maya_long_count`, `hc_akan_day`, `hc_weton`, `hc_buddhist_lk_year`, `hc_tiruvalluvar_year`, `hc_solar_nakshatra_ingresses`, `hc_japanese_era_year`, `hc_locale_format`, `hc_plural_categories`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale, and a date written in one read back; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_at`, `hc_nakshatra_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_ioc_olympiad_on`, `hc_babylonian_regnal_year`, `hc_equinox_new_year_margin`, `hc_shmuel_tekufah`, `hc_day_name`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_chinese_age`, `hc_chinese_almanac_solar_terms`, `hc_asian_day`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_rounichi`, `hc_mansion_undertakings`, `hc_almanac_person_days`, `hc_tibetan_almanac_day`, `hc_tibetan_planets`, `hc_bhutanese_winter_solstice`, `hc_tibetan_festival_day`; `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`: the northern year's name, the choghadiya, Panchak, the Kumbh and Pushkaram conditions, the folk days and the night watches, each named in a locale; `hc_tithi_at`, `hc_tithis_of_day`, `hc_ayanamsas`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor`, `hc_festival_readings`, `hc_janmashtami`, `hc_vaishnava_day`, `hc_vishti_free_span`, `hc_rahu_at`, `hc_rahu_ingresses`, `hc_era_new_year`, `hc_era_table`, `hc_olympic_games`, `hc_kumbh_yogas`, `hc_pushkaram_rivers`: the tithi with its span, the repeated and skipped ones, the named ayanāṃśas and a value of one, the Smārta and Vaiṣṇava readings of Janmāṣṭamī, Rāhu and Ketu, and the new years of the Indian eras, the eras of four tables, the Olympic Games, and the Kumbh conditions and the Pushkaram rivers; `hc_southeast_asian_year_type`, `hc_maya_long_count`, `hc_akan_day`, `hc_weton`, `hc_buddhist_lk_year`, `hc_tiruvalluvar_year`, `hc_solar_nakshatra_ingresses`: the Khmer and Lao year types, the Maya counts under a named correlation, the Akan day and the weton with their names, Sri Lanka's Buddhist year, the Tiruvaḷḷuvar year and the Sun's nakṣatra entries; `hc_japanese_era_year`, `hc_locale_format`, `hc_plural_categories`: a Japanese era year as written, a locale's standard formats and the categories its plural rules name | every `hc-calendars-*` crate, `hc-astro`, `hc-almanac`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 1,797,758 | 1.71 MiB |
 | `holiday` | `hc_holiday_is_day_off`, `hc_holiday_add_business_days`, `hc_holiday_business_days_between`, `hc_holiday_is_weekend`, `hc_holiday_next`, `hc_holiday_previous`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_holiday_groups`, `hc_holiday_coverage`, `hc_holiday_rules`, `hc_holidays_on_in`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_roman_1960_office_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 2,507,287 | 2.39 MiB |
-| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day`, `hc_plum_rains`, `hc_pentad_traditions`, `hc_pentad_in_tradition`, `hc_zassetsu_in_year`, `hc_seasonal_days_in_year`, `hc_pentads_in_year`, `hc_tropical_signs_in_year`, `hc_sidereal_signs_in_year`, `hc_traditional_tanabata`, `hc_principal_phases_in_month` | `hc-seasons`, `hc-astro` | 149,172 | 146 KiB |
+| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day`, `hc_plum_rains`, `hc_pentad_traditions`, `hc_pentad_in_tradition`, `hc_zassetsu_in_year`, `hc_seasonal_days_in_year`, `hc_pentads_in_year`, `hc_tropical_signs_in_year`, `hc_sidereal_signs_in_year`, `hc_traditional_tanabata`, `hc_principal_phases_in_month` | `hc-seasons`, `hc-astro`, `hc-i18n` | 175,911 | 172 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals`, `hc_planck_units`, `hc_bp_convert`, `hc_deep_convert`, `hc_deep_compare` | `hc-deep-time`, `hc-uncertainty` | 201,124 | 196 KiB |
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zone_offset`, `hc_zones`, `hc_zone_location`, `hc_localtime`, `hc_mktime`, `hc_local_resolution`, `hc_mktime_policies`: the day and the offset by a zone's rules, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` or `zone-names` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 116,191 | 113 KiB |
 | `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_decan_at`, `hc_drekkana_at`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event`, `hc_horizons`, `hc_sunrise`, `hc_sunset`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_gmat_from_gmt`, `hc_gmt_from_gmat`, `hc_prayer_times`, `hc_prayer_methods`, `hc_zmanim`, `hc_temporal_hour`, `hc_edo_time`, `hc_unix_from_edo_time`, `hc_planetary_hour`, `hc_planetary_hours_of_day`, `hc_moonrise`, `hc_moonset`, `hc_ut1r_iers2010`, `hc_ut1s_iers2010`, `hc_zonal_tide_ut1_effect`, `hc_equation_of_time`, `hc_solar_noon`, `hc_solar_midnight`, `hc_dawn`, `hc_dusk` | `hc-astro`, `hc-seasons`, and `hc-i18n`'s names of the horizons and the planets | 185,767 | 181 KiB |
@@ -912,8 +912,8 @@ not pass CI.
 | `hc_cold_food_day(convention: *const u8, convention_len: usize, year: i64) -> i64` | `seasons` | The fixed day of 寒食, the Cold Food Day, of a Gregorian year under a named reckoning, or an error sentinel. |
 | `hc_plum_rains(rule: *const u8, rule_len: usize, year: i64, meridian: *const u8, meridian_len: usize) -> i64` | `seasons` | The fixed day of 入梅 or 出梅, the beginning or the end of the plum rains, of a Gregorian year by a named rule of the Chinese almanac, with the solar term it counts from at a meridian, or an error sentinel. |
 | `hc_pentads_in_year(year: i64, meridian: *const u8, meridian_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `seasons` | Every pentad (候) that begins in a Gregorian year at a meridian, named by every tradition at once, as UTF-8 lines, returning the byte length written. |
-| `hc_tropical_signs_in_year(year: i64, meridian: *const u8, meridian_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `seasons` | The twelve tropical sign periods of a Gregorian year at a meridian, as UTF-8 lines, returning the byte length written. |
-| `hc_sidereal_signs_in_year(year: i64, ayanamsa: *const u8, ayanamsa_len: usize, meridian: *const u8, meridian_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `seasons` | The twelve sidereal sign periods, the saṅkrāntis, of a Gregorian year in the zodiac of a named ayanāṃśa at a meridian, as UTF-8 lines, returning the byte length written. |
+| `hc_tropical_signs_in_year(year: i64, meridian: *const u8, meridian_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `seasons` | The twelve tropical sign periods of a Gregorian year at a meridian, as UTF-8 lines, returning the byte length written. |
+| `hc_sidereal_signs_in_year(year: i64, ayanamsa: *const u8, ayanamsa_len: usize, meridian: *const u8, meridian_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `seasons` | The twelve sidereal sign periods, the saṅkrāntis, of a Gregorian year in the zodiac of a named ayanāṃśa at a meridian, as UTF-8 lines, returning the byte length written. |
 | `hc_traditional_tanabata(year: i64, meridian: *const u8, meridian_len: usize) -> i64` | `seasons` | The fixed day of 伝統的七夕, the National Astronomical Observatory's traditional Tanabata, of a Gregorian year at a meridian, or an error sentinel. |
 | `hc_principal_phases_in_month(year: i64, month: u32, meridian: *const u8, meridian_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `seasons` | The principal phases of the Moon that fall inside a Gregorian month at a meridian, as UTF-8 lines, returning the byte length written. |
 | `hc_holiday_is_day_off(code: *const u8, code_len: usize, region: *const u8, region_len: usize, group: *const u8, group_len: usize, fixed: i64) -> i64` | `holiday` | Whether a fixed day is a day off in a holiday table: 1, 0, or an error sentinel. |
@@ -4794,25 +4794,30 @@ each in its order. 立春次候 of 2024 at Japan's meridian, index 64, begins on
 
 ### The signs of a year
 
-`hc_tropical_signs_in_year(year, meridian_ptr, meridian_len, buffer,
-capacity)`, in the same feature, writes the twelve tropical sign periods of
-a Gregorian year at a meridian read as above, from `hc-seasons`'s
-`zodiac::tropical::signs_in_year`: one a line in date order, from Aquarius
-around 20 January to Capricorn around 21 December, the order the signs
-appear in a Gregorian year. The signs turn at the solar terms of
+`hc_tropical_signs_in_year(year, meridian_ptr, meridian_len, locale_ptr,
+locale_len, buffer, capacity)`, in the same feature, writes the twelve
+tropical sign periods of a Gregorian year at a meridian read as above, from
+`hc-seasons`'s `zodiac::tropical::signs_in_year`: one a line in date order,
+from Aquarius around 20 January to Capricorn around 21 December, the order
+the signs appear in a Gregorian year. The signs turn at the solar terms of
 `hc_solar_terms_between`, and `hc_decan_at` has the sign at an instant.
 Consecutive periods share their instant exactly, and a sign's days run
 `begins..=ends`. A year outside −1000 to 3000 is `HC_ERR_OUT_OF_RANGE`.
+`locale` is a BCP 47 tag, whose name is read from `hc-i18n`'s zodiac tables;
+`native`, the empty string and a tag that does not parse name the root
+locale, which gives the English name.
 
 | # | Column | Holds |
 | --- | --- | --- |
 | 1 | sign | 1 for Aries through 12 for Pisces |
 | 2 | id | its identifier: `aries`, `libra` |
 | 3 | name | its English name |
-| 4 | start | the instant the Sun entered it, as POSIX seconds of Universal Time, rounded down |
-| 5 | end | the instant it left, the next sign's start |
-| 6 | begins | the first fixed day of the sign at the meridian |
-| 7 | ends | the last fixed day, the day before the next sign's |
+| 4 | localized name | its name in `locale`, or the English name where no locale in the fallback chain carries one |
+| 5 | locale used | the tag of the locale that answered: `ja`, or `zh-Hant` for `zh-Hant-HK`; `en` where the English name answers |
+| 6 | start | the instant the Sun entered it, as POSIX seconds of Universal Time, rounded down |
+| 7 | end | the instant it left, the next sign's start |
+| 8 | begins | the first fixed day of the sign at the meridian |
+| 9 | ends | the last fixed day, the day before the next sign's |
 
 At the NAOJ's 秋分 of 2026, 23 September 00:05 UTC, the Sun enters Libra;
 at Japan's meridian the sign begins that day.
@@ -4820,23 +4825,27 @@ at Japan's meridian the sign begins that day.
 ### The sidereal signs of a year
 
 `hc_sidereal_signs_in_year(year, ayanamsa_ptr, ayanamsa_len, meridian_ptr,
-meridian_len, buffer, capacity)`, in the same feature, writes the twelve
-sidereal sign periods, the saṅkrāntis, of a Gregorian year in the zodiac
-of a named ayanāṃśa at a meridian, from `zodiac::sidereal::signs_in_year`:
-one a line in date order from the first saṅkrānti on or after 1 January,
-Makara's around 14 January with a modern ayanāṃśa. `ayanamsa` is as for
-`hc_drekkana_at`, read before the meridian; another is `HC_ERR_UNKNOWN`.
+meridian_len, locale_ptr, locale_len, buffer, capacity)`, in the same
+feature, writes the twelve sidereal sign periods, the saṅkrāntis, of a
+Gregorian year in the zodiac of a named ayanāṃśa at a meridian, from
+`zodiac::sidereal::signs_in_year`: one a line in date order from the first
+saṅkrānti on or after 1 January, Makara's around 14 January with a modern
+ayanāṃśa. `ayanamsa` is as for `hc_drekkana_at`, read before the meridian;
+another is `HC_ERR_UNKNOWN`. `locale` is read as `hc_tropical_signs_in_year`
+reads it.
 
 | # | Column | Holds |
 | --- | --- | --- |
 | 1 | sign | 1 for Meṣa through 12 for Mīna |
 | 2 | id | its identifier: `mesha`, `makara` |
 | 3 | name | its Sanskrit name in IAST |
-| 4 | start | the instant the Sun entered it, as POSIX seconds, rounded down |
-| 5 | end | the instant it left |
-| 6 | begins | the first fixed day of the sign at the meridian |
-| 7 | ends | the last fixed day |
-| 8 | ayanamsa | the ayanāṃśa's identifier |
+| 4 | localized name | its name in `locale`, or the English name, the Western counterpart's, where no locale in the fallback chain carries one |
+| 5 | locale used | the tag of the locale that answered, `en` where the English name answers |
+| 6 | start | the instant the Sun entered it, as POSIX seconds, rounded down |
+| 7 | end | the instant it left |
+| 8 | begins | the first fixed day of the sign at the meridian |
+| 9 | ends | the last fixed day |
+| 10 | ayanamsa | the ayanāṃśa's identifier |
 
 Makara Saṅkrānti 2025 fell on 14 January in India, at 09:03 IST, with
 `lahiri`.

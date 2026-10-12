@@ -22,6 +22,8 @@ use alloc::string::String;
 
 use hc_astro::solar::solar_longitude_after;
 use hc_calendar::Rd;
+use hc_i18n::Locale;
+use hc_i18n::zodiac::{sidereal_sign_name, tropical_sign_name};
 use hc_seasons::dog_days::{DogDaysConvention, SpanCalendar};
 use hc_seasons::hizir_kasim::NamedDay;
 use hc_seasons::meiyu::PlumRainRule;
@@ -515,26 +517,55 @@ fn meridian_and_year(year: i64, name: &str) -> Answer<Meridian> {
 }
 
 /// How many columns each line of [`tropical_signs_in_year_lines`] writes.
-pub const TROPICAL_SIGNS_COLUMNS: usize = 7;
+pub const TROPICAL_SIGNS_COLUMNS: usize = 9;
 
 /// How many columns each line of [`sidereal_signs_in_year_lines`] writes:
 /// the tropical columns and the ayanāṃśa.
 pub const SIDEREAL_SIGNS_COLUMNS: usize = TROPICAL_SIGNS_COLUMNS + 1;
 
+/// The tag the English names carry, which a sign's name is tagged with where
+/// no locale in its fallback chain carries the name.
+const ENGLISH_TAG: &str = "en";
+
+/// The tag a sidereal sign's Sanskrit name carries where no locale in the
+/// chain names it: the rāśi's name is Sanskrit, written in Latin letters.
+const SANSKRIT_TAG: &str = "sa";
+
+/// The locale a tag asks a sign's name in, as `lines::requested_locale`
+/// reads a tag. `native` names no locale, and a tag that does not parse is
+/// the root locale; neither carries a sign name, so the English name answers.
+fn sign_locale(tag: &str) -> Locale {
+    Locale::requested(tag).unwrap_or(Locale::ROOT)
+}
+
+/// The name of a sign in a locale, with the tag of the locale that answered:
+/// the table's name and its entry's tag, or else `fallback`, the name the
+/// caller has for the sign and the tag of the language that name is written in.
+fn localized_sign_name(
+    answer: Option<(&'static str, &'static str)>,
+    fallback: (&'static str, &'static str),
+) -> (&'static str, &'static str) {
+    answer.unwrap_or(fallback)
+}
+
 /// The cells a sign period shares between the two zodiacs: the sign's
-/// number and identifier, its name, the instants the Sun entered and left
-/// it as whole POSIX seconds, rounded down, and its first and last days at
-/// the meridian.
+/// number and identifier, its name, the name in the locale and the tag of
+/// the locale that answered, the instants the Sun entered and left it as
+/// whole POSIX seconds, rounded down, and its first and last days at the
+/// meridian.
 fn sign_period_cells<S>(
     line: &mut Line<'_>,
     period: &zodiac::SignPeriod<S>,
     number: u8,
     id: &str,
     name: &str,
+    localized: (&str, &str),
 ) {
     line.value(number)
         .cell(id)
         .cell(name)
+        .cell(localized.0)
+        .cell(localized.1)
         .value(unix_from_moment(period.start))
         .value(unix_from_moment(period.end))
         .value(period.start_day.0)
@@ -546,26 +577,45 @@ fn sign_period_cells<S>(
 /// around 20 January to Capricorn around 21 December, as
 /// [`zodiac::tropical::signs_in_year`] walks them — one a line: the sign,
 /// 1 for Aries through 12 for Pisces, its identifier (`aries`) and English
-/// name, the instant the Sun entered it and the instant it left, each as
-/// whole POSIX seconds of Universal Time rounded down, and the first and
-/// the last day of the sign at the meridian. Consecutive periods share
-/// their instants exactly, and a sign's days run `begins..=ends`.
+/// name, the name in the locale `locale_tag` asks for and the tag of the
+/// locale that answered, the instant the Sun entered it and the instant it
+/// left, each as whole POSIX seconds of Universal Time rounded down, and
+/// the first and the last day of the sign at the meridian. Consecutive
+/// periods share their instants exactly, and a sign's days run
+/// `begins..=ends`.
+///
+/// The name in the locale is the one `hc_i18n::zodiac::tropical_sign_name`
+/// finds in the locale's fallback chain; where no locale in the chain
+/// carries it, the cell is the English name and the tag is `en`. `native`,
+/// the empty string and a tag that does not parse read as the root locale,
+/// which carries no name, so they give the English name.
 ///
 /// # Errors
 ///
 /// [`Refusal::Unknown`] for a meridian [`meridian`] does not read, and
 /// [`Refusal::OutOfRange`] for a year outside −1000 to 3000.
-pub fn tropical_signs_in_year_lines(year: i64, meridian_name: &str) -> Answer<String> {
+pub fn tropical_signs_in_year_lines(
+    year: i64,
+    meridian_name: &str,
+    locale_tag: &str,
+) -> Answer<String> {
     let meridian = meridian_and_year(year, meridian_name)?;
+    let locale = sign_locale(locale_tag);
     let mut out = String::new();
     for period in zodiac::tropical::signs_in_year(year, meridian) {
+        let english = period.sign.english_name();
+        let localized = localized_sign_name(
+            tropical_sign_name(&locale, usize::from(period.sign.index())),
+            (english, ENGLISH_TAG),
+        );
         let mut line = Line::new(&mut out);
         sign_period_cells(
             &mut line,
             &period,
             period.sign.index() + 1,
             period.sign.id(),
-            period.sign.english_name(),
+            english,
+            localized,
         );
         line.end();
     }
@@ -578,9 +628,16 @@ pub fn tropical_signs_in_year_lines(year: i64, meridian_name: &str) -> Answer<St
 /// after 1 January, Makara's around 14 January with a modern ayanāṃśa, as
 /// [`zodiac::sidereal::signs_in_year`] walks them — one a line: the sign,
 /// 1 for Meṣa through 12 for Mīna, its identifier (`mesha`) and Sanskrit
-/// name, the instants the Sun entered and left it as whole POSIX seconds
-/// rounded down, its first and last days at the meridian, and the
-/// ayanāṃśa's identifier.
+/// name, the name in the locale `locale_tag` asks for and the tag of the
+/// locale that answered, the instants the Sun entered and left it as whole
+/// POSIX seconds rounded down, its first and last days at the meridian, and
+/// the ayanāṃśa's identifier.
+///
+/// The locale name is the one `hc_i18n::zodiac::sidereal_sign_name` finds
+/// in the locale's fallback chain; where no locale in the chain carries it,
+/// the cell is the Sanskrit name the name cell already gives, and the tag is
+/// `sa`. `native`, the empty string and a tag that does not parse read as the
+/// root locale, as for [`tropical_signs_in_year_lines`].
 ///
 /// # Errors
 ///
@@ -591,11 +648,17 @@ pub fn sidereal_signs_in_year_lines(
     year: i64,
     ayanamsa_name: &str,
     meridian_name: &str,
+    locale_tag: &str,
 ) -> Answer<String> {
     let ayanamsa = Ayanamsa::by_id(ayanamsa_name).ok_or(Refusal::Unknown)?;
     let meridian = meridian_and_year(year, meridian_name)?;
+    let locale = sign_locale(locale_tag);
     let mut out = String::new();
     for period in zodiac::sidereal::signs_in_year(year, ayanamsa, meridian) {
+        let localized = localized_sign_name(
+            sidereal_sign_name(&locale, usize::from(period.sign.index())),
+            (period.sign.sanskrit_name(), SANSKRIT_TAG),
+        );
         let mut line = Line::new(&mut out);
         sign_period_cells(
             &mut line,
@@ -603,6 +666,7 @@ pub fn sidereal_signs_in_year_lines(
             period.sign.index() + 1,
             period.sign.id(),
             period.sign.sanskrit_name(),
+            localized,
         );
         line.cell(ayanamsa.id());
         line.end();
@@ -985,5 +1049,95 @@ mod tests {
             Err(Refusal::OutOfRange)
         );
         assert!(plum_rains_day("ru-mei-bing", -1000, "").is_ok());
+    }
+
+    /// The row of the sign with `id`, from the lines a sign function wrote.
+    fn sign_row(text: &str, id: &str) -> alloc::vec::Vec<String> {
+        rows(text)
+            .into_iter()
+            .find(|row| row[1] == id)
+            .expect("a sign")
+    }
+
+    /// The sign rows without their localized name and the tag that answered,
+    /// which are the only cells a locale changes.
+    fn without_locale_cells(text: &str) -> alloc::vec::Vec<alloc::vec::Vec<String>> {
+        rows(text)
+            .into_iter()
+            .map(|mut row| {
+                row.drain(3..5);
+                row
+            })
+            .collect()
+    }
+
+    /// A sign's name is the one its locale's article gives, with the tag of
+    /// the entry it came from; a region of a carried language answers from
+    /// its language's entry; and where no article gives the name, the English
+    /// name answers with `en`, as do the root locale, `native`, the empty
+    /// string and a tag that does not parse.
+    #[test]
+    fn a_tropical_sign_is_named_in_its_locale_and_says_which_locale_answered() {
+        let ja = tropical_signs_in_year_lines(2026, "japan", "ja").expect("in the era");
+        let libra = sign_row(&ja, "libra");
+        assert_eq!(libra.len(), TROPICAL_SIGNS_COLUMNS);
+        assert_eq!(libra[2..5], ["Libra", "天秤宮", "ja"]);
+        let hong_kong =
+            tropical_signs_in_year_lines(2026, "japan", "zh-Hant-HK").expect("in the era");
+        assert_eq!(
+            sign_row(&hong_kong, "libra")[2..5],
+            ["Libra", "天秤座", "zh-Hant"]
+        );
+        let portugal = tropical_signs_in_year_lines(2026, "japan", "pt-PT").expect("in the era");
+        assert_eq!(sign_row(&portugal, "libra")[2..5], ["Libra", "Libra", "en"]);
+        for tag in ["und", "native", "", "not a tag"] {
+            let text = tropical_signs_in_year_lines(2026, "japan", tag).expect("in the era");
+            assert_eq!(
+                sign_row(&text, "libra")[2..5],
+                ["Libra", "Libra", "en"],
+                "{tag}"
+            );
+        }
+    }
+
+    /// The cells that are not the localized name or its tag are the same for
+    /// every locale, in the same order, so a caller that reads the row by
+    /// position reads the same instants and days whatever it asks for.
+    #[test]
+    fn the_other_tropical_cells_are_the_same_whatever_the_locale() {
+        let english = tropical_signs_in_year_lines(2026, "japan", "und").expect("in the era");
+        let japanese = tropical_signs_in_year_lines(2026, "japan", "ja").expect("in the era");
+        assert_eq!(
+            without_locale_cells(&english),
+            without_locale_cells(&japanese)
+        );
+        assert_eq!(sign_row(&japanese, "libra")[0], "7");
+    }
+
+    /// A sidereal sign keeps its Sanskrit name in the name cell, and its
+    /// localized name follows that cell. Where no table carries a name, the
+    /// localized cell is the Sanskrit name again, tagged `sa`: `Makara`.
+    #[test]
+    fn a_sidereal_sign_is_named_in_its_locale_and_says_which_locale_answered() {
+        let hindi =
+            sidereal_signs_in_year_lines(2025, "lahiri", "india", "hi").expect("in the era");
+        let makara = sign_row(&hindi, "makara");
+        assert_eq!(makara.len(), SIDEREAL_SIGNS_COLUMNS);
+        assert_eq!(makara[2..5], ["Makara", "मकर", "hi"]);
+        let japanese =
+            sidereal_signs_in_year_lines(2025, "lahiri", "india", "ja").expect("in the era");
+        assert_eq!(
+            sign_row(&japanese, "makara")[2..5],
+            ["Makara", "Makara", "sa"]
+        );
+        assert_eq!(
+            without_locale_cells(&hindi),
+            without_locale_cells(&japanese)
+        );
+        assert!(
+            rows(&japanese)
+                .iter()
+                .all(|row| row.len() == SIDEREAL_SIGNS_COLUMNS && row[9] == "lahiri")
+        );
     }
 }

@@ -701,7 +701,7 @@ Besides these, `std` (on by default) chooses the build shape: turn it off for `n
 | `indic` | seasons, hc-calendars-indic, hc-core/memo, hc-fiscal?/indic |
 | `regional` | lunar, hc-calendars-regional |
 | `astro` | civil, hc-astro |
-| `seasons` | astro, hc-seasons, hc-attributes?/seasons |
+| `seasons` | astro, i18n, hc-seasons, hc-attributes?/seasons |
 | `almanac` | seasons, lunar, i18n, hc-almanac |
 | `fiscal` | civil, hc-fiscal |
 | `attributes` | civil, hc-attributes |

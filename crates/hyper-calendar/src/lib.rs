@@ -26,7 +26,7 @@
 //! | `indic` | [`hc_calendars_indic`] | The Hindu lunisolar calendar |
 //! | `regional` | [`hc_calendars_regional`] | Japanese eras, Maya, Pawukon |
 //! | `astro` | [`hc_astro`] | Solar longitude, phases, rise and set |
-//! | `seasons` | [`hc_seasons`] | 24 solar terms, 72 pentads, zassetsu |
+//! | `seasons` | [`hc_seasons`], [`hc_i18n`] | 24 solar terms, 72 pentads, zassetsu, the zodiac signs and their names |
 //! | `almanac` | [`hc_almanac`] | 六曜, 二十八宿, 九星, 暦注下段, 選日 |
 //! | `fiscal` | [`hc_fiscal`] | 年度, fiscal, tax and academic years |
 //! | `attributes` | [`hc_attributes`] | Birthstones, birth flowers, moon names |
