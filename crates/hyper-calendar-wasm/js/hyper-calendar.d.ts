@@ -1974,11 +1974,11 @@ export interface SignPeriod<Id extends string> {
   /** The English name of a tropical sign, the Sanskrit name of a sidereal one. */
   name: string;
   /**
-   * The sign's name in the locale asked for. Where no locale in its fallback chain carries one, the sign's English
-   * name: for a sidereal sign, the Western counterpart's name, not its Sanskrit `name`.
+   * The sign's name in the locale asked for. Where no locale in its fallback chain carries one, a tropical sign has its
+   * English name, tagged `en`, and a sidereal sign its Sanskrit `name`, tagged `sa`.
    */
   localizedName: string;
-  /** The tag of the locale that answered: the entry's tag, such as `zh-Hant` for `zh-Hant-HK`, or `en` where the English name answers. */
+  /** The tag of the locale that answered: the entry's tag, such as `zh-Hant` for `zh-Hant-HK`, or `en` or `sa` where the fallback answers. */
   localeUsed: string;
   /** The instant the Sun entered the sign, as POSIX seconds of Universal Time, rounded down. */
   start: number;
