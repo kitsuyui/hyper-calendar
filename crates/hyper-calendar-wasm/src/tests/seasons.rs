@@ -283,28 +283,37 @@ fn the_pentads_of_a_year_are_named_by_every_tradition() {
 #[test]
 fn the_signs_of_a_year_tile_it_and_turn_at_the_equinox() {
     let text = read_lines(|buffer, capacity| unsafe {
-        hc_tropical_signs_in_year(2026, "japan".as_ptr(), 5, buffer, capacity)
+        hc_tropical_signs_in_year(
+            2026,
+            "japan".as_ptr(),
+            5,
+            "ja".as_ptr(),
+            2,
+            buffer,
+            capacity,
+        )
     });
     let rows: Vec<Vec<&str>> = text
         .lines()
         .map(|line| line.split('\t').collect())
         .collect();
     assert_eq!(rows.len(), 12, "{text}");
-    assert!(rows.iter().all(|row| row.len() == 7), "{text}");
-    assert_eq!(rows[0][..3], ["11", "aquarius", "Aquarius"]);
+    assert!(rows.iter().all(|row| row.len() == 9), "{text}");
+    assert_eq!(rows[0][..5], ["11", "aquarius", "Aquarius", "宝瓶宮", "ja"]);
     assert_eq!(rows[11][..2], ["10", "capricorn"]);
     for pair in rows.windows(2) {
-        assert_eq!(pair[0][4], pair[1][3], "{pair:?}");
-        let ends: i64 = pair[0][6].parse().expect("a day");
-        let begins: i64 = pair[1][5].parse().expect("a day");
+        assert_eq!(pair[0][6], pair[1][5], "{pair:?}");
+        let ends: i64 = pair[0][8].parse().expect("a day");
+        let begins: i64 = pair[1][7].parse().expect("a day");
         assert_eq!(ends + 1, begins, "{pair:?}");
     }
     let libra = rows.iter().find(|row| row[1] == "libra").expect("Libra");
     assert_eq!(libra[0], "7");
-    let start: i64 = libra[3].parse().expect("an instant");
+    assert_eq!(libra[2..5], ["Libra", "天秤宮", "ja"]);
+    let start: i64 = libra[5].parse().expect("an instant");
     let equinox = hc_unix_from_fixed(hc_gregorian_to_fixed(2026, 9, 23)) + 5 * 60;
     assert!((start - equinox).abs() <= 120, "{start}");
-    assert_eq!(libra[5], hc_gregorian_to_fixed(2026, 9, 23).to_string());
+    assert_eq!(libra[7], hc_gregorian_to_fixed(2026, 9, 23).to_string());
     let text = read_lines(|buffer, capacity| unsafe {
         hc_sidereal_signs_in_year(
             2025,
@@ -312,6 +321,8 @@ fn the_signs_of_a_year_tile_it_and_turn_at_the_equinox() {
             6,
             "india".as_ptr(),
             5,
+            "hi".as_ptr(),
+            2,
             buffer,
             capacity,
         )
@@ -322,29 +333,53 @@ fn the_signs_of_a_year_tile_it_and_turn_at_the_equinox() {
         .collect();
     assert_eq!(rows.len(), 12, "{text}");
     assert!(
-        rows.iter().all(|row| row.len() == 8 && row[7] == "lahiri"),
+        rows.iter().all(|row| row.len() == 10 && row[9] == "lahiri"),
         "{text}"
     );
-    assert_eq!(rows[0][..3], ["10", "makara", "Makara"]);
-    assert_eq!(rows[0][5], hc_gregorian_to_fixed(2025, 1, 14).to_string());
-    let sankranti: i64 = rows[0][3].parse().expect("an instant");
+    assert_eq!(rows[0][..5], ["10", "makara", "Makara", "मकर", "hi"]);
+    assert_eq!(rows[0][7], hc_gregorian_to_fixed(2025, 1, 14).to_string());
+    let sankranti: i64 = rows[0][5].parse().expect("an instant");
     let drik = hc_unix_from_fixed(hc_gregorian_to_fixed(2025, 1, 14)) + 3 * 3_600 + 33 * 60;
     assert!((sankranti - drik).abs() <= 20 * 60, "{sankranti}");
     let null = core::ptr::null_mut();
     assert_eq!(
-        unsafe { hc_tropical_signs_in_year(3001, "".as_ptr(), 0, null, 0) },
+        unsafe { hc_tropical_signs_in_year(3001, "".as_ptr(), 0, "ja".as_ptr(), 2, null, 0) },
         HC_ERR_OUT_OF_RANGE
     );
     assert_eq!(
-        unsafe { hc_tropical_signs_in_year(2026, "mars".as_ptr(), 4, null, 0) },
+        unsafe { hc_tropical_signs_in_year(2026, "mars".as_ptr(), 4, "ja".as_ptr(), 2, null, 0) },
         HC_ERR_UNKNOWN
     );
     assert_eq!(
-        unsafe { hc_sidereal_signs_in_year(2025, "x".as_ptr(), 1, "".as_ptr(), 0, null, 0) },
+        unsafe {
+            hc_sidereal_signs_in_year(
+                2025,
+                "x".as_ptr(),
+                1,
+                "".as_ptr(),
+                0,
+                "hi".as_ptr(),
+                2,
+                null,
+                0,
+            )
+        },
         HC_ERR_UNKNOWN
     );
     assert_eq!(
-        unsafe { hc_sidereal_signs_in_year(-1001, "lahiri".as_ptr(), 6, "".as_ptr(), 0, null, 0) },
+        unsafe {
+            hc_sidereal_signs_in_year(
+                -1001,
+                "lahiri".as_ptr(),
+                6,
+                "".as_ptr(),
+                0,
+                "hi".as_ptr(),
+                2,
+                null,
+                0,
+            )
+        },
         HC_ERR_OUT_OF_RANGE
     );
 }

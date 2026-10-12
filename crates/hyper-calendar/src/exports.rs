@@ -5327,8 +5327,10 @@ macro_rules! exports {
             ///
             /// The lines are the WebAssembly module's. `meridian` is as for
             /// `hc_term_in_effect`, and a year outside −1000 to 3000 is
-            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
-            /// terminator, into `written`.
+            /// `HC_ERROR_OUT_OF_RANGE`. `locale` is a NUL-terminated BCP 47 tag;
+            /// `native`, a tag that does not parse and null name the root locale,
+            /// which gives the English names. Writes the required length, including
+            /// the terminator, into `written`.
         }
         wasm {
             /// The twelve tropical sign periods of a Gregorian year at a meridian,
@@ -5337,17 +5339,26 @@ macro_rules! exports {
             /// One line a sign, in date order from Aquarius around 20 January to
             /// Capricorn around 21 December, the order the signs appear in a
             /// Gregorian year, tab-separated: the sign, 1 for Aries through 12 for
-            /// Pisces; its identifier (`aries`) and English name; the instant the
-            /// Sun entered it and the instant it left, each as whole POSIX seconds
-            /// of Universal Time, rounded down, consecutive signs sharing theirs
-            /// exactly; and the first and the last fixed day of the sign at the
-            /// meridian, so that a sign's days run `begins..=ends`. The signs turn
-            /// at the solar terms of `hc_solar_terms_between`; `hc_decan_at` has the
-            /// sign at an instant. `meridian` is as for `hc_term_in_effect`, and a
-            /// year outside −1000 to 3000 is `HC_ERR_OUT_OF_RANGE`. A null `buffer`
-            /// returns the length the text needs.
+            /// Pisces; its identifier (`aries`) and English name; its name in
+            /// `locale`, and the tag of the locale that answered, `en` with the
+            /// English name where no locale in the fallback chain carries it; the
+            /// instant the Sun entered it and the instant it left, each as whole
+            /// POSIX seconds of Universal Time, rounded down, consecutive signs
+            /// sharing theirs exactly; and the first and the last fixed day of the
+            /// sign at the meridian, so that a sign's days run `begins..=ends`. The
+            /// signs turn at the solar terms of `hc_solar_terms_between`;
+            /// `hc_decan_at` has the sign at an instant. `meridian` is as for
+            /// `hc_term_in_effect`, and a year outside −1000 to 3000 is
+            /// `HC_ERR_OUT_OF_RANGE`. `locale` is a BCP 47 tag; `native`, the empty
+            /// string and a tag that does not parse name the root locale, which
+            /// gives the English name. A null `buffer` returns the length the text
+            /// needs.
         }
-        fn hc_tropical_signs_in_year(year: i64, meridian: text(meridian_len)) -> line =
+        fn hc_tropical_signs_in_year(
+            year: i64,
+            meridian: text(meridian_len),
+            locale: text(locale_len),
+        ) -> line =
             $crate::season_lines::tropical_signs_in_year_lines;
 
         c {
@@ -5358,8 +5369,10 @@ macro_rules! exports {
             /// The lines are the WebAssembly module's. `ayanamsa` is as for
             /// `hc_drekkana_at`; null is `HC_ERROR_NULL_POINTER`. `meridian` is as
             /// for `hc_term_in_effect`, and a year outside −1000 to 3000 is
-            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
-            /// terminator, into `written`.
+            /// `HC_ERROR_OUT_OF_RANGE`. `locale` is a NUL-terminated BCP 47 tag;
+            /// `native`, a tag that does not parse and null name the root locale,
+            /// which gives the English name. Writes the required length, including
+            /// the terminator, into `written`.
         }
         wasm {
             /// The twelve sidereal sign periods, the saṅkrāntis, of a Gregorian
@@ -5369,20 +5382,25 @@ macro_rules! exports {
             /// One line a sign, in date order from the first saṅkrānti on or after
             /// 1 January, Makara's around 14 January with a modern ayanāṃśa,
             /// tab-separated: the sign, 1 for Meṣa through 12 for Mīna; its
-            /// identifier (`mesha`) and Sanskrit name; the instant the Sun entered
-            /// it and the instant it left, each as whole POSIX seconds of Universal
-            /// Time, rounded down; the first and the last fixed day of the sign at
-            /// the meridian; and the ayanāṃśa's identifier. `ayanamsa` is as for
-            /// `hc_drekkana_at`; anything else, the empty string included, is
-            /// `HC_ERR_UNKNOWN`, read before the meridian. `meridian` is as for
+            /// identifier (`mesha`) and Sanskrit name; its name in `locale`, and
+            /// the tag of the locale that answered, `en` with the English name
+            /// where no locale in the fallback chain carries it; the instant the
+            /// Sun entered it and the instant it left, each as whole POSIX seconds
+            /// of Universal Time, rounded down; the first and the last fixed day of
+            /// the sign at the meridian; and the ayanāṃśa's identifier. `ayanamsa`
+            /// is as for `hc_drekkana_at`; anything else, the empty string included,
+            /// is `HC_ERR_UNKNOWN`, read before the meridian. `meridian` is as for
             /// `hc_term_in_effect`, and a year outside −1000 to 3000 is
-            /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+            /// `HC_ERR_OUT_OF_RANGE`. `locale` is a BCP 47 tag; `native`, the empty
+            /// string and a tag that does not parse name the root locale, which
+            /// gives the English name. A null `buffer` returns the length the text
             /// needs.
         }
         fn hc_sidereal_signs_in_year(
             year: i64,
             ayanamsa: name(ayanamsa_len),
             meridian: text(meridian_len),
+            locale: text(locale_len),
         ) -> line =
             $crate::season_lines::sidereal_signs_in_year_lines;
 

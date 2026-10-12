@@ -320,11 +320,18 @@ fn the_pentads_of_a_year_are_named_by_every_tradition() {
 #[test]
 fn the_signs_the_tanabata_and_the_phases_cross_the_c_boundary() {
     let text = read_lines(|buffer, capacity, written| unsafe {
-        hc_tropical_signs_in_year(2026, c"japan".as_ptr(), buffer, capacity, written)
+        hc_tropical_signs_in_year(
+            2026,
+            c"japan".as_ptr(),
+            c"ja".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
     });
     assert_eq!(
         Ok(text.clone()),
-        hc::season_lines::tropical_signs_in_year_lines(2026, "japan")
+        hc::season_lines::tropical_signs_in_year_lines(2026, "japan", "ja")
     );
     assert_eq!(text.lines().count(), 12);
     let mut day = 0i64;
@@ -337,12 +344,15 @@ fn the_signs_the_tanabata_and_the_phases_cross_the_c_boundary() {
         .find(|line| line.contains("\tlibra\t"))
         .expect("Libra");
     let cells: Vec<&str> = libra.split('\t').collect();
-    assert_eq!(cells[5], day.to_string());
+    assert_eq!(cells.len(), 9, "{libra}");
+    assert_eq!(cells[3..5], ["天秤宮", "ja"]);
+    assert_eq!(cells[7], day.to_string());
     let text = read_lines(|buffer, capacity, written| unsafe {
         hc_sidereal_signs_in_year(
             2025,
             c"lahiri".as_ptr(),
             c"india".as_ptr(),
+            c"hi".as_ptr(),
             buffer,
             capacity,
             written,
@@ -350,15 +360,15 @@ fn the_signs_the_tanabata_and_the_phases_cross_the_c_boundary() {
     });
     assert_eq!(
         Ok(text.clone()),
-        hc::season_lines::sidereal_signs_in_year_lines(2025, "lahiri", "india")
+        hc::season_lines::sidereal_signs_in_year_lines(2025, "lahiri", "india", "hi")
     );
     assert_eq!(
         unsafe { hc_gregorian_to_fixed(2025, 1, 14, &mut day) },
         HC_OK
     );
-    assert!(text.starts_with("10\tmakara\tMakara\t"), "{text}");
+    assert!(text.starts_with("10\tmakara\tMakara\tमकर\thi\t"), "{text}");
     assert_eq!(
-        text.lines().next().and_then(|line| line.split('\t').nth(5)),
+        text.lines().next().and_then(|line| line.split('\t').nth(7)),
         Some(day.to_string().as_str())
     );
     let mut written = 0usize;
@@ -368,6 +378,7 @@ fn the_signs_the_tanabata_and_the_phases_cross_the_c_boundary() {
                 2025,
                 core::ptr::null(),
                 c"india".as_ptr(),
+                c"hi".as_ptr(),
                 core::ptr::null_mut(),
                 0,
                 &mut written,
@@ -380,6 +391,7 @@ fn the_signs_the_tanabata_and_the_phases_cross_the_c_boundary() {
             hc_tropical_signs_in_year(
                 3001,
                 core::ptr::null(),
+                c"ja".as_ptr(),
                 core::ptr::null_mut(),
                 0,
                 &mut written,
@@ -392,6 +404,7 @@ fn the_signs_the_tanabata_and_the_phases_cross_the_c_boundary() {
             hc_tropical_signs_in_year(
                 2026,
                 c"mars".as_ptr(),
+                c"ja".as_ptr(),
                 core::ptr::null_mut(),
                 0,
                 &mut written,

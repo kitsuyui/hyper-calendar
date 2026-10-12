@@ -1973,6 +1973,13 @@ export interface SignPeriod<Id extends string> {
   id: Id;
   /** The English name of a tropical sign, the Sanskrit name of a sidereal one. */
   name: string;
+  /**
+   * The sign's name in the locale asked for. Where no locale in its fallback chain carries one, the sign's English
+   * name: for a sidereal sign, the Western counterpart's name, not its Sanskrit `name`.
+   */
+  localizedName: string;
+  /** The tag of the locale that answered: the entry's tag, such as `zh-Hant` for `zh-Hant-HK`, or `en` where the English name answers. */
+  localeUsed: string;
   /** The instant the Sun entered the sign, as POSIX seconds of Universal Time, rounded down. */
   start: number;
   /** The instant it left, which is the next sign's `start`. */
@@ -5424,10 +5431,10 @@ export class HyperCalendar {
   seasonalDaysInYear(year: number | bigint, meridian?: Meridian): SeasonalDay[];
   /** `hc_pentads_in_year`: every pentad of a Gregorian year at a meridian, named by every tradition. */
   pentadsInYear(year: number | bigint, meridian?: Meridian): PentadOfYear[];
-  /** `hc_tropical_signs_in_year`: the twelve tropical sign periods of a Gregorian year at a meridian, Aquarius first. */
-  tropicalSignsInYear(year: number | bigint, meridian?: Meridian): SignPeriod<TropicalSignId>[];
-  /** `hc_sidereal_signs_in_year`: the twelve saṅkrāntis of a Gregorian year in an ayanāṃśa's zodiac at a meridian. */
-  siderealSignsInYear(year: number | bigint, ayanamsa: Ayanamsa, meridian?: Meridian): SiderealSignPeriod[];
+  /** `hc_tropical_signs_in_year`: the twelve tropical sign periods of a Gregorian year at a meridian, Aquarius first, each named in `locale`. */
+  tropicalSignsInYear(year: number | bigint, meridian?: Meridian, locale?: string): SignPeriod<TropicalSignId>[];
+  /** `hc_sidereal_signs_in_year`: the twelve saṅkrāntis of a Gregorian year in an ayanāṃśa's zodiac at a meridian, each named in `locale`. */
+  siderealSignsInYear(year: number | bigint, ayanamsa: Ayanamsa, meridian?: Meridian, locale?: string): SiderealSignPeriod[];
   /** `hc_traditional_tanabata`: the Observatory's 伝統的七夕 of a year, at `japan` unless a meridian is given. */
   traditionalTanabata(year: number | bigint, meridian?: Meridian): number;
   /** `hc_principal_phases_in_month`: the four or five principal phases inside a Gregorian month at a meridian. */

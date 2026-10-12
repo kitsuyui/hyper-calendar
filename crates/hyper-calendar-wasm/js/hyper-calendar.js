@@ -849,8 +849,12 @@ export const COLUMNS = Object.freeze({
   moonCrossing: Object.freeze(["instant", "missing", "missing day"]),
   listForms: Object.freeze(["two", "start", "middle", "end", "locale used"]),
   regularizedUt1: Object.freeze(["minus UT1", "reading"]),
-  signsInYear: Object.freeze(["sign", "id", "name", "start", "end", "begins", "ends"]),
-  siderealSignsInYear: Object.freeze(["sign", "id", "name", "start", "end", "begins", "ends", "ayanamsa"]),
+  signsInYear: Object.freeze([
+    "sign", "id", "name", "localized name", "locale used", "start", "end", "begins", "ends",
+  ]),
+  siderealSignsInYear: Object.freeze([
+    "sign", "id", "name", "localized name", "locale used", "start", "end", "begins", "ends", "ayanamsa",
+  ]),
   principalPhase: Object.freeze(["phase", "instant", "day"]),
   yearType: Object.freeze([
     "calendar", "year", "kind", "days", "extra month", "thai name", "khmer name", "new year", "seconds",
@@ -942,11 +946,13 @@ function moonCrossing(cells) {
  * @returns {import("./hyper-calendar.d.ts").SignPeriod<string>}
  */
 function signPeriod(cells) {
-  const [sign, id, name, start, end, begins, ends] = cells;
+  const [sign, id, name, localizedName, localeUsed, start, end, begins, ends] = cells;
   return {
     sign: integer(sign, "sign"),
     id,
     name,
+    localizedName,
+    localeUsed,
     start: integer(start, "start"),
     end: integer(end, "end"),
     begins: integer(begins, "begins"),
@@ -7086,14 +7092,19 @@ export class HyperCalendar {
   /**
    * The twelve tropical sign periods of a Gregorian year at a meridian, in
    * date order from Aquarius to Capricorn: the instants the Sun entered
-   * and left each sign and its first and last days.
+   * and left each sign and its first and last days, and its name in the
+   * locale with the tag of the locale that answered.
    *
    * @param {number | bigint} year
    * @param {import("./hyper-calendar.d.ts").Meridian} [meridian]
+   * @param {string} [locale] a BCP 47 tag; `"und"` and a tag with no sign names give the English names
    * @returns {import("./hyper-calendar.d.ts").SignPeriod<import("./hyper-calendar.d.ts").TropicalSignId>[]}
    */
-  tropicalSignsInYear(year, meridian = "universal") {
-    const text = this.#yearLines("hc_tropical_signs_in_year", year, meridian);
+  tropicalSignsInYear(year, meridian = "universal", locale = "und") {
+    const name = typeof meridian === "number" ? String(meridian) : meridian;
+    const text = this.#call("hc_tropical_signs_in_year", [
+      ["i64", "year", year], ["str", "meridian", name], ["str", "locale", locale],
+    ]);
     return rows(text, COLUMNS.signsInYear, "hc_tropical_signs_in_year").map((cells) =>
       /** @type {import("./hyper-calendar.d.ts").SignPeriod<import("./hyper-calendar.d.ts").TropicalSignId>} */ (signPeriod(cells)));
   }
@@ -7101,21 +7112,24 @@ export class HyperCalendar {
   /**
    * The twelve sidereal sign periods, the saṅkrāntis, of a Gregorian year
    * in the zodiac of an ayanāṃśa at a meridian, from the first saṅkrānti
-   * on or after 1 January.
+   * on or after 1 January, with each sign's name in the locale and the tag
+   * of the locale that answered.
    *
    * @param {number | bigint} year
    * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
    * @param {import("./hyper-calendar.d.ts").Meridian} [meridian]
+   * @param {string} [locale] a BCP 47 tag; `"und"` and a tag with no sign names give the English names
    * @returns {import("./hyper-calendar.d.ts").SiderealSignPeriod[]}
    */
-  siderealSignsInYear(year, ayanamsa, meridian = "universal") {
+  siderealSignsInYear(year, ayanamsa, meridian = "universal", locale = "und") {
     const name = typeof meridian === "number" ? String(meridian) : meridian;
     const text = this.#call("hc_sidereal_signs_in_year", [
       ["i64", "year", year], ["str", "ayanamsa", ayanamsa], ["str", "meridian", name],
+      ["str", "locale", locale],
     ]);
     return rows(text, COLUMNS.siderealSignsInYear, "hc_sidereal_signs_in_year").map((cells) => ({
       .../** @type {import("./hyper-calendar.d.ts").SignPeriod<import("./hyper-calendar.d.ts").SiderealSignId>} */ (signPeriod(cells)),
-      ayanamsa: /** @type {import("./hyper-calendar.d.ts").Ayanamsa} */ (cells[7]),
+      ayanamsa: /** @type {import("./hyper-calendar.d.ts").Ayanamsa} */ (cells[9]),
     }));
   }
 

@@ -4465,10 +4465,20 @@ describe("the signs of a year, the Tanabata and the phases of a month", () => {
     const libra = signs.find((period) => period.id === "libra");
     assert.ok(libra && Math.abs(libra.start - (hc.unixFromFixed(hc.gregorianToFixed(2026, 9, 23)) + 300)) <= 120);
     assert.equal(libra?.begins, hc.gregorianToFixed(2026, 9, 23));
+    // Each sign is named in the locale asked for, with the tag that answered; without one it is English, tagged `en`.
+    assert.deepEqual([libra?.name, libra?.localizedName, libra?.localeUsed], ["Libra", "Libra", "en"]);
+    const japaneseLibra = hc.tropicalSignsInYear(2026, "japan", "ja").find((period) => period.id === "libra");
+    assert.deepEqual([japaneseLibra?.name, japaneseLibra?.localizedName, japaneseLibra?.localeUsed], ["Libra", "天秤宮", "ja"]);
+    assert.equal(japaneseLibra?.start, libra?.start);
+    const hongKongLibra = hc.tropicalSignsInYear(2026, "japan", "zh-Hant-HK").find((period) => period.id === "libra");
+    assert.deepEqual([hongKongLibra?.localizedName, hongKongLibra?.localeUsed], ["天秤座", "zh-Hant"]);
     // Makara Saṅkrānti 2025 fell on 14 January in India.
     const sidereal = hc.siderealSignsInYear(2025, "lahiri", "india");
     assert.equal(sidereal.length, 12);
     assert.deepEqual([sidereal[0].sign, sidereal[0].id, sidereal[0].name, sidereal[0].ayanamsa], [10, "makara", "Makara", "lahiri"]);
+    assert.deepEqual([sidereal[0].localizedName, sidereal[0].localeUsed], ["Makara", "sa"]);
+    const hindiMakara = hc.siderealSignsInYear(2025, "lahiri", "india", "hi")[0];
+    assert.deepEqual([hindiMakara.localizedName, hindiMakara.localeUsed], ["मकर", "hi"]);
     assert.equal(sidereal[0].begins, hc.gregorianToFixed(2025, 1, 14));
     refused(() => hc.tropicalSignsInYear(3001), "out-of-range");
     refused(() => hc.siderealSignsInYear(2025, /** @type {any} */ ("x")), "unknown");

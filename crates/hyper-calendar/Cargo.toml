@@ -93,9 +93,10 @@ indic = ["seasons", "dep:hc-calendars-indic", "hc-core/memo", "hc-fiscal?/indic"
 regional = ["lunar", "dep:hc-calendars-regional"]
 # Astronomy on its own, for solar longitude and phases.
 astro = ["civil", "dep:hc-astro"]
-# The 24 solar terms, 72 pentads and zassetsu; and, with `attributes`,
-# the zodiac-sign stones and the Harvest Moon.
-seasons = ["astro", "dep:hc-seasons", "hc-attributes?/seasons"]
+# The 24 solar terms, 72 pentads, zassetsu and the signs of the zodiac, whose
+# names hc-i18n gives in a locale; and, with `attributes`, the zodiac-sign
+# stones and the Harvest Moon.
+seasons = ["astro", "i18n", "dep:hc-seasons", "hc-attributes?/seasons"]
 # The almanac annotations: mansions, nine stars, directs, selected days,
 # named in a locale by hc-i18n.
 almanac = ["seasons", "lunar", "i18n", "dep:hc-almanac"]
