@@ -136,14 +136,30 @@ fn hc_fiscal_year_span_crosses_the_boundary() {
 
 #[test]
 fn hc_week_year_systems_crosses_the_boundary() {
-    let text = read_lines(|buffer, capacity| unsafe { hc_week_year_systems(buffer, capacity) });
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_week_year_systems("und".as_ptr(), 3, buffer, capacity)
+    });
     assert!(!text.is_empty());
     assert!(
-        text.lines().all(|line| line.split('\t').count() == 10),
+        text.lines().all(|line| line.split('\t').count() == 12),
         "{text}"
     );
     let first = row(text.lines().next().unwrap_or_default());
     assert_eq!(first[0], "nrf-4-5-4");
+    assert_eq!(first[1], "NRF 4-5-4 retail calendar");
+    assert_eq!(first[2], "NRF 4-5-4 retail calendar");
+    assert_eq!(first[3], "en");
+    let zh = read_lines(|buffer, capacity| unsafe {
+        hc_week_year_systems("zh-Hant".as_ptr(), 7, buffer, capacity)
+    });
+    let iso = zh
+        .lines()
+        .find(|line| line.starts_with("iso-8601-week-year\t"))
+        .map(row)
+        .unwrap_or_default();
+    assert_eq!(iso[1], "ISO 8601 week-numbering year");
+    assert_eq!(iso[2], "ISO週數年");
+    assert_eq!(iso[3], "zh-Hant");
 }
 
 #[test]

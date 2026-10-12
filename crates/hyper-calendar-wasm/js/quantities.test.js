@@ -339,6 +339,21 @@ test("weekYearSystems reads hc_week_year_systems column by column", () => {
   assert.ok(Array.isArray(result) && result.length > 0);
   assert.deepEqual(result[0].id, "nrf-4-5-4");
   assert.deepEqual([...COLUMNS.weekYearSystems], columnsAfter("### Years of whole weeks"));
+  const iso = result.find((system) => system.id === "iso-8601-week-year");
+  assert.deepEqual([iso.name, iso.localizedName, iso.localeUsed], ["ISO 8601 week-numbering year", "ISO 8601 week-numbering year", "en"]);
+  assert.deepEqual(result[0].localeUsed, "en");
+});
+
+test("weekYearSystems names each system in the locale asked for and tags the locale that answered", () => {
+  const traditional = hc.weekYearSystems("zh-Hant-HK");
+  const isoTraditional = traditional.find((system) => system.id === "iso-8601-week-year");
+  assert.deepEqual([isoTraditional.localizedName, isoTraditional.localeUsed], ["ISO週數年", "zh-Hant"]);
+  const nrf = traditional.find((system) => system.id === "nrf-4-5-4");
+  assert.deepEqual([nrf.name, nrf.localizedName, nrf.localeUsed], ["NRF 4-5-4 retail calendar", "NRF 4-5-4 retail calendar", "en"]);
+  const french = hc.weekYearSystems("fr-CA").find((system) => system.id === "iso-8601-week-year");
+  assert.deepEqual([french.localizedName, french.localeUsed], ["année ISO", "fr"]);
+  const german = hc.weekYearSystems("de").find((system) => system.id === "iso-8601-week-year");
+  assert.deepEqual([german.localizedName, german.localeUsed], ["ISO 8601 week-numbering year", "en"]);
 });
 
 test("weekYearOn reads hc_week_year_on column by column", () => {

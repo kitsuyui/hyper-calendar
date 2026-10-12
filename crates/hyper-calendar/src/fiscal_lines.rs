@@ -28,6 +28,8 @@ use hc_fiscal::academic::{self, AcademicProfile};
 use hc_fiscal::countries::{self, FiscalProfile};
 use hc_fiscal::retail::{self, WeekYearSystem};
 use hc_fiscal::{FiscalError, SourceDate, SystemKind, YearSystem};
+use hc_i18n::Locale;
+use hc_i18n::week_year::iso_week_year_term;
 
 use crate::boundary::{Answer, Line, Refusal};
 
@@ -41,7 +43,11 @@ pub const YEAR_ON_COLUMNS: usize = 18;
 pub const YEAR_SPAN_COLUMNS: usize = 9;
 
 /// How many columns a line of [`week_year_systems_lines`] has.
-pub const WEEK_YEAR_SYSTEM_COLUMNS: usize = 10;
+pub const WEEK_YEAR_SYSTEM_COLUMNS: usize = 12;
+
+/// The tag the English names carry, which a week-year system's name is
+/// tagged with where no locale in its fallback chain carries a term for it.
+const ENGLISH_TAG: &str = "en";
 
 /// How many columns a line of [`week_year_on_line`] has.
 pub const WEEK_YEAR_ON_COLUMNS: usize = 14;
@@ -373,9 +379,33 @@ pub fn year_span_lines(country: &str, kind: &str, label: i64) -> Answer<String> 
     Ok(out)
 }
 
+/// The locale a tag asks a week-year name in, read as the zodiac lines read
+/// a tag: `native`, the empty string and a tag that does not parse name the
+/// root locale, which carries no term.
+fn week_year_locale(tag: &str) -> Locale {
+    Locale::requested(tag).unwrap_or(Locale::ROOT)
+}
+
+/// The name of a week-year system in a locale, with the tag of the locale
+/// that answered: the ISO 8601 week-numbering year's term where
+/// `hc_i18n::week_year` carries one, and otherwise the English name, tagged
+/// `en`. Only the ISO 8601 week-numbering year has a term; the other systems
+/// are always English.
+fn localized_week_year_name(
+    id: &'static str,
+    name: &'static str,
+    locale: &Locale,
+) -> (&'static str, &'static str) {
+    if id == retail::ISO_8601_WEEK_YEAR.id {
+        return iso_week_year_term(locale).unwrap_or((name, ENGLISH_TAG));
+    }
+    (name, ENGLISH_TAG)
+}
+
 /// Every named year of whole weeks, one line each: the identifier, the
-/// English name, the weekday the year ends on from Monday = 1 to Sunday = 7,
-/// the Gregorian month whose end the rule is applied to, the rule
+/// English name, the name in the locale `locale_tag` asks for and the tag of
+/// the locale that answered, the weekday the year ends on from Monday = 1 to
+/// Sunday = 7, the Gregorian month whose end the rule is applied to, the rule
 /// (`last-weekday-of-month` or `weekday-nearest-month-end`), how the year is
 /// named (`start-year` or `end-year`), the shape of a quarter's thirteen
 /// weeks (`4-4-5`, `4-5-4` or `5-4-4`, empty for a convention that numbers
@@ -384,8 +414,17 @@ pub fn year_span_lines(country: &str, kind: &str, label: i64) -> Answer<String> 
 ///
 /// The two rules are two names and not one parameter: they put the year end
 /// up to a week apart and sometimes in different months.
+///
+/// The localized name of the ISO 8601 week-numbering year is the term
+/// `hc_i18n::week_year::iso_week_year_term` finds in the locale's fallback
+/// chain. The NRF 4-5-4 calendar and the 4-4-5 year carry no locale term, so
+/// their localized name is the English name, tagged `en`, as is every name
+/// where no locale in the chain carries a term. `native`, the empty string and
+/// a tag that does not parse read as the root locale, which gives the English
+/// names.
 #[must_use]
-pub fn week_year_systems_lines() -> String {
+pub fn week_year_systems_lines(locale_tag: &str) -> String {
+    let locale = week_year_locale(locale_tag);
     let mut out = String::new();
     for system in retail::ALL {
         let WeekYearSystem {
@@ -400,9 +439,12 @@ pub fn week_year_systems_lines() -> String {
             source,
             sources_checked,
         } = **system;
+        let (localized, localized_tag) = localized_week_year_name(id, name, &locale);
         let mut line = Line::new(&mut out);
         line.cell(id)
             .cell(name)
+            .cell(localized)
+            .cell(localized_tag)
             .value(anchor_weekday.iso_number())
             .value(anchor_month)
             .cell(anchor_rule.id())
@@ -764,7 +806,7 @@ mod tests {
 
     #[test]
     fn the_week_years_end_on_a_saturday_by_their_two_rules() {
-        let text = week_year_systems_lines();
+        let text = week_year_systems_lines("und");
         let table = rows(&text);
         assert_eq!(table.len(), retail::ALL.len());
         assert!(
@@ -778,7 +820,7 @@ mod tests {
             .cloned()
             .unwrap_or_default();
         assert_eq!(
-            &nrf[2..7],
+            &nrf[4..9],
             ["6", "1", "weekday-nearest-month-end", "start-year", "4-5-4"]
         );
         // NRF's retail 2023 ran from Sunday 29 January 2023 to Saturday
@@ -802,5 +844,76 @@ mod tests {
         let row = cells(&iso);
         assert_eq!(row.len(), WEEK_YEAR_ON_COLUMNS);
         assert_eq!(&row[10..], ["", "", "", ""]);
+    }
+
+    #[test]
+    fn the_iso_week_year_is_named_in_the_locale_and_the_others_stay_english() {
+        let text = week_year_systems_lines("zh-Hant-HK");
+        let table = rows(&text);
+        let iso = table
+            .iter()
+            .find(|row| row[0] == "iso-8601-week-year")
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(
+            &iso[1..4],
+            ["ISO 8601 week-numbering year", "ISO週數年", "zh-Hant"]
+        );
+        let nrf = table
+            .iter()
+            .find(|row| row[0] == "nrf-4-5-4")
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(
+            &nrf[1..4],
+            [
+                "NRF 4-5-4 retail calendar",
+                "NRF 4-5-4 retail calendar",
+                "en"
+            ]
+        );
+    }
+
+    #[test]
+    fn a_locale_without_a_term_gets_the_english_name_tagged_en() {
+        let text = week_year_systems_lines("de");
+        let table = rows(&text);
+        let iso = table
+            .iter()
+            .find(|row| row[0] == "iso-8601-week-year")
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(
+            &iso[1..4],
+            [
+                "ISO 8601 week-numbering year",
+                "ISO 8601 week-numbering year",
+                "en"
+            ]
+        );
+        let fr = week_year_systems_lines("fr-CA");
+        let fr_table = rows(&fr);
+        let fr_iso = fr_table
+            .iter()
+            .find(|row| row[0] == "iso-8601-week-year")
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(
+            &fr_iso[1..4],
+            ["ISO 8601 week-numbering year", "année ISO", "fr"]
+        );
+    }
+
+    #[test]
+    fn a_native_or_unparsed_tag_reads_as_the_root_locale() {
+        assert_eq!(
+            week_year_systems_lines("native"),
+            week_year_systems_lines("und")
+        );
+        assert_eq!(week_year_systems_lines(""), week_year_systems_lines("und"));
+        assert_eq!(
+            week_year_systems_lines("not a tag"),
+            week_year_systems_lines("und")
+        );
     }
 }
