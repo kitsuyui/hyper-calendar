@@ -419,9 +419,9 @@ fn a_described_day_reports_the_locale_that_wrote_it() {
 /// the locale, whatever the script of the calendar's own names.
 #[test]
 fn a_locale_that_names_a_calendar_writes_its_dates() {
-    // The Hebrew year's era is implied in its dates (AM, as the English
-    // entries declare), so it is never written and a Korean Hebrew date
-    // keeps Korean.
+    // The Hebrew year's era is implied by the English entries (AM), so the
+    // calendar keeps its abbreviation: a Korean Hebrew date keeps Korean and
+    // writes AM as the Korean template does (`docs/i18n.md`).
     let calendars = registry();
     let korean: Locale = "ko".parse().expect("a tag");
     let hebrew = calendars.get_by_name("hebrew").expect("registered");
