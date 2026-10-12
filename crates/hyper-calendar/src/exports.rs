@@ -9966,8 +9966,14 @@ macro_rules! exports {
             /// parameter: they put the year end up to a week apart and sometimes in different
             /// months.
             ///
-            /// One line each, the cells tab-separated: id, name, weekday, month, anchor rule, label
-            /// convention, shape, note, source, sources checked.
+            /// One line each, the cells tab-separated: id, name, localized name, locale used,
+            /// weekday, month, anchor rule, label convention, shape, note, source, sources checked.
+            ///
+            /// `locale` is a NUL-terminated BCP 47 tag; `native`, a tag that does not parse and null
+            /// name the root locale, which gives the English names. The localized name is the ISO
+            /// 8601 week-numbering year's term in that locale where one is carried, and otherwise the
+            /// English name; the locale used is the tag of the locale that answered, `en` for the
+            /// English name.
             ///
             /// Writes the required length, including the terminator, into `written`.
         }
@@ -9979,13 +9985,19 @@ macro_rules! exports {
             /// parameter: they put the year end up to a week apart and sometimes in different
             /// months.
             ///
-            /// One line each, the cells tab-separated: id, name, weekday, month, anchor rule, label
-            /// convention, shape, note, source, sources checked.
+            /// One line each, the cells tab-separated: id, name, localized name, locale used,
+            /// weekday, month, anchor rule, label convention, shape, note, source, sources checked.
+            ///
+            /// `locale` is a BCP 47 tag; `native`, the empty string and a tag that does not parse
+            /// name the root locale, which gives the English names. The localized name is the ISO
+            /// 8601 week-numbering year's term in that locale where one is carried, and otherwise the
+            /// English name; the locale used is the tag of the locale that answered, `en` for the
+            /// English name.
             ///
             /// A null `buffer` returns the length the text needs.
         }
-        fn hc_week_year_systems() -> line =
-            || Ok($crate::fiscal_lines::week_year_systems_lines());
+        fn hc_week_year_systems(locale: text(locale_len)) -> line =
+            |locale| Ok($crate::fiscal_lines::week_year_systems_lines(locale));
 
         c {
             /// Where a fixed day is in a year of whole weeks, as NUL-terminated UTF-8 one line in a

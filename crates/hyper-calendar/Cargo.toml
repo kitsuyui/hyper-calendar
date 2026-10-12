@@ -100,8 +100,9 @@ seasons = ["astro", "i18n", "dep:hc-seasons", "hc-attributes?/seasons"]
 # The almanac annotations: mansions, nine stars, directs, selected days,
 # named in a locale by hc-i18n.
 almanac = ["seasons", "lunar", "i18n", "dep:hc-almanac"]
-# Fiscal, tax and academic years; Nepal's with `indic`.
-fiscal = ["civil", "dep:hc-fiscal"]
+# Fiscal, tax and academic years; Nepal's with `indic`. The week-numbering
+# year's name is named in a locale by hc-i18n.
+fiscal = ["civil", "i18n", "dep:hc-fiscal"]
 # Birthstones, birth flowers, moon names and traditional month names; the
 # zodiac-sign stones and the Harvest Moon with `seasons`.
 attributes = ["civil", "dep:hc-attributes"]

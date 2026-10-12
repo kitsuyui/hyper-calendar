@@ -703,7 +703,7 @@ Besides these, `std` (on by default) chooses the build shape: turn it off for `n
 | `astro` | civil, hc-astro |
 | `seasons` | astro, i18n, hc-seasons, hc-attributes?/seasons |
 | `almanac` | seasons, lunar, i18n, hc-almanac |
-| `fiscal` | civil, hc-fiscal |
+| `fiscal` | civil, i18n, hc-fiscal |
 | `attributes` | civil, hc-attributes |
 | `name-days` | civil, hc-name-days |
 | `tz` | civil, hc-tz, hc-i18n, hc-i18n/exemplar-cities |

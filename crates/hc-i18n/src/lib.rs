@@ -116,6 +116,7 @@ pub mod place_names;
 pub mod plural;
 pub mod reckonings;
 pub mod week;
+pub mod week_year;
 pub mod zodiac;
 pub mod zone_names;
 

@@ -826,7 +826,7 @@ export const COLUMNS = Object.freeze({
   fiscalProfiles: Object.freeze(["country", "country name", "table", "kind", "name", "local name", "authority", "national", "start calendar", "start month", "start day", "label convention", "valid from", "valid until", "approximate", "note", "sources checked", "sources", "read from", "unread"]),
   fiscalYearOn: Object.freeze(["country", "table", "kind", "name", "status", "label", "first", "last", "day of year", "days in year", "weekday", "month", "quarter", "half", "start calendar", "label convention", "approximate", "sources checked"]),
   fiscalYearSpan: Object.freeze(["country", "table", "kind", "name", "status", "label", "first", "last", "days"]),
-  weekYearSystems: Object.freeze(["id", "name", "weekday", "month", "anchor rule", "label convention", "shape", "note", "source", "sources checked"]),
+  weekYearSystems: Object.freeze(["id", "name", "localized name", "locale used", "weekday", "month", "anchor rule", "label convention", "shape", "note", "source", "sources checked"]),
   weekYearOn: Object.freeze(["system", "name", "label", "first", "last", "weeks", "long", "week", "week first", "week last", "period", "period first", "period last", "quarter"]),
   nameDayLists: Object.freeze(["kind", "id", "country", "language", "name", "authority", "decided", "provenance", "valid from", "valid until", "licence", "leap day", "total names", "source", "retrieved", "reason", "explanation"]),
   nameDaysOn: Object.freeze(["kind", "id", "name", "authority", "valid from", "valid until", "licence", "names", "count", "unlisted names day", "notes", "source", "reason", "explanation"]),
@@ -1561,18 +1561,20 @@ function fiscalYearSpan(cells) {
  * @returns {import("./hyper-calendar.d.ts").WeekYearSystem}
  */
 function weekYearSystems(cells) {
-  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9] = cells;
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11] = cells;
   return {
     id: c0,
     name: c1,
-    weekday: integer(c2, "weekday"),
-    month: integer(c3, "month"),
-    anchorRule: c4,
-    labelConvention: c5,
-    shape: optional(c6),
-    note: c7,
-    source: c8,
-    sourcesChecked: c9,
+    localizedName: c2,
+    localeUsed: c3,
+    weekday: integer(c4, "weekday"),
+    month: integer(c5, "month"),
+    anchorRule: c6,
+    labelConvention: c7,
+    shape: optional(c8),
+    note: c9,
+    source: c10,
+    sourcesChecked: c11,
   };
 }
 
@@ -11476,12 +11478,12 @@ export class HyperCalendar {
    * two anchor rules are two names and not one parameter: they put the year end up to a week
    * apart and sometimes in different months.
    *
+   * @param {string} [locale] a BCP 47 tag; `"und"` and a tag with no term for the ISO 8601 week-numbering year give the English names
    * @returns {import("./hyper-calendar.d.ts").WeekYearSystem[]}
    */
-  weekYearSystems() {
-    const fn = this.#export("hc_week_year_systems");
-    const written = this.#text("hc_week_year_systems", (buffer, capacity) => fn(buffer, capacity), true);
-    return rows(written, COLUMNS.weekYearSystems, "hc_week_year_systems").map(weekYearSystems);
+  weekYearSystems(locale = "und") {
+    const text = this.#call("hc_week_year_systems", [["str", "locale", locale]]);
+    return rows(text, COLUMNS.weekYearSystems, "hc_week_year_systems").map(weekYearSystems);
   }
 
   /**

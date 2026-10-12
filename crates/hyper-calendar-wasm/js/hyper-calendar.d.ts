@@ -4602,6 +4602,10 @@ export interface WeekYearSystem {
   id: string;
   /** the English name */
   name: string;
+  /** the name in the locale asked for: the ISO 8601 week-numbering year's term where one is carried, otherwise the English name */
+  localizedName: string;
+  /** the tag of the locale that answered: the entry's tag, such as `zh-Hant` for `zh-Hant-HK`, or `en` where the English name answers */
+  localeUsed: string;
   /** the weekday the year ends on, Monday = 1 to Sunday = 7 */
   weekday: number;
   /** the Gregorian month whose end the rule is applied to */
@@ -5777,8 +5781,8 @@ export class HyperCalendar {
   fiscalYearOn(country: string, kind: string, fixed: number | bigint): FiscalYearOfDay[];
   /** `hc_fiscal_year_span`: the span of the year a label names in each year system of a country. */
   fiscalYearSpan(country: string, kind: string, label: number | bigint): FiscalYearSpan[];
-  /** `hc_week_year_systems`: every named year of whole weeks. */
-  weekYearSystems(): WeekYearSystem[];
+  /** `hc_week_year_systems`: every named year of whole weeks, each with its name in `locale`. */
+  weekYearSystems(locale?: string): WeekYearSystem[];
   /** `hc_week_year_on`: where a fixed day is in a year of whole weeks. */
   weekYearOn(system: string, fixed: number | bigint): WeekYearOfDay;
   /** `hc_name_day_lists`: every name-day list the crate ships and every country it declines to ship one for. */

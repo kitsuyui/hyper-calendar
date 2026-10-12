@@ -537,7 +537,7 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `fiscalProfiles()` | `hc_fiscal_profiles` | `FiscalSystem[]` |
 | `fiscalYearOn(country, kind, fixed)` | `hc_fiscal_year_on` | `FiscalYearOfDay[]` |
 | `fiscalYearSpan(country, kind, label)` | `hc_fiscal_year_span` | `FiscalYearSpan[]` |
-| `weekYearSystems()` | `hc_week_year_systems` | `WeekYearSystem[]` |
+| `weekYearSystems(locale)` | `hc_week_year_systems` | `WeekYearSystem[]`, each named in `locale` |
 | `weekYearOn(system, fixed)` | `hc_week_year_on` | a `WeekYearOfDay` |
 | `nameDayLists()` | `hc_name_day_lists` | `NameDayList[]` |
 | `nameDaysOn(country, fixed)` | `hc_name_days_on` | `NameDaysOfDay[]` |
@@ -681,7 +681,7 @@ warning an error, one job a layer.
 | `zone-names` | `hc_zone_name`, `hc_format_pattern`: a zone's name at an instant in a locale, as the CLDR fields `z`, `O`, `v` and `V` write it, from CLDR 48's metazones and names in every carried locale | `hc-tz`, `hc-format`'s `patterns::zone`, `hc-i18n`'s `zone_names` and every locale's exemplar cities: about 600 kB of names | 1,818,614 | 1.73 MiB |
 | `uncertainty` | `hc_edtf_parse`, `hc_edtf_relations`, `hc_significant`, `hc_significant_op`, `hc_uncertain`, `hc_uncertain_op`, `hc_interval`: significant figures, error bars, intervals and EDTF dates: how well a time is known, and the arithmetic that keeps it honest. From hc-uncertainty. | `hc-uncertainty`, `hc-calendar` | 143,994 | 141 KiB |
 | `units` | `hc_units`, `hc_unit_convert`, `hc_rates`, `hc_frame_period`, `hc_tempo`: the 53 exactly defined units of time, their lengths as exact ratios, conversions, frame and sample periods and note lengths at a tempo, from hc-units. | `hc-units` | 52,141 | 51 KiB |
-| `fiscal` | `hc_fiscal_profiles`, `hc_fiscal_year_on`, `hc_fiscal_year_span`, `hc_week_year_systems`, `hc_week_year_on`: fiscal, tax and academic years that do not begin on 1 January, and the 52/53-week reporting years, from hc-fiscal. | `hc-fiscal`, `hc-calendars-solar` | 134,622 | 131 KiB |
+| `fiscal` | `hc_fiscal_profiles`, `hc_fiscal_year_on`, `hc_fiscal_year_span`, `hc_week_year_systems`, `hc_week_year_on`: fiscal, tax and academic years that do not begin on 1 January, and the 52/53-week reporting years, from hc-fiscal. | `hc-fiscal`, `hc-calendars-solar`, `hc-i18n` | 151,345 | 148 KiB |
 | `name-days` | `hc_name_day_lists`, `hc_name_days_on`, `hc_name_day`: name-day lists, each a named edition of a named authority, and the countries whose list the crate declines to ship, from hc-name-days. | `hc-name-days` | 197,197 | 193 KiB |
 | `attributes` | `hc_attribution_authorities`, `hc_attributions`, `hc_attributions_on`, `hc_harvest_moon`: birthstones, birth flowers, full-moon names, month names, zodiac stones and weekday attributions, each list named with its authority, and the Harvest Moon, from hc-attributes. | `hc-attributes`, `hc-seasons`, `hc-astro` | 135,125 | 132 KiB |
 | `full` | all of the above, `places` included, and nothing else: the facade's own `full`, whose extra crates no export reads, is not enabled | everything the layers above bring in | 8,970,669 | 8.56 MiB |
@@ -1075,7 +1075,7 @@ not pass CI.
 | `hc_fiscal_profiles(buffer: *mut u8, capacity: usize) -> i64` | `fiscal` | Every fiscal, tax and academic year system the crate carries, country by country, as UTF-8 lines, returning the byte length written. |
 | `hc_fiscal_year_on(country: *const u8, country_len: usize, kind: *const u8, kind_len: usize, fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `fiscal` | What the year systems of a country say a fixed day is, as UTF-8 lines, returning the byte length written. |
 | `hc_fiscal_year_span(country: *const u8, country_len: usize, kind: *const u8, kind_len: usize, label: i64, buffer: *mut u8, capacity: usize) -> i64` | `fiscal` | The span of the year a label names in each year system of a country, as UTF-8 lines, returning the byte length written. |
-| `hc_week_year_systems(buffer: *mut u8, capacity: usize) -> i64` | `fiscal` | Every named year of whole weeks, as UTF-8 lines, returning the byte length written. |
+| `hc_week_year_systems(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `fiscal` | Every named year of whole weeks, as UTF-8 lines, returning the byte length written. |
 | `hc_week_year_on(system: *const u8, system_len: usize, fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `fiscal` | Where a fixed day is in a year of whole weeks, as one UTF-8 line, returning the byte length written. |
 | `hc_name_day_lists(buffer: *mut u8, capacity: usize) -> i64` | `name-days` | Every name-day list the crate ships and every country it declines to ship one for, as UTF-8 lines, returning the byte length written. |
 | `hc_name_days_on(country: *const u8, country_len: usize, fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `name-days` | What the lists of a country name on a day, as UTF-8 lines, returning the byte length written. |
@@ -7948,24 +7948,30 @@ convention.
 
 ### Years of whole weeks
 
-`hc_week_year_systems(buffer, capacity)` writes lines of 10 cells: every
-named year of whole weeks. The NRF 4-5-4 retail calendar, ISO 8601's
-week-numbering year and a 4-4-5 year ending the last Saturday of December.
-The two anchor rules are two names and not one parameter: they put the year
-end up to a week apart and sometimes in different months.
+`hc_week_year_systems(locale, locale_len, buffer, capacity)` writes lines of 12
+cells: every named year of whole weeks, each with its name in `locale`. The NRF
+4-5-4 retail calendar, ISO 8601's week-numbering year and a 4-4-5 year ending
+the last Saturday of December. The two anchor rules are two names and not one
+parameter: they put the year end up to a week apart and sometimes in different
+months. `locale` is read as `hc_tropical_signs_in_year` reads it. The localized
+name of ISO 8601's week-numbering year is its term in that locale where one is
+carried; the NRF calendar and the 4-4-5 year carry no locale term, so they are
+English in every locale.
 
 | # | Column | Holds |
 | --- | --- | --- |
 | 1 | id | the system's identifier: `nrf-4-5-4`, `iso-8601-week-year` |
 | 2 | name | the English name |
-| 3 | weekday | the weekday the year ends on, Monday = 1 to Sunday = 7 |
-| 4 | month | the Gregorian month whose end the rule is applied to |
-| 5 | anchor rule | `last-weekday-of-month` or `weekday-nearest-month-end` |
-| 6 | label convention | `start-year` or `end-year` |
-| 7 | shape | how a quarter's thirteen weeks split into three periods: `4-4-5`, `4-5-4` or `5-4-4`; empty for a convention that numbers weeks and defines no periods |
-| 8 | note | what the entry does not claim |
-| 9 | source | the published definition |
-| 10 | sources checked | the date it was last checked, `YYYY-MM-DD` |
+| 3 | localized name | the name in `locale`: the ISO 8601 week-numbering year's term where one is carried, otherwise the English name |
+| 4 | locale used | the tag of the locale that answered: the entry's tag, such as `zh-Hant` for `zh-Hant-HK`, or `en` for the English name |
+| 5 | weekday | the weekday the year ends on, Monday = 1 to Sunday = 7 |
+| 6 | month | the Gregorian month whose end the rule is applied to |
+| 7 | anchor rule | `last-weekday-of-month` or `weekday-nearest-month-end` |
+| 8 | label convention | `start-year` or `end-year` |
+| 9 | shape | how a quarter's thirteen weeks split into three periods: `4-4-5`, `4-5-4` or `5-4-4`; empty for a convention that numbers weeks and defines no periods |
+| 10 | note | what the entry does not claim |
+| 11 | source | the published definition |
+| 12 | sources checked | the date it was last checked, `YYYY-MM-DD` |
 
 ### A day in a year of whole weeks
 

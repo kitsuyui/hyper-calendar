@@ -308,7 +308,8 @@ the names, the authority, the start in its calendar, the label convention,
 the validity bounds, the note, the date the sources were checked, the
 sources, the first year read and the unread spans), for `hc_fiscal_year_on`
 (18 cells) and for `hc_fiscal_year_span` (9 cells); one line per week-year
-system for `hc_week_year_systems` (10 cells) and `hc_week_year_on` (14). A
+system for `hc_week_year_systems` (12 cells, the name in the locale asked for and
+the tag of the locale that answered among them) and `hc_week_year_on` (14). A
 year line carries the label convention and the start's calendar as cells,
 never defaulted, since "FY2024" begins in 2024 in Japan and on 1 October
 2023 in the United States. Its status is `in-force`, `gap`, where the system
