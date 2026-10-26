@@ -1,0 +1,46 @@
+name: Release crates
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing version tag, for example v0.1.0
+        required: true
+        type: string
+      publish:
+        description: Publish after successful validation
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: crates-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Validate tag and publication order
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          set -eu
+          git check-ref-format "refs/tags/$RELEASE_TAG"
+          test "$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")" = "$(git rev-parse HEAD)"
+          python3 scripts/release/plan.py "$RELEASE_TAG"
+      - name: Test workspace
+        run: cargo test --workspace --all-features --locked
+      - name: Check workspace publication
+        run: cargo publish --workspace --dry-run --locked
+      - name: Publish workspace
+        if: inputs.publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish --workspace --locked
